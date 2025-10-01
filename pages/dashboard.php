@@ -14,7 +14,18 @@ $total_payments = $conn->query("SELECT SUM(amount) AS total FROM payments")->fet
 // Total expenses
 $total_expenses = $conn->query("SELECT SUM(amount) AS total FROM expenses")->fetch_assoc()['total'] ?? 0;
 // Outstanding fees (all due or pending, not cancelled)
-$outstanding_fees = $conn->query("SELECT SUM(amount) AS total FROM student_fees WHERE (status = 'due' OR status = 'pending' OR status = 'overdue') AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
+$outstanding_fees = 0;
+$students_result = $conn->query("SELECT id FROM students WHERE status = 'active'");
+while ($student = $students_result->fetch_assoc()) {
+    $student_id = $student['id'];
+    // Total fees assigned
+    $fees_result = $conn->query("SELECT COALESCE(SUM(amount),0) AS total FROM student_fees WHERE student_id = $student_id AND status != 'cancelled'");
+    $total_fees = $fees_result->fetch_assoc()['total'] ?? 0;
+    // Total payments made
+    $payments_result = $conn->query("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE student_id = $student_id");
+    $total_payments = $payments_result->fetch_assoc()['total'] ?? 0;
+    $outstanding_fees += max(0, $total_fees - $total_payments);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
