@@ -5,8 +5,8 @@ if (!is_logged_in()) {
     header('Location: login.php');
     exit;
 }
-// Total students
-$total_students = $conn->query("SELECT COUNT(*) AS count FROM students")->fetch_assoc()['count'];
+// Total students (active only)
+$total_students = $conn->query("SELECT COUNT(*) AS count FROM students WHERE status = 'active'")->fetch_assoc()['count'];
 // Total fees assigned (all non-cancelled)
 $total_fees_assigned = $conn->query("SELECT SUM(amount) AS total FROM student_fees WHERE status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
 // Total payments
