@@ -191,9 +191,21 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
                                         <td></td>
                                         <td><?php if (!empty($fee['notes'])): ?><i class="fas fa-sticky-note me-1"></i> <?php echo htmlspecialchars($fee['notes']); ?><?php endif; ?></td>
                                         <td>
-                                            <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>" class="btn btn-sm btn-success">
-                                                <i class="fas fa-credit-card me-1"></i>Pay Now
-                                            </a>
+                                            <div class="btn-group" role="group">
+                                                <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-credit-card me-1"></i>Pay Now
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                        onclick="editFee(<?php echo $fee['id']; ?>, <?php echo $student_id; ?>, '<?php echo htmlspecialchars($fee['fee_name'], ENT_QUOTES); ?>', <?php echo $fee['amount']; ?>, '<?php echo $fee['due_date']; ?>', '<?php echo htmlspecialchars($fee['term'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($fee['notes'] ?? '', ENT_QUOTES); ?>')"
+                                                        title="Edit this fee assignment">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="unassignFee(<?php echo $fee['id']; ?>, <?php echo $student_id; ?>, '<?php echo htmlspecialchars($fee['fee_name'], ENT_QUOTES); ?>', <?php echo $fee['amount']; ?>)"
+                                                        title="Remove this fee assignment">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -256,6 +268,291 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
         </div>
     </div>
 
+    <!-- Edit Fee Modal -->
+    <div class="modal fade" id="editFeeModal" tabindex="-1" aria-labelledby="editFeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editFeeModalLabel">
+                        <i class="fas fa-edit me-2"></i>Edit Fee Assignment
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editFeeForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editStudentFeeId" name="student_fee_id">
+                        <input type="hidden" id="editStudentId" name="student_id" value="<?php echo $student_id; ?>">
+                        
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-1" id="editModalFeeName">Fee Name</h6>
+                                        <p class="card-text text-muted">
+                                            <strong>Student:</strong> <?php echo htmlspecialchars($student_balance['student_name']); ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editFeeAmount" class="form-label">
+                                    <i class="fas fa-money-bill me-1"></i>Amount (GH₵)
+                                </label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="editFeeAmount" name="amount" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editFeeDueDate" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>Due Date
+                                </label>
+                                <input type="date" class="form-control" id="editFeeDueDate" name="due_date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editFeeTerm" class="form-label">
+                                    <i class="fas fa-calendar-alt me-1"></i>Term/Period
+                                </label>
+                                <select class="form-select" id="editFeeTerm" name="term">
+                                    <option value="">Select Term...</option>
+                                    <option value="1st Term">1st Term</option>
+                                    <option value="2nd Term">2nd Term</option>
+                                    <option value="3rd Term">3rd Term</option>
+                                    <option value="Annual">Annual</option>
+                                    <option value="One-time">One-time</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editFeeStatus" class="form-label">
+                                    <i class="fas fa-flag me-1"></i>Status
+                                </label>
+                                <select class="form-select" id="editFeeStatus" name="status">
+                                    <option value="pending">Pending</option>
+                                    <option value="due">Due</option>
+                                    <option value="overdue">Overdue</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editFeeNotes" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>Notes
+                            </label>
+                            <textarea class="form-control" id="editFeeNotes" name="notes" rows="3" placeholder="Add any notes or comments about this fee..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unassign Fee Confirmation Modal -->
+    <div class="modal fade" id="unassignFeeModal" tabindex="-1" aria-labelledby="unassignFeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="unassignFeeModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Unassign Fee
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone!
+                    </div>
+                    <p>Are you sure you want to unassign the following fee?</p>
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title mb-1" id="modalFeeName">Fee Name</h6>
+                            <p class="card-text">
+                                <strong>Amount:</strong> <span id="modalFeeAmount">GH₵0.00</span><br>
+                                <strong>Student:</strong> <?php echo htmlspecialchars($student_balance['student_name']); ?>
+                            </p>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This will completely remove the fee assignment. If the student needs to pay this fee later, you will need to reassign it.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmUnassignBtn">
+                        <i class="fas fa-trash me-1"></i>Yes, Unassign Fee
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let currentFeeId = null;
+        let currentStudentId = null;
+
+        function editFee(studentFeeId, studentId, feeName, feeAmount, dueDate, term, notes) {
+            // Set form values
+            document.getElementById('editStudentFeeId').value = studentFeeId;
+            document.getElementById('editStudentId').value = studentId;
+            document.getElementById('editModalFeeName').textContent = feeName;
+            document.getElementById('editFeeAmount').value = parseFloat(feeAmount).toFixed(2);
+            document.getElementById('editFeeDueDate').value = dueDate;
+            document.getElementById('editFeeTerm').value = term || '';
+            document.getElementById('editFeeNotes').value = notes || '';
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('editFeeModal'));
+            modal.show();
+        }
+
+        function unassignFee(studentFeeId, studentId, feeName, feeAmount) {
+            currentFeeId = studentFeeId;
+            currentStudentId = studentId;
+            
+            // Update modal content
+            document.getElementById('modalFeeName').textContent = feeName;
+            document.getElementById('modalFeeAmount').textContent = 'GH₵' + parseFloat(feeAmount).toFixed(2);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('unassignFeeModal'));
+            modal.show();
+        }
+
+        // Handle edit form submission
+        document.getElementById('editFeeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            // Show loading state
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+            submitBtn.disabled = true;
+            
+            // Send AJAX request
+            fetch('edit_student_fee.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message);
+                    
+                    // Close modal and reload page
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editFeeModal'));
+                    modal.hide();
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert('danger', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'An error occurred while updating the fee. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        // Handle confirmation
+        document.getElementById('confirmUnassignBtn').addEventListener('click', function() {
+            if (currentFeeId && currentStudentId) {
+                // Show loading state
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+                this.disabled = true;
+                
+                // Send AJAX request
+                fetch('unassign_fee.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_fee_id: currentFeeId,
+                        student_id: currentStudentId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        showAlert('success', data.message);
+                        
+                        // Reload page to reflect changes
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // Show error message
+                        showAlert('danger', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'An error occurred while unassigning the fee. Please try again.');
+                })
+                .finally(() => {
+                    // Reset button and close modal
+                    document.getElementById('confirmUnassignBtn').innerHTML = '<i class="fas fa-trash me-1"></i>Yes, Unassign Fee';
+                    document.getElementById('confirmUnassignBtn').disabled = false;
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('unassignFeeModal'));
+                    modal.hide();
+                    
+                    // Reset variables
+                    currentFeeId = null;
+                    currentStudentId = null;
+                });
+            }
+        });
+
+        function showAlert(type, message) {
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.minWidth = '300px';
+            
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Add to page
+            document.body.appendChild(alertDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

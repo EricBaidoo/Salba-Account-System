@@ -24,7 +24,7 @@ if ($status_filter) {
 }
 
 if (!empty($class_filter)) {
-    $where_conditions[] = "REPLACE(class, ' ', '') = REPLACE(?, ' ', '')";
+    $where_conditions[] = "LOWER(TRIM(class)) = LOWER(TRIM(?))";
     $params[] = $class_filter;
     $param_types .= 's';
 }

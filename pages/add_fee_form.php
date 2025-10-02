@@ -499,8 +499,34 @@ if ($classes_result) {
         }
 
         function applyCategoryPreset() {
-            document.querySelector('input[name="category_amounts[early_years]"]').value = '700';
-            document.querySelector('input[name="category_amounts[primary]"]').value = '800';
+            // Apply tuition preset for category-based fees
+            // Set amounts based on actual level names from database
+            
+            // Early years categories (GH₵700)
+            const earlyYearsLevels = ['Nursery', 'KG', 'Creche', 'Early Years'];
+            earlyYearsLevels.forEach(level => {
+                const input = document.querySelector(`input[name="category_amounts[${level}]"]`);
+                if (input) input.value = '700';
+            });
+            
+            // Primary categories (GH₵800) 
+            const primaryLevels = ['Primary', 'Basic', 'Elementary'];
+            primaryLevels.forEach(level => {
+                const input = document.querySelector(`input[name="category_amounts[${level}]"]`);
+                if (input) input.value = '800';
+            });
+            
+            // Also try generic approach - set all visible category inputs
+            document.querySelectorAll('#categoryBasedAmounts input[name^="category_amounts"]').forEach(input => {
+                if (!input.value) { // Only set if empty
+                    const levelName = input.name.match(/category_amounts\[(.*?)\]/)[1].toLowerCase();
+                    if (levelName.includes('nursery') || levelName.includes('kg') || levelName.includes('creche')) {
+                        input.value = '700';
+                    } else if (levelName.includes('primary') || levelName.includes('basic') || levelName.includes('elementary')) {
+                        input.value = '800';
+                    }
+                }
+            });
         }
 
         // Form validation before submission
