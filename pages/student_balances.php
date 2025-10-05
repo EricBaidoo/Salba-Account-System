@@ -28,6 +28,8 @@ if ($owing_filter === 'owing') {
 
 // Calculate summary statistics
 $total_students = count($student_balances);
+$total_fees = array_sum(array_column($student_balances, 'total_fees'));
+$total_payments = array_sum(array_column($student_balances, 'total_payments'));
 $total_owing = array_sum(array_column($student_balances, 'net_balance'));
 $students_with_balance = count(array_filter($student_balances, function($s) { return $s['net_balance'] > 0; }));
 
@@ -152,29 +154,29 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="stats-card">
+                    <div class="stats-icon bg-secondary text-white">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h4 class="mb-1">GH₵<?php echo number_format($total_fees, 2); ?></h4>
+                    <p class="text-muted mb-0">Total Fees</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card">
                     <div class="stats-icon bg-success text-white">
                         <i class="fas fa-money-bill-wave"></i>
                     </div>
+                    <h4 class="mb-1">GH₵<?php echo number_format($total_payments, 2); ?></h4>
+                    <p class="text-muted mb-0">Total Paid</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card">
+                    <div class="stats-icon bg-danger text-white">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
                     <h4 class="mb-1">GH₵<?php echo number_format($total_owing, 2); ?></h4>
-                    <p class="text-muted mb-0">Total Outstanding</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-warning text-white">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h4 class="mb-1"><?php echo $students_with_balance; ?></h4>
-                    <p class="text-muted mb-0">Students Owing</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-info text-white">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h4 class="mb-1"><?php echo ($total_students - $students_with_balance); ?></h4>
-                    <p class="text-muted mb-0">Paid Up</p>
+                    <p class="text-muted mb-0">Outstanding</p>
                 </div>
             </div>
         </div>

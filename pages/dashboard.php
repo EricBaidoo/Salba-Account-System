@@ -21,10 +21,10 @@ while ($student = $students_result->fetch_assoc()) {
     // Total fees assigned
     $fees_result = $conn->query("SELECT COALESCE(SUM(amount),0) AS total FROM student_fees WHERE student_id = $student_id AND status != 'cancelled'");
     $total_fees = $fees_result->fetch_assoc()['total'] ?? 0;
-    // Total payments made
+    // Total payments made for this student
     $payments_result = $conn->query("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE student_id = $student_id");
-    $total_payments = $payments_result->fetch_assoc()['total'] ?? 0;
-    $outstanding_fees += max(0, $total_fees - $total_payments);
+    $student_payments = $payments_result->fetch_assoc()['total'] ?? 0;
+    $outstanding_fees += max(0, $total_fees - $student_payments);
 }
 ?>
 <!DOCTYPE html>
