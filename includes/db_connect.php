@@ -1,12 +1,24 @@
 <?php
 // Database connection for Salba Montessori Accounting System
-$servername = "localhost";
-$username = "root"; // Change if not using default XAMPP user
-$password = "root";    // Change if you set a password for root
-$dbname = "Salba_acc";
+
+if (
+    $_SERVER['SERVER_NAME'] === 'localhost' ||
+    $_SERVER['SERVER_ADDR'] === '127.0.0.1'
+) {
+    // Local environment
+    $servername = "localhost";
+    $username = "root"; // Change if not using default XAMPP user
+    $password = "root";    // Change if you set a password for root
+    $dbname = "Salba_acc";
+} else {
+    // Online/hosted environment
+    $servername = "localhost"; // Your Hostinger MySQL host
+    $username = "u420775839_salba_admin1";
+    $password = "Eric0056@2024";
+    $dbname = "u420775839_salba_acc1";
+}
 
 // Create connection
-
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Set charset and collation for all operations
