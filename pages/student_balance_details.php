@@ -5,27 +5,41 @@ if (!is_logged_in()) {
     exit;
 }
 include '../includes/db_connect.php';
+include '../includes/system_settings.php';
 include '../includes/student_balance_functions.php';
+require_once '../includes/term_helpers.php';
 
 $student_id = intval($_GET['id'] ?? 0);
+
+// Get current term from system settings or URL parameter
+$current_term = getCurrentTerm($conn);
+$selected_term = $_GET['term'] ?? $current_term;
+$default_academic_year = getAcademicYear($conn);
+$selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
+$display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
 
 if ($student_id === 0) {
     header('Location: student_balances.php');
     exit;
 }
 
-// Get student balance information
-$student_balance = getStudentBalance($conn, $student_id);
+// Ensure arrears are carried forward as an assigned fee in the current term BEFORE computing balances
+ensureArrearsAssignment($conn, $student_id, $selected_term, $selected_academic_year);
+
+// Get student balance information for selected term/year (now includes arrears assignment)
+$student_balance = getStudentBalance($conn, $student_id, $selected_term, $selected_academic_year);
 if (!$student_balance) {
     header('Location: student_balances.php');
     exit;
 }
 
-// Get outstanding fees
-$outstanding_fees = getStudentOutstandingFees($conn, $student_id);
+// Get all assigned fees for selected term/year (pending or paid)
+$term_fees = getStudentTermFees($conn, $student_id, $selected_term, $selected_academic_year);
 
-// Get payment history
-$payment_history = getStudentPaymentHistory($conn, $student_id);
+// Get payment history for selected term/year
+$payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, $selected_academic_year);
+
+// Arrears are now represented as a fee within the current term via ensureArrearsAssignment
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,126 +50,135 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        body { background: #f6f8fa; }
-        .student-header {
-            background: linear-gradient(120deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 2.5rem 0 2rem 0;
-            margin-bottom: 2.5rem;
-            border-radius: 0 0 2rem 2rem;
-            box-shadow: 0 8px 32px rgba(106,17,203,0.08);
-        }
-        .student-header .avatar {
-            width: 80px; height: 80px; border-radius: 50%; background: #fff; color: #2575fc; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; margin-right: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-        .balance-summary {
-            background: #fff;
-            border-radius: 1.5rem;
-            padding: 2.5rem 2rem 2rem 2rem;
-            box-shadow: 0 4px 24px rgba(37,117,252,0.07);
-            margin-bottom: 2.5rem;
-        }
-        .summary-item {
-            border-radius: 1rem;
-            padding: 1.5rem 1rem;
-            margin-bottom: 1rem;
-            background: #f8fafd;
-            box-shadow: 0 2px 8px rgba(37,117,252,0.03);
-        }
-        .summary-item .icon {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-        .summary-item .label {
-            font-size: 1.1rem;
-            color: #6c757d;
-        }
-        .summary-item .value {
-            font-size: 1.7rem;
-            font-weight: 700;
-        }
-        .summary-item.owing .value { color: #dc3545; }
-        .summary-item.paid .value { color: #28a745; }
-        .summary-item.balance .value { color: #2575fc; }
-        .summary-item.pending .value { color: #ffc107; }
-        .card-section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2575fc;
-            margin-bottom: 1rem;
-        }
-        .fee-card, .payment-card {
-            border-radius: 1rem;
-            box-shadow: 0 2px 12px rgba(37,117,252,0.04);
-            margin-bottom: 1.2rem;
-            border: none;
-        }
-        .fee-card.overdue { border-left: 5px solid #dc3545; }
-        .fee-card.due-soon { border-left: 5px solid #ffc107; }
-        .fee-card.pending { border-left: 5px solid #6c757d; }
-        .fee-card .badge, .payment-card .badge { font-size: 0.95rem; }
-        .fee-card .fw-bold, .payment-card .fw-bold { font-size: 1.1rem; }
-        .payment-card { border-left: 5px solid #28a745; }
-        .quick-actions .btn { min-width: 160px; margin-bottom: 0.5rem; }
-        @media (max-width: 767px) {
-            .student-header { text-align: center; padding: 2rem 0 1.5rem 0; }
-            .student-header .avatar { margin: 0 auto 1rem auto; }
-        }
-    </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>Salba Montessori
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link text-primary" href="student_balances.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Balances
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="student_balances.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Balances
                 </a>
             </div>
-        </div>
-    </nav>
-
-    <!-- Student Header -->
-    <div class="student-header mb-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-2 d-flex justify-content-center align-items-center">
-                    <div class="avatar">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                </div>
-                <div class="col-md-7">
-                    <h2 class="fw-bold mb-1"><?php echo htmlspecialchars($student_balance['student_name']); ?></h2>
-                    <div class="mb-2">
-                        <span class="badge bg-primary fs-6"><i class="fas fa-layer-group me-1"></i><?php echo htmlspecialchars($student_balance['class']); ?></span>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="clean-page-title"><i class="fas fa-user-graduate me-2"></i><?php echo htmlspecialchars($student_balance['student_name']); ?></h1>
+                    <p class="clean-page-subtitle">
+                        <span class="clean-badge clean-badge-primary me-2">
+                            <i class="fas fa-layer-group me-1"></i><?php echo htmlspecialchars($student_balance['class']); ?>
+                        </span>
                         <?php if ($student_balance['student_status'] === 'inactive'): ?>
-                            <span class="badge bg-secondary ms-2">Inactive</span>
+                            <span class="clean-badge clean-badge-danger">Inactive</span>
                         <?php endif; ?>
-                    </div>
+                    </p>
+                    <p class="text-muted small"><i class="fas fa-calendar-alt me-1"></i>Term: <?php echo htmlspecialchars($selected_term); ?> | <i class="fas fa-graduation-cap me-1"></i>Year: <?php echo htmlspecialchars($display_academic_year); ?></p>
                 </div>
-                <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>" class="btn btn-success btn-lg me-2 mb-2">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 py-4">
+                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="btn btn-light btn-lg shadow-sm d-block d-md-inline-block mb-2">
                         <i class="fas fa-credit-card me-2"></i>Record Payment
                     </a>
-                    <a href="assign_fee_form.php?student_id=<?php echo $student_id; ?>" class="btn btn-outline-light btn-lg mb-2">
+                    <a href="assign_fee_form.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="btn btn-outline-light btn-lg shadow-sm d-block d-md-inline-block">
                         <i class="fas fa-plus me-2"></i>Assign Fee
+                    </a>
+                    <a href="download_term_invoice.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" target="_blank" class="btn btn-success btn-lg shadow-sm d-block d-md-inline-block ms-md-2 mt-2 mt-md-0">
+                        <i class="fas fa-download me-2"></i>Download Invoice (PDF)
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="container mb-3">
+        <div class="d-flex justify-content-end">
+            <a class="btn btn-sm btn-outline-danger" href="reallocate_term_payments.php?student_id=<?php echo intval($student_id); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">Re-allocate payments for this term</a>
+        </div>
+    </div>
+
     <div class="container">
+        <!-- Term Selector -->
+        <div class="row mb-4 g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <label for="termFilter" class="form-label fw-bold">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>Academic Term
+                        </label>
+                        <select class="form-select" id="termFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&term=' + this.value + '&academic_year=' + encodeURIComponent(document.getElementById('yearFilter').value);">
+                            <?php 
+                            $available_terms = getAvailableTerms();
+                            foreach ($available_terms as $term): 
+                            ?>
+                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $term === $selected_term ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($term); ?>
+                                    <?php if ($term === $current_term): ?>(Current)<?php endif; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="mt-3">
+                            <label for="yearFilter" class="form-label fw-bold">
+                                <i class="fas fa-graduation-cap text-info me-2"></i>Academic Year
+                            </label>
+                            <select class="form-select" id="yearFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&term=' + encodeURIComponent(document.getElementById('termFilter').value) + '&academic_year=' + this.value;">
+                                <?php 
+                                $year_options = [];
+                                $yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+                                if ($yrs_rs) {
+                                    while ($yr = $yrs_rs->fetch_assoc()) {
+                                        if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+                                    }
+                                    $yrs_rs->close();
+                                }
+                                if (!in_array($default_academic_year, $year_options, true)) { array_unshift($year_options, $default_academic_year); }
+                                foreach ($year_options as $yr): ?>
+                                    <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($yr === $selected_academic_year) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $yr)); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-wallet text-success me-2"></i>Balance Summary</h6>
+                        <div class="row text-center g-2">
+                            <div class="col-4">
+                                <div class="text-muted small mb-1">Total Fees</div>
+                                <div class="fw-bold text-primary fs-5">GH₵<?php echo number_format($student_balance['total_fees'], 2); ?></div>
+                                <?php if ($student_balance['arrears'] > 0): ?>
+                                    <small class="text-danger d-block mt-1"><i class="fas fa-exclamation-circle"></i> +GH₵<?php echo number_format($student_balance['arrears'], 2); ?> arrears</small>
+                                <?php endif; ?>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted small mb-1">Payments</div>
+                                <div class="fw-bold text-success fs-5">GH₵<?php echo number_format($student_balance['total_payments'], 2); ?></div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted small mb-1">Balance</div>
+                                <div class="fw-bold <?php echo $student_balance['net_balance'] > 0 ? 'text-danger' : 'text-success'; ?> fs-5">
+                                    GH₵<?php echo number_format($student_balance['net_balance'], 2); ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Balance Summary -->
         <div class="row g-4 mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm p-3">
-                    <div class="card-section-title mb-2"><i class="fas fa-list text-primary me-2"></i>Student Bill & Payment Details</div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="card-section-title"><i class="fas fa-list me-2"></i>Student Bill & Payment Details</div>
+                        <div class="clean-table-scroll">
                         <table class="table table-bordered table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -171,30 +194,47 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Outstanding Fees -->
-                                <?php if (!empty($outstanding_fees)): ?>
-                                    <?php foreach($outstanding_fees as $fee): ?>
+                                <!-- Term Fees (pending or paid) -->
+                                <?php if (!empty($term_fees)): ?>
+                                    <?php foreach($term_fees as $fee): ?>
                                     <tr>
-                                        <td><span class="badge bg-danger">Fee</span></td>
-                                        <td><?php echo htmlspecialchars($fee['fee_name']); ?></td>
-                                        <td class="fw-bold">GH₵<?php echo number_format($fee['amount'], 2); ?></td>
-                                        <td><?php echo date('M j, Y', strtotime($fee['due_date'])); ?></td>
-                                        <td><?php echo htmlspecialchars($fee['term'] ?? ''); ?></td>
                                         <td>
-                                            <span class="badge <?php 
-                                                echo $fee['payment_status'] === 'Overdue' ? 'bg-danger' : 
-                                                    ($fee['payment_status'] === 'Due Soon' ? 'bg-warning text-dark' : 'bg-secondary'); 
-                                            ?>">
-                                                <?php echo $fee['payment_status']; ?>
+                                            <?php 
+                                                $name = strtolower(trim($fee['fee_name']));
+                                                $is_ob_fee = ($name === 'outstanding balance' || $name === 'arrears carry forward');
+                                            ?>
+                                            <span class="badge <?php echo $is_ob_fee ? 'bg-warning text-dark' : 'bg-danger'; ?>">
+                                                <i class="fas <?php echo $is_ob_fee ? 'fa-exclamation-circle' : 'fa-file-invoice'; ?> me-1"></i>
+                                                <?php echo $is_ob_fee ? 'Outstanding' : 'Fee'; ?>
                                             </span>
                                         </td>
-                                        <td></td>
-                                        <td><?php if (!empty($fee['notes'])): ?><i class="fas fa-sticky-note me-1"></i> <?php echo htmlspecialchars($fee['notes']); ?><?php endif; ?></td>
+                                        <td class="fw-semibold"><?php echo htmlspecialchars($fee['fee_name']); ?></td>
+                                        <td class="fw-bold <?php echo ($fee['status'] === 'paid') ? 'text-success' : 'text-danger'; ?>">GH₵<?php echo number_format($fee['amount'], 2); ?></td>
                                         <td>
+                                            <?php if (!empty($fee['due_date'])): ?>
+                                                <i class="far fa-calendar me-1"></i><?php echo date('M j, Y', strtotime($fee['due_date'])); ?>
+                                            <?php else: ?>-<?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($fee['term'] ?? ''); ?></td>
+                                        <td>
+                                            <span class="badge <?php echo ($fee['status'] === 'paid') ? 'bg-success' : 'bg-secondary'; ?>">
+                                                <?php echo ucfirst($fee['status']); ?>
+                                            </span>
+                                        </td>
+                                        <td>-</td>
+                                        <td><?php if (!empty($fee['notes'])): ?><i class="fas fa-sticky-note me-1 text-muted"></i> <?php echo htmlspecialchars($fee['notes']); ?><?php endif; ?></td>
+                                        <td>
+                                            <?php if ($is_ob_fee): ?>
+                                                <span class="badge bg-info" title="Auto-managed from previous term">
+                                                    <i class="fas fa-robot me-1"></i>Auto-calculated
+                                                </span>
+                                            <?php else: ?>
                                             <div class="btn-group" role="group">
-                                                <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>" class="btn btn-sm btn-success">
-                                                    <i class="fas fa-credit-card me-1"></i>Pay Now
-                                                </a>
+                                                <?php if ($fee['status'] !== 'paid'): ?>
+                                                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="btn btn-sm btn-success" title="Pay this fee">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                <?php endif; ?>
                                                 <button type="button" class="btn btn-sm btn-outline-primary" 
                                                         onclick="editFee(<?php echo $fee['id']; ?>, <?php echo $student_id; ?>, '<?php echo htmlspecialchars($fee['fee_name'], ENT_QUOTES); ?>', <?php echo $fee['amount']; ?>, '<?php echo $fee['due_date']; ?>', '<?php echo htmlspecialchars($fee['term'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($fee['notes'] ?? '', ENT_QUOTES); ?>')"
                                                         title="Edit this fee assignment">
@@ -206,25 +246,28 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
                                                     <i class="fas fa-times"></i>
                                                 </button>
                                             </div>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="9" class="text-center text-success">All Fees Paid!</td>
+                                        <td colspan="9" class="text-center text-success fw-bold py-3">
+                                            <i class="fas fa-check-circle me-2"></i>No fees assigned in this term
+                                        </td>
                                     </tr>
                                 <?php endif; ?>
                                 <!-- Payment History -->
                                 <?php if (!empty($payment_history)): ?>
                                     <?php foreach($payment_history as $payment): ?>
-                                    <tr>
-                                        <td><span class="badge bg-success">Payment</span></td>
-                                        <td>Payment</td>
-                                        <td class="fw-bold">GH₵<?php echo number_format($payment['amount'], 2); ?></td>
-                                        <td><?php echo date('M j, Y', strtotime($payment['payment_date'])); ?></td>
-                                        <td></td>
-                                        <td><span class="badge bg-success"><i class="fas fa-check"></i> Paid</span></td>
-                                        <td><?php echo htmlspecialchars($payment['receipt_no'] ?? ''); ?></td>
+                                    <tr class="table-success-light">
+                                        <td><span class="badge bg-success"><i class="fas fa-money-bill-wave me-1"></i>Payment</span></td>
+                                        <td class="fw-semibold">Payment Received</td>
+                                        <td class="fw-bold text-success">GH₵<?php echo number_format($payment['amount'], 2); ?></td>
+                                        <td><i class="far fa-calendar me-1"></i><?php echo date('M j, Y', strtotime($payment['payment_date'])); ?></td>
+                                        <td><?php echo htmlspecialchars($payment['term'] ?? ''); ?></td>
+                                        <td><span class="badge bg-success"><i class="fas fa-check me-1"></i>Paid</span></td>
+                                        <td><span class="badge bg-info"><?php echo htmlspecialchars($payment['receipt_no'] ?? 'N/A'); ?></span></td>
                                         <td><?php echo htmlspecialchars($payment['description'] ?? ''); ?></td>
                                         <td>
                                             <div class="btn-group" role="group">
@@ -271,7 +314,9 @@ function deletePayment(paymentId, studentId) {
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted">No Payments Yet</td>
+                                        <td colspan="9" class="text-center text-muted py-3">
+                                            <i class="fas fa-info-circle me-2"></i>No Payments Recorded Yet
+                                        </td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -281,27 +326,29 @@ function deletePayment(paymentId, studentId) {
                 </div>
             </div>
         </div>
-        </div>
 
         <!-- Quick Actions -->
-        <div class="row mt-5 mb-4 quick-actions justify-content-center">
-            <div class="col-auto">
-                <a href="student_balances.php" class="btn btn-outline-secondary">
+        <div class="row mt-5 mb-5 quick-actions text-center">
+            <div class="col-12 mb-3">
+                <h5 class="text-muted"><i class="fas fa-link me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="student_balances.php" class="btn btn-outline-secondary btn-lg w-100 shadow-sm">
                     <i class="fas fa-balance-scale me-2"></i>All Balances
                 </a>
             </div>
-            <div class="col-auto">
-                <a href="view_students.php" class="btn btn-outline-primary">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="view_students.php" class="btn btn-outline-primary btn-lg w-100 shadow-sm">
                     <i class="fas fa-users me-2"></i>All Students
                 </a>
             </div>
-            <div class="col-auto">
-                <a href="view_payments.php?student_id=<?php echo $student_id; ?>" class="btn btn-outline-success">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="view_payments.php?student_id=<?php echo $student_id; ?>" class="btn btn-outline-success btn-lg w-100 shadow-sm">
                     <i class="fas fa-history me-2"></i>Full Payment History
                 </a>
             </div>
-            <div class="col-auto">
-                <a href="dashboard.php" class="btn btn-outline-info">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <a href="dashboard.php" class="btn btn-outline-info btn-lg w-100 shadow-sm">
                     <i class="fas fa-home me-2"></i>Dashboard
                 </a>
             </div>
@@ -358,12 +405,15 @@ function deletePayment(paymentId, studentId) {
                                 </label>
                                 <select class="form-select" id="editFeeTerm" name="term">
                                     <option value="">Select Term...</option>
-                                    <option value="1st Term">1st Term</option>
-                                    <option value="2nd Term">2nd Term</option>
-                                    <option value="3rd Term">3rd Term</option>
+                                    <?php 
+                                        $available_terms = getAvailableTerms();
+                                        foreach ($available_terms as $t): ?>
+                                        <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars($t); ?></option>
+                                    <?php endforeach; ?>
                                     <option value="Annual">Annual</option>
                                     <option value="One-time">One-time</option>
                                 </select>
+                                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>Changing the term moves this fee to that term. It may no longer appear in the current view.</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="editFeeStatus" class="form-label">

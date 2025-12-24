@@ -20,167 +20,25 @@ if ($classes_result) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .fee-wizard {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.1);
-        }
-        
-        .fee-type-card {
-            border: 2px solid transparent;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            height: 100%;
-            border-radius: 15px;
-            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-        }
-        
-        .fee-type-card:hover {
-            border-color: #667eea;
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.25);
-        }
-        
-        .fee-type-card.selected {
-            border-color: #667eea;
-            background: linear-gradient(145deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.12) 100%);
-            transform: translateY(-5px);
-        }
-        
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .step {
-            display: flex;
-            align-items: center;
-            color: #9ca3af;
-        }
-        
-        .step.active {
-            color: #667eea;
-        }
-        
-        .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .step.active .step-number {
-            background: #667eea;
-            color: white;
-        }
-        
-        .step-connector {
-            width: 80px;
-            height: 2px;
-            background: #e5e7eb;
-            margin: 0 1rem;
-        }
-        
-        .step.active .step-connector {
-            background: #667eea;
-        }
-        
-        .form-section {
-            display: none;
-            animation: fadeInUp 0.5s ease;
-        }
-        
-        .form-section.active {
-            display: block;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .class-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        
-        .class-input-card {
-            background: #f8f9ff;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .class-input-card:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-        
-        .preset-btn {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 0.5rem 1.5rem;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .preset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
-            color: white;
-        }
-        
-        .amount-preview {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-    </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="view_fees.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Fees
                 </a>
             </div>
+            <div class="text-center">
+                <h1 class="clean-page-title"><i class="fas fa-money-bill-wave me-2"></i>Create New Fee</h1>
+                <p class="clean-page-subtitle">Set up fees for your school with our easy-to-use wizard</p>
+            </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container mt-4">
-        <div class="text-center mb-4">
-            <h2><i class="fas fa-money-bill-wave me-3 text-primary"></i>Create New Fee</h2>
-            <p class="text-muted">Set up fees for your school with our easy-to-use wizard</p>
-        </div>
+    <div class="container-fluid px-4 py-4">
 
         <!-- Step Indicator -->
         <div class="step-indicator">
@@ -200,7 +58,7 @@ if ($classes_result) {
             </div>
         </div>
 
-        <div class="fee-wizard mx-auto" style="max-width: 900px;">
+        <div class="fee-wizard mx-auto">
             <div class="p-4">
                 <form action="add_fee.php" method="POST" id="feeForm">
                     
@@ -271,7 +129,7 @@ if ($classes_result) {
                                     </select>
                                 </div>
                                 
-                                <div class="mb-4" id="customFeeGroup" style="display: none;">
+                                <div class="mb-4" id="customFeeGroup">
                                     <label for="custom_fee_name" class="form-label fw-bold">Custom Fee Name *</label>
                                     <input type="text" class="form-control" id="custom_fee_name" name="custom_fee_name" placeholder="Enter your custom fee name">
                                 </div>
@@ -284,7 +142,7 @@ if ($classes_result) {
                                 </div>
 
                                 <!-- Fixed Amount Input (if fixed type selected) -->
-                                <div class="mb-4" id="fixedAmountGroup" style="display: none;">
+                                <div class="mb-4" id="fixedAmountGroup">
                                     <label for="fixed_amount" class="form-label fw-bold">
                                         <i class="fas fa-dollar-sign me-2"></i>Amount (GH₵) *
                                     </label>
@@ -310,7 +168,7 @@ if ($classes_result) {
                         <h4 class="mb-4 text-center">Set Fee Amounts</h4>
                         
                         <!-- Class-Based Amounts -->
-                        <div id="classBasedAmounts" style="display: none;">
+                        <div id="classBasedAmounts" class="d-none">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5><i class="fas fa-layer-group me-2"></i>Individual Class Amounts</h5>
                                 <button type="button" class="btn preset-btn" onclick="applyTuitionPreset()">
@@ -336,7 +194,7 @@ if ($classes_result) {
                         </div>
 
                         <!-- Category-Based Amounts (Dynamic) -->
-                        <div id="categoryBasedAmounts" style="display: none;">
+                        <div id="categoryBasedAmounts" class="d-none">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5><i class="fas fa-tags me-2"></i>Category Amounts</h5>
                                 <button type="button" class="btn preset-btn" onclick="applyCategoryPreset()">

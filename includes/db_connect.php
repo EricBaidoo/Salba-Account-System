@@ -6,10 +6,20 @@ $password = "root";    // Change if you set a password for root
 $dbname = "Salba_acc";
 
 // Create connection
+
 $conn = new mysqli($servername, $username, $password, $dbname);
+
+// Set charset and collation for all operations
+$conn->set_charset('utf8mb4');
+$conn->query("SET collation_connection = 'utf8mb4_unicode_ci'");
+$conn->query("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'");
+$conn->query("SET character_set_results = 'utf8mb4'");
+$conn->query("SET character_set_client = 'utf8mb4'");
+$conn->query("SET character_set_connection = 'utf8mb4'");
+$conn->query("SET character_set_database = 'utf8mb4'");
+$conn->query("SET character_set_server = 'utf8mb4'");
 
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-?>

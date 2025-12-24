@@ -5,15 +5,45 @@ if (!is_logged_in()) {
     exit;
 }
 include '../includes/db_connect.php';
+include '../includes/system_settings.php';
 include '../includes/student_balance_functions.php';
+
+// Get current term and academic year from system settings
+$current_term = getCurrentTerm($conn);
+$default_academic_year = getAcademicYear($conn);
+
+// Allow manual term override via URL parameter (for historical viewing)
+$selected_term = $_GET['term'] ?? $current_term;
+// Academic year selection (override via GET if provided)
+$selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
+$display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
 
 // Get filter parameters
 $class_filter = $_GET['class'] ?? 'all';
 $status_filter = $_GET['status'] ?? 'active';
 $owing_filter = $_GET['owing'] ?? 'all'; // all, owing, paid_up
 
-// Get all student balances
-$student_balances = getAllStudentBalances($conn, $class_filter, $status_filter);
+// Ensure arrears assignment exists (or is removed) per filtered student before computing balances
+{
+    $where = [];
+    $params = [];
+    $types = '';
+    if ($status_filter && $status_filter !== 'all') { $where[] = "status = ?"; $params[] = $status_filter; $types .= 's'; }
+    if ($class_filter && $class_filter !== 'all') { $where[] = "class = ?"; $params[] = $class_filter; $types .= 's'; }
+    $sql = "SELECT id FROM students" . (empty($where) ? '' : (' WHERE ' . implode(' AND ', $where)));
+    $stmt = $conn->prepare($sql);
+    if (!empty($params)) { $stmt->bind_param($types, ...$params); }
+    if ($stmt->execute()) {
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            ensureArrearsAssignment($conn, intval($row['id']), $selected_term, $selected_academic_year);
+        }
+    }
+    $stmt->close();
+}
+
+// Get all student balances for the selected term/year (now includes arrears as part of fees)
+$student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);
 
 // Apply owing filter
 if ($owing_filter === 'owing') {
@@ -99,159 +129,124 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .balance-card {
-            transition: all 0.3s ease;
-            border: none;
-            margin-bottom: 1rem;
+        @media print {
+            .d-print-none { display: none !important; }
+            .print-header { display: block !important; margin-bottom: 16px; }
         }
-        .balance-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        @media screen {
+            .print-header { display: none; }
         }
-        .balance-amount {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-        .balance-owing {
-            color: #dc3545;
-        }
-        .balance-paid {
-            color: #28a745;
-        }
-        .balance-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-        .stats-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        .stats-card:hover {
-            transform: translateY(-3px);
-        }
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-        }
-        .filter-section {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        /* Circular progress small */
-        .circular-progress { width: 36px; height: 36px; display: inline-block; vertical-align: middle; }
-        .circular-progress svg { transform: rotate(-90deg); }
-        .circular-progress .bg { stroke: #e9ecef; stroke-width: 3.5; fill: none; }
-        .circular-progress .fg { stroke-width: 3.5; fill: none; stroke-linecap: round; }
-        .circular-progress .fg.green { stroke: #28a745; }
-        .circular-progress .fg.yellow { stroke: #ffc107; }
-        .circular-progress .fg.gray { stroke: #6c757d; }
     </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="dashboard.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
-        </div>
-    </nav>
-
-    <!-- Header -->
-    <div class="balance-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="display-6 fw-bold mb-2">
-                        <i class="fas fa-balance-scale me-3"></i>
-                        Student Balances
-                    </h1>
-                    <p class="lead mb-0">Track outstanding fees and payment status</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="clean-page-title"><i class="fas fa-balance-scale me-2"></i>Student Balances</h1>
+                    <p class="clean-page-subtitle">
+                        <span class="clean-badge clean-badge-primary me-2">
+                            <i class="fas fa-calendar-alt me-1"></i><?php echo htmlspecialchars($selected_term); ?>
+                        </span>
+                        <span class="clean-badge clean-badge-info">
+                            <i class="fas fa-graduation-cap me-1"></i><?php echo htmlspecialchars($display_academic_year); ?>
+                        </span>
+                    </p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="assign_fee_form.php" class="btn btn-light btn-lg me-2">
-                        <i class="fas fa-plus me-2"></i>Assign Fees
+                <div class="d-print-none">
+                    <a href="assign_fee_form.php" class="btn-clean-success me-2">
+                        <i class="fas fa-plus"></i> ASSIGN FEES
                     </a>
-                    <a href="record_payment_form.php" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-credit-card me-2"></i>Record Payment
+                    <a href="record_payment_form.php" class="btn-clean-primary">
+                        <i class="fas fa-credit-card"></i> RECORD PAYMENT
+                    </a>
+                    <a href="#" onclick="window.print()" class="btn-clean-outline ms-2">
+                        <i class="fas fa-print"></i> PRINT
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container">
+    <div class="container-fluid px-4 py-4">
         <!-- Summary Statistics -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-primary text-white">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h4 class="mb-1"><?php echo $total_students; ?></h4>
-                    <p class="text-muted mb-0">Total Students</p>
-                </div>
+        <div class="clean-stats-grid d-print-none">
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $total_students; ?></div>
+                <div class="clean-stat-label">Total Students</div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-secondary text-white">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <h4 class="mb-1">GH₵<?php echo number_format($total_fees, 2); ?></h4>
-                    <p class="text-muted mb-0">Total Fees</p>
-                </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value">GH₵<?php echo number_format($total_fees, 2); ?></div>
+                <div class="clean-stat-label">Total Fees</div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-success text-white">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h4 class="mb-1">GH₵<?php echo number_format($total_payments, 2); ?></h4>
-                    <p class="text-muted mb-0">Total Paid</p>
-                </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value">GH₵<?php echo number_format($total_payments, 2); ?></div>
+                <div class="clean-stat-label">Total Paid</div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="stats-card">
-                    <div class="stats-icon bg-danger text-white">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <h4 class="mb-1">GH₵<?php echo number_format($total_owing, 2); ?></h4>
-                    <p class="text-muted mb-0">Outstanding</p>
-                </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value">GH₵<?php echo number_format($total_owing, 2); ?></div>
+                <div class="clean-stat-label">Outstanding</div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="filter-section">
+        <div class="clean-filter-bar d-print-none">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">
+                <div class="col-md-2">
+                    <label class="clean-form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Term
+                    </label>
+                    <select name="term" class="clean-form-control">
+                        <?php 
+                        $available_terms = getAvailableTerms();
+                        foreach ($available_terms as $term): ?>
+                            <option value="<?php echo htmlspecialchars($term); ?>" 
+                                    <?php echo $selected_term === $term ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($term); ?>
+                                <?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="clean-form-label">
+                        <i class="fas fa-graduation-cap me-2"></i>Academic Year
+                    </label>
+                    <select name="academic_year" class="clean-form-control">
+                        <?php 
+                        // Build academic year options from data + default
+                        $year_options = [];
+                        $yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+                        if ($yrs_rs) {
+                            while ($yr = $yrs_rs->fetch_assoc()) {
+                                if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+                            }
+                            $yrs_rs->close();
+                        }
+                        if (!in_array($default_academic_year, $year_options, true)) { array_unshift($year_options, $default_academic_year); }
+                        foreach ($year_options as $yr): ?>
+                            <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($yr === $selected_academic_year) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $yr)); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="clean-form-label">
                         <i class="fas fa-layer-group me-2"></i>Class
                     </label>
-                    <select name="class" class="form-select">
+                    <select name="class" class="clean-form-control">
                         <option value="all" <?php echo $class_filter === 'all' ? 'selected' : ''; ?>>All Classes</option>
-                        <?php while($class_row = $classes_result->fetch_assoc()): ?>
+                        <?php 
+                        $classes_result->data_seek(0); // Reset pointer
+                        while($class_row = $classes_result->fetch_assoc()): ?>
                             <option value="<?php echo htmlspecialchars($class_row['class']); ?>" 
                                     <?php echo $class_filter === $class_row['class'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($class_row['class']); ?>
@@ -259,196 +254,173 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                         <?php endwhile; ?>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">
+                <div class="col-md-2">
+                    <label class="clean-form-label">
                         <i class="fas fa-user-check me-2"></i>Status
                     </label>
-                    <select name="status" class="form-select">
+                    <select name="status" class="clean-form-control">
                         <option value="active" <?php echo $status_filter === 'active' ? 'selected' : ''; ?>>Active Only</option>
                         <option value="inactive" <?php echo $status_filter === 'inactive' ? 'selected' : ''; ?>>Inactive Only</option>
                         <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Students</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">
+                <div class="col-md-2">
+                    <label class="clean-form-label">
                         <i class="fas fa-balance-scale me-2"></i>Balance
                     </label>
-                    <select name="owing" class="form-select">
+                    <select name="owing" class="clean-form-control">
                         <option value="all" <?php echo $owing_filter === 'all' ? 'selected' : ''; ?>>All Students</option>
                         <option value="owing" <?php echo $owing_filter === 'owing' ? 'selected' : ''; ?>>Owing Money</option>
                         <option value="paid_up" <?php echo $owing_filter === 'paid_up' ? 'selected' : ''; ?>>Paid Up</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">
+                <div class="col-md-2">
+                    <label class="clean-form-label">
                         <i class="fas fa-percent me-2"></i>Percent Paid
                     </label>
-                    <select name="percent" class="form-select" onchange="this.form.submit()">
+                    <select name="percent" class="clean-form-control" onchange="this.form.submit()">
                         <option value="all" <?php echo $percent_filter === 'all' ? 'selected' : ''; ?>>All</option>
                         <option value="below50" <?php echo $percent_filter === 'below50' ? 'selected' : ''; ?>>All students below 50%</option>
                         <option value="below75" <?php echo $percent_filter === 'below75' ? 'selected' : ''; ?>>All students below 75%</option>
                         <option value="below100" <?php echo $percent_filter === 'below100' ? 'selected' : ''; ?>>All students below 100%</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-md-2">
+                    <button type="submit" class="btn-clean-primary w-100">
                         <i class="fas fa-filter me-2"></i>Apply Filters
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Student Balances -->
-        <div class="row">
-            <?php if (!empty($student_balances)): ?>
-                <?php foreach($student_balances as $student): ?>
-                    <div class="col-lg-6 col-xl-4 mb-4">
-                        <div class="card balance-card shadow-sm h-100">
-                            <div class="card-body">
-                                <!-- Student Info Header -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <?php
+        <!-- Print Header -->
+        <?php $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori'); ?>
+        <div class="print-header text-center">
+            <h3 class="mb-0"><?php echo htmlspecialchars($school_name); ?></h3>
+            <div class="small text-muted">Student Balances Report</div>
+            <div class="mt-1">
+                Term: <strong><?php echo htmlspecialchars($selected_term); ?></strong>
+                | Academic Year: <strong><?php echo htmlspecialchars($display_academic_year); ?></strong>
+                | Class: <strong><?php echo $class_filter !== 'all' ? htmlspecialchars($class_filter) : 'All Classes'; ?></strong>
+                | Status: <strong><?php echo htmlspecialchars(ucfirst($status_filter)); ?></strong>
+                | Balance: <strong><?php echo $owing_filter === 'all' ? 'All' : ($owing_filter === 'owing' ? 'Owing' : 'Paid Up'); ?></strong>
+            </div>
+            <div class="small text-muted">Printed on <?php echo date('M j, Y'); ?></div>
+        </div>
+
+        <!-- Student Balances (Table) -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-3">
+                        <?php if (!empty($student_balances)): ?>
+                        <div class="table-responsive">
+                            <table class="table pro-table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Class</th>
+                                        <th class="text-center">% Paid</th>
+                                        <th class="text-end">Total Fees</th>
+                                        <th class="text-end">Total Paid</th>
+                                        <th class="text-end">Balance</th>
+                                        <th class="text-center">Pending</th>
+                                        <th class="text-center">Paid</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($student_balances as $student): ?>
+                                        <?php 
                                             $total_fees = (float)($student['total_fees'] ?? 0);
                                             $total_payments = (float)($student['total_payments'] ?? 0);
                                             $paid_percent = 0;
-                                            if ($total_fees > 0) {
-                                                $paid_percent = min(100, ($total_payments / $total_fees) * 100);
-                                            } elseif ($total_payments > 0) {
-                                                $paid_percent = 100;
-                                            }
-                                            $badge_class = 'bg-secondary';
-                                            if ($paid_percent >= 100) {
-                                                $badge_class = 'bg-success';
-                                            } elseif ($paid_percent > 0) {
-                                                $badge_class = 'bg-warning text-dark';
-                                            }
+                                            if ($total_fees > 0) { $paid_percent = min(100, ($total_payments / $total_fees) * 100); }
+                                            elseif ($total_payments > 0) { $paid_percent = 100; }
+                                            $paid_percent_rounded = round($paid_percent);
+                                            if ($paid_percent_rounded >= 100) $bucket = 100; elseif ($paid_percent_rounded >= 75) $bucket = 75; elseif ($paid_percent_rounded >= 50) $bucket = 50; else $bucket = 0;
+                                            $outstanding = max(0, $total_fees - $total_payments);
                                         ?>
-                                        <h6 class="card-title mb-1 d-flex align-items-center gap-2">
-                                            <?php echo htmlspecialchars($student['student_name']); ?>
-                                            <?php
-                                                // Discrete buckets: 0, 50, 75, 100
-                                                if ($paid_percent >= 100) $bucket = 100;
-                                                elseif ($paid_percent >= 75) $bucket = 75;
-                                                elseif ($paid_percent >= 50) $bucket = 50;
-                                                else $bucket = 0;
-
-                                                $radius = 16; $circ = 2 * pi() * $radius; $offset = $circ * (1 - ($paid_percent/100));
-                                                $fg_class = 'gray';
-                                                if ($bucket === 100) $fg_class = 'green';
-                                                elseif ($bucket === 75 || $bucket === 50) $fg_class = 'yellow';
-                                                else $fg_class = 'gray';
-                                            ?>
-                                            <div class="circular-progress ms-2" title="<?php echo round($paid_percent,1); ?>% paid (shown as <?php echo $bucket; ?>%)">
-                                                <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
-                                                    <circle class="bg" cx="18" cy="18" r="16"></circle>
-                                                    <circle class="fg <?php echo $fg_class; ?>" cx="18" cy="18" r="16" stroke-dasharray="<?php echo $circ; ?>" stroke-dashoffset="<?php echo $offset; ?>"></circle>
-                                                </svg>
-                                                <small class="ms-1" style="font-size:0.8rem; vertical-align:middle;"><?php echo $bucket; ?>%</small>
-                                            </div>
-                                        </h6>
-                                        <small class="text-muted">
-                                            <i class="fas fa-layer-group me-1"></i><?php echo htmlspecialchars($student['class']); ?>
-                                            <?php if ($student['student_status'] === 'inactive'): ?>
-                                                <span class="badge bg-secondary ms-2">Inactive</span>
-                                            <?php endif; ?>
-                                        </small>
-                                    </div>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="student_balance_details.php?id=<?php echo $student['student_id']; ?>">
-                                                <i class="fas fa-eye me-2"></i>View Details
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="record_payment_form.php?student_id=<?php echo $student['student_id']; ?>">
-                                                <i class="fas fa-credit-card me-2"></i>Record Payment
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="assign_fee_form.php?student_id=<?php echo $student['student_id']; ?>">
-                                                <i class="fas fa-plus me-2"></i>Assign Fee
-                                            </a></li>
-                                                <li><a class="dropdown-item" href="student_percentage.php?id=<?php echo $student['student_id']; ?>">
-                                                    <i class="fas fa-chart-pie me-2"></i>Percentage
-                                                </a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <!-- Balance Information -->
-                                <div class="row text-center">
-                                    <div class="col-6">
-                                        <div class="balance-amount text-primary">
-                                            GH₵<?php echo number_format($student['total_fees'] ?? 0, 2); ?>
-                                        </div>
-                                        <small class="text-muted">Total Fees</small>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="balance-amount balance-paid">
-                                            GH₵<?php echo number_format($student['total_payments'] ?? 0, 2); ?>
-                                        </div>
-                                        <small class="text-muted">Total Paid</small>
-                                    </div>
-                                </div>
-
-                                <!-- Net Balance (Owes/Paid Up) -->
-                                <div class="text-center mt-3 pt-3 border-top">
-                                    <?php $outstanding = max(0, ($student['total_fees'] ?? 0) - ($student['total_payments'] ?? 0)); ?>
-                                    <div class="balance-amount <?php echo $outstanding > 0 ? 'balance-owing' : 'balance-paid'; ?>">
-                                        <?php if ($outstanding > 0): ?>
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            Owes: GH₵<?php echo number_format($outstanding, 2); ?>
-                                        <?php else: ?>
-                                            <i class="fas fa-check-circle me-2"></i>
-                                            Paid Up
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                                <!-- Assignment Summary -->
-                                <div class="mt-3 pt-3 border-top">
-                                    <div class="row text-center">
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">Pending</small>
-                                            <span class="badge bg-warning"><?php echo $student['pending_assignments']; ?></span>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-muted d-block">Paid</small>
-                                            <span class="badge bg-success"><?php echo $student['paid_assignments']; ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    <a href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="text-decoration-none">
+                                                        <?php echo htmlspecialchars($student['student_name']); ?>
+                                                    </a>
+                                                    <?php if ($student['student_status'] === 'inactive'): ?>
+                                                        <span class="badge bg-secondary ms-2">Inactive</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($student['class']); ?></td>
+                                            <td class="text-center">
+                                                <div class="progress-min" title="<?php echo $paid_percent_rounded; ?>%">
+                                                    <div class="bar" style="width: <?php echo $paid_percent_rounded; ?>%"></div>
+                                                </div>
+                                                <span class="percent-text"><?php echo $paid_percent_rounded; ?>%</span>
+                                            </td>
+                                            <td class="text-end text-primary currency">GH₵<?php echo number_format($total_fees, 2); ?></td>
+                                            <td class="text-end text-success currency">GH₵<?php echo number_format($total_payments, 2); ?></td>
+                                            <td class="text-end <?php echo $outstanding>0?'text-danger fw-semibold':'text-success'; ?>"><?php echo $outstanding>0?('GH₵'.number_format($outstanding,2)):'Paid Up'; ?></td>
+                                            <td class="text-center"><span class="badge bg-warning text-dark"><?php echo $student['pending_assignments']; ?></span></td>
+                                            <td class="text-center"><span class="badge bg-success"><?php echo $student['paid_assignments']; ?></span></td>
+                                            <td>
+                                                <div class="dropdown balances-actions">
+                                                    <button class="btn btn-light btn-sm action-dots" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Actions">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                                                        <li><a class="dropdown-item" href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
+                                                            <i class="fas fa-eye me-2 text-primary"></i>View Details
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="record_payment_form.php?student_id=<?php echo $student['student_id']; ?>">
+                                                            <i class="fas fa-credit-card me-2 text-success"></i>Record Payment
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="assign_fee_form.php?student_id=<?php echo $student['student_id']; ?>">
+                                                            <i class="fas fa-plus me-2 text-info"></i>Assign Fee
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="student_percentage.php?id=<?php echo $student['student_id']; ?>">
+                                                            <i class="fas fa-chart-pie me-2 text-secondary"></i>Percentage
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" target="_blank" href="download_term_invoice.php?student_id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
+                                                            <i class="fas fa-download me-2 text-dark"></i>Download Invoice
+                                                        </a></li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12">
-                    <div class="text-center py-5">
-                        <i class="fas fa-search fa-4x text-muted mb-4"></i>
-                        <h4 class="text-muted mb-3">No Students Found</h4>
-                        <p class="text-muted mb-4">No students match your current filter criteria.</p>
-                        <a href="?class=all&status=active&owing=all" class="btn btn-primary">
-                            <i class="fas fa-refresh me-2"></i>Clear Filters
-                        </a>
+                        <?php else: ?>
+                            <div class="text-center py-5">
+                                <div class="mb-3"><i class="fas fa-search fa-3x text-muted opacity-25"></i></div>
+                                <h5 class="text-muted mb-2">No Students Found</h5>
+                                <p class="text-muted mb-3">No students match your current filter criteria. Try adjusting your filters.</p>
+                                <a href="?class=all&status=active&owing=all" class="btn btn-primary">
+                                    <i class="fas fa-redo me-2"></i>Clear All Filters
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="text-center mt-5 mb-4">
-            <div class="btn-group" role="group">
-                <a href="dashboard.php" class="btn btn-outline-secondary">
+        <div class="text-center mt-5 mb-5">
+            <div class="btn-group shadow-sm" role="group">
+                <a href="dashboard.php" class="btn btn-outline-secondary btn-lg">
                     <i class="fas fa-home me-2"></i>Dashboard
                 </a>
-                <a href="view_students.php" class="btn btn-outline-primary">
+                <a href="view_students.php" class="btn btn-outline-primary btn-lg">
                     <i class="fas fa-users me-2"></i>All Students
                 </a>
-                <a href="view_assigned_fees.php" class="btn btn-outline-success">
+                <a href="view_assigned_fees.php" class="btn btn-outline-success btn-lg">
                     <i class="fas fa-list-alt me-2"></i>Fee Assignments
                 </a>
-                <a href="view_payments.php" class="btn btn-outline-info">
+                <a href="view_payments.php" class="btn btn-outline-info btn-lg">
                     <i class="fas fa-credit-card me-2"></i>Payment History
                 </a>
             </div>

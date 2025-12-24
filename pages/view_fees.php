@@ -1,6 +1,7 @@
 <?php
 include '../includes/db_connect.php';
 include '../includes/auth_functions.php';
+include '../includes/system_settings.php';
 if (!is_logged_in()) {
     header('Location: ../pages/login.php');
     exit;
@@ -43,75 +44,57 @@ $stats = $conn->query("
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .card {
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
-        }
-        .card-title {
-            color: #2d3748;
-            font-weight: 600;
-        }
-        .dropdown-toggle::after {
-            display: none;
-        }
-        @media print {
-            .btn, .dropdown { display: none !important; }
-        }
-    </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="dashboard.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <!-- Header -->
-        <div class="page-header text-center mb-5">
-            <h1><i class="fas fa-money-bill-wave me-3"></i>Fee Management</h1>
-            <p class="lead">View and manage all school fees</p>
-        </div>
-
-        <!-- Summary Bar -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 bg-light">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h5 class="mb-1">Fee Overview</h5>
-                                <p class="text-muted mb-0">
-                                    Total: <strong><?php echo $stats['total_fees']; ?></strong> fees 
-                                    • Fixed: <strong><?php echo $stats['fixed_fees']; ?></strong>
-                                    • Class-Based: <strong><?php echo $stats['class_based_fees']; ?></strong>
-                                    • Category: <strong><?php echo $stats['category_fees']; ?></strong>
-                                </p>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <a href="add_fee_form.php" class="btn btn-primary me-2">
-                                    <i class="fas fa-plus me-2"></i>Add Fee
-                                </a>
-                                <a href="assign_fee_form.php" class="btn btn-outline-primary">
-                                    <i class="fas fa-user-tag me-2"></i>Assign
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="clean-page-title"><i class="fas fa-money-bill-wave me-2"></i>Fee Management</h1>
+                    <p class="clean-page-subtitle">
+                        View and manage all school fees
+                        <?php $ct = getCurrentTerm($conn); $cy = getAcademicYear($conn); ?>
+                        <span class="clean-badge clean-badge-primary ms-2"><i class="fas fa-calendar-alt me-1"></i><?php echo htmlspecialchars($ct); ?></span>
+                        <span class="clean-badge clean-badge-info ms-1"><i class="fas fa-graduation-cap me-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $cy)); ?></span>
+                    </p>
                 </div>
+                <div>
+                    <a href="add_fee_form.php" class="btn-clean-primary me-2">
+                        <i class="fas fa-plus"></i> ADD FEE
+                    </a>
+                    <a href="assign_fee_form.php" class="btn-clean-success">
+                        <i class="fas fa-user-tag"></i> ASSIGN
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 py-4">
+        <!-- Statistics Cards -->
+        <div class="clean-stats-grid">
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['total_fees']; ?></div>
+                <div class="clean-stat-label">Total Fees</div>
+            </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['fixed_fees']; ?></div>
+                <div class="clean-stat-label">Fixed Fees</div>
+            </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['class_based_fees']; ?></div>
+                <div class="clean-stat-label">Class-Based</div>
+            </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['category_fees']; ?></div>
+                <div class="clean-stat-label">Category Fees</div>
             </div>
         </div>
 
@@ -120,8 +103,8 @@ $stats = $conn->query("
             <?php if($result && $result->num_rows > 0): ?>
                 <?php while($row = $result->fetch_assoc()): ?>
                     <div class="col-lg-6 col-xl-4 mb-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
+                        <div class="clean-card h-100">
+                            <div class="p-4">
                                 <!-- Fee Header -->
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
@@ -157,20 +140,20 @@ $stats = $conn->query("
                                     $type_text = '';
                                     switch($row['fee_type']) {
                                         case 'fixed':
-                                            $type_class = 'bg-success';
+                                            $type_class = 'clean-badge-success';
                                             $type_text = 'Fixed Amount';
                                             break;
                                         case 'class_based':
-                                            $type_class = 'bg-info';
+                                            $type_class = 'clean-badge-primary';
                                             $type_text = 'Class Based';
                                             break;
                                         case 'category':
-                                            $type_class = 'bg-warning text-dark';
+                                            $type_class = 'clean-badge-warning';
                                             $type_text = 'Category Based';
                                             break;
                                     }
                                     ?>
-                                    <span class="badge <?php echo $type_class; ?> px-3 py-2">
+                                    <span class="clean-badge <?php echo $type_class; ?>">
                                         <?php echo $type_text; ?>
                                     </span>
                                 </div>
@@ -203,7 +186,7 @@ $stats = $conn->query("
                                     <small class="text-muted">
                                         <?php echo $row['created_at'] ? date('M j, Y', strtotime($row['created_at'])) : 'N/A'; ?>
                                     </small>
-                                    <a href="assign_fee_form.php?fee_id=<?php echo $row['id']; ?>" class="btn btn-primary btn-sm">
+                                    <a href="assign_fee_form.php?fee_id=<?php echo $row['id']; ?>" class="btn-clean-primary btn-clean-sm">
                                         <i class="fas fa-user-tag me-1"></i>Assign
                                     </a>
                                 </div>
@@ -213,11 +196,11 @@ $stats = $conn->query("
                 <?php endwhile; ?>
             <?php else: ?>
                 <div class="col-12">
-                    <div class="text-center py-5">
-                        <i class="fas fa-money-bill-wave fa-4x text-muted mb-4"></i>
-                        <h4 class="text-muted mb-3">No Fees Created Yet</h4>
-                        <p class="text-muted mb-4">Start by creating your first fee to manage student payments.</p>
-                        <a href="add_fee_form.php" class="btn btn-primary btn-lg">
+                    <div class="clean-empty-state">
+                        <div class="clean-empty-icon"><i class="fas fa-money-bill-wave"></i></div>
+                        <h4 class="clean-empty-title">No Fees Created Yet</h4>
+                        <p class="clean-empty-text">Start by creating your first fee to manage student payments.</p>
+                        <a href="add_fee_form.php" class="btn-clean-primary">
                             <i class="fas fa-plus me-2"></i>Create First Fee
                         </a>
                     </div>
@@ -227,10 +210,10 @@ $stats = $conn->query("
 
         <!-- Navigation -->
         <div class="text-center mt-5 pt-4 border-top">
-            <a href="view_assigned_fees.php" class="btn btn-outline-primary me-3">
+            <a href="view_assigned_fees.php" class="btn-clean-outline me-3">
                 <i class="fas fa-list-alt me-2"></i>View Fee Assignments
             </a>
-            <a href="view_payments.php" class="btn btn-outline-success">
+            <a href="view_payments.php" class="btn-clean-success">
                 <i class="fas fa-credit-card me-2"></i>View Payments
             </a>
         </div>

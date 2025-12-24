@@ -10,6 +10,7 @@ if ($id > 0) {
         $amount = floatval($_POST['amount']);
         $expense_date = $_POST['expense_date'];
         $description = trim($_POST['description']);
+        
         $stmt = $conn->prepare("UPDATE expenses SET category_id=?, amount=?, expense_date=?, description=? WHERE id=?");
         $stmt->bind_param('idssi', $category_id, $amount, $expense_date, $description, $id);
         if ($stmt->execute()) {

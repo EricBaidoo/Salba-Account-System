@@ -1,6 +1,8 @@
 <?php
 include '../includes/db_connect.php';
 include '../includes/auth_check.php';
+include '../includes/system_settings.php';
+include '../includes/student_balance_functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_mode = $_POST['payment_mode'] ?? 'student';
@@ -8,7 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_date = $_POST['payment_date'];
     $receipt_no = trim($_POST['receipt_no']);
     $description = trim($_POST['description']);
+    $term = trim($_POST['term'] ?? ''); // Capture term from form
     $created_by = $_SESSION['user_id'] ?? null;
+    $academic_year = trim($_POST['academic_year'] ?? '');
+    if ($academic_year === '') { $academic_year = getAcademicYear($conn); }
+
+    // Basic validation for required fields
+    if ($term === '') {
+        echo "<div class='alert alert-danger'>Please select a term for this payment.</div>";
+        exit;
+    }
+    if ($academic_year === '') {
+        echo "<div class='alert alert-danger'>Please select an academic year for this payment.</div>";
+        exit;
+    }
 
     if ($payment_mode === 'general') {
         // General/category payment (not tied to student)
@@ -28,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         $fee_check->close();
-        $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id) VALUES (?, ?, ?, ?, 'general', ?)");
-        $stmt->bind_param("dsssi", $amount, $payment_date, $receipt_no, $description, $fee_id);
+        $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?, ?)");
+        $stmt->bind_param("dsssiss", $amount, $payment_date, $receipt_no, $description, $fee_id, $term, $academic_year);
         if ($stmt->execute()) {
             echo "<div class='alert alert-success'>General/category payment recorded successfully!</div>";
         } else {
@@ -43,36 +58,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<div class='alert alert-danger'>No student selected.</div>";
             exit;
         }
-    $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("idsss", $student_id, $amount, $payment_date, $receipt_no, $description);
+        // Ensure arrears carry-forward exists in this term/year before allocating payment
+        ensureArrearsAssignment($conn, $student_id, $term, $academic_year);
+        $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("idsssss", $student_id, $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
         if ($stmt->execute()) {
             $payment_id = $conn->insert_id;
             $remaining = $amount;
+            // Allocation scope setting: 'global' or 'term_year' (default to term_year for correctness)
+            $alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'term_year');
             // Fetch all student_fees for this student that are not fully paid, ordered by due_date
-            $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' ORDER BY due_date ASC, id ASC");
-            $fees_stmt->bind_param("i", $student_id);
+            // Allocate with priority: arrears carry-forward first, then other fees
+            $arrears_fee_id = getArrearsFeeId($conn);
+            $processed_arrears_fee_id = null;
+            if ($arrears_fee_id) {
+                if ($alloc_scope === 'term_year') {
+                    $arr_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'paid' AND term = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) LIMIT 1");
+                    $arr_stmt->bind_param("iisss", $student_id, $arrears_fee_id, $term, $academic_year, $academic_year);
+                } else {
+                    $arr_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'paid' LIMIT 1");
+                    $arr_stmt->bind_param("ii", $student_id, $arrears_fee_id);
+                }
+                $arr_stmt->execute();
+                $arr_res = $arr_stmt->get_result();
+                if ($fee = $arr_res->fetch_assoc()) {
+                    $fee_id = $fee['id'];
+                    $processed_arrears_fee_id = $fee_id;
+                    $fee_amount = floatval($fee['amount']);
+                    $already_paid = floatval($fee['amount_paid']);
+                    $to_pay = min($fee_amount - $already_paid, $remaining);
+                    if ($to_pay > 0) {
+                        $new_paid = $already_paid + $to_pay;
+                        $new_status = ($new_paid >= $fee_amount) ? 'paid' : 'pending';
+                        $update_stmt = $conn->prepare("UPDATE student_fees SET amount_paid = ?, status = ? WHERE id = ?");
+                        $update_stmt->bind_param("dsi", $new_paid, $new_status, $fee_id);
+                        $update_stmt->execute();
+                        $update_stmt->close();
+                        $alloc_stmt = $conn->prepare("INSERT INTO payment_allocations (payment_id, student_fee_id, amount) VALUES (?, ?, ?)");
+                        $alloc_stmt->bind_param("iid", $payment_id, $fee_id, $to_pay);
+                        $alloc_stmt->execute();
+                        $alloc_stmt->close();
+                        $remaining -= $to_pay;
+                    }
+                }
+                $arr_stmt->close();
+            }
+
+            // Then allocate to the rest in due_date order
+            if ($alloc_scope === 'term_year') {
+                $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' AND term = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) ORDER BY due_date ASC, id ASC");
+                $fees_stmt->bind_param("isss", $student_id, $term, $academic_year, $academic_year);
+            } else {
+                $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' ORDER BY due_date ASC, id ASC");
+                $fees_stmt->bind_param("i", $student_id);
+            }
             $fees_stmt->execute();
             $fees_result = $fees_stmt->get_result();
-            while ($fee = $fees_result->fetch_assoc()) {
+            while ($remaining > 0 && ($fee = $fees_result->fetch_assoc())) {
                 $fee_id = $fee['id'];
+                // Skip arrears fee if already processed
+                if ($processed_arrears_fee_id && $fee_id === $processed_arrears_fee_id) {
+                    continue;
+                }
                 $fee_amount = floatval($fee['amount']);
                 $already_paid = floatval($fee['amount_paid']);
                 $to_pay = min($fee_amount - $already_paid, $remaining);
                 if ($to_pay > 0) {
-                    // Update amount_paid and status
                     $new_paid = $already_paid + $to_pay;
                     $new_status = ($new_paid >= $fee_amount) ? 'paid' : 'pending';
                     $update_stmt = $conn->prepare("UPDATE student_fees SET amount_paid = ?, status = ? WHERE id = ?");
                     $update_stmt->bind_param("dsi", $new_paid, $new_status, $fee_id);
                     $update_stmt->execute();
                     $update_stmt->close();
-                    // Record allocation
                     $alloc_stmt = $conn->prepare("INSERT INTO payment_allocations (payment_id, student_fee_id, amount) VALUES (?, ?, ?)");
                     $alloc_stmt->bind_param("iid", $payment_id, $fee_id, $to_pay);
                     $alloc_stmt->execute();
                     $alloc_stmt->close();
                     $remaining -= $to_pay;
-                    if ($remaining <= 0) break;
                 }
             }
             $fees_stmt->close();

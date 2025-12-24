@@ -96,18 +96,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-        </div>
-    </nav>
+<body class="clean-page">
 
-    <div class="container mt-5">
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="view_fees.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Fees
+                </a>
+            </div>
+            <div class="text-center">
+                <h1 class="clean-page-title"><i class="fas fa-check-circle me-2"></i>Fee Creation Result</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 py-4">
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <?php if ($success): ?>

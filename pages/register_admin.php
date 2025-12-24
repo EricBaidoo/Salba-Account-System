@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <div class="container mt-5" style="max-width:400px;">
+    <div class="container mt-5 max-w-400">
         <h2>Register Admin</h2>
         <form action="register_admin.php" method="POST">
             <div class="mb-3">

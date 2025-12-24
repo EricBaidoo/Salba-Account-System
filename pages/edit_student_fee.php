@@ -66,7 +66,7 @@ try {
     
     // First, verify the fee belongs to the student and get current details
     $check_sql = "SELECT sf.id, sf.student_id, sf.fee_id, sf.amount as current_amount, 
-                         sf.status as current_status, f.name as fee_name, 
+                         sf.status as current_status, sf.term as current_term, f.name as fee_name, 
                          s.first_name, s.last_name
                   FROM student_fees sf 
                   JOIN fees f ON sf.fee_id = f.id 
@@ -86,6 +86,75 @@ try {
         exit;
     }
     
+    // Normalize term input to canonical labels and prevent accidental blanking
+    // Map shorthand to system terms
+    $term_map = [
+        '1st term' => 'First Term',
+        'first term' => 'First Term',
+        '2nd term' => 'Second Term',
+        'second term' => 'Second Term',
+        '3rd term' => 'Third Term',
+        'third term' => 'Third Term'
+    ];
+    $term_lower = strtolower($term);
+    if (isset($term_map[$term_lower])) {
+        $term = $term_map[$term_lower];
+    }
+    if ($term === '') {
+        // Keep original term if none provided to avoid disappearing from current view
+        $term = $current_fee['current_term'] ?? '';
+    }
+
+    // Prevent manual edits to auto-managed arrears fee
+    $fee_name_lower = strtolower(trim($current_fee['fee_name'] ?? ''));
+    $is_arrears_fee = ($fee_name_lower === 'outstanding balance' || $fee_name_lower === 'arrears carry forward');
+    if ($is_arrears_fee) {
+        // Allow notes-only updates; block changes to amount/due_date/term/status
+        if (
+            $amount != $current_fee['current_amount'] ||
+            (!empty($due_date) && $due_date !== ($_POST['due_date'] ?? $due_date)) ||
+            (!empty($term) && $term !== ($_POST['term'] ?? $term)) ||
+            ($status !== $current_fee['current_status'])
+        ) {
+            // Silently ignore attempted structural changes and inform the user
+            // Update just the notes if provided
+            $notes_update = $conn->prepare("UPDATE student_fees SET notes = ? WHERE id = ? AND student_id = ?");
+            $notes_update->bind_param("sii", $notes, $student_fee_id, $student_id);
+            if ($notes_update->execute()) {
+                $notes_update->close();
+                $conn->commit();
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Outstanding Balance is auto-calculated from prior term. Notes updated only."
+                ]);
+                exit;
+            } else {
+                $notes_update->close();
+                $conn->rollback();
+                echo json_encode(['success' => false, 'message' => 'Unable to update notes for Outstanding Balance']);
+                exit;
+            }
+        } else {
+            // If only notes were intended, update notes
+            $notes_update = $conn->prepare("UPDATE student_fees SET notes = ? WHERE id = ? AND student_id = ?");
+            $notes_update->bind_param("sii", $notes, $student_fee_id, $student_id);
+            if ($notes_update->execute()) {
+                $notes_update->close();
+                $conn->commit();
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Outstanding Balance notes updated."
+                ]);
+                exit;
+            } else {
+                $notes_update->close();
+                $conn->rollback();
+                echo json_encode(['success' => false, 'message' => 'Unable to update notes for Outstanding Balance']);
+                exit;
+            }
+        }
+    }
+
     // Check if fee is already paid - only allow certain changes for paid fees
     if ($current_fee['current_status'] === 'paid') {
         // For paid fees, only allow notes and term changes, not amount or due date

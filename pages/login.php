@@ -37,51 +37,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
-    <div class="min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6 col-lg-5">
-                    <div class="card login-container">
-                        <div class="card-body p-5">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-graduation-cap fa-4x text-primary mb-3"></i>
-                                <h3 class="fw-bold text-dark">Salba Montessori School</h3>
-                                <p class="text-muted">Account System Portal </p>
-                            </div>
-                            
-                            <?php if (!empty($error)): ?>
-                                <div class="alert alert-danger d-flex align-items-center">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <?php echo $error; ?>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <form action="login.php" method="POST">
-                                <div class="form-group">
-                                    <label for="username" class="form-label">
-                                        <i class="fas fa-user me-2"></i>Username
-                                    </label>
-                                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password" class="form-label">
-                                        <i class="fas fa-lock me-2"></i>Password
-                                    </label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<body class="login-page">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-graduation-cap"></i>
             </div>
+            <h1 class="login-title">Salba Montessori School</h1>
+            <p class="login-subtitle">Accounting System Portal</p>
+        </div>
+        
+        <div class="login-body">
+            <?php if (!empty($error)): ?>
+                <div class="login-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span><?php echo htmlspecialchars($error); ?></span>
+                </div>
+            <?php endif; ?>
+            
+            <form action="login.php" method="POST">
+                <div class="login-form-group">
+                    <label for="username" class="login-form-label">
+                        <i class="fas fa-user"></i>Username
+                    </label>
+                    <input type="text" class="login-form-control" id="username" name="username" placeholder="Enter your username" required autofocus>
+                </div>
+                
+                <div class="login-form-group">
+                    <label for="password" class="login-form-label">
+                        <i class="fas fa-lock"></i>Password
+                    </label>
+                    <input type="password" class="login-form-control" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>Sign In
+                </button>
+            </form>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

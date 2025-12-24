@@ -48,7 +48,7 @@ $owing_percent = 100 - $paid_percent;
                 <p class="text-muted mb-2">Total Fees: GH₵<?php echo number_format($total_fees, 2); ?> &nbsp; | &nbsp; Total Paid: GH₵<?php echo number_format($total_payments, 2); ?></p>
 
                 <div class="mb-3">
-                    <div class="progress" style="height: 28px;">
+                    <div class="progress progress-enhanced">
                         <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $paid_percent; ?>%;" aria-valuenow="<?php echo $paid_percent; ?>" aria-valuemin="0" aria-valuemax="100">
                             <?php echo round($paid_percent, 2); ?>% Paid
                         </div>

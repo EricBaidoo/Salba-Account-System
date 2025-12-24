@@ -1,12 +1,40 @@
 <?php
 include '../includes/db_connect.php';
 include '../includes/auth_check.php';
+include '../includes/system_settings.php';
 include '../includes/student_balance_functions.php';
+
+// Get current term and academic year
+$current_term = getCurrentTerm($conn);
+$academic_year = getAcademicYear($conn);
+$available_terms = getAvailableTerms();
+
+// Build Academic Year options from data + system default
+$year_options = [];
+$yrs1 = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs1) {
+    while ($yr = $yrs1->fetch_assoc()) {
+        if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+    }
+    $yrs1->close();
+}
+$yrs2 = $conn->query("SELECT DISTINCT academic_year FROM payments WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs2) {
+    while ($yr = $yrs2->fetch_assoc()) {
+        if (!empty($yr['academic_year']) && !in_array($yr['academic_year'], $year_options, true)) { $year_options[] = $yr['academic_year']; }
+    }
+    $yrs2->close();
+}
+if (!in_array($academic_year, $year_options, true)) { array_unshift($year_options, $academic_year); }
 
 // Get URL parameters for pre-filling
 $pre_student_id = intval($_GET['student_id'] ?? 0);
 $pre_fee_id = intval($_GET['fee_id'] ?? 0);
 $pre_amount = floatval($_GET['amount'] ?? 0);
+$pre_term = isset($_GET['term']) ? trim($_GET['term']) : '';
+$pre_academic_year = isset($_GET['academic_year']) ? trim($_GET['academic_year']) : '';
+$selected_term = $pre_term !== '' ? $pre_term : $current_term;
+$selected_academic_year = $pre_academic_year !== '' ? $pre_academic_year : $academic_year;
 
 // Fetch students with their current balances
 $students_query = "
@@ -48,119 +76,39 @@ if ($pre_student_id > 0) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .payment-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-        .student-balance-card {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
-            border: 2px solid #667eea;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-        }
-        .outstanding-fee-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .outstanding-fee-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-        .outstanding-fee-card.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
-        }
-        .amount-suggestion {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .amount-suggestion:hover {
-            background: #667eea !important;
-            color: white !important;
-            transform: translateY(-1px);
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 </head>
-<body>
+<body class="clean-page">
 
-    <!-- Navigation & Header -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i>Dashboard</a>
-                <a class="nav-link" href="view_students.php"><i class="fas fa-user-graduate me-2"></i>Students</a>
-                <a class="nav-link" href="view_fees.php"><i class="fas fa-money-check-alt me-2"></i>Fees</a>
-                <a class="nav-link" href="view_payments.php"><i class="fas fa-credit-card me-2"></i>Payments</a>
-                <a class="nav-link" href="view_expenses.php"><i class="fas fa-file-invoice-dollar me-2"></i>Expenses</a>
-                <a class="nav-link" href="report.php"><i class="fas fa-chart-bar me-2"></i>Reports</a>
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="view_payments.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Payments
+                </a>
             </div>
-        </div>
-    </nav>
-
-    <!-- Professional Header -->
-    <div class="payment-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="display-6 fw-bold mb-2">
-                        <i class="fas fa-credit-card me-3"></i>
-                        Record Payment
-                    </h1>
-                    <p class="lead mb-0">Process student fee payments with automatic balance tracking</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="clean-page-title"><i class="fas fa-credit-card me-2"></i>Record Payment</h1>
+                    <p class="clean-page-subtitle">
+                        Process student fee payments with automatic balance tracking
+                        <span class="clean-badge clean-badge-primary ms-2"><i class="fas fa-calendar-alt me-1"></i><?php echo htmlspecialchars($selected_term); ?></span>
+                        <span class="clean-badge clean-badge-info ms-1"><i class="fas fa-graduation-cap me-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $selected_academic_year)); ?></span>
+                    </p>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="student_balances.php" class="btn btn-light me-2">
-                        <i class="fas fa-balance-scale me-2"></i>View Balances
+                <div>
+                    <a href="student_balances.php" class="btn-clean-outline me-2">
+                        <i class="fas fa-balance-scale"></i> BALANCES
                     </a>
-                    <a href="view_payments.php" class="btn btn-outline-light">
-                        <i class="fas fa-history me-2"></i>Payment History
+                    <a href="view_payments.php" class="btn-clean-success">
+                        <i class="fas fa-history"></i> HISTORY
                     </a>
-                </div>
-            </div>
-        </div>
-        <!-- Quick Links Row -->
-        <div class="container mt-3">
-            <div class="row g-2 justify-content-center">
-                <div class="col-auto">
-                    <a href="dashboard.php" class="btn btn-outline-light btn-sm"><i class="fas fa-home me-1"></i>Dashboard</a>
-                </div>
-                <div class="col-auto">
-                    <a href="view_students.php" class="btn btn-outline-light btn-sm"><i class="fas fa-user-graduate me-1"></i>Students</a>
-                </div>
-                <div class="col-auto">
-                    <a href="view_fees.php" class="btn btn-outline-light btn-sm"><i class="fas fa-money-check-alt me-1"></i>Fees</a>
-                </div>
-                <div class="col-auto">
-                    <a href="view_payments.php" class="btn btn-outline-light btn-sm"><i class="fas fa-credit-card me-1"></i>Payments</a>
-                </div>
-                <div class="col-auto">
-                    <a href="view_expenses.php" class="btn btn-outline-light btn-sm"><i class="fas fa-file-invoice-dollar me-1"></i>Expenses</a>
-                </div>
-                <div class="col-auto">
-                    <a href="report.php" class="btn btn-outline-light btn-sm"><i class="fas fa-chart-bar me-1"></i>Reports</a>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <div class="container">
+    <div class="container-fluid px-4 py-4">
         <form action="record_payment.php" method="POST" id="paymentForm">
             <div class="row">
                 <div class="col-lg-6 mb-4">
@@ -223,7 +171,7 @@ if ($pre_student_id > 0) {
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-12 text-center">
-                                                <span class="badge bg-warning text-dark fs-6" id="outstandingNotice" style="display:none;">Outstanding Payment: GH₵<span id="outstandingNoticeValue">0.00</span></span>
+                                                <span class="badge bg-warning text-dark fs-6" id="outstandingNotice">Outstanding Payment: GH₵<span id="outstandingNoticeValue">0.00</span></span>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -245,7 +193,7 @@ if ($pre_student_id > 0) {
                                 </div>
                             </div>
                             <!-- General Payment Section -->
-                            <div id="generalPaymentSection" style="display:none;">
+                            <div id="generalPaymentSection">
                                 <label for="fee_id" class="form-label fw-semibold">
                                     <i class="fas fa-list me-2"></i>Fee Category
                                 </label>
@@ -272,6 +220,21 @@ if ($pre_student_id > 0) {
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <label for="term" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-alt me-2"></i>Term *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="term" name="term" required>
+                                        <?php foreach ($available_terms as $term): ?>
+                                            <option value="<?php echo htmlspecialchars($term); ?>" 
+                                                    <?php echo $term === $selected_term ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($term); ?>
+                                                <?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Academic Year: <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $selected_academic_year)); ?></small>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="amount" class="form-label fw-semibold">
                                         <i class="fas fa-dollar-sign me-2"></i>Amount (GH₵) *
                                     </label>
@@ -284,7 +247,22 @@ if ($pre_student_id > 0) {
                                             <!-- Populated by JavaScript -->
                                         </div>
                                     </div>
+                                    <small class="text-muted">Academic Year defaults to selection on right.</small>
+                            </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="academic_year" class="form-label fw-semibold">
+                                        <i class="fas fa-graduation-cap me-2"></i>Academic Year *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="academic_year" name="academic_year" required>
+                                        <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
+                                            <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($yr === $selected_academic_year) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($label); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Used to scope this payment and for reports.</small>
                                 </div>
+                                <div class="col-md-6 mb-3">
                                 <div class="col-md-6 mb-3">
                                     <label for="payment_date" class="form-label fw-semibold">
                                         <i class="fas fa-calendar me-2"></i>Payment Date *

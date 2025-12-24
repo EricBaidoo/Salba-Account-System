@@ -31,81 +31,35 @@ if (isset($_GET['id'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .edit-wizard {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.1);
-        }
-        
-        .required-field::after {
-            content: " *";
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        
-        .form-floating > label {
-            font-weight: 500;
-        }
-        
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .student-info-card {
-            background: linear-gradient(145deg, #f8f9ff 0%, #e8f0fe 100%);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-    </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="view_students.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="view_students.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Students
                 </a>
             </div>
+            <div class="text-center">
+                <h1 class="clean-page-title"><i class="fas fa-user-edit me-2"></i>Edit Student Information</h1>
+                <p class="clean-page-subtitle">Update student details and manage their status</p>
+            </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container mt-4">
-        <div class="text-center mb-4">
-            <h2><i class="fas fa-user-edit me-3 text-primary"></i>Edit Student Information</h2>
-            <p class="text-muted">Update student details and manage their status</p>
-        </div>
+    <div class="container-fluid px-4 py-4">
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <?php if ($error): ?>
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i><?php echo htmlspecialchars($error); ?>
+                    <div class="clean-alert clean-alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span><?php echo htmlspecialchars($error); ?></span>
                     </div>
                     <div class="text-center">
-                        <a href="view_students.php" class="btn btn-primary">
+                        <a href="view_students.php" class="btn-clean-primary">
                             <i class="fas fa-arrow-left me-2"></i>Back to Students
                         </a>
                     </div>
@@ -129,7 +83,7 @@ if (isset($_GET['id'])) {
                                 </p>
                             </div>
                             <div class="col-md-4 text-end">
-                                <div class="avatar-placeholder bg-primary text-white rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                <div class="avatar-placeholder avatar-md bg-primary text-white mx-auto">
                                     <?php echo strtoupper(substr($student['first_name'], 0, 1) . substr($student['last_name'], 0, 1)); ?>
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 <?php
 include '../includes/db_connect.php';
 include '../includes/auth_check.php';
+include '../includes/system_settings.php';
 
 // Helper function to calculate fee amount based on type
 function calculateFeeAmount($conn, $fee_info, $student_class) {
@@ -44,10 +45,11 @@ function calculateFeeAmount($conn, $fee_info, $student_class) {
     }
 }
 
-// Helper function to check if fee is already assigned
-function isAlreadyAssigned($conn, $student_id, $fee_id) {
-    $check_stmt = $conn->prepare("SELECT id FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'cancelled'");
-    $check_stmt->bind_param("ii", $student_id, $fee_id);
+// Helper function to check if fee is already assigned for the same term and academic year
+function isAlreadyAssigned($conn, $student_id, $fee_id, $term, $academic_year) {
+    $sql = "SELECT id FROM student_fees WHERE student_id = ? AND fee_id = ? AND term = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) AND status != 'cancelled'";
+    $check_stmt = $conn->prepare($sql);
+    $check_stmt->bind_param("issss", $student_id, $fee_id, $term, $academic_year, $academic_year);
     $check_stmt->execute();
     $check_result = $check_stmt->get_result();
     $is_assigned = $check_result->num_rows > 0;
@@ -56,12 +58,9 @@ function isAlreadyAssigned($conn, $student_id, $fee_id) {
 }
 
 // Helper function to insert fee assignment
-function insertFeeAssignment($conn, $student_id, $fee_id, $due_date, $amount, $term, $notes) {
-    $insert_stmt = $conn->prepare("
-        INSERT INTO student_fees (student_id, fee_id, due_date, amount, term, notes, assigned_date, status) 
-        VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')
-    ");
-    $insert_stmt->bind_param("iisdss", $student_id, $fee_id, $due_date, $amount, $term, $notes);
+function insertFeeAssignment($conn, $student_id, $fee_id, $due_date, $amount, $term, $academic_year, $notes) {
+    $insert_stmt = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, due_date, amount, term, academic_year, notes, assigned_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'pending')");
+    $insert_stmt->bind_param("iisdsss", $student_id, $fee_id, $due_date, $amount, $term, $academic_year, $notes);
     
     if (!$insert_stmt->execute()) {
         throw new Exception("Error assigning fee: " . $insert_stmt->error);
@@ -83,6 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fee_ids_string = $_POST['selectedFeesInput'] ?? '';
     $due_date = $_POST['due_date'];
     $term = $_POST['term'] ?? '';
+    $academic_year = trim($_POST['academic_year'] ?? '');
+    if ($academic_year === '') { $academic_year = getAcademicYear($conn); }
     $notes = $_POST['notes'] ?? '';
     
     // Parse fee IDs
@@ -139,11 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $calculated_amount = calculateFeeAmount($conn, $fee_info, $student_info['class']);
                         
                         // Check if already assigned
-                        if (isAlreadyAssigned($conn, $student_id, $fee_info['id'])) {
+                        if (isAlreadyAssigned($conn, $student_id, $fee_info['id'], $term, $academic_year)) {
                             $all_assignment_errors[] = $fee_info['name'] . " (already assigned to " . $student_info['first_name'] . " " . $student_info['last_name'] . ")";
                         } else {
                             // Insert assignment
-                            insertFeeAssignment($conn, $student_id, $fee_info['id'], $due_date, $calculated_amount, $term, $notes);
+                            insertFeeAssignment($conn, $student_id, $fee_info['id'], $due_date, $calculated_amount, $term, $academic_year, $notes);
                             $total_successful_assignments++;
                         }
                     } catch (Exception $e) {
@@ -183,9 +184,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $calculated_amount = calculateFeeAmount($conn, $fee_info, $student['class']);
                             
                             // Check if already assigned
-                            if (!isAlreadyAssigned($conn, $student['id'], $fee_info['id'])) {
+                            if (!isAlreadyAssigned($conn, $student['id'], $fee_info['id'], $term, $academic_year)) {
                                 // Insert assignment
-                                insertFeeAssignment($conn, $student['id'], $fee_info['id'], $due_date, $calculated_amount, $term, $notes);
+                                insertFeeAssignment($conn, $student['id'], $fee_info['id'], $due_date, $calculated_amount, $term, $academic_year, $notes);
                                 $total_successful_assignments++;
                             } else {
                                 $all_assignment_errors[] = $student['first_name'] . ' ' . $student['last_name'] . ' - ' . $fee_info['name'] . ' (already assigned)';
@@ -233,9 +234,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $calculated_amount = calculateFeeAmount($conn, $fee_info, $student['class']);
                             
                             // Check if already assigned
-                            if (!isAlreadyAssigned($conn, $student['id'], $fee_info['id'])) {
+                            if (!isAlreadyAssigned($conn, $student['id'], $fee_info['id'], $term, $academic_year)) {
                                 // Insert assignment
-                                insertFeeAssignment($conn, $student['id'], $fee_info['id'], $due_date, $calculated_amount, $term, $notes);
+                                insertFeeAssignment($conn, $student['id'], $fee_info['id'], $due_date, $calculated_amount, $term, $academic_year, $notes);
                                 $total_successful_assignments++;
                             } else {
                                 $all_assignment_errors[] = $student['first_name'] . ' ' . $student['last_name'] . ' - ' . $fee_info['name'] . ' (already assigned)';
@@ -262,6 +263,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Commit transaction
             $conn->commit();
             $success = true;
+
+            // Ensure arrears carry-forward is materialized for each affected student in this term/year
+            if (!empty($assigned_students)) {
+                include_once '../includes/student_balance_functions.php';
+                foreach ($assigned_students as $st) {
+                    if (!empty($st['id'])) {
+                        ensureArrearsAssignment($conn, intval($st['id']), $term, $academic_year);
+                    }
+                }
+            }
             
             // Set fee_info to first fee for display (or create summary)
             if (!empty($all_fees_info)) {
@@ -395,6 +406,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <?php if (!empty($term)): ?>
                                             <li><strong>Term:</strong> <?php echo htmlspecialchars($term); ?></li>
                                         <?php endif; ?>
+                                        <?php if (!empty($academic_year)): ?>
+                                            <li><strong>Academic Year:</strong> <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?></li>
+                                        <?php endif; ?>
                                         <li><strong>Assigned:</strong> <?php echo date('F j, Y \a\t g:i A'); ?></li>
                                         <li><strong>Status:</strong> <span class="badge bg-warning">Pending Payment</span></li>
                                     </ul>
@@ -424,7 +438,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <!-- Quick Actions -->
                             <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                                <a href="record_payment_form.php?student_id=<?php echo $student_info['id']; ?>&fee_id=<?php echo $fee_info['id']; ?>" class="btn btn-success">
+                                <a href="record_payment_form.php?student_id=<?php echo $student_info['id']; ?>&fee_id=<?php echo $fee_info['id']; ?>&term=<?php echo urlencode($term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="btn btn-success">
                                     <i class="fas fa-credit-card me-2"></i>Record Payment Now
                                 </a>
                                 <a href="assign_fee_form.php" class="btn btn-primary">

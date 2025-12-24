@@ -58,46 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .result-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: none;
-            overflow: hidden;
-        }
-        
-        .success-header {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-        }
-        
-        .error-header {
-            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-            color: white;
-        }
-        
-        .success-icon {
-            animation: successPulse 2s ease-in-out infinite;
-        }
-        
-        .error-icon {
-            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-        }
-        
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
         
         .student-details {
             background: linear-gradient(145deg, #f8f9ff 0%, #e8f0fe 100%);
@@ -134,23 +94,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="view_students.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+<body class="clean-page">
+
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="view_students.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Students
                 </a>
             </div>
+            <div class="text-center">
+                <h1 class="clean-page-title"><i class="fas fa-save me-2"></i>Update Student Result</h1>
+            </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container mt-4">
+    <div class="container-fluid px-4 py-4">
         <div class="row justify-content-center">
             <div class="col-lg-7">
                 <?php if ($success): ?>

@@ -112,7 +112,7 @@ $categories = [
             <label class="form-label">Fixed Amount (GH₵)</label>
             <input type="number" step="0.01" name="fixed_amount" class="form-control" value="<?php echo $fee['amount']; ?>">
         </div>
-        <div class="mb-3" id="classAmountsDiv" style="display:none;">
+        <div class="mb-3" id="classAmountsDiv">
             <label class="form-label">Class Amounts</label>
             <?php foreach($classes as $class): ?>
                 <div class="input-group mb-2">
@@ -121,7 +121,7 @@ $categories = [
                 </div>
             <?php endforeach; ?>
         </div>
-        <div class="mb-3" id="categoryAmountsDiv" style="display:none;">
+        <div class="mb-3" id="categoryAmountsDiv">
             <label class="form-label">Category Amounts</label>
             <?php foreach($categories as $cat=>$catLabel): ?>
                 <div class="input-group mb-2">

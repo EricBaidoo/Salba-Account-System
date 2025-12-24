@@ -14,42 +14,73 @@ $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
-    <div class="container mt-5">
-        <div class="mb-3 text-end">
-            <a href="dashboard.php" class="btn btn-outline-primary"><i class="fas fa-home me-1"></i>Back to Dashboard</a>
-        </div>
-        <div class="page-header rounded shadow-sm mb-4 p-4 text-center">
-            <h2 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Add New Expense</h2>
-            <p class="lead mb-0">Record a new expense and assign it to a category for better reporting.</p>
-        </div>
-        <div class="main-content p-4">
+<body class="form-page-body">
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-header">
+                <a href="view_expenses.php" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Expenses
+                </a>
+                <div class="form-header-content">
+                    <div class="form-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h1>Add New Expense</h1>
+                    <p>Record and categorize your expense transactions</p>
+                </div>
+            </div>
+            
             <form action="add_expense.php" method="POST">
-                <div class="mb-3">
-                    <label for="category_id" class="form-label">Category</label>
-                    <select class="form-select" id="category_id" name="category_id" required>
-                        <option value="" disabled selected>Select category</option>
-                        <?php while($cat_row = $cat_result->fetch_assoc()): ?>
-                            <option value="<?= $cat_row['id'] ?>"><?= htmlspecialchars($cat_row['name']) ?></option>
-                        <?php endwhile; ?>
-                    </select>
+                <div class="form-body">
+                    <div class="clean-form-group">
+                        <label for="category_id" class="clean-form-label">
+                            <i class="fas fa-folder"></i>Expense Category
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select class="clean-form-control" id="category_id" name="category_id" required>
+                            <option value="" disabled selected>Select a category...</option>
+                            <?php while($cat_row = $cat_result->fetch_assoc()): ?>
+                                <option value="<?= $cat_row['id'] ?>"><?= htmlspecialchars($cat_row['name']) ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="clean-form-group">
+                        <label for="amount" class="clean-form-label">
+                            <i class="fas fa-dollar-sign"></i>Amount (GH₵)
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="number" step="0.01" class="clean-form-control" id="amount" name="amount" placeholder="Enter amount (e.g., 150.00)" required>
+                    </div>
+                    
+                    <div class="clean-form-group">
+                        <label for="expense_date" class="clean-form-label">
+                            <i class="fas fa-calendar"></i>Expense Date
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="date" class="clean-form-control" id="expense_date" name="expense_date" value="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+                    
+                    <div class="clean-form-group mb-0">
+                        <label for="description" class="clean-form-label">
+                            <i class="fas fa-file-alt"></i>Description
+                        </label>
+                        <textarea class="clean-form-control" id="description" name="description" rows="3" placeholder="Enter additional details about this expense (optional)"></textarea>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="amount" class="form-label">Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                
+                <div class="form-actions">
+                    <a href="view_expenses.php" class="btn-clean-outline">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-clean-primary">
+                        <i class="fas fa-plus-circle"></i> Add Expense
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="expense_date" class="form-label">Expense Date</label>
-                    <input type="date" class="form-control" id="expense_date" name="expense_date" required>
-                </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea class="form-control" id="description" name="description"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-2"></i>Add Expense</button>
             </form>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

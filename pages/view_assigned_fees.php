@@ -4,11 +4,27 @@ if (!is_logged_in()) {
     exit;
 }
 include '../includes/db_connect.php';
+include '../includes/system_settings.php';
+// School branding for print header
+$school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
 // Get filter parameters
 $class_filter = $_GET['class'] ?? '';
 $status_filter = $_GET['status'] ?? '';
 $search = $_GET['search'] ?? '';
+$year_filter = $_GET['year'] ?? '';
+
+// Academic year options
+$current_academic_year = getAcademicYear($conn);
+$year_options = [];
+$yrs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs) {
+    while ($yr = $yrs->fetch_assoc()) {
+        if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+    }
+    $yrs->close();
+}
+if (!in_array($current_academic_year, $year_options, true)) { array_unshift($year_options, $current_academic_year); }
 
 // Build query with filters
 $where_clauses = [];
@@ -16,22 +32,29 @@ $params = [];
 $param_types = '';
 
 if (!empty($class_filter)) {
-    $where_clauses[] = "student_class = ?";
+    $where_clauses[] = "v.student_class = ?";
     $params[] = $class_filter;
     $param_types .= 's';
 }
 
 if (!empty($status_filter)) {
-    $where_clauses[] = "status = ?";
+    $where_clauses[] = "v.status = ?";
     $params[] = $status_filter;
     $param_types .= 's';
 }
 
 if (!empty($search)) {
-    $where_clauses[] = "(student_name LIKE ? OR fee_name LIKE ?)";
+    $where_clauses[] = "(v.student_name LIKE ? OR v.fee_name LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
     $param_types .= 'ss';
+}
+
+// Restrict by academic year if provided
+if (!empty($year_filter)) {
+    $where_clauses[] = "sf.academic_year = ?";
+    $params[] = $year_filter;
+    $param_types .= 's';
 }
 
 $where_sql = '';
@@ -39,7 +62,7 @@ if (!empty($where_clauses)) {
     $where_sql = " WHERE " . implode(' AND ', $where_clauses);
 }
 
-$sql = "SELECT * FROM v_fee_assignments" . $where_sql . " ORDER BY due_date DESC, student_name";
+$sql = "SELECT v.*, sf.academic_year FROM v_fee_assignments v JOIN student_fees sf ON sf.id = v.assignment_id" . $where_sql . " ORDER BY v.due_date DESC, v.student_name";
 
 if (!empty($params)) {
     $stmt = $conn->prepare($sql);
@@ -56,16 +79,26 @@ if (!empty($params)) {
 $classes = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
 
 // Get summary statistics
-$stats = $conn->query("
-    SELECT 
-        COUNT(*) as total_assignments,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-        SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-        SUM(CASE WHEN payment_status = 'Overdue' THEN 1 ELSE 0 END) as overdue_count,
-        COALESCE(SUM(amount), 0) as total_amount,
-        COALESCE(SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END), 0) as paid_amount
-    FROM v_fee_assignments
-")->fetch_assoc();
+    // Get summary statistics (respect academic year filter)
+    $stats_sql_base = "
+        SELECT 
+            COUNT(*) as total_assignments,
+            SUM(CASE WHEN v.status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN v.status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+            SUM(CASE WHEN v.payment_status = 'Overdue' THEN 1 ELSE 0 END) as overdue_count,
+            COALESCE(SUM(v.amount), 0) as total_amount,
+            COALESCE(SUM(CASE WHEN v.status = 'paid' THEN v.amount ELSE 0 END), 0) as paid_amount
+        FROM v_fee_assignments v
+        JOIN student_fees sf ON sf.id = v.assignment_id";
+    if (!empty($year_filter)) {
+        $st = $conn->prepare($stats_sql_base . " WHERE sf.academic_year = ?");
+        $st->bind_param('s', $year_filter);
+        $st->execute();
+        $stats = $st->get_result()->fetch_assoc();
+        $st->close();
+    } else {
+        $stats = $conn->query($stats_sql_base)->fetch_assoc();
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,72 +110,42 @@ $stats = $conn->query("
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
+        @media print {
+            .d-print-none { display: none !important; }
+            .print-header { display: block !important; margin-bottom: 16px; }
         }
-        .filter-card {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-        .status-badge {
-            font-size: 0.875rem;
-            padding: 0.375rem 0.75rem;
-        }
-        .overdue { background-color: #dc3545; }
-        .due-soon { background-color: #fd7e14; }
-        .pending { background-color: #ffc107; color: #000; }
-        .paid { background-color: #28a745; }
-        .table-responsive {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        @media screen {
+            .print-header { display: none; }
         }
     </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+<body class="clean-page">
+
+    <!-- Clean Page Header -->
+    <div class="clean-page-header">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="dashboard.php" class="clean-back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <!-- Header -->
-        <div class="page-header text-center mb-5">
-            <h1><i class="fas fa-list-alt me-3"></i>Fee Assignments</h1>
-            <p class="lead">Track and manage all student fee assignments</p>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card stats-card h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-clipboard-list fa-2x mb-2"></i>
-                        <h4 class="mb-0"><?php echo $stats['total_assignments']; ?></h4>
-                        <small>Total Assignments</small>
-                    </div>
-                </div>
+            <div>
+                <h1 class="clean-page-title"><i class="fas fa-list-alt me-2"></i>Fee Assignments</h1>
+                <p class="clean-page-subtitle">Track and manage all student fee assignments</p>
             </div>
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card bg-warning text-dark h-100">
-                    <div class="card-body text-center">
-                        <i class="fas fa-clock fa-2x mb-2"></i>
-                        <h4 class="mb-0"><?php echo $stats['pending_count']; ?></h4>
-                        <small>Pending Payments</small>
-                    </div>
-                </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 py-4">
+        <!-- Summary Statistics -->
+        <div class="clean-stats-grid d-print-none">
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['total_assignments']; ?></div>
+                <div class="clean-stat-label">Total Assignments</div>
+            </div>
+            <div class="clean-stat-item">
+                <div class="clean-stat-value"><?php echo $stats['pending_count']; ?></div>
+                <div class="clean-stat-label">Pending Payments</div>
             </div>
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="card bg-danger text-white h-100">
@@ -165,7 +168,7 @@ $stats = $conn->query("
         </div>
 
         <!-- Financial Summary -->
-        <div class="row mb-4">
+        <div class="row mb-4 d-print-none">
             <div class="col-md-6 mb-3">
                 <div class="card bg-primary text-white">
                     <div class="card-body text-center">
@@ -193,7 +196,7 @@ $stats = $conn->query("
                     <div class="card-body">
                         <form method="GET" action="">
                             <div class="row align-items-end">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="search" class="form-label">
                                         <i class="fas fa-search me-2"></i>Search
                                     </label>
@@ -216,6 +219,19 @@ $stats = $conn->query("
                                     </select>
                                 </div>
                                 <div class="col-md-3">
+                                    <label for="year" class="form-label">
+                                        <i class="fas fa-graduation-cap me-2"></i>Academic Year
+                                    </label>
+                                    <select class="form-select" id="year" name="year">
+                                        <option value="">All Years</option>
+                                        <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
+                                            <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($year_filter === $yr) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($label); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <label for="status" class="form-label">
                                         <i class="fas fa-flag me-2"></i>Status
                                     </label>
@@ -226,7 +242,7 @@ $stats = $conn->query("
                                         <option value="overdue" <?php echo ($status_filter === 'overdue') ? 'selected' : ''; ?>>Overdue</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-filter me-2"></i>Filter
                                     </button>
@@ -237,7 +253,7 @@ $stats = $conn->query("
                 </div>
             </div>
             <div class="col-lg-4">
-                <div class="d-grid gap-2">
+                <div class="d-grid gap-2 d-print-none">
                     <a href="assign_fee_form.php" class="btn btn-success">
                         <i class="fas fa-plus me-2"></i>Assign New Fee
                     </a>
@@ -248,27 +264,27 @@ $stats = $conn->query("
             </div>
         </div>
 
+        <!-- Print Header -->
+        <div class="print-header text-center">
+            <h3 class="mb-0"><?php echo htmlspecialchars($school_name); ?></h3>
+            <div class="small text-muted">Fee Assignments Report</div>
+            <div class="mt-1">
+                Class: <strong><?php echo $class_filter !== '' ? htmlspecialchars($class_filter) : 'All Classes'; ?></strong>
+                | Status: <strong><?php echo $status_filter !== '' ? htmlspecialchars(ucfirst($status_filter)) : 'All Status'; ?></strong>
+                | Academic Year: <strong><?php echo $year_filter !== '' ? htmlspecialchars(formatAcademicYearDisplay($conn, $year_filter)) : 'All Years'; ?></strong>
+            </div>
+            <div class="small text-muted">Printed on <?php echo date('M j, Y'); ?></div>
+        </div>
+
         <!-- Assignments Table -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0"><i class="fas fa-table me-2"></i>Fee Assignments</h5>
             </div>
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="clean-table-scroll">
                     <table class="table table-hover mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Student</th>
-                                <th>Class</th>
-                                <th>Fee</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Due Date</th>
-                                <th>Term</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead class="table-dark">\n                            <tr>\n                                <th>Student</th>\n                                <th>Class</th>\n                                <th>Fee</th>\n                                <th>Type</th>\n                                <th>Amount</th>\n                                <th>Due Date</th>\n                                <th>Term</th>\n                                <th>Year</th>\n                                <th>Status</th>\n                                <th>Actions</th>\n                            </tr>\n                        </thead>
                         <tbody>
                             <?php if($result && $result->num_rows > 0): ?>
                                 <?php while($row = $result->fetch_assoc()): ?>
@@ -303,6 +319,9 @@ $stats = $conn->query("
                                         <?php echo !empty($row['term']) ? htmlspecialchars($row['term']) : '<small class="text-muted">N/A</small>'; ?>
                                     </td>
                                     <td>
+                                        <?php echo !empty($row['academic_year']) ? htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) : '<small class="text-muted">N/A</small>'; ?>
+                                    </td>
+                                    <td>
                                         <?php
                                         $status_class = '';
                                         switch($row['payment_status']) {
@@ -320,7 +339,7 @@ $stats = $conn->query("
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
                                             <?php if($row['status'] !== 'paid'): ?>
-                                                <a href="record_payment_form.php?assignment_id=<?php echo $row['assignment_id']; ?>" 
+                                                <a href="record_payment_form.php?assignment_id=<?php echo $row['assignment_id']; ?>&term=<?php echo urlencode($row['term']); ?>&academic_year=<?php echo urlencode($row['academic_year'] ?? ''); ?>" 
                                                    class="btn btn-outline-success" title="Record Payment">
                                                     <i class="fas fa-credit-card"></i>
                                                 </a>
