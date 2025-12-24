@@ -86,19 +86,7 @@ $exp_stmt->close();
     <!-- Statistics Cards -->
     <div class="container-fluid px-4 py-4">
         <div class="row g-3">
-                        <!-- Manage Fee Categories Module -->
-                        <div class="col-xl-3 col-lg-6">
-                            <div class="quick-module quick-module-categories">
-                                <div class="quick-module-icon">
-                                    <i class="fas fa-tags"></i>
-                                </div>
-                                <h5 class="quick-module-title">Fee Categories</h5>
-                                <p class="quick-module-desc">Add, edit, or remove fee categories</p>
-                                <div class="quick-module-actions">
-                                    <a href="manage_fee_categories.php" class="btn-quick-outline"><i class="fas fa-cog me-1"></i> MANAGE</a>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Manage Fee Categories Module removed as requested -->
             <div class="col-xl-3 col-md-6">
                 <div class="stats-box stats-primary">
                     <div class="stats-icon-circle">
