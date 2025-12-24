@@ -13,10 +13,11 @@ if (
 } else {
     // Online/hosted environment
     $servername = "localhost"; // Your Hostinger MySQL host
-    $username = "u420775839_salba_admin1";
+    $username = "u420775839_Salba_admin1";
     $password = "Eric0056@2024";
-    $dbname = "u420775839_salba_acc1";
+    $dbname = "u420775839_Salba_acc1";
 }
+
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
