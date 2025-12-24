@@ -86,6 +86,19 @@ $exp_stmt->close();
     <!-- Statistics Cards -->
     <div class="container-fluid px-4 py-4">
         <div class="row g-3">
+                        <!-- Manage Fee Categories Module -->
+                        <div class="col-xl-3 col-lg-6">
+                            <div class="quick-module quick-module-categories">
+                                <div class="quick-module-icon">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                                <h5 class="quick-module-title">Fee Categories</h5>
+                                <p class="quick-module-desc">Add, edit, or remove fee categories</p>
+                                <div class="quick-module-actions">
+                                    <a href="manage_fee_categories.php" class="btn-quick-outline"><i class="fas fa-cog me-1"></i> MANAGE</a>
+                                </div>
+                            </div>
+                        </div>
             <div class="col-xl-3 col-md-6">
                 <div class="stats-box stats-primary">
                     <div class="stats-icon-circle">
@@ -181,6 +194,7 @@ $exp_stmt->close();
                         <a href="assign_fee_form.php" class="quick-link"><i class="fas fa-link me-1"></i> Assign Fees</a>
                         <a href="generate_term_bills.php" class="quick-link"><i class="fas fa-file-invoice me-1"></i> Generate Bills</a>
                         <a href="term_invoice.php" class="quick-link"><i class="fas fa-print me-1"></i> Term Invoices</a>
+                        <a href="manage_fee_categories.php" class="quick-link"><i class="fas fa-tags me-1"></i> Manage Fee Categories</a>
                     </div>
                 </div>
             </div>

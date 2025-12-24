@@ -3,58 +3,6 @@ include '../includes/db_connect.php';
 include '../includes/auth_check.php';
 $fee_id = isset($_GET['fee_id']) ? intval($_GET['fee_id']) : 0;
 if (!$fee_id) { die('Invalid fee ID.'); }
-
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
-    $fee_type = isset($_POST['fee_type']) ? $_POST['fee_type'] : '';
-
-    // Update main fee table
-    $stmt = $conn->prepare("UPDATE fees SET name=?, description=?, fee_type=? WHERE id=?");
-    $stmt->bind_param('sssi', $name, $description, $fee_type, $fee_id);
-    $stmt->execute();
-    $stmt->close();
-
-    // Remove old amounts
-    $conn->query("DELETE FROM fee_amounts WHERE fee_id = $fee_id");
-
-    // Insert new amounts
-    if ($fee_type === 'fixed') {
-        $fixed_amount = isset($_POST['fixed_amount']) ? floatval($_POST['fixed_amount']) : 0;
-        $stmt = $conn->prepare("INSERT INTO fee_amounts (fee_id, amount) VALUES (?, ?)");
-        $stmt->bind_param('id', $fee_id, $fixed_amount);
-        $stmt->execute();
-        $stmt->close();
-        // Also update main fee amount for legacy compatibility
-        $conn->query("UPDATE fees SET amount = $fixed_amount WHERE id = $fee_id");
-    } elseif ($fee_type === 'class_based' && isset($_POST['class_amounts'])) {
-        foreach ($_POST['class_amounts'] as $class => $amount) {
-            if ($amount !== '' && is_numeric($amount)) {
-                $stmt = $conn->prepare("INSERT INTO fee_amounts (fee_id, class_name, amount) VALUES (?, ?, ?)");
-                $stmt->bind_param('isd', $fee_id, $class, $amount);
-                $stmt->execute();
-                $stmt->close();
-            }
-        }
-        $conn->query("UPDATE fees SET amount = 0 WHERE id = $fee_id");
-    } elseif ($fee_type === 'category' && isset($_POST['category_amounts'])) {
-        foreach ($_POST['category_amounts'] as $catId => $amount) {
-            if ($amount !== '' && is_numeric($amount)) {
-                $stmt = $conn->prepare("INSERT INTO fee_amounts (fee_id, category, amount) VALUES (?, ?, ?)");
-                $stmt->bind_param('isd', $fee_id, $catId, $amount);
-                $stmt->execute();
-                $stmt->close();
-            }
-        }
-        $conn->query("UPDATE fees SET amount = 0 WHERE id = $fee_id");
-    }
-
-    // Redirect to avoid resubmission and reload updated data
-    header("Location: edit_fee.php?fee_id=$fee_id&updated=1");
-    exit;
-}
-
 $fee = $conn->query("SELECT * FROM fees WHERE id = $fee_id")->fetch_assoc();
 if (!$fee) { die('Fee not found.'); }
 $amounts = [];

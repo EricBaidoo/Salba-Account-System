@@ -6,6 +6,8 @@ if (!is_logged_in()) {
     header('Location: ../pages/login.php');
     exit;
 }
+// Load category id=>name map
+include_once '../includes/fee_category_map.php';
 
 // Get fees with their associated amounts for class-based and category fees
 $fees_query = "
@@ -169,7 +171,19 @@ $stats = $conn->query("
                                             <h5 class="text-primary mb-1">Variable Amount</h5>
                                             <?php if (!empty($row['amount_details'])): ?>
                                                 <small class="text-muted">
-                                                    <?php echo htmlspecialchars(str_replace(' | ', ' • ', $row['amount_details'])); ?>
+                                                    <?php
+                                                    // Replace category IDs with names for display
+                                                    $details = explode(' | ', $row['amount_details']);
+                                                    $out = [];
+                                                    foreach ($details as $d) {
+                                                        if (preg_match('/^([0-9]+):GH₵/', $d, $m) && isset($category_map[$m[1]])) {
+                                                            $out[] = str_replace($m[1], $category_map[$m[1]], $d);
+                                                        } else {
+                                                            $out[] = $d;
+                                                        }
+                                                    }
+                                                    echo htmlspecialchars(implode(' • ', $out));
+                                                    ?>
                                                 </small>
                                             <?php endif; ?>
                                         </div>

@@ -1,3 +1,11 @@
+/* Force visibility for amount sections in edit_fee.php */
+#fixedAmountDiv, #classAmountsDiv, #categoryAmountsDiv {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    position: static !important;
+}
 /* Salba Montessori Accounting System - Professional Styles */
 /* Brand color variables */
 :root {
