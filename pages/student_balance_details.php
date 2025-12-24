@@ -226,8 +226,48 @@ $payment_history = getStudentPaymentHistory($conn, $student_id);
                                         <td><span class="badge bg-success"><i class="fas fa-check"></i> Paid</span></td>
                                         <td><?php echo htmlspecialchars($payment['receipt_no'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($payment['description'] ?? ''); ?></td>
-                                        <td></td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="edit_payment_form.php?payment_id=<?php echo $payment['id']; ?>" class="btn btn-sm btn-outline-primary" title="Edit this payment">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePayment(<?php echo $payment['id']; ?>, <?php echo $student_id; ?>)" title="Delete this payment">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
+</script>
+<script>
+function deletePayment(paymentId, studentId) {
+    if (!confirm('Are you sure you want to delete this payment?')) return;
+    fetch('delete_payment.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ payment_id: paymentId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', data.message);
+            setTimeout(() => {
+                if (data.redirect) {
+                    window.location.href = window.location.href;
+                } else {
+                    window.location.reload();
+                }
+            }, 1200);
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Error deleting payment.');
+    });
+}
+</script>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>

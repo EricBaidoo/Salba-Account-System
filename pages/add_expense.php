@@ -7,13 +7,13 @@ if (!is_logged_in()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $category = trim($_POST['category']);
+    $category_id = intval($_POST['category_id']);
     $amount = floatval($_POST['amount']);
     $expense_date = $_POST['expense_date'];
     $description = trim($_POST['description']);
 
-    $stmt = $conn->prepare("INSERT INTO expenses (category, amount, expense_date, description) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("sdss", $category, $amount, $expense_date, $description);
+    $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("idss", $category_id, $amount, $expense_date, $description);
     if ($stmt->execute()) {
         echo "<div class='alert alert-success'>Expense added successfully!</div>";
     } else {

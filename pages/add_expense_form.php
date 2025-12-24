@@ -2,7 +2,7 @@
 include '../includes/auth_check.php'; 
 include '../includes/db_connect.php';
 // Fetch categories from DB
-$cat_result = $conn->query("SELECT name FROM expense_categories ORDER BY name ASC");
+$cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,11 +26,11 @@ $cat_result = $conn->query("SELECT name FROM expense_categories ORDER BY name AS
         <div class="main-content p-4">
             <form action="add_expense.php" method="POST">
                 <div class="mb-3">
-                    <label for="category" class="form-label">Category</label>
-                    <select class="form-select" id="category" name="category" required>
+                    <label for="category_id" class="form-label">Category</label>
+                    <select class="form-select" id="category_id" name="category_id" required>
                         <option value="" disabled selected>Select category</option>
                         <?php while($cat_row = $cat_result->fetch_assoc()): ?>
-                            <option value="<?= htmlspecialchars($cat_row['name']) ?>"><?= htmlspecialchars($cat_row['name']) ?></option>
+                            <option value="<?= $cat_row['id'] ?>"><?= htmlspecialchars($cat_row['name']) ?></option>
                         <?php endwhile; ?>
                     </select>
                 </div>

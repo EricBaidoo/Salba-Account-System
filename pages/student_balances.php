@@ -26,6 +26,59 @@ if ($owing_filter === 'owing') {
     });
 }
 
+// Compute percent paid for each student and attach to array
+foreach ($student_balances as &$s) {
+    $total_fees = (float)($s['total_fees'] ?? 0);
+    $total_payments = (float)($s['total_payments'] ?? 0);
+    if ($total_fees > 0) {
+        $s['paid_percent'] = min(100, ($total_payments / $total_fees) * 100);
+    } elseif ($total_payments > 0) {
+        $s['paid_percent'] = 100;
+    } else {
+        $s['paid_percent'] = 0;
+    }
+}
+unset($s);
+
+// Percent filter (ranges)
+// New percent filters: all, below50, below75, below100
+$percent_filter = $_GET['percent'] ?? 'all';
+if ($percent_filter !== 'all') {
+    $student_balances = array_filter($student_balances, function($st) use ($percent_filter) {
+        $p = $st['paid_percent'];
+        switch ($percent_filter) {
+            case 'below50': return $p < 50;
+            case 'below75': return $p < 75;
+            case 'below100': return $p < 100;
+            default: return true;
+        }
+    });
+}
+
+// Sorting
+$sort_by = $_GET['sort_by'] ?? 'name'; // name, class, percent
+$order = $_GET['order'] ?? 'asc'; // asc, desc
+if ($sort_by === 'percent') {
+    usort($student_balances, function($a, $b) use ($order) {
+        if ($a['paid_percent'] == $b['paid_percent']) return 0;
+        if ($order === 'asc') return ($a['paid_percent'] < $b['paid_percent']) ? -1 : 1;
+        return ($a['paid_percent'] > $b['paid_percent']) ? -1 : 1;
+    });
+} elseif ($sort_by === 'class') {
+    usort($student_balances, function($a, $b) use ($order) {
+        if ($a['class'] == $b['class']) return 0;
+        if ($order === 'asc') return ($a['class'] < $b['class']) ? -1 : 1;
+        return ($a['class'] > $b['class']) ? -1 : 1;
+    });
+} else {
+    // default sort by student name
+    usort($student_balances, function($a, $b) use ($order) {
+        if ($a['student_name'] == $b['student_name']) return 0;
+        if ($order === 'asc') return ($a['student_name'] < $b['student_name']) ? -1 : 1;
+        return ($a['student_name'] > $b['student_name']) ? -1 : 1;
+    });
+}
+
 // Calculate summary statistics
 $total_students = count($student_balances);
 $total_fees = array_sum(array_column($student_balances, 'total_fees'));
@@ -99,6 +152,14 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
             margin-bottom: 2rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
+        /* Circular progress small */
+        .circular-progress { width: 36px; height: 36px; display: inline-block; vertical-align: middle; }
+        .circular-progress svg { transform: rotate(-90deg); }
+        .circular-progress .bg { stroke: #e9ecef; stroke-width: 3.5; fill: none; }
+        .circular-progress .fg { stroke-width: 3.5; fill: none; stroke-linecap: round; }
+        .circular-progress .fg.green { stroke: #28a745; }
+        .circular-progress .fg.yellow { stroke: #ffc107; }
+        .circular-progress .fg.gray { stroke: #6c757d; }
     </style>
 </head>
 <body>
@@ -219,6 +280,17 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label fw-semibold">
+                        <i class="fas fa-percent me-2"></i>Percent Paid
+                    </label>
+                    <select name="percent" class="form-select" onchange="this.form.submit()">
+                        <option value="all" <?php echo $percent_filter === 'all' ? 'selected' : ''; ?>>All</option>
+                        <option value="below50" <?php echo $percent_filter === 'below50' ? 'selected' : ''; ?>>All students below 50%</option>
+                        <option value="below75" <?php echo $percent_filter === 'below75' ? 'selected' : ''; ?>>All students below 75%</option>
+                        <option value="below100" <?php echo $percent_filter === 'below100' ? 'selected' : ''; ?>>All students below 100%</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-filter me-2"></i>Apply Filters
                     </button>
@@ -236,7 +308,45 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                                 <!-- Student Info Header -->
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <h6 class="card-title mb-1"><?php echo htmlspecialchars($student['student_name']); ?></h6>
+                                        <?php
+                                            $total_fees = (float)($student['total_fees'] ?? 0);
+                                            $total_payments = (float)($student['total_payments'] ?? 0);
+                                            $paid_percent = 0;
+                                            if ($total_fees > 0) {
+                                                $paid_percent = min(100, ($total_payments / $total_fees) * 100);
+                                            } elseif ($total_payments > 0) {
+                                                $paid_percent = 100;
+                                            }
+                                            $badge_class = 'bg-secondary';
+                                            if ($paid_percent >= 100) {
+                                                $badge_class = 'bg-success';
+                                            } elseif ($paid_percent > 0) {
+                                                $badge_class = 'bg-warning text-dark';
+                                            }
+                                        ?>
+                                        <h6 class="card-title mb-1 d-flex align-items-center gap-2">
+                                            <?php echo htmlspecialchars($student['student_name']); ?>
+                                            <?php
+                                                // Discrete buckets: 0, 50, 75, 100
+                                                if ($paid_percent >= 100) $bucket = 100;
+                                                elseif ($paid_percent >= 75) $bucket = 75;
+                                                elseif ($paid_percent >= 50) $bucket = 50;
+                                                else $bucket = 0;
+
+                                                $radius = 16; $circ = 2 * pi() * $radius; $offset = $circ * (1 - ($paid_percent/100));
+                                                $fg_class = 'gray';
+                                                if ($bucket === 100) $fg_class = 'green';
+                                                elseif ($bucket === 75 || $bucket === 50) $fg_class = 'yellow';
+                                                else $fg_class = 'gray';
+                                            ?>
+                                            <div class="circular-progress ms-2" title="<?php echo round($paid_percent,1); ?>% paid (shown as <?php echo $bucket; ?>%)">
+                                                <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+                                                    <circle class="bg" cx="18" cy="18" r="16"></circle>
+                                                    <circle class="fg <?php echo $fg_class; ?>" cx="18" cy="18" r="16" stroke-dasharray="<?php echo $circ; ?>" stroke-dashoffset="<?php echo $offset; ?>"></circle>
+                                                </svg>
+                                                <small class="ms-1" style="font-size:0.8rem; vertical-align:middle;"><?php echo $bucket; ?>%</small>
+                                            </div>
+                                        </h6>
                                         <small class="text-muted">
                                             <i class="fas fa-layer-group me-1"></i><?php echo htmlspecialchars($student['class']); ?>
                                             <?php if ($student['student_status'] === 'inactive'): ?>
@@ -258,6 +368,9 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                                             <li><a class="dropdown-item" href="assign_fee_form.php?student_id=<?php echo $student['student_id']; ?>">
                                                 <i class="fas fa-plus me-2"></i>Assign Fee
                                             </a></li>
+                                                <li><a class="dropdown-item" href="student_percentage.php?id=<?php echo $student['student_id']; ?>">
+                                                    <i class="fas fa-chart-pie me-2"></i>Percentage
+                                                </a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -338,6 +451,30 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                 <a href="view_payments.php" class="btn btn-outline-info">
                     <i class="fas fa-credit-card me-2"></i>Payment History
                 </a>
+            </div>
+        </div>
+
+        <!-- Sorting & counts -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <small class="text-muted">Showing <strong><?php echo $total_students; ?></strong> students</small>
+            </div>
+            <div>
+            <form method="GET" class="d-flex gap-2">
+                <input type="hidden" name="class" value="<?php echo htmlspecialchars($class_filter); ?>">
+                <input type="hidden" name="status" value="<?php echo htmlspecialchars($status_filter); ?>">
+                <input type="hidden" name="owing" value="<?php echo htmlspecialchars($owing_filter); ?>">
+                <input type="hidden" name="percent" value="<?php echo htmlspecialchars($percent_filter); ?>">
+                <select name="sort_by" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="name" <?php echo $sort_by === 'name' ? 'selected' : ''; ?>>Sort: Name</option>
+                    <option value="class" <?php echo $sort_by === 'class' ? 'selected' : ''; ?>>Sort: Class</option>
+                    <option value="percent" <?php echo $sort_by === 'percent' ? 'selected' : ''; ?>>Sort: Percent Paid</option>
+                </select>
+                <select name="order" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="asc" <?php echo $order === 'asc' ? 'selected' : ''; ?>>Asc</option>
+                    <option value="desc" <?php echo $order === 'desc' ? 'selected' : ''; ?>>Desc</option>
+                </select>
+            </form>
             </div>
         </div>
     </div>

@@ -7,11 +7,11 @@ if (!is_logged_in()) {
 }
 
 // Fetch all expenses
-$result = $conn->query("SELECT * FROM expenses ORDER BY expense_date DESC, id DESC");
+$result = $conn->query("SELECT e.*, ec.name AS category_name FROM expenses e LEFT JOIN expense_categories ec ON e.category_id = ec.id ORDER BY e.expense_date DESC, e.id DESC");
 
 // Fetch summary by category
 $summary = [];
-$sum_query = $conn->query("SELECT category, SUM(amount) as total FROM expenses GROUP BY category ORDER BY category");
+$sum_query = $conn->query("SELECT ec.name AS category, SUM(e.amount) as total FROM expenses e LEFT JOIN expense_categories ec ON e.category_id = ec.id GROUP BY ec.name ORDER BY ec.name");
 while ($row = $sum_query->fetch_assoc()) {
     $summary[] = $row;
 }
@@ -41,7 +41,7 @@ while ($row = $sum_query->fetch_assoc()) {
                     <div class="col-md-4 mb-3">
                         <div class="card dashboard-card bg-primary text-white h-100">
                             <div class="card-body text-center">
-                                <h5 class="card-title mb-2"><i class="fas fa-folder-open me-2"></i><?php echo htmlspecialchars($cat['category']); ?></h5>
+                                <h5 class="card-title mb-2"><i class="fas fa-folder-open me-2"></i><?php echo htmlspecialchars($cat['category'] ?? 'Uncategorized'); ?></h5>
                                 <div class="display-6">GH₵<?php echo number_format($cat['total'], 2); ?></div>
                                 <div class="small">Total Spent</div>
                             </div>
@@ -75,7 +75,7 @@ while ($row = $sum_query->fetch_assoc()) {
                         <?php while($row = $result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo $row['id']; ?></td>
-                            <td><?php echo htmlspecialchars($row['category']); ?></td>
+                            <td><?php echo htmlspecialchars($row['category_name'] ?? 'Uncategorized'); ?></td>
                             <td>GH₵<?php echo number_format($row['amount'], 2); ?></td>
                             <td><?php echo $row['expense_date']; ?></td>
                             <td><?php echo htmlspecialchars($row['description']); ?></td>

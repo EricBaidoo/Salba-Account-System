@@ -5,12 +5,13 @@ $id = intval($_GET['id'] ?? 0);
 $message = '';
 if ($id > 0) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $category = trim($_POST['category']);
+        // Use category_id (int) to match current DB schema
+        $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : null;
         $amount = floatval($_POST['amount']);
         $expense_date = $_POST['expense_date'];
         $description = trim($_POST['description']);
-        $stmt = $conn->prepare("UPDATE expenses SET category=?, amount=?, expense_date=?, description=? WHERE id=?");
-        $stmt->bind_param('sdssi', $category, $amount, $expense_date, $description, $id);
+        $stmt = $conn->prepare("UPDATE expenses SET category_id=?, amount=?, expense_date=?, description=? WHERE id=?");
+        $stmt->bind_param('idssi', $category_id, $amount, $expense_date, $description, $id);
         if ($stmt->execute()) {
             $message = '<div class="alert alert-success">Expense updated!</div>';
         } else {
@@ -19,7 +20,7 @@ if ($id > 0) {
         $stmt->close();
     }
     $exp = $conn->query("SELECT * FROM expenses WHERE id=$id")->fetch_assoc();
-    $cat_result = $conn->query("SELECT name FROM expense_categories ORDER BY name ASC");
+    $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
 } else {
     die('Invalid expense ID.');
 }
@@ -37,10 +38,10 @@ if ($id > 0) {
     <?php if ($message) echo $message; ?>
     <form method="POST">
         <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <select class="form-select" id="category" name="category" required>
+            <label for="category_id" class="form-label">Category</label>
+            <select class="form-select" id="category_id" name="category_id" required>
                 <?php while($cat_row = $cat_result->fetch_assoc()): ?>
-                    <option value="<?= htmlspecialchars($cat_row['name']) ?>" <?= $exp['category'] == $cat_row['name'] ? 'selected' : '' ?>><?= htmlspecialchars($cat_row['name']) ?></option>
+                    <option value="<?= $cat_row['id'] ?>" <?= ($exp['category_id'] == $cat_row['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat_row['name']) ?></option>
                 <?php endwhile; ?>
             </select>
         </div>
