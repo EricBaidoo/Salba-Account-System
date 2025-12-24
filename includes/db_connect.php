@@ -1,9 +1,9 @@
 <?php
 // Database connection for Salba Montessori Accounting System
 $servername = "localhost";
-$username = "root"; // Change if not using default XAMPP user
-$password = "root";    // Change if you set a password for root
-$dbname = "Salba_acc";
+$username = "u420775839_Salba_admin1"; // Change if not using default XAMPP user
+$password = "Eric0056@2024";    // Change if you set a password for root
+$dbname = "u420775839_Salba_acc1";
 
 // Create connection
 
