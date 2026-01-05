@@ -102,11 +102,14 @@ if (!function_exists('getTermDateRange')) {
         // Divide academic year into 3 blocks of ~4 months each from the configured start.
         $start_date = getAcademicYearStart($conn, $academic_year);
         $start_ts = strtotime($start_date);
-        // Term offsets in months
+        // Term offsets in months - support both "Term 1" and "First Term" formats
         $offsets = [
             'First Term' => 0,
             'Second Term' => 4,
             'Third Term' => 8,
+            'Term 1' => 0,
+            'Term 2' => 4,
+            'Term 3' => 8,
         ];
         $offset = $offsets[$term] ?? 0;
         $term_start_ts = strtotime("+{$offset} months", $start_ts);
