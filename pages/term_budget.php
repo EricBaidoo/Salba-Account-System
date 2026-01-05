@@ -257,6 +257,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
                     <p class="clean-page-subtitle"><?php echo htmlspecialchars($current_term); ?> - <?php echo htmlspecialchars($academic_year); ?></p>
                 </div>
                 <div class="d-flex gap-2 d-print-none">
+                    <a href="download_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="btn-clean-outline">
+                        <i class="fas fa-download"></i> DOWNLOAD PDF
+                    </a>
                     <a href="#" onclick="window.print()" class="btn-clean-outline">
                         <i class="fas fa-print"></i> PRINT
                     </a>
