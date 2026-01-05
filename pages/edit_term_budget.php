@@ -166,10 +166,15 @@ if ($existing) {
                                         <div>
                                             <label class="small text-muted d-block mb-1">Fee Category</label>
                                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($fee['name']); ?>" readonly>
-                                            <small class="text-muted">Assigned: GH₵<?php echo number_format($assigned_total, 2); ?></small>
+                                            <small class="text-muted">
+                                                Current Assignments: GH₵<?php echo number_format($assigned_total, 2); ?>
+                                                <?php if ($fee_amount != $assigned_total): ?>
+                                                    <span class="text-warning ms-1">⚠ Budget differs from current assignments</span>
+                                                <?php endif; ?>
+                                            </small>
                                         </div>
                                         <div>
-                                            <label class="small text-muted d-block mb-1">Expected Amount (GH₵)</label>
+                                            <label class="small text-muted d-block mb-1">Budgeted Amount (GH₵)</label>
                                             <input type="number" step="0.01" class="form-control income-amount" name="income_amount[]" 
                                                    value="<?php echo $fee_amount; ?>" placeholder="0.00">
                                             <input type="hidden" name="income_category[]" value="<?php echo htmlspecialchars($fee['name']); ?>">
@@ -234,9 +239,14 @@ if ($existing) {
 
                             <!-- Summary -->
                             <div class="alert alert-light border">
+                                <div class="alert alert-info mb-3">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <strong>Note:</strong> The totals below show the <strong>budgeted amounts</strong> you can edit. 
+                                    The view page shows <strong>current fee assignments</strong> which may differ if fees have been assigned/unassigned after budget creation.
+                                </div>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <h6 class="text-success">Total Expected Income</h6>
+                                        <h6 class="text-success">Total Budgeted Income</h6>
                                         <h4 id="totalIncome" class="text-success">GH₵0.00</h4>
                                     </div>
                                     <div class="col-md-6">
