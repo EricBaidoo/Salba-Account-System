@@ -142,12 +142,14 @@ if ($existing) {
                                     <?php 
                                     $fees->data_seek(0);
                                     while ($fee = $fees->fetch_assoc()): 
-                                        // Calculate total assigned fees for this fee type and term
+                                        // Calculate total assigned fees for this fee type and term (active students only)
                                         $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
                                                           FROM student_fees sf 
+                                                          INNER JOIN students s ON sf.student_id = s.id
                                                           WHERE sf.fee_id = {$fee['id']} 
                                                           AND sf.term = '$current_term' 
-                                                          AND sf.academic_year = '$academic_year'";
+                                                          AND sf.academic_year = '$academic_year'
+                                                          AND s.status = 'active'";
                                         $assigned_result = $conn->query($assigned_query);
                                         $assigned_total = (float)$assigned_result->fetch_assoc()['total'];
                                         

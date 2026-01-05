@@ -87,12 +87,14 @@ while ($fee = $fees_result->fetch_assoc()) {
     $row = [];
     $row['category'] = $fee['name'];
     
-    // Get assigned fees total - THIS IS THE BUDGET (without status filter first)
+    // Get assigned fees total - THIS IS THE BUDGET (active students only)
     $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
                       FROM student_fees sf 
+                      INNER JOIN students s ON sf.student_id = s.id
                       WHERE sf.fee_id = {$fee['id']} 
                       AND sf.term = '$current_term' 
-                      AND sf.academic_year = '$academic_year'";
+                      AND sf.academic_year = '$academic_year'
+                      AND s.status = 'active'";
     $assigned_result = $conn->query($assigned_query);
     $row['amount'] = (float)$assigned_result->fetch_assoc()['total']; // Assigned = Budgeted
     $row['assigned'] = $row['amount'];

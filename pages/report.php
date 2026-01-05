@@ -102,8 +102,14 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     $payment_where[] = "p.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'";
     $payment_where_sql = ' WHERE ' . implode(' AND ', $payment_where);
     
-    // Total income from all payments
-    $income_total_result = $conn->query("SELECT COALESCE(SUM(amount), 0) as total FROM payments p $payment_where_sql");
+    // Total income from all payments (active students only)
+    $income_total_result = $conn->query("
+        SELECT COALESCE(SUM(p.amount), 0) as total 
+        FROM payments p 
+        INNER JOIN students s ON p.student_id = s.id
+        $payment_where_sql 
+        AND s.status = 'active'
+    ");
     $total_income = (float)$income_total_result->fetch_assoc()['total'];
     
     // Income breakdown by fee category - from student_fees.amount_paid
@@ -114,9 +120,11 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
                SUM(sf.amount_paid) AS total
         FROM student_fees sf
         INNER JOIN fees f ON sf.fee_id = f.id
+        INNER JOIN students s ON sf.student_id = s.id
         WHERE sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'
         $term_filter
         AND sf.amount_paid > 0
+        AND s.status = 'active'
         GROUP BY f.id, f.name
         ORDER BY f.name
     ";
@@ -152,22 +160,26 @@ if ($report_type === 'budget' || $report_type === 'overview') {
         if ($term_budget) {
             $term_range = getTermDateRange($conn, $term, $selected_academic_year);
             
-            // Get budgeted income (sum of all fee assignments)
+            // Get budgeted income (sum of all fee assignments for active students only)
             $income_budget_stmt = $conn->prepare("
                 SELECT COALESCE(SUM(sf.amount), 0) as total 
                 FROM student_fees sf 
+                INNER JOIN students s ON sf.student_id = s.id
                 WHERE sf.term = ? AND sf.academic_year = ?
+                AND s.status = 'active'
             ");
             $income_budget_stmt->bind_param('ss', $term, $selected_academic_year);
             $income_budget_stmt->execute();
             $income_budget = (float)$income_budget_stmt->get_result()->fetch_assoc()['total'];
             $income_budget_stmt->close();
             
-            // Get actual income - use term and academic_year fields from payments table
+            // Get actual income - use term and academic_year fields from payments table (active students only)
             $income_actual_stmt = $conn->prepare("
-                SELECT COALESCE(SUM(amount), 0) as total 
-                FROM payments 
-                WHERE term = ? AND academic_year = ?
+                SELECT COALESCE(SUM(p.amount), 0) as total 
+                FROM payments p
+                INNER JOIN students s ON p.student_id = s.id
+                WHERE p.term = ? AND p.academic_year = ?
+                AND s.status = 'active'
             ");
             $income_actual_stmt->bind_param('ss', $term, $selected_academic_year);
             $income_actual_stmt->execute();
@@ -252,6 +264,7 @@ if ($report_type === 'transactions') {
         LEFT JOIN students s ON p.student_id = s.id
         LEFT JOIN fees f ON p.fee_id = f.id
         WHERE p.payment_date BETWEEN ? AND ?
+        AND s.status = 'active'
         ORDER BY p.payment_date DESC, p.id DESC
         LIMIT 500
     ");
