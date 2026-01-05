@@ -20,43 +20,47 @@ $budget_stmt->bind_param('ss', $term, $academic_year);
 $budget_stmt->execute();
 $term_budget = $budget_stmt->get_result()->fetch_assoc();
 
-// Get budget items
+// Get budget items - ALWAYS show current assignments (same as term_budget.php view)
 $income_items = [];
 $expense_items = [];
 
+// Get income from current fee assignments (active students only)
+$fees_result = $conn->query("SELECT id, name FROM fees ORDER BY name ASC");
+while ($fee = $fees_result->fetch_assoc()) {
+    $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
+                      FROM student_fees sf 
+                      INNER JOIN students s ON sf.student_id = s.id
+                      WHERE sf.fee_id = {$fee['id']} 
+                      AND sf.term = '$term' 
+                      AND sf.academic_year = '$academic_year'
+                      AND s.status = 'active'";
+    $assigned_result = $conn->query($assigned_query);
+    $amount = (float)$assigned_result->fetch_assoc()['total'];
+    
+    if ($amount > 0) {
+        $income_items[] = ['category' => $fee['name'], 'amount' => $amount];
+    }
+}
+
+// Get actual income collected from payments
+require_once '../includes/term_helpers.php';
+$range = getTermDateRange($conn, $term, $academic_year);
+
+// Get expenses - either from saved budget or from previous term actual spending
 if ($term_budget) {
-    $items_query = "SELECT * FROM term_budget_items WHERE term_budget_id = ? ORDER BY category ASC";
+    $items_query = "SELECT * FROM term_budget_items WHERE term_budget_id = ? AND type = 'expense' ORDER BY category ASC";
     $items_stmt = $conn->prepare($items_query);
     $items_stmt->bind_param('i', $term_budget['id']);
     $items_stmt->execute();
     $items_result = $items_stmt->get_result();
     
     while ($item = $items_result->fetch_assoc()) {
-        if ($item['type'] === 'income') {
-            $income_items[] = $item;
-        } else {
-            $expense_items[] = $item;
-        }
+        $expense_items[] = $item;
     }
-} else {
-    // Auto-populate from student fees and expenses
-    $fees_result = $conn->query("SELECT id, name FROM fees ORDER BY name ASC");
-    while ($fee = $fees_result->fetch_assoc()) {
-        $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
-                          FROM student_fees sf 
-                          INNER JOIN students s ON sf.student_id = s.id
-                          WHERE sf.fee_id = {$fee['id']} 
-                          AND sf.term = '$term' 
-                          AND sf.academic_year = '$academic_year'
-                          AND s.status = 'active'";
-        $assigned_result = $conn->query($assigned_query);
-        $amount = (float)$assigned_result->fetch_assoc()['total'];
-        
-        if ($amount > 0) {
-            $income_items[] = ['category' => $fee['name'], 'amount' => $amount];
-        }
-    }
-    
+}
+
+// If no saved expense budget, get from previous term spending
+if (empty($expense_items)) {
     $expense_cats_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
     while ($cat = $expense_cats_result->fetch_assoc()) {
         $prev_term = getPreviousTerm($term);
