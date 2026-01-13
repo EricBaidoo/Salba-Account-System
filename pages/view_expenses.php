@@ -13,8 +13,8 @@ $current_year = getAcademicYear($conn);
 $available_terms = getAvailableTerms();
 
 // Filters: term, academic year, and category
-$selected_term = isset($_GET['term']) ? trim($_GET['term']) : '';
-$selected_year = isset($_GET['year']) ? trim($_GET['year']) : '';
+$selected_term = isset($_GET['term']) ? trim($_GET['term']) : $current_term;
+$selected_year = isset($_GET['year']) ? trim($_GET['year']) : $current_year;
 $selected_category = isset($_GET['category']) ? intval($_GET['category']) : 0;
 
 // Academic year options from expenses + ensure current

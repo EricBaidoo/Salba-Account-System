@@ -9,11 +9,11 @@ include '../includes/system_settings.php';
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
 // Filters: term + academic year
-$selected_term = isset($_GET['term']) ? trim($_GET['term']) : '';
-$selected_year = isset($_GET['year']) ? trim($_GET['year']) : '';
-
 $current_term = getCurrentTerm($conn);
 $current_year = getAcademicYear($conn);
+
+$selected_term = isset($_GET['term']) ? trim($_GET['term']) : $current_term;
+$selected_year = isset($_GET['year']) ? trim($_GET['year']) : $current_year;
 $available_terms = getAvailableTerms();
 
 // Academic year options from payments + ensure current
