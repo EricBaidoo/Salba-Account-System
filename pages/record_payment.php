@@ -4,6 +4,26 @@ include '../includes/auth_check.php';
 include '../includes/system_settings.php';
 include '../includes/student_balance_functions.php';
 
+// Ensure receipt numbers are unique; generate when missing
+function ensureUniqueReceiptNo(mysqli $conn, string $receipt_no): string {
+    $base = $receipt_no !== '' ? $receipt_no : ('RCPT-' . date('Ymd') . '-' . random_int(1000, 9999));
+    $candidate = $base;
+    $suffix = 1;
+    while (true) {
+        $check = $conn->prepare("SELECT id FROM payments WHERE receipt_no = ? LIMIT 1");
+        $check->bind_param('s', $candidate);
+        $check->execute();
+        $check->store_result();
+        $exists = $check->num_rows > 0;
+        $check->close();
+        if (!$exists) {
+            return $candidate;
+        }
+        $candidate = $base . '-' . $suffix;
+        $suffix++;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_mode = $_POST['payment_mode'] ?? 'student';
     $amount = floatval($_POST['amount']);
@@ -24,6 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<div class='alert alert-danger'>Please select an academic year for this payment.</div>";
         exit;
     }
+    if ($amount <= 0) {
+        echo "<div class='alert alert-danger'>Payment amount must be greater than zero.</div>";
+        exit;
+    }
+
+    // Normalize/ensure unique receipt number
+    $receipt_no = ensureUniqueReceiptNo($conn, $receipt_no);
 
     if ($payment_mode === 'general') {
         // General payment (not tied to student) - fee_id is optional
@@ -63,17 +90,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<div class='alert alert-danger'>No student selected.</div>";
             exit;
         }
-        // Ensure arrears carry-forward exists in this term/year before allocating payment
-        ensureArrearsAssignment($conn, $student_id, $term, $academic_year);
-        $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("idsssss", $student_id, $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
-        if ($stmt->execute()) {
+
+        try {
+            $conn->begin_transaction();
+
+            // Ensure arrears carry-forward exists in this term/year before allocating payment
+            ensureArrearsAssignment($conn, $student_id, $term, $academic_year);
+
+            $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("idsssss", $student_id, $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
+            if (!$stmt->execute()) {
+                throw new Exception($stmt->error);
+            }
             $payment_id = $conn->insert_id;
+            $stmt->close();
+
             $remaining = $amount;
             // Allocation scope setting: 'global' or 'term_year' (default to term_year for correctness)
             $alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'term_year');
-            // Fetch all student_fees for this student that are not fully paid, ordered by due_date
-            // Allocate with priority: arrears carry-forward first, then other fees
+
+            // Allocate arrears first
             $arrears_fee_id = getArrearsFeeId($conn);
             $processed_arrears_fee_id = null;
             if ($arrears_fee_id) {
@@ -97,11 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $new_status = ($new_paid >= $fee_amount) ? 'paid' : 'pending';
                         $update_stmt = $conn->prepare("UPDATE student_fees SET amount_paid = ?, status = ? WHERE id = ?");
                         $update_stmt->bind_param("dsi", $new_paid, $new_status, $fee_id);
-                        $update_stmt->execute();
+                        if (!$update_stmt->execute()) { throw new Exception($update_stmt->error); }
                         $update_stmt->close();
+
                         $alloc_stmt = $conn->prepare("INSERT INTO payment_allocations (payment_id, student_fee_id, amount) VALUES (?, ?, ?)");
                         $alloc_stmt->bind_param("iid", $payment_id, $fee_id, $to_pay);
-                        $alloc_stmt->execute();
+                        if (!$alloc_stmt->execute()) { throw new Exception($alloc_stmt->error); }
                         $alloc_stmt->close();
                         $remaining -= $to_pay;
                     }
@@ -133,16 +170,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_status = ($new_paid >= $fee_amount) ? 'paid' : 'pending';
                     $update_stmt = $conn->prepare("UPDATE student_fees SET amount_paid = ?, status = ? WHERE id = ?");
                     $update_stmt->bind_param("dsi", $new_paid, $new_status, $fee_id);
-                    $update_stmt->execute();
+                    if (!$update_stmt->execute()) { throw new Exception($update_stmt->error); }
                     $update_stmt->close();
+
                     $alloc_stmt = $conn->prepare("INSERT INTO payment_allocations (payment_id, student_fee_id, amount) VALUES (?, ?, ?)");
                     $alloc_stmt->bind_param("iid", $payment_id, $fee_id, $to_pay);
-                    $alloc_stmt->execute();
+                    if (!$alloc_stmt->execute()) { throw new Exception($alloc_stmt->error); }
                     $alloc_stmt->close();
                     $remaining -= $to_pay;
                 }
             }
             $fees_stmt->close();
+
+            $conn->commit();
+
             echo "<div class='alert alert-success'>Payment recorded and allocated successfully!";
             if ($amount != $remaining) {
                 echo "<br>Updated student fee records.";
@@ -151,10 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "<br>Unallocated amount: GH₵" . number_format($remaining, 2);
             }
             echo "</div>";
-        } else {
-            echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo "<div class='alert alert-danger'>Error processing payment: " . htmlspecialchars($e->getMessage()) . "</div>";
         }
-        $stmt->close();
     }
 }
 ?>

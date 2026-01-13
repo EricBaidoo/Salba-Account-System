@@ -63,40 +63,71 @@ while($row = $result->fetch_assoc()) {
 
 // Fetch summary by fee category with same filters
 $category_summary = [];
-$summary_sql = "SELECT f.name AS category, SUM(p.amount) as total 
+
+// Build WHERE clause for subqueries - properly handle empty WHERE
+$add_where_student = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
+$add_where_general = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
+
+// Replace table aliases for student query
+$where_payments = str_replace('p.term', 'payments.term', $add_where_student);
+$where_payments = str_replace('p.academic_year', 'payments.academic_year', $where_payments);
+$where_payments = str_replace('s.status', 'students.status', $where_payments);
+
+// Student payments: get categories from payment_allocations
+$student_summary_sql = "SELECT 
+                    f.name AS category,
+                    'student' as payment_type,
+                    SUM(pa.amount) as total
+                FROM payment_allocations pa
+                JOIN student_fees sf ON pa.student_fee_id = sf.id
+                JOIN fees f ON sf.fee_id = f.id
+                JOIN payments ON pa.payment_id = payments.id
+                LEFT JOIN students ON payments.student_id = students.id" .
+                $where_payments . "payments.payment_type = 'student'
+                GROUP BY f.id, f.name";
+
+// General payments with fee category
+$general_with_fee_sql = "SELECT 
+                    CONCAT(f.name, ' (General)') AS category,
+                    'general' as payment_type,
+                    SUM(p.amount) as total
                 FROM payments p
-                LEFT JOIN fees f ON p.fee_id = f.id
+                JOIN fees f ON p.fee_id = f.id
                 LEFT JOIN students s ON p.student_id = s.id" .
-                $where_sql .
-                " AND p.payment_type = 'student'
-                GROUP BY f.id, f.name
-                
-                UNION ALL
-                
-                SELECT COALESCE(f.name, 'General Payment (Unallocated)') AS category, SUM(p.amount) as total
+                $add_where_general . "p.payment_type = 'general' AND p.fee_id IS NOT NULL
+                GROUP BY f.id, f.name";
+
+// General payments without fee category
+$general_no_fee_sql = "SELECT 
+                    'General Payment (Unallocated)' AS category,
+                    'general' as payment_type,
+                    SUM(p.amount) as total
                 FROM payments p
-                LEFT JOIN fees f ON p.fee_id = f.id" .
-                $where_sql .
-                " AND p.payment_type = 'general'
-                GROUP BY f.id, f.name
-                
-                ORDER BY category";
+                LEFT JOIN students s ON p.student_id = s.id" .
+                $add_where_general . "p.payment_type = 'general' AND p.fee_id IS NULL";
+
+// Combine all three
+$summary_sql = "($student_summary_sql) UNION ALL ($general_with_fee_sql) UNION ALL ($general_no_fee_sql) ORDER BY total DESC";
 
 if (!empty($params)) {
-    // For UNION queries, we need to bind params twice
-    $union_params = array_merge($params, $params);
-    $union_types = $types . $types;
+    // Need to bind params 3 times (once for each subquery)
+    $union_params = array_merge($params, $params, $params);
+    $union_types = $types . $types . $types;
     $sum_stmt = $conn->prepare($summary_sql);
     if ($union_types) { $sum_stmt->bind_param($union_types, ...$union_params); }
     $sum_stmt->execute();
     $sum_result = $sum_stmt->get_result();
     while ($row = $sum_result->fetch_assoc()) {
-        $category_summary[] = $row;
+        if ($row['total'] > 0) {  // Only include categories with payments
+            $category_summary[] = $row;
+        }
     }
 } else {
     $sum_result = $conn->query($summary_sql);
     while ($row = $sum_result->fetch_assoc()) {
-        $category_summary[] = $row;
+        if ($row['total'] > 0) {
+            $category_summary[] = $row;
+        }
     }
 }
 ?>
@@ -169,13 +200,20 @@ if (!empty($params)) {
         <!-- Category Summary Cards -->
         <?php if (count($category_summary) > 0): ?>
         <div class="row mb-3 d-print-none">
-            <?php foreach ($category_summary as $cat): ?>
+            <?php foreach ($category_summary as $cat): 
+                $is_general = $cat['payment_type'] === 'general';
+                $card_class = $is_general ? 'border-primary' : '';
+                $icon_class = $is_general ? 'text-primary' : 'text-success';
+                $icon = $is_general ? 'fa-hand-holding-usd' : 'fa-money-bill-wave';
+            ?>
                 <div class="col-md-3 col-lg-2 mb-2">
-                    <div class="clean-card text-center">
+                    <div class="clean-card text-center <?php echo $card_class; ?>">
                         <div class="p-2">
-                            <div class="mb-1"><i class="fas fa-money-bill-wave text-success payment-category-card-icon"></i></div>
-                            <div class="payment-category-card-name mb-1"><?php echo htmlspecialchars($cat['category'] ?? 'Unallocated'); ?></div>
-                            <div class="h6 text-success mb-0">GH₵<?php echo number_format($cat['total'], 2); ?></div>
+                            <div class="mb-1">
+                                <i class="fas <?php echo $icon; ?> <?php echo $icon_class; ?> payment-category-card-icon"></i>
+                            </div>
+                            <div class="payment-category-card-name mb-1"><?php echo htmlspecialchars($cat['category']); ?></div>
+                            <div class="h6 <?php echo $icon_class; ?> mb-0">GH₵<?php echo number_format($cat['total'], 2); ?></div>
                             <small class="text-muted payment-category-card-label">Total</small>
                         </div>
                     </div>
