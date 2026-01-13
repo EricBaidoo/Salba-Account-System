@@ -26,27 +26,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($payment_mode === 'general') {
-        // General/category payment (not tied to student)
+        // General payment (not tied to student) - fee_id is optional
         $fee_id = intval($_POST['fee_id'] ?? 0);
-        if ($fee_id <= 0) {
-            echo "<div class='alert alert-danger'>No fee category selected.</div>";
-            exit;
-        }
-        // Validate fee_id exists in fees table
-        $fee_check = $conn->prepare("SELECT id FROM fees WHERE id = ?");
-        $fee_check->bind_param("i", $fee_id);
-        $fee_check->execute();
-        $fee_check->store_result();
-        if ($fee_check->num_rows === 0) {
-            echo "<div class='alert alert-danger'>Invalid fee category selected.</div>";
+        
+        // If fee_id is provided, validate it exists
+        if ($fee_id > 0) {
+            $fee_check = $conn->prepare("SELECT id FROM fees WHERE id = ?");
+            $fee_check->bind_param("i", $fee_id);
+            $fee_check->execute();
+            $fee_check->store_result();
+            if ($fee_check->num_rows === 0) {
+                echo "<div class='alert alert-danger'>Invalid fee category selected.</div>";
+                $fee_check->close();
+                exit;
+            }
             $fee_check->close();
-            exit;
+            // Insert with fee_id
+            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?, ?)");
+            $stmt->bind_param("dsssiss", $amount, $payment_date, $receipt_no, $description, $fee_id, $term, $academic_year);
+        } else {
+            // Insert without fee_id (pure general payment)
+            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?)");
+            $stmt->bind_param("dsssss", $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
         }
-        $fee_check->close();
-        $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?, ?)");
-        $stmt->bind_param("dsssiss", $amount, $payment_date, $receipt_no, $description, $fee_id, $term, $academic_year);
+        
         if ($stmt->execute()) {
-            echo "<div class='alert alert-success'>General/category payment recorded successfully!</div>";
+            echo "<div class='alert alert-success'>General payment recorded successfully!</div>";
         } else {
             echo "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
         }

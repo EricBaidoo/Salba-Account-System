@@ -109,7 +109,7 @@ if ($pre_student_id > 0) {
     </div>
 
     <div class="container-fluid px-4 py-4">
-        <form action="record_payment.php" method="POST" id="paymentForm">
+        <form action="record_payment.php" method="POST" id="paymentForm" novalidate>
             <div class="row">
                 <div class="col-lg-6 mb-4">
                     <div class="card border-0 shadow-lg">
@@ -126,9 +126,10 @@ if ($pre_student_id > 0) {
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="payment_mode" id="mode_general" value="general">
-                                    <label class="form-check-label" for="mode_general">General/Category Payment</label>
+                                    <label class="form-check-label" for="mode_general">General Payment (Not tied to student)</label>
                                 </div>
                             </div>
+                            
                             <!-- Student Payment Section -->
                             <div id="studentPaymentSection">
                                 <label for="student_id" class="form-label fw-semibold">
@@ -192,19 +193,25 @@ if ($pre_student_id > 0) {
                                     </div>
                                 </div>
                             </div>
+                            
                             <!-- General Payment Section -->
-                            <div id="generalPaymentSection">
+                            <div id="generalPaymentSection" style="display:none;">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>General Payment:</strong> Use this for miscellaneous payments not tied to any student or specific fee category (e.g., donations, other income).
+                                </div>
                                 <label for="fee_id" class="form-label fw-semibold">
-                                    <i class="fas fa-list me-2"></i>Fee Category
+                                    <i class="fas fa-list me-2"></i>Fee Category (Optional)
                                 </label>
                                 <select class="form-select form-select-lg" id="fee_id" name="fee_id">
-                                    <option value="">Choose a fee category...</option>
+                                    <option value="">None - General Payment</option>
                                     <?php foreach($fee_options as $fee): ?>
                                         <option value="<?php echo $fee['id']; ?>" <?php echo ($pre_fee_id == $fee['id']) ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($fee['name']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <small class="text-muted">You can optionally link this payment to a fee category for reporting purposes.</small>
                             </div>
                         </div>
                     </div>
@@ -247,8 +254,7 @@ if ($pre_student_id > 0) {
                                             <!-- Populated by JavaScript -->
                                         </div>
                                     </div>
-                                    <small class="text-muted">Academic Year defaults to selection on right.</small>
-                            </div>
+                                </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="academic_year" class="form-label fw-semibold">
                                         <i class="fas fa-graduation-cap me-2"></i>Academic Year *
@@ -262,7 +268,6 @@ if ($pre_student_id > 0) {
                                     </select>
                                     <small class="text-muted">Used to scope this payment and for reports.</small>
                                 </div>
-                                <div class="col-md-6 mb-3">
                                 <div class="col-md-6 mb-3">
                                     <label for="payment_date" class="form-label fw-semibold">
                                         <i class="fas fa-calendar me-2"></i>Payment Date *
@@ -316,30 +321,92 @@ if ($pre_student_id > 0) {
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Payment mode toggle logic
+        // Payment mode toggle logic - SIMPLIFIED
         const modeStudent = document.getElementById('mode_student');
         const modeGeneral = document.getElementById('mode_general');
         const studentSection = document.getElementById('studentPaymentSection');
         const generalSection = document.getElementById('generalPaymentSection');
         const studentIdInput = document.getElementById('student_id');
         const feeIdInput = document.getElementById('fee_id');
+        const paymentForm = document.getElementById('paymentForm');
 
         function togglePaymentMode() {
             if (modeStudent.checked) {
-                studentSection.style.display = '';
+                studentSection.style.display = 'block';
                 generalSection.style.display = 'none';
-                studentIdInput.required = true;
-                feeIdInput.required = false;
             } else {
                 studentSection.style.display = 'none';
-                generalSection.style.display = '';
-                studentIdInput.required = false;
-                feeIdInput.required = true;
+                generalSection.style.display = 'block';
             }
         }
+        
         modeStudent.addEventListener('change', togglePaymentMode);
         modeGeneral.addEventListener('change', togglePaymentMode);
-        togglePaymentMode();
+        togglePaymentMode(); // Initialize on page load
+
+        // Custom form validation
+        paymentForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default submission
+            
+            let isValid = true;
+            let errorMessage = '';
+            
+            // Check payment mode and validate accordingly
+            const paymentMode = modeStudent.checked ? 'student' : 'general';
+            
+            if (paymentMode === 'student') {
+                const studentId = studentIdInput.value;
+                if (!studentId || studentId === '') {
+                    isValid = false;
+                    errorMessage = 'Please select a student';
+                    studentIdInput.classList.add('is-invalid');
+                } else {
+                    studentIdInput.classList.remove('is-invalid');
+                }
+            } else {
+                // General payment doesn't require fee_id - it's optional
+                feeIdInput.classList.remove('is-invalid');
+            }
+            
+            // Validate amount
+            const amountInput = document.getElementById('amount');
+            const amount = parseFloat(amountInput.value);
+            if (!amountInput.value || isNaN(amount) || amount <= 0) {
+                isValid = false;
+                errorMessage = errorMessage || 'Please enter a valid payment amount';
+                amountInput.classList.add('is-invalid');
+            } else {
+                amountInput.classList.remove('is-invalid');
+            }
+            
+            // Validate term
+            const termInput = document.getElementById('term');
+            if (!termInput.value) {
+                isValid = false;
+                errorMessage = errorMessage || 'Please select a term';
+                termInput.classList.add('is-invalid');
+            } else {
+                termInput.classList.remove('is-invalid');
+            }
+            
+            // Validate payment date
+            const dateInput = document.getElementById('payment_date');
+            if (!dateInput.value) {
+                isValid = false;
+                errorMessage = errorMessage || 'Please select a payment date';
+                dateInput.classList.add('is-invalid');
+            } else {
+                dateInput.classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                alert(errorMessage);
+                return false;
+            }
+            
+            // If valid, submit the form
+            this.submit();
+        });
 
         // Student payment JS (existing logic)
         let selectedStudentId = <?php echo $pre_student_id; ?>;
@@ -355,6 +422,7 @@ if ($pre_student_id > 0) {
             outstandingFees[<?php echo $pre_student_id; ?>] = <?php echo json_encode($outstanding_fees); ?>;
             updateStudentInfo(<?php echo $pre_student_id; ?>);
         <?php endif; ?>
+        
         if (studentIdInput) {
             studentIdInput.addEventListener('change', function() {
                 const studentId = this.value;
@@ -366,6 +434,7 @@ if ($pre_student_id > 0) {
                 }
             });
         }
+        
         document.getElementById('amount').addEventListener('input', function() {
             updateAfterPaymentAmount();
         });

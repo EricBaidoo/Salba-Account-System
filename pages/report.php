@@ -102,31 +102,52 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     $payment_where[] = "p.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'";
     $payment_where_sql = ' WHERE ' . implode(' AND ', $payment_where);
     
-    // Total income from all payments (active students only)
+    // Total income from all payments (active students only) + general payments
     $income_total_result = $conn->query("
         SELECT COALESCE(SUM(p.amount), 0) as total 
         FROM payments p 
-        INNER JOIN students s ON p.student_id = s.id
+        LEFT JOIN students s ON p.student_id = s.id
         $payment_where_sql 
-        AND s.status = 'active'
+        AND (s.status = 'active' OR p.payment_type = 'general')
     ");
     $total_income = (float)$income_total_result->fetch_assoc()['total'];
     
-    // Income breakdown by fee category - from student_fees.amount_paid
+    // Income breakdown by fee category - from student_fees.amount_paid + general payments linked to fee categories
     $term_filter = ($selected_term !== 'All') ? "AND sf.term = '" . $conn->real_escape_string($selected_term) . "'" : "";
     
     $income_sql = "
         SELECT f.name AS category,
-               SUM(sf.amount_paid) AS total
-        FROM student_fees sf
-        INNER JOIN fees f ON sf.fee_id = f.id
-        INNER JOIN students s ON sf.student_id = s.id
-        WHERE sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'
-        $term_filter
-        AND sf.amount_paid > 0
-        AND s.status = 'active'
+               SUM(COALESCE(sf.amount_paid, 0) + COALESCE(gp.general_amount, 0)) AS total
+        FROM fees f
+        LEFT JOIN student_fees sf ON sf.fee_id = f.id
+            AND sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'
+            $term_filter
+            AND sf.amount_paid > 0
+        LEFT JOIN (
+            SELECT fee_id, SUM(amount) as general_amount
+            FROM payments
+            WHERE payment_type = 'general'
+            AND fee_id IS NOT NULL
+            AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'" .
+            ($selected_term !== 'All' ? " AND term = '" . $conn->real_escape_string($selected_term) . "'" : "") .
+            " GROUP BY fee_id
+        ) gp ON f.id = gp.fee_id
+        LEFT JOIN students s ON sf.student_id = s.id
+        WHERE (sf.student_id IS NULL OR s.status = 'active')
         GROUP BY f.id, f.name
-        ORDER BY f.name
+        HAVING total > 0
+        
+        UNION ALL
+        
+        SELECT 'General Payment (Unallocated)' AS category,
+               SUM(amount) AS total
+        FROM payments
+        WHERE payment_type = 'general'
+        AND fee_id IS NULL
+        AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'" .
+        ($selected_term !== 'All' ? " AND term = '" . $conn->real_escape_string($selected_term) . "'" : "") .
+        "
+        ORDER BY category
     ";
     $income_result = $conn->query($income_sql);
     while ($row = $income_result->fetch_assoc()) {

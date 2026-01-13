@@ -35,9 +35,10 @@ if ($selected_term !== '') { $where[] = 'p.term = ?'; $params[] = $selected_term
 if ($selected_year !== '') { $where[] = 'p.academic_year = ?'; $params[] = $selected_year; $types .= 's'; }
 $where_sql = empty($where) ? '' : (' WHERE ' . implode(' AND ', $where));
 
-$sql = "SELECT p.id, s.first_name, s.last_name, s.class, p.amount, p.payment_date, p.receipt_no, p.description, p.term, p.academic_year
+$sql = "SELECT p.id, s.first_name, s.last_name, s.class, p.amount, p.payment_date, p.receipt_no, p.description, p.term, p.academic_year, p.payment_type, f.name as fee_name
         FROM payments p
-        JOIN students s ON p.student_id = s.id" .
+        LEFT JOIN students s ON p.student_id = s.id
+        LEFT JOIN fees f ON p.fee_id = f.id" .
         $where_sql .
         " ORDER BY p.payment_date DESC, p.id DESC";
 
@@ -178,7 +179,8 @@ while($row = $result->fetch_assoc()) {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Student</th>
+                            <th>Type</th>
+                            <th>Student/Category</th>
                             <th>Class</th>
                             <th>Amount</th>
                             <th>Date</th>
@@ -186,22 +188,41 @@ while($row = $result->fetch_assoc()) {
                             <th>Year</th>
                             <th>Receipt No.</th>
                             <th>Description</th>
-                            <th>Actions</th>
+                            <th class="d-print-none">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach($payments as $row): ?>
                         <tr>
                             <td><span class="clean-badge clean-badge-primary">#<?php echo $row['id']; ?></span></td>
-                            <td><strong><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></strong></td>
-                            <td><span class="clean-badge clean-badge-info"><?php echo htmlspecialchars($row['class']); ?></span></td>
+                            <td>
+                                <?php if ($row['payment_type'] === 'general'): ?>
+                                    <span class="clean-badge clean-badge-warning">General</span>
+                                <?php else: ?>
+                                    <span class="clean-badge clean-badge-success">Student</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($row['payment_type'] === 'general'): ?>
+                                    <em class="text-muted"><?php echo !empty($row['fee_name']) ? htmlspecialchars($row['fee_name']) : 'General Payment'; ?></em>
+                                <?php else: ?>
+                                    <strong><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></strong>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($row['payment_type'] !== 'general'): ?>
+                                    <span class="clean-badge clean-badge-info"><?php echo htmlspecialchars($row['class']); ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
                             <td><strong class="text-success">GH₵<?php echo number_format($row['amount'], 2); ?></strong></td>
                             <td><?php echo date('M j, Y', strtotime($row['payment_date'])); ?></td>
                             <td><?php echo htmlspecialchars($row['term'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars(!empty($row['academic_year']) ? formatAcademicYearDisplay($conn, $row['academic_year']) : ''); ?></td>
                             <td><?php echo htmlspecialchars($row['receipt_no']); ?></td>
                             <td><?php echo htmlspecialchars($row['description']); ?></td>
-                            <td>
+                            <td class="d-print-none">
                                 <a href="receipt.php?payment_id=<?php echo $row['id']; ?>" class="btn-clean-outline btn-clean-sm" target="_blank" title="View/Print Receipt">
                                     <i class="fas fa-receipt"></i>
                                 </a>
