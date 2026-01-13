@@ -1,6 +1,13 @@
 <?php 
 include '../includes/auth_check.php'; 
 include '../includes/db_connect.php';
+include '../includes/system_settings.php';
+
+// Get current term and academic year
+$current_term = getCurrentTerm($conn);
+$academic_year = getAcademicYear($conn);
+$available_terms = getAvailableTerms();
+
 // Fetch categories from DB
 $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
 ?>
@@ -59,6 +66,29 @@ $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                             <span class="required-indicator">*</span>
                         </label>
                         <input type="date" class="clean-form-control" id="expense_date" name="expense_date" value="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+                    
+                    <div class="clean-form-group">
+                        <label for="term" class="clean-form-label">
+                            <i class="fas fa-calendar-alt"></i>Term
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <select class="clean-form-control" id="term" name="term" required>
+                            <?php foreach ($available_terms as $term): ?>
+                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $term === $current_term ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($term); ?><?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="clean-form-group">
+                        <label for="academic_year" class="clean-form-label">
+                            <i class="fas fa-graduation-cap"></i>Academic Year
+                            <span class="required-indicator">*</span>
+                        </label>
+                        <input type="text" class="clean-form-control" id="academic_year" name="academic_year" value="<?php echo htmlspecialchars($academic_year); ?>" readonly>
+                        <small class="text-muted">Current: <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?></small>
                     </div>
                     
                     <div class="clean-form-group mb-0">

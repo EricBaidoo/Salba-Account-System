@@ -6,14 +6,22 @@ if (!is_logged_in()) {
     exit;
 }
 
+include '../includes/system_settings.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category_id = intval($_POST['category_id']);
     $amount = floatval($_POST['amount']);
     $expense_date = $_POST['expense_date'];
     $description = trim($_POST['description']);
+    $term = trim($_POST['term'] ?? '');
+    $academic_year = trim($_POST['academic_year'] ?? '');
+    
+    // Get current values if not provided
+    if (empty($term)) { $term = getCurrentTerm($conn); }
+    if (empty($academic_year)) { $academic_year = getAcademicYear($conn); }
 
-    $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("idss", $category_id, $amount, $expense_date, $description);
+    $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("idssss", $category_id, $amount, $expense_date, $description, $term, $academic_year);
     if ($stmt->execute()) {
         echo "<div class='alert alert-success'>Expense added successfully!</div>";
     } else {

@@ -4850,6 +4850,33 @@ body.assign-fee-page {
     border-radius: 8px;
 }
 
+/* Payment Page Category Cards - Compact Design */
+.payment-category-card-icon {
+    font-size: 0.9rem;
+}
+
+.payment-category-card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.payment-category-card-label {
+    font-size: 0.7rem;
+}
+
+/* Payment Table Scroll Container */
+.payment-table-scroll {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.payment-table-scroll .clean-table thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
 /* Responsive Tables */
 @media (max-width: 768px) {
     .clean-table {

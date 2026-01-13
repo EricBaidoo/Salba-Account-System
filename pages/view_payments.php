@@ -60,6 +60,45 @@ while($row = $result->fetch_assoc()) {
     $total_payments++;
     $total_amount += $row['amount'];
 }
+
+// Fetch summary by fee category with same filters
+$category_summary = [];
+$summary_sql = "SELECT f.name AS category, SUM(p.amount) as total 
+                FROM payments p
+                LEFT JOIN fees f ON p.fee_id = f.id
+                LEFT JOIN students s ON p.student_id = s.id" .
+                $where_sql .
+                " AND p.payment_type = 'student'
+                GROUP BY f.id, f.name
+                
+                UNION ALL
+                
+                SELECT COALESCE(f.name, 'General Payment (Unallocated)') AS category, SUM(p.amount) as total
+                FROM payments p
+                LEFT JOIN fees f ON p.fee_id = f.id" .
+                $where_sql .
+                " AND p.payment_type = 'general'
+                GROUP BY f.id, f.name
+                
+                ORDER BY category";
+
+if (!empty($params)) {
+    // For UNION queries, we need to bind params twice
+    $union_params = array_merge($params, $params);
+    $union_types = $types . $types;
+    $sum_stmt = $conn->prepare($summary_sql);
+    if ($union_types) { $sum_stmt->bind_param($union_types, ...$union_params); }
+    $sum_stmt->execute();
+    $sum_result = $sum_stmt->get_result();
+    while ($row = $sum_result->fetch_assoc()) {
+        $category_summary[] = $row;
+    }
+} else {
+    $sum_result = $conn->query($summary_sql);
+    while ($row = $sum_result->fetch_assoc()) {
+        $category_summary[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,10 +161,29 @@ while($row = $result->fetch_assoc()) {
                 <div class="clean-stat-label">Total Amount Paid</div>
             </div>
             <div class="clean-stat-item">
-                <div class="clean-stat-value"><?php echo date('F Y'); ?></div>
-                <div class="clean-stat-label">Current Period</div>
+                <div class="clean-stat-value"><?php echo count($category_summary); ?></div>
+                <div class="clean-stat-label">Fee Categories</div>
             </div>
         </div>
+        
+        <!-- Category Summary Cards -->
+        <?php if (count($category_summary) > 0): ?>
+        <div class="row mb-3 d-print-none">
+            <?php foreach ($category_summary as $cat): ?>
+                <div class="col-md-3 col-lg-2 mb-2">
+                    <div class="clean-card text-center">
+                        <div class="p-2">
+                            <div class="mb-1"><i class="fas fa-money-bill-wave text-success payment-category-card-icon"></i></div>
+                            <div class="payment-category-card-name mb-1"><?php echo htmlspecialchars($cat['category'] ?? 'Unallocated'); ?></div>
+                            <div class="h6 text-success mb-0">GH₵<?php echo number_format($cat['total'], 2); ?></div>
+                            <small class="text-muted payment-category-card-label">Total</small>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+        
         <!-- Filters -->
         <div class="clean-filter-bar mb-4 d-print-none">
             <form method="GET" action="">
@@ -153,18 +211,17 @@ while($row = $result->fetch_assoc()) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label"><i class="fas fa-search me-2"></i>Search</label>
                         <input type="text" class="clean-search-input" id="searchInput" placeholder="Search by student, receipt, or description...">
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-md-2 ms-auto">
+                    <div class="col-md-1">
                         <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-2"></i>Filter</button>
                     </div>
                 </div>
             </form>
         </div>
+        
         <!-- Print Header -->
         <div class="print-header text-center">
             <h3 class="mb-0"><?php echo htmlspecialchars($school_name); ?></h3>
@@ -174,7 +231,7 @@ while($row = $result->fetch_assoc()) {
         </div>
         <!-- Payment Table -->
         <div class="clean-card">
-            <div class="clean-table-scroll">
+            <div class="payment-table-scroll">
                 <table class="clean-table" id="paymentsTable">
                     <thead>
                         <tr>
