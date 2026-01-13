@@ -160,15 +160,18 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                         </span>
                     </p>
                 </div>
-                <div class="d-print-none">
-                    <a href="assign_fee_form.php" class="btn-clean-success me-2">
+                <div class="d-print-none d-flex gap-2 flex-wrap">
+                    <a href="assign_fee_form.php" class="btn-clean-success">
                         <i class="fas fa-plus"></i> ASSIGN FEES
                     </a>
                     <a href="record_payment_form.php" class="btn-clean-primary">
                         <i class="fas fa-credit-card"></i> RECORD PAYMENT
                     </a>
-                    <a href="#" onclick="window.print()" class="btn-clean-outline ms-2">
-                        <i class="fas fa-print"></i> PRINT
+                    <a href="download_student_balances.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="btn-clean-success">
+                        <i class="fas fa-file-csv"></i> DOWNLOAD CSV
+                    </a>
+                    <a href="download_student_balances_pdf.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="btn-clean-danger">
+                        <i class="fas fa-file-pdf"></i> DOWNLOAD PDF
                     </a>
                 </div>
             </div>
