@@ -4923,6 +4923,62 @@ body.assign-fee-page {
 
 /* Responsive Tables */
 @media (max-width: 768px) {
+    /* Header mobile responsiveness */
+    .clean-page-header {
+        padding: 12px 0;
+    }
+    
+    .clean-page-header .container-fluid {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .clean-page-header .d-flex.justify-content-between {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+    
+    .clean-page-title {
+        font-size: 1.25rem !important;
+        line-height: 1.3;
+    }
+    
+    .clean-page-title i {
+        font-size: 1rem;
+    }
+    
+    .clean-page-subtitle {
+        font-size: 0.85rem !important;
+        line-height: 1.4;
+        margin-top: 0.5rem !important;
+    }
+    
+    .clean-page-subtitle .clean-badge {
+        display: inline-block;
+        margin: 0.25rem 0.25rem 0.25rem 0;
+        font-size: 0.7rem !important;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .clean-page-header .btn-clean-outline,
+    .clean-page-header .btn-clean-primary {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        white-space: nowrap;
+    }
+    
+    .clean-page-header .gap-2 {
+        gap: 0.5rem !important;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .clean-back-btn {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    
     .clean-table {
         font-size: 0.85rem;
     }
