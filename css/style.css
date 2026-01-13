@@ -4833,6 +4833,8 @@ body.assign-fee-page {
 /* Remove margins from table inside scroll container */
 .clean-table-scroll .clean-table {
     margin-bottom: 0;
+    min-width: 1200px;
+    width: 100%;
 }
 
 /* Alternative sizes */
@@ -4906,10 +4908,17 @@ body.assign-fee-page {
     background: linear-gradient(135deg, #2c5282 0%, #2b6cb0 100%) !important;
     color: #ffffff !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.payment-table-scroll .clean-table tbody td {
+    white-space: nowrap;
 }
 
 .payment-table-scroll .clean-table {
     margin-bottom: 0;
+    min-width: 1200px;
+    width: 100%;
 }
 
 /* Responsive Tables */
