@@ -565,7 +565,7 @@ body {
 .card-header .badge.bg-warning { background: rgba(234,179,8,0.75) !important; color: #1f2937 !important; }
 
 /* Cards */
-.clean-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); margin-bottom: 18px; overflow: hidden; }
+.clean-card { background: #ffffff; border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); margin-bottom: 18px; overflow: visible; }
 .clean-card-header { padding: 14px 18px; border-bottom: 1px solid var(--border-color); background: var(--brand-light); }
 .clean-card-header h5 { margin: 0; font-weight: 700; color: var(--brand-navy); display: flex; align-items: center; gap: 8px; }
 .clean-card-body { padding: 18px; }
@@ -4237,6 +4237,7 @@ body.assign-fee-page {
     padding: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 1.5rem;
+    overflow: visible;
 }
 
 .clean-card-header {
@@ -4788,6 +4789,7 @@ body.assign-fee-page {
 
 /* Scrollable Table Container */
 .clean-table-scroll {
+    display: block;
     max-height: 500px;
     overflow-y: auto;
     overflow-x: auto;
@@ -4866,6 +4868,7 @@ body.assign-fee-page {
 
 /* Payment Table Scroll Container */
 .payment-table-scroll {
+    display: block !important;
     max-height: 600px !important;
     overflow-y: auto !important;
     overflow-x: auto !important;
