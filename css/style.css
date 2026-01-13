@@ -4942,6 +4942,49 @@ body.assign-fee-page {
     
     .clean-table-scroll,
     .clean-table-scroll-sm,
+    .payment-table-scroll {
+        border: none;
+        border-radius: 0;
+    }
+    
+    /* Make tables responsive by removing min-width and allowing wrap */
+    .payment-table-scroll .clean-table,
+    .clean-table-scroll .clean-table {
+        min-width: auto !important;
+        font-size: 0.8rem;
+    }
+    
+    .payment-table-scroll .clean-table thead th,
+    .payment-table-scroll .clean-table tbody td {
+        white-space: normal !important;
+        word-wrap: break-word;
+        min-width: 80px;
+        padding: 0.5rem 0.3rem;
+    }
+    
+    .clean-table-scroll .clean-table thead th,
+    .clean-table-scroll .clean-table tbody td {
+        white-space: normal !important;
+        word-wrap: break-word;
+        min-width: 80px;
+        padding: 0.5rem 0.3rem;
+    }
+    
+    /* Reduce scroll height on mobile */
+    .payment-table-scroll {
+        max-height: 400px !important;
+    }
+    
+    .clean-table-scroll {
+        max-height: 350px !important;
+    }
+    
+    /* Hide less important columns on mobile */
+    .clean-table th:nth-child(n+7),
+    .clean-table td:nth-child(n+7) {
+        display: none;
+    }
+}
     .clean-table-scroll-lg {
         max-height: 450px;
     }
