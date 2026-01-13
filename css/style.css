@@ -4923,7 +4923,7 @@ body.assign-fee-page {
 
 /* Responsive Tables */
 @media (max-width: 768px) {
-    /* Header mobile responsiveness */
+    /* Clean Page Header mobile */
     .clean-page-header {
         padding: 12px 0;
     }
@@ -4977,6 +4977,70 @@ body.assign-fee-page {
     .clean-back-btn {
         font-size: 0.85rem;
         margin-bottom: 0.5rem;
+    }
+    
+    /* Dashboard Header mobile */
+    .dashboard-header {
+        padding: 1.5rem 0;
+    }
+    
+    .dashboard-header .container-fluid {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .dashboard-header .d-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+    
+    .header-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .header-subtitle {
+        font-size: 0.9rem !important;
+    }
+    
+    .header-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .header-user {
+        flex-direction: row !important;
+        gap: 0.75rem;
+    }
+    
+    .user-circle {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .user-name {
+        font-size: 0.9rem !important;
+    }
+    
+    .user-role {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Form Header mobile */
+    .form-header {
+        padding: 2rem 1.5rem 1.5rem !important;
+    }
+    
+    .form-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .form-header p {
+        font-size: 0.85rem !important;
+    }
+    
+    .form-header-content {
+        padding: 1rem !important;
     }
     
     .clean-table {
