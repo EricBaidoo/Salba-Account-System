@@ -112,47 +112,50 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     ");
     $total_income = (float)$income_total_result->fetch_assoc()['total'];
     
-    // Income breakdown by fee category - from student_fees.amount_paid + general payments linked to fee categories
-    $term_filter = ($selected_term !== 'All') ? "AND sf.term = '" . $conn->real_escape_string($selected_term) . "'" : "";
-    
-    $income_sql = "
-        SELECT f.name AS category,
-               SUM(COALESCE(sf.amount_paid, 0) + COALESCE(gp.general_amount, 0)) AS total
-        FROM fees f
-        LEFT JOIN student_fees sf ON sf.fee_id = f.id
-            AND sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'
-            $term_filter
-            AND sf.amount_paid > 0
-        LEFT JOIN (
-            SELECT fee_id, SUM(amount) as general_amount
-            FROM payments
-            WHERE payment_type = 'general'
-            AND fee_id IS NOT NULL
-            AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'" .
-            ($selected_term !== 'All' ? " AND term = '" . $conn->real_escape_string($selected_term) . "'" : "") .
-            " GROUP BY fee_id
-        ) gp ON f.id = gp.fee_id
-        LEFT JOIN students s ON sf.student_id = s.id
-        WHERE (sf.student_id IS NULL OR s.status = 'active')
-        GROUP BY f.id, f.name
-        HAVING total > 0
-        
-        UNION ALL
-        
-        SELECT 'General Payment (Unallocated)' AS category,
-               SUM(amount) AS total
-        FROM payments
-        WHERE payment_type = 'general'
-        AND fee_id IS NULL
-        AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'" .
-        ($selected_term !== 'All' ? " AND term = '" . $conn->real_escape_string($selected_term) . "'" : "") .
-        "
-        ORDER BY category
-    ";
-    $income_result = $conn->query($income_sql);
+    // Income breakdown by category using payment allocations (student payments) + general payments
+    $filter_term = ($selected_term !== 'All');
+    $base_types = 's' . ($filter_term ? 's' : '');
+    $base_params = [$selected_academic_year];
+    if ($filter_term) { $base_params[] = $selected_term; }
+
+    $student_sql = "SELECT f.name AS category, 'student' AS payment_type, SUM(pa.amount) AS total
+                FROM payment_allocations pa
+                JOIN student_fees sf ON pa.student_fee_id = sf.id
+                JOIN payments p ON pa.payment_id = p.id
+                LEFT JOIN fees f ON sf.fee_id = f.id
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                GROUP BY f.id, f.name";
+
+    $general_fee_sql = "SELECT CONCAT(f.name, ' (General)') AS category, 'general' AS payment_type, SUM(p.amount) AS total
+                FROM payments p
+                JOIN fees f ON p.fee_id = f.id
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.payment_type = 'general' AND p.fee_id IS NOT NULL
+                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                GROUP BY f.id, f.name";
+
+    $general_none_sql = "SELECT 'General Payment (Unallocated)' AS category, 'general' AS payment_type, SUM(p.amount) AS total
+                FROM payments p
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.payment_type = 'general' AND p.fee_id IS NULL
+                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)";
+
+    $income_union_sql = "($student_sql) UNION ALL ($general_fee_sql) UNION ALL ($general_none_sql) ORDER BY category";
+
+    $union_params = array_merge($base_params, $base_params, $base_params);
+    $union_types = $base_types . $base_types . $base_types;
+
+    $income_stmt = $conn->prepare($income_union_sql);
+    if ($union_types) { $income_stmt->bind_param($union_types, ...$union_params); }
+    $income_stmt->execute();
+    $income_result = $income_stmt->get_result();
     while ($row = $income_result->fetch_assoc()) {
-        $income_by_category[] = $row;
+        if ($row['total'] > 0) {
+            $income_by_category[] = $row;
+        }
     }
+    $income_stmt->close();
 
     // Expenses by category - filtered by date range
     $expense_result = $conn->query("

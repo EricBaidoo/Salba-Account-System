@@ -15,26 +15,30 @@ $display_academic_year = formatAcademicYearDisplay($conn, $academic_year);
 $total_students = $conn->query("SELECT COUNT(*) AS count FROM students WHERE status = 'active'")->fetch_assoc()['count'];
 
 
-// Use per-student balances logic for dashboard totals
+// Use per-student balances logic for outstanding fees, but compute payments/expenses directly from ledgers
 require_once '../includes/student_balance_functions.php';
 $student_balances = getAllStudentBalances($conn, null, 'active', $current_term, $academic_year);
 
 $total_fees_assigned = 0;
-$total_payments = 0;
 $outstanding_fees = 0;
 $total_arrears = 0;
 foreach ($student_balances as $s) {
     $total_fees_assigned += (float)($s['total_fees'] ?? 0);
-    $total_payments += (float)($s['total_payments'] ?? 0);
-    $outstanding_fees += (float)($s['net_balance'] ?? 0);
+    $outstanding_fees += (float)($s['net_balance'] ?? 0); // student-only outstanding
     $total_arrears += (float)($s['arrears'] ?? 0);
 }
 
-// Total expenses within current term date range (unchanged)
-require_once '../includes/term_helpers.php';
-$range = getTermDateRange($conn, $current_term, $academic_year);
-$exp_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE expense_date BETWEEN ? AND ?");
-$exp_stmt->bind_param('ss', $range['start'], $range['end']);
+// Total payments (include general payments) for current term/year
+$pay_stmt = $conn->prepare("SELECT COALESCE(SUM(p.amount),0) AS total FROM payments p LEFT JOIN students s ON p.student_id = s.id WHERE p.term = ? AND p.academic_year = ? AND (s.status = 'active' OR p.payment_type = 'general')");
+$pay_stmt->bind_param('ss', $current_term, $academic_year);
+$pay_stmt->execute();
+$pay_res = $pay_stmt->get_result();
+$total_payments = $pay_res->fetch_assoc()['total'] ?? 0;
+$pay_stmt->close();
+
+// Total expenses for current term/year (use term/year columns; fall back to zero if missing)
+$exp_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE term = ? AND academic_year = ?");
+$exp_stmt->bind_param('ss', $current_term, $academic_year);
 $exp_stmt->execute();
 $exp_res = $exp_stmt->get_result();
 $total_expenses = $exp_res->fetch_assoc()['total'] ?? 0;
