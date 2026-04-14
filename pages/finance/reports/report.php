@@ -1,0 +1,774 @@
+<?php
+include '../../includes/auth_functions.php';
+if (!is_logged_in()) {
+    header('Location: ../pages/login.php');
+    exit;
+}
+include '../../includes/db_connect.php';
+include '../../includes/system_settings.php';
+include '../../includes/term_helpers.php';
+include '../../includes/budget_functions.php';
+
+// Get system defaults
+$default_academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
+$default_term = getCurrentTerm($conn);
+
+// Get filter parameters
+$selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
+$selected_term = $_GET['term'] ?? 'All';
+$report_type = $_GET['report_type'] ?? 'overview';
+$date_from = $_GET['date_from'] ?? '';
+$date_to = $_GET['date_to'] ?? '';
+
+$display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
+
+// Build academic year options
+$year_options = [];
+$yrs1 = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs1) {
+    while ($yr = $yrs1->fetch_assoc()) {
+        if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+    }
+}
+$yrs2 = $conn->query("SELECT DISTINCT academic_year FROM payments WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs2) {
+    while ($yr = $yrs2->fetch_assoc()) {
+        if (!empty($yr['academic_year']) && !in_array($yr['academic_year'], $year_options, true)) {
+            $year_options[] = $yr['academic_year'];
+        }
+    }
+}
+if (!in_array($default_academic_year, $year_options, true)) {
+    array_unshift($year_options, $default_academic_year);
+}
+
+// Get available terms
+$available_terms = getAvailableTerms();
+
+// Determine date range based on filters
+if ($date_from && $date_to) {
+    $start_date = $date_from;
+    $end_date = $date_to;
+} elseif ($selected_term !== 'All') {
+    $range = getTermDateRange($conn, $selected_term, $selected_academic_year);
+    $start_date = $range['start'];
+    $end_date = $range['end'];
+} else {
+    // Full academic year
+    $parts = explode('/', $selected_academic_year);
+    $startYear = intval($parts[0]);
+    $start_month = getSystemSetting($conn, 'academic_year_start_month', '09');
+    $start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
+    $start_date = sprintf('%04d-%02d-%02d', $startYear, (int)$start_month, (int)$start_day);
+    $end_date = date('Y-m-d', strtotime($start_date . ' +1 year -1 day'));
+}
+
+// DEBUG: Show what date range is being used
+$debug_info = "<!-- DEBUG: Term='$selected_term', Year='$selected_academic_year', Start='$start_date', End='$end_date' -->";
+echo $debug_info;
+
+// Check actual data in database
+$payment_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount) as total FROM payments WHERE payment_date BETWEEN '$start_date' AND '$end_date'");
+$payment_data = $payment_check->fetch_assoc();
+echo "<!-- Payments by DATE RANGE: Count={$payment_data['cnt']}, Total={$payment_data['total']} -->";
+
+// Also check student_fees amount_paid
+$term_filter_debug = ($selected_term !== 'All') ? "AND term = '" . $conn->real_escape_string($selected_term) . "'" : "";
+$sf_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount_paid) as total FROM student_fees WHERE academic_year = '$selected_academic_year' $term_filter_debug AND amount_paid > 0");
+$sf_data = $sf_check->fetch_assoc();
+echo "<!-- Student_fees amount_paid for $selected_term: Count={$sf_data['cnt']}, Total={$sf_data['total']} -->";
+
+// Check if there are payments OUTSIDE the term date range
+$outside_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount) as total FROM payments WHERE payment_date NOT BETWEEN '$start_date' AND '$end_date' AND payment_date >= DATE_SUB('$start_date', INTERVAL 30 DAY) AND payment_date <= DATE_ADD('$end_date', INTERVAL 30 DAY)");
+$outside_data = $outside_check->fetch_assoc();
+echo "<!-- Payments NEAR term (Â±30 days): Count={$outside_data['cnt']}, Total={$outside_data['total']} -->";
+
+$expense_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount) as total FROM expenses WHERE expense_date BETWEEN '$start_date' AND '$end_date'");
+$expense_data = $expense_check->fetch_assoc();
+echo "<!-- Expenses in range: Count={$expense_data['cnt']}, Total={$expense_data['total']} -->";
+
+// OVERVIEW REPORT DATA
+$total_income = 0;
+$total_expenses = 0;
+$income_by_category = [];
+$expense_by_category = [];
+
+if ($report_type === 'overview' || $report_type === 'income' || $report_type === 'expenses') {
+    // Income from payments w-full border-collapse - filtered by term and academic year like view_payments.php
+    $payment_where = [];
+    if ($selected_term !== 'All') {
+        $payment_where[] = "p.term = '" . $conn->real_escape_string($selected_term) . "'";
+    }
+    $payment_where[] = "p.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'";
+    $payment_where_sql = ' WHERE ' . implode(' AND ', $payment_where);
+    
+    // Total income from all payments (active students only + general payments) - use term/year fields
+    $income_total_stmt = $conn->prepare("
+        SELECT COALESCE(SUM(p.amount), 0) as total 
+        FROM payments p 
+        LEFT JOIN students s ON p.student_id = s.id
+        WHERE p.academic_year = ? 
+        " . ($selected_term !== 'All' ? "AND p.term = ? " : "") . "
+        AND (s.status = 'active' OR p.payment_type = 'general')
+    ");
+    if ($selected_term !== 'All') {
+        $income_total_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    } else {
+        $income_total_stmt->bind_param('s', $selected_academic_year);
+    }
+    $income_total_stmt->execute();
+    $total_income = (float)$income_total_stmt->get_result()->fetch_assoc()['total'];
+    $income_total_stmt->close();
+    
+    // Income breakdown by category using payment allocations (student payments) + general payments
+    $filter_term = ($selected_term !== 'All');
+    $base_types = 's' . ($filter_term ? 's' : '');
+    $base_params = [$selected_academic_year];
+    if ($filter_term) { $base_params[] = $selected_term; }
+
+    $student_sql = "SELECT f.name AS category, 'student' AS payment_type, SUM(pa.amount) AS total
+                FROM payment_allocations pa
+                JOIN student_fees sf ON pa.student_fee_id = sf.id
+                JOIN payments p ON pa.payment_id = p.id
+                LEFT JOIN fees f ON sf.fee_id = f.id
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                GROUP BY f.id, f.name";
+
+    $general_fee_sql = "SELECT CONCAT(f.name, ' (General)') AS category, 'general' AS payment_type, SUM(p.amount) AS total
+                FROM payments p
+                JOIN fees f ON p.fee_id = f.id
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.payment_type = 'general' AND p.fee_id IS NOT NULL
+                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                GROUP BY f.id, f.name";
+
+    $general_none_sql = "SELECT 'General Payment (Unallocated)' AS category, 'general' AS payment_type, SUM(p.amount) AS total
+                FROM payments p
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.payment_type = 'general' AND p.fee_id IS NULL
+                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)";
+
+    $income_union_sql = "($student_sql) UNION ALL ($general_fee_sql) UNION ALL ($general_none_sql) ORDER BY category";
+
+    $union_params = array_merge($base_params, $base_params, $base_params);
+    $union_types = $base_types . $base_types . $base_types;
+
+    $income_stmt = $conn->prepare($income_union_sql);
+    if ($union_types) { $income_stmt->bind_param($union_types, ...$union_params); }
+    $income_stmt->execute();
+    $income_result = $income_stmt->get_result();
+    while ($row = $income_result->fetch_assoc()) {
+        if ($row['total'] > 0) {
+            $income_by_category[] = $row;
+        }
+    }
+    $income_stmt->close();
+
+    // Expenses by category - use term/academic_year fields
+    $expense_stmt = $conn->prepare("
+        SELECT COALESCE(ec.name, 'Uncategorized') AS category, SUM(e.amount) AS total
+        FROM expenses e
+        LEFT JOIN expense_categories ec ON e.category_id = ec.id
+        WHERE e.academic_year = ?
+        " . ($selected_term !== 'All' ? "AND e.term = ? " : "") . "
+        GROUP BY e.category_id, ec.id, ec.name
+        HAVING total > 0
+        ORDER BY ec.name
+    ");
+    if ($selected_term !== 'All') {
+        $expense_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    } else {
+        $expense_stmt->bind_param('s', $selected_academic_year);
+    }
+    $expense_stmt->execute();
+    $expense_result = $expense_stmt->get_result();
+    while ($row = $expense_result->fetch_assoc()) {
+        $expense_by_category[] = $row;
+        $total_expenses += $row['total'];
+    }
+    $expense_stmt->close();
+}
+
+// BUDGET VS ACTUAL REPORT DATA
+$budget_comparison = [];
+if ($report_type === 'budget' || $report_type === 'overview') {
+    $terms_to_check = $selected_term === 'All' ? $available_terms : [$selected_term];
+    
+    foreach ($terms_to_check as $term) {
+        $term_budget = $conn->query("SELECT * FROM term_budgets WHERE term = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc();
+        
+        if ($term_budget) {
+            $term_range = getTermDateRange($conn, $term, $selected_academic_year);
+            
+            // Get budgeted income (sum of all fee assignments for active students only)
+            $income_budget_stmt = $conn->prepare("
+                SELECT COALESCE(SUM(sf.amount), 0) as total 
+                FROM student_fees sf 
+                INNER JOIN students s ON sf.student_id = s.id
+                WHERE sf.term = ? AND sf.academic_year = ?
+                AND s.status = 'active'
+            ");
+            $income_budget_stmt->bind_param('ss', $term, $selected_academic_year);
+            $income_budget_stmt->execute();
+            $income_budget = (float)$income_budget_stmt->get_result()->fetch_assoc()['total'];
+            $income_budget_stmt->close();
+            
+            // Get actual income - include student payments (active) + general payments
+            $income_actual_stmt = $conn->prepare("
+                SELECT COALESCE(SUM(p.amount), 0) as total 
+                FROM payments p
+                LEFT JOIN students s ON p.student_id = s.id
+                WHERE p.term = ? AND p.academic_year = ?
+                AND (s.status = 'active' OR p.payment_type = 'general')
+            ");
+            $income_actual_stmt->bind_param('ss', $term, $selected_academic_year);
+            $income_actual_stmt->execute();
+            $income_actual = (float)$income_actual_stmt->get_result()->fetch_assoc()['total'];
+            $income_actual_stmt->close();
+            
+            // Get budgeted expenses
+            $expenses_budget = (float)$conn->query("SELECT COALESCE(SUM(amount), 0) as total FROM term_budget_items WHERE term_budget_id = {$term_budget['id']} AND type = 'expense'")->fetch_assoc()['total'];
+            
+            // Get actual expenses using term/academic_year columns
+            $expenses_actual_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE term = ? AND academic_year = ?");
+            $expenses_actual_stmt->bind_param('ss', $term, $selected_academic_year);
+            $expenses_actual_stmt->execute();
+            $expenses_actual = (float)$expenses_actual_stmt->get_result()->fetch_assoc()['total'];
+            $expenses_actual_stmt->close();
+            
+            $budget_comparison[$term] = [
+                'income_budget' => $income_budget,
+                'income_actual' => $income_actual,
+                'income_variance' => $income_actual - $income_budget,
+                'income_variance_pct' => $income_budget > 0 ? (($income_actual - $income_budget) / $income_budget * 100) : 0,
+                'expenses_budget' => $expenses_budget,
+                'expenses_actual' => $expenses_actual,
+                'expenses_variance' => $expenses_budget - $expenses_actual,
+                'expenses_variance_pct' => $expenses_budget > 0 ? (($expenses_budget - $expenses_actual) / $expenses_budget * 100) : 0,
+                'net_budget' => $income_budget - $expenses_budget,
+                'net_actual' => $income_actual - $expenses_actual
+            ];
+        }
+    }
+}
+
+// STUDENT FEE COLLECTION REPORT
+$fee_collection_summary = [];
+if ($report_type === 'student_fees') {
+    $collection_stmt = $conn->prepare("
+        SELECT 
+            s.id,
+            s.name AS student_name,
+            s.class,
+            COALESCE(SUM(sf.amount), 0) AS total_assigned,
+            COALESCE(SUM(sf.amount_paid), 0) AS total_paid,
+            COALESCE(SUM(sf.amount - sf.amount_paid), 0) AS balance
+        FROM students s
+        LEFT JOIN student_fees sf ON s.id = sf.student_id 
+            AND sf.academic_year = ? 
+            " . ($selected_term !== 'All' ? "AND sf.term = ?" : "") . "
+        WHERE s.status = 'active'
+        GROUP BY s.id, s.name, s.class
+        HAVING total_assigned > 0
+        ORDER BY s.class, s.name
+    ");
+    
+    if ($selected_term !== 'All') {
+        $collection_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    } else {
+        $collection_stmt->bind_param('s', $selected_academic_year);
+    }
+    
+    $collection_stmt->execute();
+    $collection_result = $collection_stmt->get_result();
+    while ($row = $collection_result->fetch_assoc()) {
+        $fee_collection_summary[] = $row;
+    }
+    $collection_stmt->close();
+}
+
+// PAYMENT TRANSACTIONS REPORT
+$payment_transactions = [];
+if ($report_type === 'transactions') {
+    $trans_stmt = $conn->prepare("
+        SELECT 
+            p.id,
+            p.payment_date,
+            COALESCE(s.first_name, 'General') AS student_name,
+            s.class,
+            p.payment_type,
+            p.amount,
+            p.receipt_no
+        FROM payments p
+        LEFT JOIN students s ON p.student_id = s.id
+        WHERE p.academic_year = ?
+        " . ($selected_term !== 'All' ? "AND p.term = ? " : "") . "
+        AND (s.status = 'active' OR p.payment_type = 'general')
+        ORDER BY p.payment_date DESC, p.id DESC
+        LIMIT 500
+    ");
+    if ($selected_term !== 'All') {
+        $trans_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    } else {
+        $trans_stmt->bind_param('s', $selected_academic_year);
+    }
+    $trans_stmt->execute();
+    $trans_result = $trans_stmt->get_result();
+    while ($row = $trans_result->fetch_assoc()) {
+        $payment_transactions[] = $row;
+    }
+    $trans_stmt->close();
+}
+
+// EXPENSE TRANSACTIONS REPORT
+$expense_transactions = [];
+if ($report_type === 'expense_details') {
+    $exp_stmt = $conn->prepare("
+        SELECT 
+            e.id,
+            e.expense_date,
+            ec.name AS category,
+            e.description,
+            e.amount
+        FROM expenses e
+        LEFT JOIN expense_categories ec ON e.category_id = ec.id
+        WHERE e.academic_year = ?
+        " . ($selected_term !== 'All' ? "AND e.term = ? " : "") . "
+        ORDER BY e.expense_date DESC, e.id DESC
+        LIMIT 500
+    ");
+    if ($selected_term !== 'All') {
+        $exp_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    } else {
+        $exp_stmt->bind_param('s', $selected_academic_year);
+    }
+    $exp_stmt->execute();
+    $exp_result = $exp_stmt->get_result();
+    while ($row = $exp_result->fetch_assoc()) {
+        $expense_transactions[] = $row;
+    }
+    $exp_stmt->close();
+}
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Reports - Salba Montessori Accounting</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+</head>
+<body class="clean-page">
+
+    <div class="clean-page-header">
+        <div class="w-full px-4">
+            <div class="flex gap-2 mb- print:hidden">
+                <a href="../dashboard.php" class="clean-back-px-3 py-2 rounded">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <a href="../budgets/term_budget.php" class="clean-back-px-3 py-2 rounded">
+                    <i class="fas fa-calculator"></i> Budget
+                </a>
+            </div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="clean-page-title"><i class="fas fa-chart-line mr-2"></i>Comprehensive Reports</h1>
+                    <p class="clean-page-subtitle">Financial Analytics & Insights</p>
+                </div>
+                <button onclick="window.print()" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary print:hidden">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full px-4 py-4">
+        
+        <!-- Filters Section -->
+        <div class="report-filters print:hidden">
+            <form method="GET">
+                <div class="flex flex-wrap gap-3">
+                    <div class="col-md-3">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-chart-bar"></i> Report Type</label>
+                        <select name="report_type" class="border border-gray-300 rounded px-3 py-2 bg-white" onchange="this.form.submit()">
+                            <option value="overview" <?php echo $report_type === 'overview' ? 'selected' : ''; ?>>Overview</option>
+                            <option value="income" <?php echo $report_type === 'income' ? 'selected' : ''; ?>>Income Analysis</option>
+                            <option value="expenses" <?php echo $report_type === 'expenses' ? 'selected' : ''; ?>>Expense Analysis</option>
+                            <option value="budget" <?php echo $report_type === 'budget' ? 'selected' : ''; ?>>Budget vs Actual</option>
+                            <option value="student_fees" <?php echo $report_type === 'student_fees' ? 'selected' : ''; ?>>Student Fee Collection</option>
+                            <option value="transactions" <?php echo $report_type === 'transactions' ? 'selected' : ''; ?>>Payment Transactions</option>
+                            <option value="expense_details" <?php echo $report_type === 'expense_details' ? 'selected' : ''; ?>>Expense Transactions</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-alt"></i> Academic Year</label>
+                        <select name="academic_year" class="border border-gray-300 rounded px-3 py-2 bg-white" onchange="this.form.submit()">
+                            <?php foreach ($year_options as $yr): ?>
+                                <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo $yr === $selected_academic_year ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $yr)); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar"></i> Term</label>
+                        <select name="term" class="border border-gray-300 rounded px-3 py-2 bg-white" onchange="this.form.submit()">
+                            <option value="All" <?php echo $selected_term === 'All' ? 'selected' : ''; ?>>All Terms</option>
+                            <?php foreach ($available_terms as $term): ?>
+                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $selected_term === $term ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($term); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="block text-sm font-medium mb-">Date From</label>
+                        <input type="date" name="date_from" class="w-full px-3 py-2 border border-gray-300 rounded" value="<?php echo htmlspecialchars($date_from); ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="block text-sm font-medium mb-">Date To</label>
+                        <input type="date" name="date_to" class="w-full px-3 py-2 border border-gray-300 rounded" value="<?php echo htmlspecialchars($date_to); ?>">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="block text-sm font-medium mb-">&nbsp;</label>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full">Apply</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Report Content Based on Type -->
+        <?php if ($report_type === 'overview'): ?>
+            
+            <!-- Summary Cards -->
+            <div class="flex flex-wrap">
+                <div class="col-md-3">
+                    <div class="stat-bg-white rounded shadow">
+                        <h6><i class="fas fa-arrow-down"></i> TOTAL INCOME</h6>
+                        <div class="amount positive">GHâ‚µ<?php echo number_format($total_income, 2); ?></div>
+                        <small class="text-gray-600"><?php echo $selected_term === 'All' ? $display_academic_year : $selected_term; ?></small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-bg-white rounded shadow">
+                        <h6><i class="fas fa-arrow-up"></i> TOTAL EXPENSES</h6>
+                        <div class="amount negative">GHâ‚µ<?php echo number_format($total_expenses, 2); ?></div>
+                        <small class="text-gray-600"><?php echo $selected_term === 'All' ? $display_academic_year : $selected_term; ?></small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-bg-white rounded shadow">
+                        <h6><i class="fas fa-balance-scale"></i> NET BALANCE</h6>
+                        <div class="amount <?php echo ($total_income - $total_expenses) >= 0 ? 'positive' : 'negative'; ?>">
+                            GHâ‚µ<?php echo number_format($total_income - $total_expenses, 2); ?>
+                        </div>
+                        <small class="text-gray-600">Income - Expenses</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-bg-white rounded shadow">
+                        <h6><i class="fas fa-percentage"></i> EXPENSE RATIO</h6>
+                        <div class="amount" class="text-2xl">
+                            <?php echo $total_income > 0 ? number_format(($total_expenses / $total_income) * 100, 1) : '0'; ?>%
+                        </div>
+                        <small class="text-gray-600">Of Total Income</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income & Expenses Breakdown -->
+            <div class="flex flex-wrap">
+                <div class="md:col-span-6">
+                    <div class="clean-bg-white rounded shadow">
+                        <div class="clean-bg-white rounded shadow-header">
+                            <h5 class="clean-bg-white rounded shadow-title text-green-600"><i class="fas fa-coins mr-2"></i>Income by Category</h5>
+                        </div>
+                        <div class="w-full border-collapse-responsive" class="max-h-80 overflow-auto">
+                            <table class="clean-w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th class="text-right">Amount</th>
+                                        <th class="text-right">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($income_by_category as $row): 
+                                        $percentage = $total_income > 0 ? ($row['total'] / $total_income * 100) : 0;
+                                    ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['category']); ?></td>
+                                        <td class="text-right"><strong class="text-green-600">GHâ‚µ<?php echo number_format($row['total'], 2); ?></strong></td>
+                                        <td class="text-right"><?php echo number_format($percentage, 1); ?>%</td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="w-full border-collapse-success">
+                                        <th>Total</th>
+                                        <th class="text-right">GHâ‚µ<?php echo number_format($total_income, 2); ?></th>
+                                        <th class="text-right">100%</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-6">
+                    <div class="clean-bg-white rounded shadow">
+                        <div class="clean-bg-white rounded shadow-header">
+                            <h5 class="clean-bg-white rounded shadow-title text-red-600"><i class="fas fa-receipt mr-2"></i>Expenses by Category</h5>
+                        </div>
+                        <div class="w-full border-collapse-responsive" class="max-h-80 overflow-auto">
+                            <table class="clean-w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th class="text-right">Amount</th>
+                                        <th class="text-right">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($expense_by_category as $row): 
+                                        $percentage = $total_expenses > 0 ? ($row['total'] / $total_expenses * 100) : 0;
+                                    ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['category'] ?? 'Uncategorized'); ?></td>
+                                        <td class="text-right"><strong class="text-red-600">GHâ‚µ<?php echo number_format($row['total'], 2); ?></strong></td>
+                                        <td class="text-right"><?php echo number_format($percentage, 1); ?>%</td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="w-full border-collapse-danger">
+                                        <th>Total</th>
+                                        <th class="text-right">GHâ‚µ<?php echo number_format($total_expenses, 2); ?></th>
+                                        <th class="text-right">100%</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Comparison -->
+            <?php if (!empty($budget_comparison)): ?>
+            <div class="clean-bg-white rounded shadow mb-">
+                <div class="clean-bg-white rounded shadow-header">
+                    <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-chart-bar mr-2"></i>Budget vs Actual Performance</h5>
+                </div>
+                <div class="w-full border-collapse-responsive">
+                    <table class="clean-w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th>Term</th>
+                                <th class="text-center">Income Budget</th>
+                                <th class="text-center">Income Actual</th>
+                                <th class="text-center">Variance</th>
+                                <th class="text-center">Expense Budget</th>
+                                <th class="text-center">Expense Actual</th>
+                                <th class="text-center">Variance</th>
+                                <th class="text-center">Net Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($budget_comparison as $term => $data): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($term); ?></strong></td>
+                                <td class="text-center">GHâ‚µ<?php echo number_format($data['income_budget'], 2); ?></td>
+                                <td class="text-center <?php echo $data['income_variance'] >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                    GHâ‚µ<?php echo number_format($data['income_actual'], 2); ?>
+                                </td>
+                                <td class="text-center">
+                                    <span class="variance-badge <?php echo $data['income_variance'] >= 0 ? 'bg-success' : 'bg-danger'; ?> text-white">
+                                        <?php echo $data['income_variance'] >= 0 ? '+' : ''; ?><?php echo number_format($data['income_variance_pct'], 1); ?>%
+                                    </span>
+                                </td>
+                                <td class="text-center">GHâ‚µ<?php echo number_format($data['expenses_budget'], 2); ?></td>
+                                <td class="text-center <?php echo $data['expenses_variance'] >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                    GHâ‚µ<?php echo number_format($data['expenses_actual'], 2); ?>
+                                </td>
+                                <td class="text-center">
+                                    <span class="variance-badge <?php echo $data['expenses_variance'] >= 0 ? 'bg-success' : 'bg-danger'; ?> text-white">
+                                        <?php echo $data['expenses_variance'] >= 0 ? '+' : ''; ?><?php echo number_format($data['expenses_variance_pct'], 1); ?>%
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold <?php echo $data['net_actual'] >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                    GHâ‚µ<?php echo number_format($data['net_actual'], 2); ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
+        <?php elseif ($report_type === 'student_fees'): ?>
+            
+            <div class="clean-bg-white rounded shadow">
+                <div class="clean-bg-white rounded shadow-header">
+                    <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-users mr-2"></i>Student Fee Collection Summary</h5>
+                </div>
+                <div class="w-full border-collapse-responsive">
+                    <table class="clean-w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <th class="text-right">Total Assigned</th>
+                                <th class="text-right">Total Paid</th>
+                                <th class="text-right">Balance</th>
+                                <th class="text-right">% Collected</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $i = 1;
+                            $grand_assigned = 0;
+                            $grand_paid = 0;
+                            $grand_balance = 0;
+                            foreach ($fee_collection_summary as $row): 
+                                $collection_pct = $row['total_assigned'] > 0 ? ($row['total_paid'] / $row['total_assigned'] * 100) : 0;
+                                $grand_assigned += $row['total_assigned'];
+                                $grand_paid += $row['total_paid'];
+                                $grand_balance += $row['balance'];
+                            ?>
+                            <tr>
+                                <td><?php echo $i++; ?></td>
+                                <td><?php echo htmlspecialchars($row['student_name']); ?></td>
+                                <td><?php echo htmlspecialchars($row['class']); ?></td>
+                                <td class="text-right">GHâ‚µ<?php echo number_format($row['total_assigned'], 2); ?></td>
+                                <td class="text-right text-green-600">GHâ‚µ<?php echo number_format($row['total_paid'], 2); ?></td>
+                                <td class="text-right <?php echo $row['balance'] > 0 ? 'text-red-600' : 'text-green-600'; ?>">
+                                    GHâ‚µ<?php echo number_format($row['balance'], 2); ?>
+                                </td>
+                                <td class="text-right">
+                                    <span class="badge <?php echo $collection_pct >= 100 ? 'bg-success' : ($collection_pct >= 50 ? 'bg-warning' : 'bg-danger'); ?>">
+                                        <?php echo number_format($collection_pct, 1); ?>%
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="w-full border-collapse-primary">
+                                <th colspan="3">TOTAL</th>
+                                <th class="text-right">GHâ‚µ<?php echo number_format($grand_assigned, 2); ?></th>
+                                <th class="text-right">GHâ‚µ<?php echo number_format($grand_paid, 2); ?></th>
+                                <th class="text-right">GHâ‚µ<?php echo number_format($grand_balance, 2); ?></th>
+                                <th class="text-right">
+                                    <?php echo $grand_assigned > 0 ? number_format(($grand_paid / $grand_assigned * 100), 1) : '0'; ?>%
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+        <?php elseif ($report_type === 'transactions'): ?>
+            
+            <div class="clean-bg-white rounded shadow">
+                <div class="clean-bg-white rounded shadow-header">
+                    <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions</h5>
+                </div>
+                <div class="w-full border-collapse-responsive">
+                    <table class="clean-w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Class</th>
+                                <th>Fee Type</th>
+                                <th class="text-right">Amount</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $trans_total = 0;
+                            foreach ($payment_transactions as $row): 
+                                $trans_total += $row['amount'];
+                            ?>
+                            <tr>
+                                <td><?php echo date('d M Y', strtotime($row['payment_date'])); ?></td>
+                                <td><?php echo htmlspecialchars($row['student_name'] ?? 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars($row['class'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($row['fee_name'] ?? 'N/A'); ?></td>
+                                <td class="text-right text-green-600 fw-bold">GHâ‚µ<?php echo number_format($row['amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($row['payment_method'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($row['reference_number'] ?? ''); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="w-full border-collapse-success">
+                                <th colspan="4">TOTAL (Last 500 transactions)</th>
+                                <th class="text-right">GHâ‚µ<?php echo number_format($trans_total, 2); ?></th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+        <?php elseif ($report_type === 'expense_details'): ?>
+            
+            <div class="clean-bg-white rounded shadow">
+                <div class="clean-bg-white rounded shadow-header">
+                    <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-file-invoice mr-2"></i>Expense Transactions</h5>
+                </div>
+                <div class="w-full border-collapse-responsive">
+                    <table class="clean-w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th class="text-right">Amount</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $exp_total = 0;
+                            foreach ($expense_transactions as $row): 
+                                $exp_total += $row['amount'];
+                            ?>
+                            <tr>
+                                <td><?php echo date('d M Y', strtotime($row['expense_date'])); ?></td>
+                                <td><?php echo htmlspecialchars($row['category'] ?? 'Uncategorized'); ?></td>
+                                <td><?php echo htmlspecialchars($row['description'] ?? ''); ?></td>
+                                <td class="text-right text-red-600 fw-bold">GHâ‚µ<?php echo number_format($row['amount'], 2); ?></td>
+                                <td><?php echo htmlspecialchars($row['payment_method'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($row['reference_number'] ?? ''); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="w-full border-collapse-danger">
+                                <th colspan="3">TOTAL (Last 500 transactions)</th>
+                                <th class="text-right">GHâ‚µ<?php echo number_format($exp_total, 2); ?></th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+        <?php endif; ?>
+
+    </div>
+
+    </body>
+</html>
+

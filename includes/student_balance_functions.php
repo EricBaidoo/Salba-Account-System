@@ -3,6 +3,7 @@ require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/term_helpers.php';
 require_once __DIR__ . '/system_settings.php';
 
+if (!function_exists('getStudentBalance')) {
 function getStudentBalance($conn, $student_id, $term = null, $academic_year = null) {
     $params = [];
     $param_types = "";
@@ -89,7 +90,9 @@ function getStudentBalance($conn, $student_id, $term = null, $academic_year = nu
     
     return $balance;
 }
+}
 
+if (!function_exists('getAllStudentBalances')) {
 function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'active', $term = null, $academic_year = null) {
     $params = [];
     $param_types = "";
@@ -218,7 +221,9 @@ function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'ac
     
     return $balances;
 }
+}
 
+if (!function_exists('getStudentOutstandingFees')) {
 function getStudentOutstandingFees($conn, $student_id, $term = null, $academic_year = null) {
     $where_conditions = ["sf.student_id = ?", "sf.status = 'pending'"];
     $params = [$student_id];
@@ -271,7 +276,9 @@ function getStudentOutstandingFees($conn, $student_id, $term = null, $academic_y
     $stmt->close();
     return $fees;
 }
+}
 
+if (!function_exists('getStudentPaymentHistory')) {
 function getStudentPaymentHistory($conn, $student_id, $term = null, $academic_year = null) {
     $where_conditions = ["p.student_id = ?"];
     $params = [$student_id];
@@ -316,10 +323,12 @@ function getStudentPaymentHistory($conn, $student_id, $term = null, $academic_ye
     $stmt->close();
     return $payments;
 }
+}
 
 /**
  * Get arrears amount for a specific term (unpaid portion only)
  */
+if (!function_exists('getStudentTermArrears')) {
 function getStudentTermArrears($conn, $student_id, $term, $academic_year = null) {
     if ($academic_year === null) {
         $academic_year = getAcademicYear($conn);
@@ -340,11 +349,13 @@ function getStudentTermArrears($conn, $student_id, $term, $academic_year = null)
     $stmt->close();
     return floatval($row['arrears'] ?? 0);
 }
+}
 
 /**
  * Snapshot arrears at end of a given term/year based only on payments recorded in that same term/year.
  * This prevents later-term payments (when allocation is global) from altering the carry-forward amount.
  */
+if (!function_exists('getTermArrearsSnapshot')) {
 function getTermArrearsSnapshot($conn, $student_id, $term, $academic_year) {
     // Total fees assigned in the term/year
     $fees_sql = "SELECT COALESCE(SUM(amount), 0) AS total FROM student_fees WHERE student_id = ? AND term = ? AND (academic_year = ? OR academic_year IS NULL) AND status != 'cancelled'";
@@ -366,19 +377,23 @@ function getTermArrearsSnapshot($conn, $student_id, $term, $academic_year) {
 
     return max(0, $fees_total - $paid_total);
 }
+}
 
 /**
  * Compute outstanding from all terms/years outside the selected scope
  */
+if (!function_exists('getArrearsFromPreviousTerm')) {
 function getArrearsFromPreviousTerm($conn, $student_id, $current_term, $academic_year) {
     [$prev_term, $prev_year] = getPreviousTermYear($current_term, $academic_year);
     // Use snapshot based on payments within the previous term/year only
     return getTermArrearsSnapshot($conn, $student_id, $prev_term, $prev_year);
 }
+}
 
 /**
  * Ensure a global fee template exists for arrears carry forward
  */
+if (!function_exists('getArrearsFeeId')) {
 function getArrearsFeeId($conn) {
     $newName = 'Outstanding Balance';
     $oldName = 'Arrears Carry Forward';
@@ -421,10 +436,12 @@ function getArrearsFeeId($conn) {
     $ins->close();
     return null;
 }
+}
 
 /**
  * Create or update a student fee assignment in the current term/year to carry forward arrears
  */
+if (!function_exists('ensureArrearsAssignment')) {
 function ensureArrearsAssignment($conn, $student_id, $current_term, $academic_year) {
     $arrears = getArrearsFromPreviousTerm($conn, $student_id, $current_term, $academic_year);
     $fee_id = getArrearsFeeId($conn);
@@ -463,10 +480,12 @@ function ensureArrearsAssignment($conn, $student_id, $current_term, $academic_ye
         return $ok;
     }
 }
+}
 
 /**
  * Fetch all assigned fees for a student in the selected term/year (pending or paid)
  */
+if (!function_exists('getStudentTermFees')) {
 function getStudentTermFees($conn, $student_id, $term, $academic_year = null) {
     if ($academic_year === null) {
         $academic_year = getAcademicYear($conn);
@@ -498,5 +517,6 @@ function getStudentTermFees($conn, $student_id, $term, $academic_year = null) {
     while ($r = $res->fetch_assoc()) { $rows[] = $r; }
     $stmt->close();
     return $rows;
+}
 }
 ?>

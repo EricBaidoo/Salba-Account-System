@@ -11,6 +11,7 @@
  * @param mixed $default Default value if setting not found
  * @return mixed Setting value or default
  */
+if (!function_exists('getSystemSetting')) {
 function getSystemSetting($conn, $key, $default = null) {
     $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
     $stmt->bind_param("s", $key);
@@ -25,6 +26,7 @@ function getSystemSetting($conn, $key, $default = null) {
     $stmt->close();
     return $default;
 }
+}
 
 /**
  * Set a system setting value
@@ -34,6 +36,7 @@ function getSystemSetting($conn, $key, $default = null) {
  * @param string $updated_by Username of who updated it
  * @return bool Success status
  */
+if (!function_exists('setSystemSetting')) {
 function setSystemSetting($conn, $key, $value, $updated_by = 'System') {
     $stmt = $conn->prepare("
         INSERT INTO system_settings (setting_key, setting_value, updated_by) 
@@ -45,14 +48,17 @@ function setSystemSetting($conn, $key, $value, $updated_by = 'System') {
     $stmt->close();
     return $result;
 }
+}
 
 /**
  * Get the current active term for the entire system
  * @param mysqli $conn Database connection
  * @return string Current term (e.g., "First Term", "Second Term", "Third Term")
  */
+if (!function_exists('getCurrentTerm')) {
 function getCurrentTerm($conn) {
     return getSystemSetting($conn, 'current_term', 'First Term');
+}
 }
 
 /**
@@ -60,8 +66,10 @@ function getCurrentTerm($conn) {
  * @param mysqli $conn Database connection
  * @return string Academic year (e.g., "2024/2025")
  */
+if (!function_exists('getAcademicYear')) {
 function getAcademicYear($conn) {
     return getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
+}
 }
 
 /**
@@ -69,6 +77,7 @@ function getAcademicYear($conn) {
  * @param mysqli $conn Database connection
  * @return array Associative array of all settings
  */
+if (!function_exists('getAllSettings')) {
 function getAllSettings($conn) {
     $settings = [];
     $result = $conn->query("SELECT setting_key, setting_value, description, updated_at, updated_by FROM system_settings ORDER BY setting_key");
@@ -79,13 +88,16 @@ function getAllSettings($conn) {
     
     return $settings;
 }
+}
 
 /**
  * Get list of available terms
  * @return array List of terms
  */
+if (!function_exists('getAvailableTerms')) {
 function getAvailableTerms() {
     return ['First Term', 'Second Term', 'Third Term'];
+}
 }
 
 /**
@@ -93,6 +105,7 @@ function getAvailableTerms() {
  * Stored value should be canonical YYYY/YYYY. Display can be 'full' or 'short'.
  * Examples: full => 2025/2026, short => 2025/26
  */
+if (!function_exists('formatAcademicYearDisplay')) {
 function formatAcademicYearDisplay($conn, $academic_year) {
     if (!$academic_year) {
         $academic_year = getAcademicYear($conn);
@@ -109,4 +122,5 @@ function formatAcademicYearDisplay($conn, $academic_year) {
         return $startY . '/' . substr((string)$endY, -2);
     }
     return $startY . '/' . $endY;
+}
 }
