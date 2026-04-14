@@ -54,13 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
             $rem = $conn->real_escape_string($_POST['remarks'][$sid] ?? '');
             
             // Upsert mechanism
-            $check = $conn->query("SELECT id FROM attendance WHERE student_id = $sid AND date = '$date_to_mark'");
+            $check = $conn->query("SELECT id FROM attendance WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
             if ($check->num_rows > 0) {
                 // Update
-                $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem' WHERE student_id = $sid AND date = '$date_to_mark'");
+                $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem' WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
             } else {
                 // Insert
-                $conn->query("INSERT INTO attendance (student_id, date, status, remarks, term, academic_year) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_term', '$current_year')");
+                $conn->query("INSERT INTO attendance (student_id, attendance_date, status, remarks, term, academic_year) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_term', '$current_year')");
             }
             $count++;
         }
@@ -76,7 +76,7 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
     $stmt = $conn->prepare("
         SELECT s.id, s.first_name, s.last_name, a.status, a.remarks 
         FROM students s 
-        LEFT JOIN attendance a ON s.id = a.student_id AND a.date = ? 
+        LEFT JOIN attendance a ON s.id = a.student_id AND a.attendance_date = ? 
         WHERE s.class = ? AND s.status = 'active'
         ORDER BY s.first_name ASC
     ");

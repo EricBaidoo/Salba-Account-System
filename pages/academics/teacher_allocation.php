@@ -68,21 +68,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } else {
         $error = "Please select at least one teacher and one class.";
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'revoke_allocation') {
+    $alloc_id = intval($_POST['allocation_id'] ?? 0);
+    if ($alloc_id) {
+        $conn->query("DELETE FROM teacher_allocations WHERE id = $alloc_id LIMIT 1");
+        if ($conn->affected_rows > 0) {
+            $success = "Teaching assignment revoked successfully.";
+        } else {
+            $error = "Failed to revoke assignment or it doesn't exist.";
+        }
+    }
 }
 
 // Get allocations
 $allocations = $conn->query("
     SELECT ta.*, 
            u.username as teacher_alias,
+           sp.full_name as real_teacher_name,
            s.name as subject_alias
     FROM teacher_allocations ta
     LEFT JOIN users u ON ta.teacher_id = u.id
+    LEFT JOIN staff_profiles sp ON u.staff_id = sp.id
     LEFT JOIN subjects s ON ta.subject_id = s.id
-    ORDER BY u.username, ta.is_class_teacher DESC, ta.class_name
+    ORDER BY sp.full_name, u.username, ta.is_class_teacher DESC, ta.class_name
 ");
 
 // Get lists for dropdowns
-$teachers = $conn->query("SELECT id, username FROM users WHERE role IN ('teacher', 'staff') ORDER BY username");
+$teachers = $conn->query("
+    SELECT u.id, u.username, sp.full_name 
+    FROM users u 
+    LEFT JOIN staff_profiles sp ON u.staff_id = sp.id 
+    WHERE u.role IN ('teacher', 'staff') 
+    ORDER BY sp.full_name, u.username
+");
 $subjects = $conn->query("SELECT id, name as subject_name FROM subjects ORDER BY name");
 $classes_res = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' ORDER BY class");
 $classes_list = [];
@@ -165,7 +183,6 @@ if(empty($classes_list)) {
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100 font-semibold text-gray-500">
-                                <th class="px-6 py-4">Assigned Teacher</th>
                                 <th class="px-6 py-4">Role Status</th>
                                 <th class="px-6 py-4">Subject Focus</th>
                                 <th class="px-6 py-4">Class Target</th>
@@ -176,10 +193,26 @@ if(empty($classes_list)) {
                         <tbody class="divide-y divide-gray-100">
                             <?php 
                             $has_allocations = false;
+                            $current_teacher_id = null;
                             if ($allocations && $allocations->num_rows > 0):
                                 while ($row = $allocations->fetch_assoc()):
                                     $has_allocations = true;
-                                    $display_teacher = $row['teacher_alias'] ?: ($row['teacher_name'] ?: 'Unassigned');
+                                    $display_id = $row['teacher_alias'] ?: 'No ID';
+                                    $display_name = $row['real_teacher_name'] ?: $display_id;
+                                    
+                                    // Output Teacher Group Header
+                                    if ($display_id !== $current_teacher_id) {
+                                        echo '<tr class="bg-purple-50 border-y border-purple-100">';
+                                        echo '  <td colspan="5" class="px-6 py-3">';
+                                        echo '      <div class="flex items-center gap-3">';
+                                        echo '          <div class="w-8 h-8 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center font-bold text-sm uppercase">' . substr($display_name, 0, 2) . '</div>';
+                                        echo '          <div class="font-bold text-gray-900 text-base">' . htmlspecialchars($display_name) . ' <span class="text-sm font-medium text-purple-600 ml-2 border border-purple-200 bg-white px-2 py-0.5 rounded-full shadow-sm">Staff ID: ' . htmlspecialchars($display_id) . '</span></div>';
+                                        echo '      </div>';
+                                        echo '  </td>';
+                                        echo '</tr>';
+                                        $current_teacher_id = $display_id;
+                                    }
+
                                     if ($row['subject_id'] == 0 && $row['is_class_teacher']) {
                                         $display_subject = '<span class="text-gray-400 italic font-normal">Class Responsibility</span>';
                                     } else {
@@ -187,15 +220,7 @@ if(empty($classes_list)) {
                                     }
                             ?>
                                 <tr class="hover:bg-gray-50/80 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs uppercase">
-                                                <?php echo substr($display_teacher, 0, 2); ?>
-                                            </div>
-                                            <div class="font-bold text-gray-900"><?php echo htmlspecialchars($display_teacher); ?></div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 pl-16">
                                         <?php if ($row['is_class_teacher']): ?>
                                             <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase rounded-full border border-emerald-100 flex items-center gap-1 w-fit">
                                                 <i class="fas fa-home"></i> Home Class
@@ -230,9 +255,13 @@ if(empty($classes_list)) {
                                         <?php echo htmlspecialchars($row['year'] ?? '—'); ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <button class="text-gray-400 hover:text-red-600 transition-colors" title="Revoke Allocation">
-                                            <i class="fas fa-unlink"></i>
-                                        </button>
+                                        <form method="POST" action="" class="inline-block" onsubmit="return confirm('Are you sure you want to revoke this teaching assignment?');">
+                                            <input type="hidden" name="action" value="revoke_allocation">
+                                            <input type="hidden" name="allocation_id" value="<?php echo $row['id']; ?>">
+                                            <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors" title="Revoke Allocation">
+                                                <i class="fas fa-unlink text-lg"></i>
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php 
@@ -277,7 +306,8 @@ if(empty($classes_list)) {
                             <?php 
                             if ($teachers) {
                                 while ($t = $teachers->fetch_assoc()) {
-                                    echo '<option value="' . $t['id'] . '">' . htmlspecialchars($t['username']) . '</option>';
+                                    $disp = $t['full_name'] ? ($t['full_name'] . ' (' . $t['username'] . ')') : $t['username'];
+                                    echo '<option value="' . $t['id'] . '">' . htmlspecialchars($disp) . '</option>';
                                 }
                             }
                             ?>
