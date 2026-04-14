@@ -23,8 +23,16 @@ if ($_SESSION['role'] === 'admin') {
     while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class'];
 } else {
     // Teacher sees only assigned classes
-    $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year'");
-    while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
+    // Teacher sees only their Permanent (Home) classes for roll-call
+    $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year' AND is_class_teacher = 1");
+    if ($res) {
+        while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
+    }
+    // If no permanent class, check if they have any assigned subject classes (optional fallback)
+    if (empty($allocated_classes)) {
+        $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year'");
+        while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
+    }
 }
 
 $selected_class = $_GET['class'] ?? ($allocated_classes[0] ?? '');

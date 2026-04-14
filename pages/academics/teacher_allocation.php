@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $count = 0;
                 foreach ($classes as $class_name) {
                     $class_name = trim($class_name);
-                    $stmt->bind_param('iissiiiiis', $teacher_id, $subject_id, $class_name, $current_academic_year, $is_class_teacher, $is_subject_teacher,
+                    $stmt->bind_param('iissiiiiss', $teacher_id, $subject_id, $class_name, $current_academic_year, $is_class_teacher, $is_subject_teacher,
                                                     $teacher_id, $subject_id, $class_name, $current_academic_year);
                     if ($stmt->execute()) {
                         if ($conn->affected_rows > 0) $count++;
@@ -78,7 +78,7 @@ $allocations = $conn->query("
     FROM teacher_allocations ta
     LEFT JOIN users u ON ta.teacher_id = u.id
     LEFT JOIN subjects s ON ta.subject_id = s.id
-    ORDER BY ta.class_name, s.name
+    ORDER BY u.username, ta.is_class_teacher DESC, ta.class_name
 ");
 
 // Get lists for dropdowns
@@ -166,6 +166,7 @@ if(empty($classes_list)) {
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100 font-semibold text-gray-500">
                                 <th class="px-6 py-4">Assigned Teacher</th>
+                                <th class="px-6 py-4">Role Status</th>
                                 <th class="px-6 py-4">Subject Focus</th>
                                 <th class="px-6 py-4">Class Target</th>
                                 <th class="px-6 py-4">Academic Year</th>
@@ -194,8 +195,19 @@ if(empty($classes_list)) {
                                             <div class="font-bold text-gray-900"><?php echo htmlspecialchars($display_teacher); ?></div>
                                         </div>
                                     </td>
+                                    <td class="px-6 py-4">
+                                        <?php if ($row['is_class_teacher']): ?>
+                                            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase rounded-full border border-emerald-100 flex items-center gap-1 w-fit">
+                                                <i class="fas fa-home"></i> Home Class
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase rounded-full border border-blue-100 flex items-center gap-1 w-fit">
+                                                <i class="fas fa-walking"></i> Visiting
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="px-6 py-4 font-medium text-gray-700">
-                                        <?php echo htmlspecialchars($display_subject); ?>
+                                        <?php echo $display_subject; ?>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-1">
