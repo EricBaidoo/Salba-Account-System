@@ -33,18 +33,25 @@ if ($selected_class) {
         $res = $conn->query("SELECT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.class_name = '$selected_class' ORDER BY s.name");
         while($r = $res->fetch_assoc()) $allocated_subjects[$r['id']] = $r['name'];
     } else {
-        $res = $conn->query("
-            SELECT s.id, s.name 
-            FROM teacher_allocations ta 
-            LEFT JOIN subjects s ON ta.subject_id = s.id 
-            WHERE ta.teacher_id = $uid AND ta.class_name = '$selected_class' AND ta.year = '$current_year'
-        ");
-        while($r = $res->fetch_assoc()) {
-            if($r['id']) $allocated_subjects[$r['id']] = $r['name'];
-        }
-        if (empty($allocated_subjects)) {
+        // Teacher Logic:
+        // A: Check if they are the Class Teacher (Generalist)
+        $is_class_head_res = $conn->query("SELECT id FROM teacher_allocations WHERE teacher_id = $uid AND class_name = '$selected_class' AND year = '$current_year' AND is_class_teacher = 1 LIMIT 1");
+        
+        if ($is_class_head_res && $is_class_head_res->num_rows > 0) {
+            // They are the Class Teacher. They get ALL subjects assigned to this class.
             $res = $conn->query("SELECT s.id, s.name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.class_name = '$selected_class' ORDER BY s.name");
             while($r = $res->fetch_assoc()) $allocated_subjects[$r['id']] = $r['name'];
+        } else {
+            // They are NOT the Class Teacher. Check specific subject allocations.
+            $res = $conn->query("
+                SELECT s.id, s.name 
+                FROM teacher_allocations ta 
+                JOIN subjects s ON ta.subject_id = s.id 
+                WHERE ta.teacher_id = $uid AND ta.class_name = '$selected_class' AND ta.year = '$current_year' AND ta.is_subject_teacher = 1
+            ");
+            while($r = $res->fetch_assoc()) {
+                if($r['id']) $allocated_subjects[$r['id']] = $r['name'];
+            }
         }
     }
 }

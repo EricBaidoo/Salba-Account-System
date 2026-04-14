@@ -22,9 +22,22 @@ if (!$p) die("Student not found.");
 
 // Fetch Class Size
 $class_size = 0;
+$class_teacher_name = "__________________________";
 if ($selected_class) {
     $size_res = $conn->query("SELECT COUNT(*) as total FROM students WHERE class = '$selected_class' AND status='active'");
     $class_size = $size_res->fetch_assoc()['total'] ?? 0;
+    
+    // Fetch Class Teacher Name
+    $ct_res = $conn->query("
+        SELECT u.username as name 
+        FROM teacher_allocations ta 
+        JOIN users u ON ta.teacher_id = u.id 
+        WHERE ta.class_name = '$selected_class' AND ta.year = '$current_year' AND ta.is_class_teacher = 1 
+        LIMIT 1
+    ");
+    if ($ct_res && $row = $ct_res->fetch_assoc()) {
+        $class_teacher_name = $row['name'];
+    }
 }
 
 // Global Transcript Settings
@@ -275,8 +288,14 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         </table>
 
         <div style="display: flex; justify-content: space-between;">
-            <div class="sig-box">Class Teacher's Signature</div>
-            <div class="sig-box">Headmaster's Signature</div>
+            <div class="sig-box">
+                <div style="font-weight: normal; margin-bottom: 5px;"><?= strtoupper($class_teacher_name) ?></div>
+                Class Teacher's Signature
+            </div>
+            <div class="sig-box">
+                <div style="font-weight: normal; margin-bottom: 5px;"><?= strtoupper(getSystemSetting($conn, 'head_teacher_name', '__________________________')) ?></div>
+                Headmaster's Signature
+            </div>
         </div>
 
     </div>

@@ -271,13 +271,14 @@ if(empty($classes_list)) {
                             ?>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Subject Curricula <span class="text-xs text-gray-400 font-normal">(Optional for Class Teachers)</span></label>
+                    <div id="subject_selection_group">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Target Subject <span id="subject_req_indicator"></span></label>
                         <select name="subject_id" id="subject_select" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">
-                            <option value="">-- Select Subject --</option>
+                            <option value="0">-- All Subjects (Default) --</option>
                             <?php 
-                            if ($subjects) {
-                                while ($sub = $subjects->fetch_assoc()) {
+                            $subjects_res = $conn->query("SELECT id, name as subject_name FROM subjects ORDER BY name");
+                            if ($subjects_res) {
+                                while ($sub = $subjects_res->fetch_assoc()) {
                                     echo '<option value="' . $sub['id'] . '">' . htmlspecialchars($sub['subject_name']) . '</option>';
                                 }
                             }
@@ -299,20 +300,22 @@ if(empty($classes_list)) {
                         </div>
                     </div>
                     
-                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 space-y-3">
-                        <p class="text-[10px] font-black text-purple-800 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
-                        <div class="flex flex-col gap-3">
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" name="is_class_teacher" class="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
-                                <span class="text-sm font-bold text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
-                                    <i class="fas fa-chalkboard-user text-purple-400"></i> Class Teacher
-                                </span>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-purple-50 hover:border-purple-200 transition-all group role-checkbox-container" data-role="class">
+                                <input type="checkbox" name="is_class_teacher" id="is_class_teacher" class="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                                <div>
+                                    <span class="block text-sm font-bold text-gray-800">Class Teacher</span>
+                                    <span class="block text-[10px] text-gray-500 leading-tight">Generalist: Teaches all subjects in assigned class(es).</span>
+                                </div>
                             </label>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" name="is_subject_teacher" class="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
-                                <span class="text-sm font-bold text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
-                                    <i class="fas fa-book text-purple-400"></i> Subject Teacher
-                                </span>
+                            <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all group role-checkbox-container" data-role="subject">
+                                <input type="checkbox" name="is_subject_teacher" id="is_subject_teacher" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <span class="block text-sm font-bold text-gray-800">Subject Teacher</span>
+                                    <span class="block text-[10px] text-gray-500 leading-tight">Specialist: Teaches only a specific subject.</span>
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -331,17 +334,36 @@ if(empty($classes_list)) {
     </div>
 
     <script>
-        // Dynamic Validation: Require subject only if 'Subject Teacher' is checked
+        const subjectCheck = document.getElementById('is_subject_teacher');
+        const classCheck = document.getElementById('is_class_teacher');
         const subjectSelect = document.getElementById('subject_select');
-        const subjectCheck = document.querySelector('input[name="is_subject_teacher"]');
-        
+        const subjectIndicator = document.getElementById('subject_req_indicator');
+        const subjectGroup = document.getElementById('subject_selection_group');
+
         function updateSubjectRequirement() {
+            // Visual feedback for role selection
+            document.querySelectorAll('.role-checkbox-container').forEach(container => {
+                const input = container.querySelector('input');
+                if (input.checked) {
+                    container.classList.add(input.id === 'is_class_teacher' ? 'bg-purple-50' : 'bg-blue-50');
+                    container.classList.add(input.id === 'is_class_teacher' ? 'border-purple-500' : 'border-blue-500');
+                } else {
+                    container.classList.remove('bg-purple-50', 'bg-blue-50', 'border-purple-500', 'border-blue-500');
+                }
+            });
+
             if (subjectCheck.checked) {
                 subjectSelect.setAttribute('required', 'required');
-                subjectSelect.previousElementSibling.querySelector('span').innerHTML = '<span class="text-red-500">*</span>';
+                subjectIndicator.innerHTML = '<span class="text-red-500">*</span>';
+                subjectGroup.classList.remove('opacity-50');
+                // Ensure they don't leave it on "All Subjects" if they are specifically a Subject Teacher
+                if (subjectSelect.value === '0') subjectSelect.value = '';
             } else {
                 subjectSelect.removeAttribute('required');
-                subjectSelect.previousElementSibling.querySelector('span').innerHTML = '<span class="text-gray-400 font-normal">(Optional for Class Teachers)</span>';
+                subjectIndicator.innerHTML = '<span class="text-gray-400 font-normal">(Optional for Class Teachers)</span>';
+                if (classCheck.checked) {
+                    subjectSelect.value = '0'; // Default to "All Subjects"
+                }
             }
         }
 
@@ -352,6 +374,7 @@ if(empty($classes_list)) {
         }
 
         subjectCheck.addEventListener('change', updateSubjectRequirement);
+        classCheck.addEventListener('change', updateSubjectRequirement);
         updateSubjectRequirement(); // init
     </script>
 
