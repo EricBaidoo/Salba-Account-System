@@ -14,25 +14,59 @@ $error = '';
 
 $current_academic_year = getAcademicYear($conn);
 
-// Handle form submission
+// Safe Migration: Ensure teacher_allocations has role-specific flags
+$db_name = $conn->query("SELECT DATABASE()")->fetch_row()[0];
+$cols_to_check = [
+    'is_class_teacher' => "TINYINT(1) DEFAULT 0",
+    'is_subject_teacher' => "TINYINT(1) DEFAULT 0"
+];
+foreach ($cols_to_check as $col => $def) {
+    if (!$conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'teacher_allocations' AND COLUMN_NAME = '$col'")->fetch_row()[0]) {
+        $conn->query("ALTER TABLE teacher_allocations ADD COLUMN `$col` $def");
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'allocate_teacher') {
     $teacher_id = intval($_POST['teacher_id'] ?? 0);
     $subject_id = intval($_POST['subject_id'] ?? 0);
-    $class_name = trim($_POST['class'] ?? '');
+    $classes = $_POST['classes'] ?? [];
+    $is_class_teacher = isset($_POST['is_class_teacher']) ? 1 : 0;
+    $is_subject_teacher = isset($_POST['is_subject_teacher']) ? 1 : 0;
     
-    if ($teacher_id && $subject_id && $class_name) {
-        $stmt = $conn->prepare("INSERT INTO teacher_allocations (teacher_id, subject_id, class_name, year) VALUES (?, ?, ?, ?)");
-        if ($stmt) {
-            $stmt->bind_param('iiss', $teacher_id, $subject_id, $class_name, $current_academic_year);
-            if ($stmt->execute()) {
-                $success = "Teacher allocated successfully!";
-            } else {
-                $error = "Failed to allocate teacher. " . $conn->error;
+    if ($teacher_id && !empty($classes)) {
+        if (!$is_class_teacher && !$is_subject_teacher) {
+            $error = "At least one role (Class Teacher or Subject Teacher) must be selected.";
+        } else if ($is_subject_teacher && !$subject_id) {
+            $error = "Please select a Subject for the Subject Teacher role.";
+        } else {
+            $conn->begin_transaction();
+            try {
+                $stmt = $conn->prepare("INSERT INTO teacher_allocations (teacher_id, subject_id, class_name, year, is_class_teacher, is_subject_teacher) 
+                                        SELECT ?, ?, ?, ?, ?, ? 
+                                        WHERE NOT EXISTS (
+                                            SELECT 1 FROM teacher_allocations 
+                                            WHERE teacher_id = ? AND subject_id = ? AND class_name = ? AND year = ?
+                                        )");
+                
+                $count = 0;
+                foreach ($classes as $class_name) {
+                    $class_name = trim($class_name);
+                    $stmt->bind_param('iissiiiiis', $teacher_id, $subject_id, $class_name, $current_academic_year, $is_class_teacher, $is_subject_teacher,
+                                                    $teacher_id, $subject_id, $class_name, $current_academic_year);
+                    if ($stmt->execute()) {
+                        if ($conn->affected_rows > 0) $count++;
+                    }
+                }
+                $stmt->close();
+                $conn->commit();
+                $success = "$count teaching assignment(s) registered successfully!";
+            } catch (Exception $e) {
+                $conn->rollback();
+                $error = "Failed to allocate teachers: " . $e->getMessage();
             }
-            $stmt->close();
         }
     } else {
-        $error = "Please fill all required fields.";
+        $error = "Please select at least one teacher and one class.";
     }
 }
 
@@ -145,7 +179,11 @@ if(empty($classes_list)) {
                                 while ($row = $allocations->fetch_assoc()):
                                     $has_allocations = true;
                                     $display_teacher = $row['teacher_alias'] ?: ($row['teacher_name'] ?: 'Unassigned');
-                                    $display_subject = $row['subject_alias'] ?: ($row['subject_name'] ?: 'Unknown');
+                                    if ($row['subject_id'] == 0 && $row['is_class_teacher']) {
+                                        $display_subject = '<span class="text-gray-400 italic font-normal">Class Responsibility</span>';
+                                    } else {
+                                        $display_subject = htmlspecialchars($row['subject_alias'] ?: ($row['subject_name'] ?: 'General'));
+                                    }
                             ?>
                                 <tr class="hover:bg-gray-50/80 transition-colors">
                                     <td class="px-6 py-4">
@@ -160,9 +198,21 @@ if(empty($classes_list)) {
                                         <?php echo htmlspecialchars($display_subject); ?>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold text-xs rounded border border-blue-100">
-                                            <?php echo htmlspecialchars($row['class_name'] ?? '—'); ?>
-                                        </span>
+                                        <div class="flex flex-wrap gap-1">
+                                            <?php if ($row['is_class_teacher']): ?>
+                                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-[10px] uppercase rounded border border-indigo-100 flex items-center gap-1">
+                                                    <i class="fas fa-chalkboard-user"></i> Class Tr
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if ($row['is_subject_teacher']): ?>
+                                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 font-bold text-[10px] uppercase rounded border border-amber-100 flex items-center gap-1">
+                                                    <i class="fas fa-book"></i> Subject Tr
+                                                </span>
+                                            <?php endif; ?>
+                                            <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold text-xs rounded border border-blue-100">
+                                                <?php echo htmlspecialchars($row['class_name'] ?? '—'); ?>
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-gray-500">
                                         <?php echo htmlspecialchars($row['year'] ?? '—'); ?>
@@ -222,8 +272,8 @@ if(empty($classes_list)) {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Subject Curricula <span class="text-red-500">*</span></label>
-                        <select name="subject_id" required class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Subject Curricula <span class="text-xs text-gray-400 font-normal">(Optional for Class Teachers)</span></label>
+                        <select name="subject_id" id="subject_select" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">
                             <option value="">-- Select Subject --</option>
                             <?php 
                             if ($subjects) {
@@ -234,14 +284,37 @@ if(empty($classes_list)) {
                             ?>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Target Class <span class="text-red-500">*</span></label>
-                        <select name="class" required class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">
-                            <option value="">-- Select Class --</option>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm font-semibold text-gray-700">Target Classes <span class="text-red-500">*</span></label>
+                            <button type="button" onclick="toggleAllClasses()" class="text-[10px] text-purple-600 font-bold uppercase hover:underline">Select/Deselect All</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-100" id="classes_container">
                             <?php foreach ($classes_list as $cl): ?>
-                                <option value="<?php echo htmlspecialchars($cl); ?>"><?php echo htmlspecialchars($cl); ?></option>
+                                <label class="flex items-center gap-2 p-1.5 hover:bg-white rounded cursor-pointer transition-colors border border-transparent hover:border-gray-100">
+                                    <input type="checkbox" name="classes[]" value="<?php echo htmlspecialchars($cl); ?>" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 class-checkbox">
+                                    <span class="text-xs font-medium text-gray-700"><?php echo htmlspecialchars($cl); ?></span>
+                                </label>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 space-y-3">
+                        <p class="text-[10px] font-black text-purple-800 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
+                        <div class="flex flex-col gap-3">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="is_class_teacher" class="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                                    <i class="fas fa-chalkboard-user text-purple-400"></i> Class Teacher
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="is_subject_teacher" class="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer">
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-purple-700 transition-colors flex items-center gap-2">
+                                    <i class="fas fa-book text-purple-400"></i> Subject Teacher
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -250,12 +323,37 @@ if(empty($classes_list)) {
                         Cancel
                     </button>
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 shadow-sm transition-colors flex items-center gap-2">
-                        <i class="fas fa-link"></i> Bind Target
+                        <i class="fas fa-link"></i> Register Assignments
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        // Dynamic Validation: Require subject only if 'Subject Teacher' is checked
+        const subjectSelect = document.getElementById('subject_select');
+        const subjectCheck = document.querySelector('input[name="is_subject_teacher"]');
+        
+        function updateSubjectRequirement() {
+            if (subjectCheck.checked) {
+                subjectSelect.setAttribute('required', 'required');
+                subjectSelect.previousElementSibling.querySelector('span').innerHTML = '<span class="text-red-500">*</span>';
+            } else {
+                subjectSelect.removeAttribute('required');
+                subjectSelect.previousElementSibling.querySelector('span').innerHTML = '<span class="text-gray-400 font-normal">(Optional for Class Teachers)</span>';
+            }
+        }
+
+        function toggleAllClasses() {
+            const checkboxes = document.querySelectorAll('.class-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
+
+        subjectCheck.addEventListener('change', updateSubjectRequirement);
+        updateSubjectRequirement(); // init
+    </script>
 
 </body>
 </html>

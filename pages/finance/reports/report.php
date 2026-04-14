@@ -4,6 +4,7 @@ if (!is_logged_in()) {
     header('Location: ../pages/login.php');
     exit;
 }
+require_finance_access();
 include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 include '../../includes/term_helpers.php';

@@ -1,8 +1,7 @@
-<?php include '../../includes/auth_functions.php'; ?>
-<?php if (!is_logged_in()) {
-    header('Location: ../pages/login.php');
-    exit;
-} ?>
+<?php
+include '../../includes/auth_functions.php';
+require_finance_access();
+?>
 <?php
 include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';

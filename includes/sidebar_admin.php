@@ -145,7 +145,8 @@ if (!function_exists('nav_active')) {
 
         <?php endif; ?>
 
-        <!-- ══ FINANCE ════════════════════════════════════ -->
+        <!-- ══ FINANCE (authorized only) ═══════════════ -->
+        <?php if (in_array($user_role, ['admin', 'bursar', 'academic_supervisor'])): ?>
         <div class="pt-4 pb-1 px-2 <?php echo $user_role === 'admin' ? 'border-t border-gray-100 mt-2' : ''; ?>">
             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                 <i class="fas fa-wallet"></i> Finance
@@ -235,6 +236,7 @@ if (!function_exists('nav_active')) {
             <span class="text-sm">Finance Reports</span>
         </a>
 
+        <?php endif; ?>
         <?php endif; ?>
 
         <!-- ══ ACADEMICS ══════════════════════════════════ -->

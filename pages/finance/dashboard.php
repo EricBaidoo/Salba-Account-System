@@ -7,6 +7,7 @@ if (!is_logged_in()) {
     header('Location: ../../includes/login.php');
     exit;
 }
+require_finance_access();
 
 // Get finance statistics
 $total_fees = $conn->query("SELECT SUM(amount) as total FROM fees")->fetch_assoc()['total'] ?? 0;

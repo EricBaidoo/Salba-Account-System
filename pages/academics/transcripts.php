@@ -174,45 +174,6 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', system-ui, sans-serif; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            @page { size: A4; margin: 10mm; }
-            body { 
-                background: white; 
-                color: black; 
-                margin: 0; 
-                padding: 0; 
-                width: 210mm; 
-                position: relative;
-            }
-            .ml-72 { margin-left: 0 !important; }
-            .print-container { 
-                box-shadow: none !important; 
-                border: none !important; 
-                width: 100% !important; 
-                max-width: 100% !important; 
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            /* High contrast print borders */
-            table { border-collapse: collapse; width: 100%; border: 2px solid black !important; }
-            th, td { border: 2px solid black !important; padding: 6px 8px !important; color: black !important; -webkit-print-color-adjust: exact; }
-            th { background-color: #f0f0f0 !important; }
-            
-            /* Logo printing */
-            .print-header img { 
-                width: 100px !important; 
-                height: 100px !important;
-            }
-            .signature-line {
-                border-top: 1px dashed black !important;
-                margin-top: 50px;
-                width: 200px;
-                text-align: center;
-            }
-        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -228,15 +189,20 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                 <p class="text-sm text-gray-700 mt-1 font-bold tracking-wider">MASTER PRINT SPLIT: <span class="bg-blue-100 text-blue-800 px-2 rounded">OA MAX <?= $global_oa_weight ?>%</span> <span class="mx-1">+</span> <span class="bg-red-100 text-red-800 px-2 rounded">EXAM MAX <?= $global_exam_weight ?>%</span></p>
             </div>
             
-            <?php if($user_role !== 'teacher'): ?>
-                <button onclick="window.print()" class="bg-gray-900 hover:bg-black text-white font-bold py-3 px-6 rounded-lg shadow-md transition transform hover:scale-105 flex items-center gap-2">
-                    <i class="fas fa-print"></i> Print Official Document
-                </button>
-            <?php else: ?>
-                <span class="bg-red-50 text-red-600 border border-red-200 font-bold px-4 py-2 rounded-lg text-sm">
-                    <i class="fas fa-lock mr-1"></i> Print Role Restricted
-                </span>
-            <?php endif; ?>
+            <div class="flex items-center gap-3">
+                <?php if($user_role !== 'teacher'): ?>
+                    <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fas fa-eye"></i> View Results
+                    </a>
+                    <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
+                <?php else: ?>
+                    <span class="bg-red-50 text-red-600 border border-red-200 font-bold px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-lock mr-1"></i> Print Role Restricted
+                    </span>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex gap-4">
@@ -308,127 +274,6 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
             </div>
         <?php endif; ?>
     </main>
-
-    <!-- PRINTABLE A4 AREA -->
-    <?php if($student_data): ?>
-    <div class="print-only hidden print-container bg-white w-[210mm] mx-auto min-h-[297mm] p-[10mm] relative">
-        
-        <!-- Header -->
-        <table class="w-full border-none mb-6">
-            <tr>
-                <td class="w-[120px] text-center border-none!" style="border:none !important">
-                    <div class="w-[100px] h-[100px] border-4 border-black rounded-full mx-auto flex items-center justify-center font-bold text-lg">LOGO</div>
-                </td>
-                <td class="text-center align-middle border-none!" style="border:none !important; text-align: center;">
-                    <h1 class="text-3xl font-extrabold uppercase m-0 leading-tight tracking-widest"><?= htmlspecialchars($school_name) ?></h1>
-                    <p class="font-bold text-lg border-b border-t border-black py-1 mt-2 inline-block px-10">TERMINAL REPORT CARD</p>
-                </td>
-                <td class="w-[120px] text-center border-none!" style="border:none !important">
-                    <div class="w-[100px] h-[100px] border-2 border-black bg-gray-100 mx-auto text-xs flex items-center justify-center text-gray-500">PHOTO<br>BOX</div>
-                </td>
-            </tr>
-        </table>
-
-        <!-- Student Meta Data -->
-        <div class="mb-4">
-            <table class="w-full text-sm font-bold border-2 border-black">
-                <tr>
-                    <td class="w-[15%] bg-gray-100">NAME OF PUPIL:</td>
-                    <td class="w-[50%] uppercase text-lg border-r-2 border-black"><?= htmlspecialchars($student_data['first_name'].' '.$student_data['last_name']) ?></td>
-                    <td class="w-[15%] bg-gray-100">CLASS:</td>
-                    <td class="w-[20%] uppercase"><?= htmlspecialchars($selected_class) ?></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-100">ACADEMIC YEAR:</td>
-                    <td class="border-r-2 border-black"><?= htmlspecialchars($current_year) ?></td>
-                    <td class="bg-gray-100">TERM:</td>
-                    <td><?= htmlspecialchars($current_term) ?></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-100">VACATION DATE:</td>
-                    <td class="border-r-2 border-black text-gray-400 font-normal italic">Set by Admin</td>
-                    <td class="bg-gray-100">NUMBER ON ROLL:</td>
-                    <td><?= count($students) ?></td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Grade Grid -->
-        <div class="mb-8">
-            <table class="w-full text-center text-sm border-2 border-black">
-                <thead class="bg-gray-200">
-                    <tr>
-                        <th class="text-left align-middle border-2 border-black uppercase text-sm w-[25%] p-2">SUBJECTS / LEARNING AREA</th>
-                        <th class="border-2 border-black leading-tight w-[10%] bg-gray-100">OA SCORE<br>(<?= $global_oa_weight ?>%)</th>
-                        <th class="border-2 border-black leading-tight w-[10%] bg-gray-100">EXAMS SCORE<br>(<?= $global_exam_weight ?>%)</th>
-                        <th class="border-2 border-black leading-tight w-[10%]">TOTAL SCORE<br>(100%)</th>
-                        <th class="border-2 border-black leading-tight w-[5%] bg-gray-100">POS.</th>
-                        <th class="border-2 border-black leading-tight w-[10%]">GRADE</th>
-                        <th class="border-2 border-black text-left pl-3 w-[25%]">REMARKS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if(!empty($transcript_lines)): ?>
-                        <?php foreach($transcript_lines as $l): ?>
-                        <tr>
-                            <td class="text-left font-bold uppercase p-2 border-2 border-black"><?= htmlspecialchars($l['subject']) ?></td>
-                            <td class="font-bold border-2 border-black bg-gray-50"><?= $l['oa'] ?></td>
-                            <td class="font-bold border-2 border-black bg-gray-50"><?= $l['ex'] ?></td>
-                            <td class="font-extrabold border-2 border-black bg-gray-100 text-base"><?= $l['total'] ?></td>
-                            <td class="font-bold italic border-2 border-black bg-gray-50"><?= htmlspecialchars($l['pos']) ?></td>
-                            <td class="font-bold text-base border-2 border-black"><?= htmlspecialchars($l['grade']) ?></td>
-                            <td class="text-left font-medium pl-3 border-2 border-black uppercase text-xs"><?= htmlspecialchars($l['remark']) ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr><td colspan="7" class="py-8 font-bold text-gray-400 uppercase italic border-2 border-black">NO ACADEMIC RECORDS FINALIZED</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Remarks Sandbox -->
-        <div class="mb-8">
-            <table class="w-full text-sm font-bold border-2 border-black border-collapse">
-                <tr>
-                    <td class="w-[20%] uppercase border-2 border-black bg-gray-100 p-2">ATTENDANCE:</td>
-                    <td class="w-[30%] uppercase border-2 border-black p-2 font-normal">_______ OUT OF _______</td>
-                    <td class="w-[20%] uppercase border-2 border-black bg-gray-100 p-2 text-right">CONDUCT:</td>
-                    <td class="w-[30%] uppercase border-2 border-black p-2 font-medium italic"><?= htmlspecialchars($student_remarks['conduct'] ?? '') ?></td>
-                </tr>
-                <tr>
-                    <td class="uppercase border-2 border-black bg-gray-100 p-2">ATTITUDE:</td>
-                    <td colspan="3" class="uppercase border-2 border-black p-2 font-medium italic"><?= htmlspecialchars($student_remarks['attitude'] ?? '') ?></td>
-                </tr>
-                <tr>
-                    <td class="uppercase border-2 border-black bg-gray-100 p-2" colspan="2">TALENT AND INTEREST IN EXTRA CO-CURRICULAR:</td>
-                    <td colspan="2" class="uppercase border-2 border-black p-2 font-medium italic"><?= htmlspecialchars($student_remarks['talent_and_interest'] ?? '') ?></td>
-                </tr>
-                <tr>
-                    <td class="uppercase border-2 border-black bg-gray-100 p-2 py-4">TEACHER'S REMARK:</td>
-                    <td colspan="3" class="uppercase border-2 border-black p-2 font-bold text-base italic"><?= htmlspecialchars($student_remarks['teacher_remarks'] ?? '') ?></td>
-                </tr>
-                <tr>
-                    <td class="uppercase border-2 border-black bg-gray-100 p-2 py-6">HEADMASTER / SUPERVISOR'S REMARK:</td>
-                    <td colspan="3" class="uppercase border-2 border-black p-2 font-bold text-[18px] italic"><?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '') ?></td>
-                </tr>
-            </table>
-        </div>
-        
-        <!-- Signatures -->
-        <div class="mt-12 flex justify-between px-10">
-            <div>
-                <div class="signature-line border-t border-black mb-1 w-48 mx-auto"></div>
-                <div class="font-bold text-sm text-center uppercase tracking-wider">TEACHER'S SIGNATURE</div>
-            </div>
-            <div>
-                <div class="signature-line border-t border-black mb-1 w-48 mx-auto"></div>
-                <div class="font-bold text-sm text-center uppercase tracking-wider">HEADMASTER'S SIGNATURE</div>
-            </div>
-        </div>
-
-    </div>
-    <?php endif; ?>
 
 </body>
 </html>

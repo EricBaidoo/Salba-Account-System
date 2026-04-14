@@ -1,5 +1,6 @@
 <?php
 include '../../includes/auth_check.php';
+require_finance_write();
 include '../../includes/db_connect.php';
 // Fetch all classes and their Levels for dynamic class-based amount fields
 $classes_result = $conn->query("SELECT name, Level FROM classes ORDER BY id ASC");

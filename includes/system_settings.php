@@ -57,7 +57,7 @@ function setSystemSetting($conn, $key, $value, $updated_by = 'System') {
  */
 if (!function_exists('getCurrentTerm')) {
 function getCurrentTerm($conn) {
-    return getSystemSetting($conn, 'current_term', 'First Term');
+    return getSystemSetting($conn, 'current_term', '');
 }
 }
 
@@ -68,7 +68,7 @@ function getCurrentTerm($conn) {
  */
 if (!function_exists('getAcademicYear')) {
 function getAcademicYear($conn) {
-    return getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
+    return getSystemSetting($conn, 'academic_year', '');
 }
 }
 

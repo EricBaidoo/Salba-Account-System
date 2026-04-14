@@ -6,6 +6,7 @@ if (!is_logged_in()) {
     header('Location: ../pages/login.php');
     exit;
 }
+require_finance_access();
 // Load category id=>name map
 include_once '../../includes/fee_category_map.php';
 

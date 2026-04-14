@@ -1,6 +1,7 @@
 <?php
 include '../../includes/db_connect.php';
 include '../../includes/auth_check.php';
+require_finance_write();
 include '../../includes/system_settings.php';
 include '../../includes/student_balance_functions.php';
 

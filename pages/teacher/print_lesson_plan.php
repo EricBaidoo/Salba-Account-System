@@ -27,10 +27,10 @@ if ($_SESSION['role'] === 'teacher' && $_SESSION['user_id'] != $p['teacher_id'])
     die("Access denied.");
 }
 
-$school_name    = getSystemSetting($conn, 'school_name', 'Salba Montessori School');
-$school_address = getSystemSetting($conn, 'school_address', 'Accra, Ghana');
-$school_phone   = getSystemSetting($conn, 'school_phone', '+233 598872309');
-$school_email   = getSystemSetting($conn, 'school_email', 'info@smis.edu.gh');
+$school_name    = getSystemSetting($conn, 'school_name', '');
+$school_address = getSystemSetting($conn, 'school_address', '');
+$school_phone   = getSystemSetting($conn, 'school_phone', '');
+$school_email   = getSystemSetting($conn, 'school_email', '');
 
 $v = fn($k) => htmlspecialchars($p[$k] ?? '-');
 $n = fn($k) => nl2br(htmlspecialchars($p[$k] ?? '-'));
@@ -52,9 +52,9 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; line-height: 1.3; color: #000; margin: 0; padding: 0; }
         .print-container { width: 100%; border: none; }
         
-        .school-header { text-align: left; margin-bottom: 5px; }
-        .school-name { font-size: 20px; font-weight: 800; color: #1e293b; margin: 0; line-height: 1; }
-        .school-info { font-size: 11px; color: #475569; margin: 2px 0 0; font-weight: normal; }
+        .school-header { text-align: center; margin-bottom: 25px; }
+        .school-name { font-size: 22px; font-weight: 800; color: #1e293b; margin: 10px 0 0; line-height: 1.2; }
+        .school-info { font-size: 12px; color: #475569; margin: 5px 0 0; font-weight: normal; }
         .header-title { text-align: center; text-transform: uppercase; margin-bottom: 20px; }
         .header-title h1 { margin: 0; font-size: 18px; text-decoration: underline; font-weight: bold; }
         .header-title h2 { margin: 3px 0 0; font-size: 13px; letter-spacing: 1px; }
@@ -103,27 +103,20 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
     <?php endif; ?>
 
     <div class="print-container" style="<?= ($render_type == 'html') ? 'max-width: 950px; margin: 40px auto; padding: 40px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 12px;' : '' ?>">
-        <table style="width: 100%; border: none; margin-bottom: 25px;">
-            <tr>
-                <td style="width: 100px; border: none; padding: 0; vertical-align: top;">
-                    <?php 
-                        $logo_path = '../../assets/img/salba_logo.jpg';
-                        if (file_exists($logo_path)): 
-                    ?>
-                        <img src="<?= $logo_path ?>" style="width: 110px; height: auto;">
-                    <?php endif; ?>
-                </td>
-                <td style="border: none; padding: 0 0 0 20px; text-align: left; vertical-align: top;">
-                    <div class="school-header">
-                        <div class="school-name"><?= strtoupper($school_name) ?></div>
-                        <div class="school-info">
-                            <?= $school_address ?><br>
-                            Phone: <?= $school_phone ?> | Email: <?= $school_email ?>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div class="school-header">
+            <?php 
+                $logo_path = '../../assets/img/salba_logo.jpg';
+                if (file_exists($logo_path)): 
+            ?>
+                <img src="<?= $logo_path ?>" style="width: 120px; height: auto; display: block; margin: 0 auto;">
+            <?php endif; ?>
+            
+            <div class="school-name"><?= strtoupper($school_name) ?></div>
+            <div class="school-info">
+                <?= $school_address ?><br>
+                Phone: <?= $school_phone ?> | Email: <?= $school_email ?>
+            </div>
+        </div>
 
         <div class="header-title">
             <h2>TERM <?= strtoupper($v('term')) ?: 'THREE' ?></h2>
