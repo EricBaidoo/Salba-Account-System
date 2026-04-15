@@ -121,7 +121,7 @@ if ($grad_res) {
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/sidebar_admin.php'; ?>
 
     <main class="ml-72 p-8 min-h-screen">
 
@@ -225,6 +225,13 @@ if ($grad_res) {
                     'links' => [
                         ['label' => 'Submit Plan (Teacher View)', 'href' => '../teacher/lesson_plans.php'],
                         ['label' => 'Review Queue (Supervisor)', 'href' => '../supervisor/lesson_plans.php'],
+                    ]
+                ],
+                [
+                    'icon' => 'fa-sliders', 'color' => 'indigo',
+                    'title' => 'Academic Rules', 'desc' => 'Configure assessment weights, terminal report rules, and pass marks',
+                    'links' => [
+                        ['label' => 'Configure Rules', 'href' => 'settings.php'],
                     ]
                 ],
             ];

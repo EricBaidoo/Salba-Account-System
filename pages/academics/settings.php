@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_assessment') {
     $del_id = intval($_POST['delete_id']);
     $conn->query("DELETE FROM assessment_configurations WHERE id = $del_id");
-    header("Location: academic_settings.php?success=Rule+Deleted");
+    header("Location: settings.php?success=Rule+Deleted");
     exit;
 }
 
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $conn->prepare("INSERT INTO assessment_configurations (academic_year, term, assessment_name, max_marks_allocation, is_exam) VALUES (?, ?, ?, ?, 1)");
                 $stmt->bind_param("sssd", $current_academic_year, $current_term, $a_name, $a_max);
                 $stmt->execute();
-                header("Location: academic_settings.php?success=Exam+Configuration+Added");
+                header("Location: settings.php?success=Exam+Configuration+Added");
                 exit;
             }
         } else {
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $conn->prepare("INSERT INTO assessment_configurations (academic_year, term, assessment_name, max_marks_allocation, is_exam) VALUES (?, ?, ?, ?, 0)");
                 $stmt->bind_param("sssd", $current_academic_year, $current_term, $a_name, $a_max);
                 $stmt->execute();
-                header("Location: academic_settings.php?success=SBA+Assessment+Added");
+                header("Location: settings.php?success=SBA+Assessment+Added");
                 exit;
             }
         }
@@ -140,6 +140,7 @@ while($r = $map_res->fetch_assoc()){ $mappings[$r['class_name']][] = $r['subject
     <title>Academic Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="bg-gray-50 text-gray-800">
 
@@ -147,6 +148,11 @@ while($r = $map_res->fetch_assoc()){ $mappings[$r['class_name']][] = $r['subject
     <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // fallback ?>
 
     <main class="ml-72 min-h-screen relative p-8">
+        <div class="flex items-center gap-2 mb-4">
+            <a href="dashboard.php" class="text-gray-400 hover:text-indigo-600 transition-colors flex items-center gap-1 text-sm font-medium">
+                <i class="fas fa-arrow-left"></i> Back to Academics
+            </a>
+        </div>
         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-2">
             <i class="fas fa-sliders text-indigo-600"></i> Academic Rules & Limits
         </h1>

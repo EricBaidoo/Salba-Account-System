@@ -38,7 +38,7 @@ $balance = $total_payments - $total_expenses;
     <link rel="stylesheet" href="../../assets/css/style.css">
     </head>
 <body class="bg-gray-50">
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/sidebar_admin.php'; ?>
         
     <main class="ml-72 p-8 min-h-screen">
             <!-- Header -->
@@ -147,13 +147,13 @@ $balance = $total_payments - $total_expenses;
                     <a href="invoices/term_invoice.php" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Go to Invoices</a>
                 </div>
 
-                <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+                <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-2 border-dashed border-emerald-100 bg-emerald-50/20">
                     <div class="flex items-center mb-4">
-                        <i class="fas fa-chart-line text-pink-500 text-2xl mr-3"></i>
-                        <h3 class="text-xl font-bold">Reports</h3>
+                        <i class="fas fa-vault text-emerald-600 text-2xl mr-3"></i>
+                        <h3 class="text-xl font-bold">Finance Settings</h3>
                     </div>
-                    <p class="text-gray-600 mb-4">View financial reports and analytics</p>
-                    <a href="reports/report.php" class="inline-block bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">Go to Reports</a>
+                    <p class="text-gray-600 mb-4">Configure currency, payment methods, and invoice prefixes</p>
+                    <a href="settings.php" class="inline-block bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 font-bold uppercase text-xs tracking-widest">Configure Node</a>
                 </div>
             </div>
     </main>

@@ -66,11 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSystemSetting($conn, 'academic_year_start_day', sprintf('%02d', $d), $updated_by);
     }
 
-    // Payment allocation scope: global (default) or term_year
-    if (isset($_POST['payment_allocation_scope'])) {
-        $scope = $_POST['payment_allocation_scope'] === 'term_year' ? 'term_year' : 'global';
-        setSystemSetting($conn, 'payment_allocation_scope', $scope, $updated_by);
-    }
+
     
     // Update school information
     $school_fields = ['school_name', 'school_address', 'school_phone', 'school_email'];
@@ -93,7 +89,7 @@ $available_terms = getAvailableTerms();
 $year_format = getSystemSetting($conn, 'academic_year_format', 'full');
 $start_month = getSystemSetting($conn, 'academic_year_start_month', '09');
 $start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
-$alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'global');
+$start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
 
 // Build year options centered around current academic year start
 $ay_parts = explode('/', $academic_year);
@@ -122,7 +118,7 @@ for ($i = -2; $i <= 5; $i++) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/sidebar_admin.php'; ?>
 
     <main class="ml-72 min-h-screen">
         <!-- Header Section -->
@@ -238,14 +234,7 @@ for ($i = -2; $i <= 5; $i++) {
                                 </h5>
                             </div>
                             <div class="p-6">
-                                <div class="mb-5">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Fee Payment Allocation Scope</label>
-                                    <p class="text-xs text-gray-500 mb-3">Determines how incoming payments are matched against owing invoices when no specific invoice is targeted.</p>
-                                    <select name="payment_allocation_scope" class="w-full md:w-1/2 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors cursor-pointer text-sm font-medium">
-                                        <option value="global" <?php echo $alloc_scope==='global'?'selected':''; ?>>Global Context (Pays oldest missing fees first)</option>
-                                        <option value="term_year" <?php echo $alloc_scope==='term_year'?'selected':''; ?>>Strict Term Context (Only pays fees in the target term)</option>
-                                    </select>
-                                </div>
+
                                 <hr class="border-gray-100 my-5">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">User & Role Management</label>

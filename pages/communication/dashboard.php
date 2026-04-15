@@ -44,7 +44,7 @@ if ($r) $total_messages = $r->fetch_assoc()['c'] ?? 0;
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/sidebar_admin.php'; ?>
 
     <main class="ml-72 p-8 min-h-screen">
 
@@ -110,38 +110,17 @@ if ($r) $total_messages = $r->fetch_assoc()['c'] ?? 0;
                 <p class="text-sm text-gray-400">Send and view messages between staff members and parents</p>
             </a>
 
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 opacity-50 cursor-not-allowed">
+            <a href="settings.php"
+               class="bg-indigo-900 border border-indigo-700 rounded-xl shadow-xl p-5 hover:shadow-2xl hover:bg-indigo-950 transition-all group">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-sms text-green-500"></i>
+                    <div class="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-tower-broadcast text-white"></i>
                     </div>
-                    <h3 class="font-bold text-gray-600">SMS Integration</h3>
+                    <h3 class="font-bold text-white transition-colors">Comm Settings</h3>
                 </div>
-                <p class="text-sm text-gray-400">Send SMS notifications directly to parents</p>
-                <span class="mt-3 inline-block text-xs font-semibold bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Coming Soon</span>
-            </div>
-
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 opacity-50 cursor-not-allowed">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-envelope-open text-indigo-500"></i>
-                    </div>
-                    <h3 class="font-bold text-gray-600">Email Alerts</h3>
-                </div>
-                <p class="text-sm text-gray-400">Automated email notifications and alerts</p>
-                <span class="mt-3 inline-block text-xs font-semibold bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Coming Soon</span>
-            </div>
-
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 opacity-50 cursor-not-allowed">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-bell text-purple-500"></i>
-                    </div>
-                    <h3 class="font-bold text-gray-600">Push Notifications</h3>
-                </div>
-                <p class="text-sm text-gray-400">Browser push notifications for real-time alerts</p>
-                <span class="mt-3 inline-block text-xs font-semibold bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Coming Soon</span>
-            </div>
+                <p class="text-sm text-indigo-300">Provision SMS gateways, SMTP servers, and notification triggers</p>
+                <span class="mt-3 inline-block text-xs font-black bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest">Configure Node</span>
+            </a>
 
         </div>
 

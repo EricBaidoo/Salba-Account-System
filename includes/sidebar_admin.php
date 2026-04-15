@@ -91,10 +91,10 @@ if (!function_exists('nav_active')) {
             <span class="text-sm">User Management</span>
         </a>
 
-        <a href="<?php echo nav_link($base_path, 'administration/academic_settings.php'); ?>"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-md">
-            <i class="fas fa-sliders w-4 text-center text-white"></i>
-            <span class="text-sm">ACADEMIC SETTINGS</span>
+        <a href="<?php echo nav_link($base_path, 'academics/settings.php'); ?>"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('settings.php', $current_page); ?>">
+            <i class="fas fa-graduation-cap w-4 text-center text-purple-500"></i>
+            <span class="text-sm">Academic Settings</span>
         </a>
 
         <a href="<?php echo nav_link($base_path, 'administration/audit_logs.php'); ?>"
@@ -236,6 +236,12 @@ if (!function_exists('nav_active')) {
             <span class="text-sm">Finance Reports</span>
         </a>
 
+        <a href="<?php echo nav_link($base_path, 'finance/settings.php'); ?>"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('settings.php', $current_page); ?>">
+            <i class="fas fa-vault w-4 text-center text-emerald-500"></i>
+            <span class="text-sm">Finance Settings</span>
+        </a>
+
         <?php endif; ?>
         <?php endif; ?>
 
@@ -294,6 +300,12 @@ if (!function_exists('nav_active')) {
             <span class="text-sm">Review Lesson Plans</span>
         </a>
 
+        <a href="<?php echo nav_link($base_path, 'academics/settings.php'); ?>"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('settings.php', $current_page); ?>">
+            <i class="fas fa-sliders-h w-4 text-center text-gray-400"></i>
+            <span class="text-sm">Academic Rules</span>
+        </a>
+
         <!-- ══ COMMUNICATION ══════════════════════════════ -->
         <div class="pt-4 pb-1 px-2 border-t border-gray-100 mt-2">
             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -311,6 +323,12 @@ if (!function_exists('nav_active')) {
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-600 hover:bg-gray-50 hover:text-gray-900">
             <i class="fas fa-message w-4 text-center text-orange-400"></i>
             <span class="text-sm">Messages</span>
+        </a>
+
+        <a href="<?php echo nav_link($base_path, 'communication/settings.php'); ?>"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('settings.php', $current_page); ?>">
+            <i class="fas fa-tower-broadcast w-4 text-center text-orange-400"></i>
+            <span class="text-sm">Comm Settings</span>
         </a>
 
     </nav>

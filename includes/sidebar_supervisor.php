@@ -49,6 +49,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-chart-bar w-4 text-center text-orange-500"></i>
             <span class="text-sm">Global Reports</span>
         </a>
+        <a href="<?= nav_link($base_path, 'academics/settings.php') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?= nav_active('settings.php', $current_page) ?>">
+            <i class="fas fa-sliders-h w-4 text-center text-gray-400"></i>
+            <span class="text-sm">Academic Rules</span>
+        </a>
     </nav>
     <div class="p-4 border-t border-gray-100">
         <a href="<?= nav_link($base_path, '../includes/logout.php') ?>" class="flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-semibold">
