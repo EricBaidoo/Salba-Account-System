@@ -22,7 +22,7 @@ if ($dept_filter) $where .= " AND sp.department = '".$conn->real_escape_string($
 $staff = $conn->query("
     SELECT sp.*, u.id as user_id, u.username, u.role as user_role 
     FROM staff_profiles sp 
-    LEFT JOIN users u ON u.staff_id = sp.id 
+    LEFT JOIN users u ON u.id = sp.user_id 
     $where
     ORDER BY sp.full_name ASC
 ");
@@ -155,12 +155,12 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
                             <i class="fas fa-eye mr-1"></i> View Profile
                         </a>
                         <?php if(!$has_login): ?>
-                            <a href="activate_login.php?id=<?= $s['id'] ?>" class="flex-1 text-center text-xs font-bold py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition">
-                                <i class="fas fa-key mr-1"></i> Activate Login
+                            <a href="../users.php" class="flex-1 text-center text-xs font-bold py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition">
+                                <i class="fas fa-key mr-1"></i> Provision Login
                             </a>
                         <?php else: ?>
-                            <a href="reset_password.php?id=<?= $s['id'] ?>" class="flex-1 text-center text-xs font-bold py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition">
-                                <i class="fas fa-unlock-alt mr-1"></i> Reset Password
+                            <a href="../users.php" class="flex-1 text-center text-xs font-bold py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition">
+                                <i class="fas fa-users-gear mr-1"></i> Manage Account
                             </a>
                         <?php endif; ?>
                     </div>

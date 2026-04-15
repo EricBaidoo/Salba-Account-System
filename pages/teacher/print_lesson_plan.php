@@ -23,7 +23,7 @@ $p = $conn->query("
 
 if (!$p) die("Lesson plan not found.");
 
-if ($_SESSION['role'] === 'teacher' && $_SESSION['user_id'] != $p['teacher_id']) {
+if ($_SESSION['role'] === 'facilitator' && $_SESSION['user_id'] != $p['teacher_id']) {
     die("Access denied.");
 }
 
@@ -228,3 +228,4 @@ if ($render_type == 'pdf') {
     $mpdf->Output($filename, 'I'); // 'I' means inline in browser
 }
 ?>
+

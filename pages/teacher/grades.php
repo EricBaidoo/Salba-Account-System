@@ -4,7 +4,7 @@ include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
-if (!is_logged_in() || ($_SESSION['role'] !== 'teacher' && $_SESSION['role'] !== 'admin')) {
+if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
     header('Location: ../../includes/login.php');
     exit;
 }
@@ -14,6 +14,14 @@ $error = '';
 $uid = $_SESSION['user_id'];
 $current_term = getCurrentTerm($conn);
 $current_year = getAcademicYear($conn);
+
+// Fetch Profile Data for Greeting
+$prof_res = $conn->query("SELECT full_name, photo_path, job_title FROM staff_profiles WHERE user_id = $uid LIMIT 1");
+$profile = $prof_res->fetch_assoc();
+$display_name = $profile['full_name'] ?? $_SESSION['username'];
+$job_title = $profile['job_title'] ?? 'Facilitator';
+$photo = $profile['photo_path'] ?? '';
+
 
 // 1. Fetch Teacher's explicit class allocations
 $allocated_classes = [];
@@ -150,16 +158,39 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="ml-72 min-h-screen relative">
-        <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm">
-            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+    <main class=" min-h-screen relative">
+        <div class="bg-indigo-600 px-8 py-10 text-white relative overflow-hidden">
+            <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4">
+                <i class="fas fa-graduation-cap text-9xl"></i>
+            </div>
+            <div class="flex items-center gap-6 relative z-10">
+                <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-xl">
+                    <?php if($photo): ?>
+                        <img src="../../<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover">
+                    <?php else: ?>
+                        <i class="fas fa-user-tie text-3xl"></i>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tight">Welcome Back, <?= htmlspecialchars($display_name) ?>!</h1>
+                    <p class="text-indigo-100 font-medium mt-1 flex items-center gap-2">
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm"><?= htmlspecialchars($job_title) ?></span>
+                        <span class="opacity-60">•</span>
+                        <span>Official Gradebook Hub</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-900 flex items-center gap-3">
                 <i class="fas fa-star text-yellow-500"></i> My Gradebook
             </h1>
-            <p class="text-gray-500 mt-2 text-sm">
-                Enter your genuine raw scores. The system will mathematically auto-scale them to fit the Official Term Limits.
-            </p>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                Term: <?= $current_term ?> · Year: <?= $current_year ?>
+            </div>
         </div>
 
         <div class="max-w-6xl mx-auto p-8">
@@ -284,3 +315,4 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
     </main>
 </body>
 </html>
+

@@ -3,7 +3,7 @@ session_start();
 include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 
-if (!is_logged_in() || ($_SESSION['role'] !== 'teacher' && $_SESSION['role'] !== 'admin')) {
+if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
     header('Location: ../../includes/login.php');
     exit;
 }
@@ -176,9 +176,9 @@ if ($_SESSION['role'] === 'admin') {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="ml-72 min-h-screen relative p-8">
+    <main class=" min-h-screen relative p-8">
         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
             <i class="fas fa-file-contract text-green-500"></i> Lesson Planning
         </h1>
@@ -457,3 +457,4 @@ if ($_SESSION['role'] === 'admin') {
     </main>
 </body>
 </html>
+

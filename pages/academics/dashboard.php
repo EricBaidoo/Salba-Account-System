@@ -28,7 +28,7 @@ $r = $conn->query("SELECT COUNT(*) as c FROM subjects");
 if ($r) $total_subjects = $r->fetch_assoc()['c'] ?? 0;
 
 $total_teachers  = 0;
-$r = $conn->query("SELECT COUNT(*) as c FROM users WHERE role IN ('teacher','staff')");
+$r = $conn->query("SELECT COUNT(*) as c FROM users WHERE role IN ('facilitator','staff')");
 if ($r) $total_teachers = $r->fetch_assoc()['c'] ?? 0;
 
 // Grades entered this term

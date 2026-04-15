@@ -85,17 +85,13 @@ if (!function_exists('nav_active')) {
             <span class="text-sm">System Settings</span>
         </a>
 
-        <a href="<?php echo nav_link($base_path, 'administration/system_settings.php'); ?>#user-management"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+        <a href="<?php echo nav_link($base_path, 'administration/users.php'); ?>"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('users.php', $current_page); ?>">
             <i class="fas fa-users-gear w-4 text-center text-gray-400"></i>
             <span class="text-sm">User Management</span>
         </a>
 
-        <a href="<?php echo nav_link($base_path, 'academics/settings.php'); ?>"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('settings.php', $current_page); ?>">
-            <i class="fas fa-graduation-cap w-4 text-center text-purple-500"></i>
-            <span class="text-sm">Academic Settings</span>
-        </a>
+       
 
         <a href="<?php echo nav_link($base_path, 'administration/audit_logs.php'); ?>"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?php echo nav_active('audit_logs.php', $current_page); ?>">
@@ -146,7 +142,7 @@ if (!function_exists('nav_active')) {
         <?php endif; ?>
 
         <!-- ══ FINANCE (authorized only) ═══════════════ -->
-        <?php if (in_array($user_role, ['admin', 'bursar', 'academic_supervisor'])): ?>
+        <?php if (in_array($user_role, ['admin', 'bursar', 'supervisor'])): ?>
         <div class="pt-4 pb-1 px-2 <?php echo $user_role === 'admin' ? 'border-t border-gray-100 mt-2' : ''; ?>">
             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
                 <i class="fas fa-wallet"></i> Finance

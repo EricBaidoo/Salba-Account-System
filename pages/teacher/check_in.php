@@ -3,7 +3,7 @@ session_start();
 include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 
-if (!is_logged_in() || ($_SESSION['role'] !== 'teacher' && $_SESSION['role'] !== 'admin')) {
+if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
     header('Location: ../../includes/login.php');
     exit;
 }
@@ -85,9 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="ml-72 min-h-screen relative">
+    <main class=" min-h-screen relative">
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm">
             <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <i class="fas fa-location-dot text-red-500"></i> Daily GPS Check-In
@@ -181,3 +181,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </script>
 </body>
 </html>
+

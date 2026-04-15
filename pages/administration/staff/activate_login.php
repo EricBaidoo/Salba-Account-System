@@ -31,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm  = $_POST['confirm_password'] ?? '';
-    $role     = $_POST['role'] ?? 'teacher';
+    $role     = $_POST['role'] ?? 'facilitator';
 
-    $allowed_roles = ['admin', 'academic_supervisor', 'teacher', 'staff', 'finance'];
+    $allowed_roles = ['admin', 'supervisor', 'facilitator', 'staff', 'finance'];
     if (!$username)                               $errors[] = 'Username (Staff ID) is required.';
     if (!preg_match('/^SMIS\d{3,}-\d{2}$/', $username)) $errors[] = 'Username must follow the Staff ID format: SMIS001-25 (SMIS + number + dash + 2-digit year).';
     if (strlen($password) < 6)                   $errors[] = 'Password must be at least 6 characters.';
@@ -138,8 +138,8 @@ if (empty($s['staff_code'])) {
                             <option value="">-- Select Role --</option>
                             <?php 
                             $roles = [
-                                'teacher' => 'Teacher – Attendance, Grades, Lesson Plans only',
-                                'academic_supervisor' => 'Academic Supervisor – Reviews lesson plans, views all classes',
+                                'facilitator' => 'Facilitator – Attendance, Grades, Lesson Plans only',
+                                'supervisor' => 'Supervisor – Reviews lesson plans, views all classes',
                                 'finance' => 'Finance – Fee management and payments',
                                 'staff' => 'General Staff – Basic dashboard access',
                                 'admin' => 'Admin – Full system access',

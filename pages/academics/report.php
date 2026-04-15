@@ -83,9 +83,15 @@ if($g_res) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php 
+    if ($_SESSION['role'] === 'admin') {
+        include '../../includes/sidebar.php';
+    } else {
+        include '../../includes/top_nav.php';
+    }
+    ?>
 
-    <main class="ml-72 min-h-screen relative">
+    <main class="<?= $_SESSION['role'] === 'admin' ? 'ml-72' : 'w-full' ?> min-h-screen relative">
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30">
             <div class="flex items-center gap-3 mb-4">

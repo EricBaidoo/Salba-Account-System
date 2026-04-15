@@ -8,14 +8,16 @@ include 'db_connect.php';
 if (!function_exists('login')) {
     function login($username, $password) {
         global $conn;
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT id, password, role, is_active FROM users WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
             if (password_verify($password, $row['password'])) {
+                if (!$row['is_active']) return 'account_disabled';
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['username'] = $username;
+                $_SESSION['role'] = $row['role'];
                 return true;
             }
         }
@@ -68,7 +70,7 @@ if (!function_exists('require_role')) {
 
 if (!function_exists('require_finance_access')) {
     function require_finance_access() {
-        require_role(['admin', 'bursar', 'academic_supervisor']);
+        require_role(['admin', 'bursar', 'supervisor']);
     }
 }
 

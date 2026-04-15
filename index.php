@@ -11,10 +11,10 @@ if (!is_logged_in()) {
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 $user_role = $_SESSION['role'] ?? 'staff';
 
-if ($user_role === 'teacher') {
-    header('Location: pages/teacher/check_in.php');
+if ($user_role === 'facilitator') {
+    header('Location: pages/teacher/dashboard.php');
     exit;
-} elseif ($user_role === 'academic_supervisor') {
+} elseif ($user_role === 'supervisor') {
     header('Location: pages/supervisor/dashboard.php');
     exit;
 }

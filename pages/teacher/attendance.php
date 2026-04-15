@@ -4,7 +4,7 @@ include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
-if (!is_logged_in() || ($_SESSION['role'] !== 'teacher' && $_SESSION['role'] !== 'admin')) {
+if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
     header('Location: ../../includes/login.php');
     exit;
 }
@@ -109,9 +109,9 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="ml-72 min-h-screen relative">
+    <main class=" min-h-screen relative">
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm flex justify-between items-center bg-pattern">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
@@ -230,3 +230,4 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
 
 </body>
 </html>
+

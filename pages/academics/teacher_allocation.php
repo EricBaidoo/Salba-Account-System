@@ -98,7 +98,7 @@ $teachers = $conn->query("
     SELECT u.id, u.username, sp.full_name 
     FROM users u 
     LEFT JOIN staff_profiles sp ON u.staff_id = sp.id 
-    WHERE u.role IN ('teacher', 'staff') 
+    WHERE u.role IN ('facilitator', 'staff') 
     ORDER BY sp.full_name, u.username
 ");
 $subjects = $conn->query("SELECT id, name as subject_name FROM subjects ORDER BY name");

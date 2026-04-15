@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_remarks'])) {
     $check = $conn->query("SELECT id FROM student_term_remarks WHERE student_id = $r_student AND academic_year = '$current_year' AND term = '$current_term'");
     if ($check->num_rows > 0) {
         $q = "UPDATE student_term_remarks SET attitude='$r_attitude', conduct='$r_conduct', talent_and_interest='$r_talent'";
-        if ($user_role === 'teacher' || $user_role === 'admin') $q .= ", teacher_remarks='$r_tr', teacher_id=$uid";
-        if ($user_role === 'academic_supervisor' || $user_role === 'admin') $q .= ", supervisor_remarks='$r_sr', supervisor_id=$uid";
+        if ($user_role === 'facilitator' || $user_role === 'admin') $q .= ", teacher_remarks='$r_tr', teacher_id=$uid";
+        if ($user_role === 'supervisor' || $user_role === 'admin') $q .= ", supervisor_remarks='$r_sr', supervisor_id=$uid";
         $q .= " WHERE student_id=$r_student AND academic_year='$current_year' AND term='$current_term'";
         $conn->query($q);
     } else {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_remarks'])) {
 
 // Get Students based on Role scope
 $allocated_classes = [];
-if ($user_role === 'admin' || $user_role === 'academic_supervisor') {
+if ($user_role === 'admin' || $user_role === 'supervisor') {
     $res = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' ORDER BY class");
     while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class'];
 } else {
@@ -178,10 +178,15 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 </head>
 <body class="bg-gray-100">
 
-    <?php include '../../includes/sidebar_admin.php'; ?>
-    <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // fallback ?>
+    <?php 
+    if ($_SESSION['role'] === 'admin') {
+        if (file_exists('../../includes/sidebar_admin.php')) include '../../includes/sidebar_admin.php';
+    } else {
+        if (file_exists('../../includes/top_nav.php')) include '../../includes/top_nav.php';
+    }
+    ?>
 
-    <main class="ml-72 min-h-screen relative p-6 no-print transition-all duration-300">
+    <main class="<?= $_SESSION['role'] === 'admin' ? 'ml-72' : 'w-full' ?> min-h-screen relative p-6 no-print transition-all duration-300">
         
         <div class="flex justify-between items-center bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
             <div>
@@ -190,7 +195,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
             </div>
             
             <div class="flex items-center gap-3">
-                <?php if($user_role !== 'teacher'): ?>
+                <?php if($user_role !== 'facilitator'): ?>
                     <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
                         <i class="fas fa-eye"></i> View Results
                     </a>
@@ -253,14 +258,14 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                         <input type="text" name="talent" value="<?= htmlspecialchars($student_remarks['talent_and_interest'] ?? '') ?>" class="w-full border p-2 rounded text-sm">
                     </div>
 
-                    <?php if($user_role === 'teacher' || $user_role === 'admin'): ?>
+                    <?php if($user_role === 'facilitator' || $user_role === 'admin'): ?>
                     <div class="col-span-full border-t border-gray-100 pt-4 mt-2 bg-blue-50 p-4 rounded mt-4">
                         <label class="block text-xs font-bold text-blue-800 uppercase mb-1"><i class="fas fa-chalkboard-user"></i> Class Teacher Remarks</label>
                         <input type="text" name="teacher_remarks" value="<?= htmlspecialchars($student_remarks['teacher_remarks'] ?? '') ?>" class="w-full border border-blue-200 p-2 rounded font-bold italic">
                     </div>
                     <?php endif; ?>
 
-                    <?php if($user_role === 'academic_supervisor' || $user_role === 'admin'): ?>
+                    <?php if($user_role === 'supervisor' || $user_role === 'admin'): ?>
                     <div class="col-span-full border-t border-gray-100 pt-4 mt-2 bg-red-50 p-4 rounded mt-4">
                         <label class="block text-xs font-bold text-red-800 uppercase mb-1"><i class="fas fa-user-tie"></i> Supervisor/Headmaster Remarks</label>
                         <input type="text" name="supervisor_remarks" value="<?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '') ?>" class="w-full border border-red-200 p-2 rounded font-bold italic text-red-900">

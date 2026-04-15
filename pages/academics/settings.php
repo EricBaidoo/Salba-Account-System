@@ -144,10 +144,15 @@ while($r = $map_res->fetch_assoc()){ $mappings[$r['class_name']][] = $r['subject
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar_admin.php'; ?>
-    <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // fallback ?>
+    <?php 
+    if ($_SESSION['role'] === 'admin') {
+        if (file_exists('../../includes/sidebar_admin.php')) include '../../includes/sidebar_admin.php';
+    } else {
+        if (file_exists('../../includes/top_nav.php')) include '../../includes/top_nav.php';
+    }
+    ?>
 
-    <main class="ml-72 min-h-screen relative p-8">
+    <main class="<?= $_SESSION['role'] === 'admin' ? 'ml-72' : 'w-full' ?> min-h-screen relative p-8">
         <div class="flex items-center gap-2 mb-4">
             <a href="dashboard.php" class="text-gray-400 hover:text-indigo-600 transition-colors flex items-center gap-1 text-sm font-medium">
                 <i class="fas fa-arrow-left"></i> Back to Academics
