@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Collect all fields
     $staff_code             = trim($_POST['staff_code'] ?? '');
     $full_name              = trim($_POST['full_name'] ?? '');
+    $gender                 = $_POST['gender'] ?? 'Male';
     $date_of_birth          = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
     $marital_status         = $_POST['marital_status'] ?? '';
     $nationality            = trim($_POST['nationality'] ?? 'Ghanaian');
@@ -49,6 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guarantor2_name        = trim($_POST['guarantor2_name'] ?? '');
     $guarantor2_phone       = trim($_POST['guarantor2_phone'] ?? '');
     $guarantor2_address     = trim($_POST['guarantor2_address'] ?? '');
+    
+    // Categorization
+    $functional_areas = $_POST['staff_type'] ?? [];
+    $staff_type      = !empty($functional_areas) ? implode(',', $functional_areas) : 'teaching';
 
     // Validation
     if (!$full_name) $errors[] = 'Full Name is required.';
@@ -91,18 +96,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              bank_name, bank_account_no, bank_branch,
              emergency_name, emergency_phone,
              guarantor1_name, guarantor1_phone, guarantor1_address,
-             guarantor2_name, guarantor2_phone, guarantor2_address, photo_path, staff_code)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             guarantor2_name, guarantor2_phone, guarantor2_address, photo_path, staff_code, staff_type, gender)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ");
         $stmt->bind_param(
-            "ssssssssssssssssssssssssssssss",
+            "ssssssssssssssssssssssssssssssss",
             $full_name, $date_of_birth, $marital_status, $nationality, $religion, $languages_spoken,
             $phone_number, $ghana_card_no, $ssnit_number, $address, $landmark, $hometown,
             $job_title, $department, $highest_qualification, $entry_qualification, $first_appointment_date,
             $bank_name, $bank_account_no, $bank_branch,
             $emergency_name, $emergency_phone,
             $guarantor1_name, $guarantor1_phone, $guarantor1_address,
-            $guarantor2_name, $guarantor2_phone, $guarantor2_address, $photo_path, $staff_code
+            $guarantor2_name, $guarantor2_phone, $guarantor2_address, $photo_path, $staff_code, $staff_type, $gender
         );
         if ($stmt->execute()) {
             $new_id = $conn->insert_id;
@@ -214,6 +219,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="text" name="staff_code" class="field-input" placeholder="e.g. SMIS001-25" value="<?= htmlspecialchars($_POST['staff_code'] ?? '') ?>">
                             </div>
                             <div>
+                                <label class="field-label">Gender <span class="text-red-500">*</span></label>
+                                <select name="gender" class="field-input" required>
+                                    <option value="Male" <?= ($_POST['gender'] ?? 'Male') === 'Male' ? 'selected' : '' ?>>Male</option>
+                                    <option value="Female" <?= ($_POST['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                                    <option value="Other" <?= ($_POST['gender'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="field-label">Date of Birth</label>
                                 <input type="date" name="date_of_birth" class="field-input" value="<?= htmlspecialchars($_POST['date_of_birth'] ?? '') ?>">
                             </div>
@@ -297,6 +310,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div>
                         <label class="field-label">Job Title / Role</label>
                         <input type="text" name="job_title" class="field-input" placeholder="e.g. Class Teacher, Security" value="<?= htmlspecialchars($_POST['job_title'] ?? '') ?>">
+                    </div>
+                    <div>
+                        <label class="field-label">Functional Areas <span class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-4 py-2">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" name="staff_type[]" value="teaching" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" <?= in_array('teaching', $_POST['staff_type'] ?? ['teaching']) ? 'checked' : '' ?>>
+                                <span class="text-xs font-bold text-gray-700 group-hover:text-indigo-600 transition">Teaching</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" name="staff_type[]" value="non-teaching" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" <?= in_array('non-teaching', $_POST['staff_type'] ?? []) ? 'checked' : '' ?>>
+                                <span class="text-xs font-bold text-gray-700 group-hover:text-orange-600 transition">Non-Teaching</span>
+                            </label>
+                        </div>
                     </div>
                     <div>
                         <label class="field-label">Department</label>

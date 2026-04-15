@@ -5,10 +5,19 @@ include '../../../includes/auth_functions.php';
 
 // Only admins can perform these actions
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Content-Type: application/json');
+    http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
     exit;
 }
+
+// Enable error reporting but catch it!
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    echo json_encode(['success' => false, 'message' => "PHP Error [$errno]: $errstr in $errfile on line $errline"]);
+    exit;
+});
 
 $action = $_POST['action'] ?? '';
 $id = intval($_POST['id'] ?? 0);
@@ -64,7 +73,22 @@ switch ($action) {
         if ($stmt->execute()) {
             $response = ['success' => true, 'message' => 'Staff record deleted permanently.'];
         } else {
-            $response = ['success' => false, 'message' => 'Database error during deletion. อาจมีข้อมูลอ้างอิงในตารางอื่น.'];
+            $response = ['success' => false, 'message' => 'Database error during deletion.'];
+        }
+        break;
+
+    case 'retire':
+        // Set employment_status to retired
+        $stmt = $conn->prepare("UPDATE staff_profiles SET employment_status = 'retired' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            // Retirees also lose system access
+            $stmt2 = $conn->prepare("UPDATE users SET is_active = 0 WHERE staff_id = ?");
+            $stmt2->bind_param("i", $id);
+            $stmt2->execute();
+            $response = ['success' => true, 'message' => 'Staff marked as Retired. System login disabled.'];
+        } else {
+            $response = ['success' => false, 'message' => 'Database error during retirement update: ' . $conn->error];
         }
         break;
 }

@@ -22,8 +22,9 @@ function run_staff_migration($conn) {
         }
     };
 
-    // 3. Add staff_id to users if missing
+    // 3. Add staff_id and is_active to users if missing
     $add_col('users', 'staff_id', 'INT NULL DEFAULT NULL');
+    $add_col('users', 'is_active', 'TINYINT(1) DEFAULT 1');
 
     // 4. Create staff_profiles base table (minimal — columns added below)
     $conn->query("
@@ -37,7 +38,9 @@ function run_staff_migration($conn) {
 
     // 5. Ensure every column exists (safe to run on tables that already exist)
     $columns = [
+        'user_id'                => "INT NULL DEFAULT NULL",
         'staff_code'             => "VARCHAR(20) NULL",
+        'gender'                 => "VARCHAR(20) DEFAULT 'Male'",
         'date_of_birth'          => "DATE NULL",
         'marital_status'         => "VARCHAR(50) NULL",
         'nationality'            => "VARCHAR(100) NULL DEFAULT 'Ghanaian'",
@@ -52,6 +55,7 @@ function run_staff_migration($conn) {
         'hometown'               => "VARCHAR(150) NULL",
         'job_title'              => "VARCHAR(150) NULL",
         'department'             => "VARCHAR(100) NULL",
+        'staff_type'             => "VARCHAR(100) DEFAULT 'teaching'",
         'highest_qualification'  => "VARCHAR(150) NULL",
         'entry_qualification'    => "VARCHAR(150) NULL",
         'first_appointment_date' => "DATE NULL",

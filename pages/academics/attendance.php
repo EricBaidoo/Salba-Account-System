@@ -98,29 +98,45 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .attendance-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.05); }
+        .attendance-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1); border-color: rgba(99, 102, 241, 0.2); }
+        
         .radio-btn { display: none; }
-        .radio-label {
-            cursor: pointer; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: center; border: 1px solid #e5e7eb; transition: all 0.2s;
+        .status-pill {
+            cursor: pointer; padding: 6px 14px; border-radius: 99px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            border: 1px solid #e5e7eb; transition: all 0.2s; color: #9ca3af; background: white;
         }
-        .radio-btn:checked + .radio-label.present { background-color: #ecfdf5; color: #059669; border-color: #34d399; }
-        .radio-btn:checked + .radio-label.late { background-color: #fffbeb; color: #d97706; border-color: #fbbf24; }
-        .radio-btn:checked + .radio-label.absent { background-color: #fef2f2; color: #dc2626; border-color: #f87171; }
-        .radio-btn:checked + .radio-label.excused { background-color: #f3f4f6; color: #4b5563; border-color: #9ca3af; }
+        
+        .radio-btn:checked + .present { background: #ecfdf5; color: #059669; border-color: #059669; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1); }
+        .radio-btn:checked + .late { background: #fffbeb; color: #d97706; border-color: #d97706; box-shadow: 0 2px 4px rgba(217, 119, 6, 0.1); }
+        .radio-btn:checked + .absent { background: #fef2f2; color: #dc2626; border-color: #dc2626; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen relative">
-        <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm flex justify-between items-center bg-pattern">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                    <i class="fas fa-clipboard-user text-blue-500"></i> My Class Register
-                </h1>
-                <p class="text-gray-500 mt-2 text-sm">
-                    Mark daily attendance strictly for your assigned classes.
-                </p>
+    <main class="ml-72 min-h-screen bg-white">
+        <!-- Modern Header -->
+        <div class="glass-header px-10 py-8 sticky top-0 z-40 bg-white/80">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div>
+                    <div class="flex items-center gap-2 text-indigo-500 font-bold text-xs uppercase tracking-widest mb-2">
+                        <i class="fas fa-calendar-check text-[10px]"></i> Academic Operations
+                    </div>
+                    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                        Class <span class="text-indigo-600">Attendance</span>
+                    </h1>
+                </div>
+                <div class="flex gap-3">
+                     <button type="button" onclick="markAll('present')" class="bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-100 transition flex items-center gap-2 border border-emerald-100">
+                        <i class="fas fa-check-double text-xs"></i> Mark All Present
+                    </button>
+                    <a href="dashboard.php" class="bg-gray-50 text-gray-500 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition flex items-center gap-2 border border-gray-100">
+                        <i class="fas fa-arrow-left text-xs"></i> Back
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -172,42 +188,53 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
                         <input type="hidden" name="class_name" value="<?= htmlspecialchars($selected_class) ?>">
                         <input type="hidden" name="attendance_date" value="<?= htmlspecialchars($selected_date) ?>">
                         
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                             <table class="w-full text-left">
-                                <thead class="bg-gray-50 text-gray-500 border-b border-gray-100 text-xs uppercase font-bold tracking-wider">
+                                <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[10px] uppercase font-black tracking-widest leading-none">
                                     <tr>
-                                        <th class="px-6 py-4">Student Profile</th>
-                                        <th class="px-6 py-4 text-center">Status Selection</th>
-                                        <th class="px-6 py-4">Contextual Notes</th>
+                                        <th class="px-8 py-5">Student Identity & Status</th>
+                                        <th class="px-8 py-5 text-center">Attendance Verification</th>
+                                        <th class="px-8 py-5">Remarks & Observations</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-50">
-                                    <?php foreach($students as $idx => $s): ?>
-                                        <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-6 py-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                                <tbody class="divide-y divide-gray-50/50">
+                                    <?php foreach($students as $idx => $s): 
+                                        $stat = $s['status'] ?? 'present';
+                                    ?>
+                                        <tr class="hover:bg-gray-50/30 transition-colors group">
+                                            <td class="px-8 py-6">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shadow-sm border border-indigo-100/50">
                                                         <?= substr(htmlspecialchars($s['first_name']), 0, 1) . substr(htmlspecialchars($s['last_name']), 0, 1) ?>
                                                     </div>
-                                                    <span class="font-bold text-gray-900"><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></span>
+                                                    <div>
+                                                        <div class="font-bold text-gray-900 flex items-center gap-2">
+                                                            <?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?>
+                                                            <?php if($s['status']): ?>
+                                                                <i class="fas fa-check-circle text-[10px] text-emerald-500"></i>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Student ID: #<?= str_pad($s['id'], 4, '0', STR_PAD_LEFT) ?></div>
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4">
-                                                <div class="flex justify-center items-center gap-2">
-                                                    <?php $stat = $s['status'] ?? 'present'; // Default present ?>
+                                            <td class="px-8 py-6">
+                                                <div class="flex justify-center items-center gap-3">
+                                                    <input type="radio" class="radio-btn t-radio" name="attendance[<?= $s['id'] ?>]" value="present" id="p_<?= $s['id'] ?>" <?= $stat==='present'?'checked':'' ?>>
+                                                    <label class="status-pill present" for="p_<?= $s['id'] ?>">Present</label>
                                                     
-                                                    <input type="radio" class="radio-btn" name="attendance[<?= $s['id'] ?>]" value="present" id="p_<?= $s['id'] ?>" <?= $stat==='present'?'checked':'' ?>>
-                                                    <label class="radio-label present w-20" for="p_<?= $s['id'] ?>">Present</label>
+                                                    <input type="radio" class="radio-btn t-radio" name="attendance[<?= $s['id'] ?>]" value="late" id="l_<?= $s['id'] ?>" <?= $stat==='late'?'checked':'' ?>>
+                                                    <label class="status-pill late" for="l_<?= $s['id'] ?>">Late</label>
                                                     
-                                                    <input type="radio" class="radio-btn" name="attendance[<?= $s['id'] ?>]" value="late" id="l_<?= $s['id'] ?>" <?= $stat==='late'?'checked':'' ?>>
-                                                    <label class="radio-label late w-20" for="l_<?= $s['id'] ?>">Late</label>
-                                                    
-                                                    <input type="radio" class="radio-btn" name="attendance[<?= $s['id'] ?>]" value="absent" id="a_<?= $s['id'] ?>" <?= $stat==='absent'?'checked':'' ?>>
-                                                    <label class="radio-label absent w-20" for="a_<?= $s['id'] ?>">Absent</label>
+                                                    <input type="radio" class="radio-btn t-radio" name="attendance[<?= $s['id'] ?>]" value="absent" id="a_<?= $s['id'] ?>" <?= $stat==='absent'?'checked':'' ?>>
+                                                    <label class="status-pill absent" for="a_<?= $s['id'] ?>">Absent</label>
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4">
-                                                <input type="text" name="remarks[<?= $s['id'] ?>]" value="<?= htmlspecialchars($s['remarks'] ?? '') ?>" placeholder="Optional note..." class="w-full bg-transparent border-b border-gray-200 focus:border-blue-500 focus:outline-none text-sm py-1 text-gray-600">
+                                            <td class="px-8 py-6">
+                                                <div class="relative">
+                                                    <i class="far fa-comment-dots absolute left-0 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                                                    <input type="text" name="remarks[<?= $s['id'] ?>]" value="<?= htmlspecialchars($s['remarks'] ?? '') ?>" placeholder="Add note..." class="w-full pl-6 bg-transparent border-b border-gray-100 focus:border-indigo-400 focus:outline-none text-sm py-1.5 text-gray-500 transition-colors">
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -215,19 +242,30 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
                             </table>
                         </div>
                         
-                        <div class="flex justify-between items-center bg-blue-50 p-6 rounded-xl border border-blue-100">
-                            <div class="text-blue-800 text-sm">
-                                <i class="fas fa-info-circle mr-2"></i> All students strictly bounded to <strong><?= htmlspecialchars($selected_class) ?></strong>.
+                        <div class="flex justify-between items-center bg-gray-50 p-8 rounded-2xl border border-gray-100">
+                            <div class="flex items-center gap-3 text-gray-500 font-medium">
+                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
+                                    <i class="fas fa-lock text-indigo-400"></i>
+                                </div>
+                                <span class="text-xs max-w-[200px]">Register strictly bounded to <strong class="text-gray-900"><?= htmlspecialchars($selected_class) ?></strong> for <strong class="text-gray-900"><?= $selected_date ?></strong>.</span>
                             </div>
-                            <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-sm hover:bg-blue-700 transition flex items-center gap-2">
-                                <i class="fas fa-save"></i> Submit Class Register
+                            <button type="submit" class="bg-gray-900 text-white font-extrabold py-4 px-10 rounded-xl shadow-lg hover:bg-black hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 text-sm">
+                                <i class="fas fa-check-double"></i> Submit Class Register
                             </button>
                         </div>
                     </form>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
+        <div class="pb-20"></div>
     </main>
 
+    <script>
+    function markAll(status) {
+        document.querySelectorAll(`.status-pill.${status}`).forEach(label => {
+            label.click();
+        });
+    }
+    </script>
 </body>
 </html>

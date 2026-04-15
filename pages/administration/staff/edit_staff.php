@@ -22,6 +22,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $staff_code             = trim($_POST['staff_code'] ?? '');
     $full_name              = trim($_POST['full_name'] ?? '');
+    $gender                 = $_POST['gender'] ?? ($s['gender'] ?? 'Male');
     $date_of_birth          = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
     $marital_status         = $_POST['marital_status'] ?? '';
     $nationality            = trim($_POST['nationality'] ?? 'Ghanaian');
@@ -49,6 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $guarantor2_name        = trim($_POST['guarantor2_name'] ?? '');
     $guarantor2_phone       = trim($_POST['guarantor2_phone'] ?? '');
     $guarantor2_address     = trim($_POST['guarantor2_address'] ?? '');
+    
+    // Status
+    $employment_status      = $_POST['employment_status'] ?? ($s['employment_status'] ?? 'active');
+
+    // Categorization
+    $functional_areas = $_POST['staff_type'] ?? [];
+    $staff_type       = !empty($functional_areas) ? implode(',', $functional_areas) : 'teaching';
 
     if (!$full_name) $errors[] = 'Full Name is required.';
 
@@ -87,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 emergency_name=?, emergency_phone=?,
                 guarantor1_name=?, guarantor1_phone=?, guarantor1_address=?,
                 guarantor2_name=?, guarantor2_phone=?, guarantor2_address=?,
-                photo_path=?, staff_code=?
+                photo_path=?, staff_code=?, staff_type=?, gender=?, employment_status=?
             WHERE id=?
         ");
         $stmt->bind_param(
-            "sssssssssssssssssssssssssssssssi",
+            "sssssssssssssssssssssssssssssssssi",
             $full_name, $date_of_birth, $marital_status, $nationality, $religion, $languages_spoken,
             $phone_number, $ghana_card_no, $ssnit_number, $address, $landmark, $hometown,
             $job_title, $department, $highest_qualification, $entry_qualification, $first_appointment_date,
@@ -99,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $emergency_name, $emergency_phone,
             $guarantor1_name, $guarantor1_phone, $guarantor1_address,
             $guarantor2_name, $guarantor2_phone, $guarantor2_address,
-            $photo_path, $staff_code, $id
+            $photo_path, $staff_code, $staff_type, $gender, $employment_status, $id
         );
         if ($stmt->execute()) {
             header("Location: profile_staff.php?id=$id&success=Profile+updated+successfully");
@@ -200,6 +208,14 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                                 <input type="text" name="staff_code" class="fi" value="<?= $v('staff_code') ?>" placeholder="e.g. SMIS001-25">
                             </div>
                             <div>
+                                <label class="fl">Gender <span class="text-red-500">*</span></label>
+                                <select name="gender" class="fi" required>
+                                    <option value="Male" <?= ($s['gender'] ?? 'Male') === 'Male' ? 'selected' : '' ?>>Male</option>
+                                    <option value="Female" <?= ($s['gender'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
+                                    <option value="Other" <?= ($s['gender'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="fl">Date of Birth</label>
                                 <input type="date" name="date_of_birth" class="fi" value="<?= $v('date_of_birth') ?>">
                             </div>
@@ -275,6 +291,23 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                         <input type="text" name="job_title" class="fi" value="<?= $v('job_title') ?>">
                     </div>
                     <div>
+                        <label class="fl">Functional Areas <span class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-4 py-2">
+                            <?php 
+                                $current_types = explode(',', $s['staff_type'] ?? 'teaching');
+                                $current_types = array_map('trim', $current_types);
+                            ?>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" name="staff_type[]" value="teaching" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" <?= in_array('teaching', $current_types) ? 'checked' : '' ?>>
+                                <span class="text-xs font-bold text-gray-700 group-hover:text-indigo-600 transition">Teaching</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" name="staff_type[]" value="non-teaching" class="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" <?= in_array('non-teaching', $current_types) ? 'checked' : '' ?>>
+                                <span class="text-xs font-bold text-gray-700 group-hover:text-orange-600 transition">Non-Teaching</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
                         <label class="fl">Department</label>
                         <select name="department" class="fi">
                             <option value="">-- Select --</option>
@@ -294,6 +327,14 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                     <div>
                         <label class="fl">Date of 1st Appointment</label>
                         <input type="date" name="first_appointment_date" class="fi" value="<?= $v('first_appointment_date') ?>">
+                    </div>
+                    <div>
+                        <label class="fl">Employment Status</label>
+                        <select name="employment_status" class="fi">
+                            <?php foreach(['active' => 'Active', 'inactive' => 'Inactive', 'retired' => 'Retired'] as $val => $lbl): ?>
+                                <option value="<?= $val ?>" <?= ($s['employment_status'] ?? 'active') === $val ? 'selected' : '' ?>><?= $lbl ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
             </div>

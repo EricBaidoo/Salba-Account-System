@@ -68,13 +68,22 @@ $initials = substr($initials, 0, 2);
                     <?php endif; ?>
                     <div class="mb-1">
                         <h1 class="text-2xl font-extrabold text-gray-900"><?= htmlspecialchars($s['full_name']) ?></h1>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <p class="text-base font-semibold text-indigo-600"><?= htmlspecialchars(($s['job_title'] ?? '') ?: 'Staff') ?></p>
-                            <?php if(!empty($s['staff_code'])): ?>
-                                <span class="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase"><?= htmlspecialchars($s['staff_code']) ?></span>
-                            <?php endif; ?>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                            <?php 
+                            $types = explode(',', $s['staff_type'] ?? 'teaching');
+                            foreach($types as $t): 
+                                $t = trim($t);
+                                if ($t === 'teaching'): ?>
+                                <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-200">
+                                    <i class="fas fa-chalkboard-user mr-1"></i> Teaching
+                                </span>
+                            <?php elseif ($t === 'non-teaching'): ?>
+                                <span class="bg-orange-100 text-orange-800 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-orange-200">
+                                    <i class="fas fa-user-tie mr-1"></i> Non-Teaching
+                                </span>
+                            <?php endif; endforeach; ?>
                         </div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider"><?= htmlspecialchars($s['department'] ?? '') ?></p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-2"><?= htmlspecialchars($s['department'] ?? '') ?></p>
                     </div>
                 </div>
                 
@@ -114,6 +123,7 @@ $initials = substr($initials, 0, 2);
                 <div class="px-5 py-2">
                     <?php
                     $personal = [
+                        'Gender'           => ($s['gender'] ?? 'Male'),
                         'Date of Birth'    => ($s['date_of_birth'] ?? '') ? date('F j, Y', strtotime($s['date_of_birth'])) : '—',
                         'Marital Status'   => ($s['marital_status'] ?? '') ?: '—',
                         'Nationality'      => ($s['nationality'] ?? '') ?: '—',
