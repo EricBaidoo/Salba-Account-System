@@ -177,10 +177,10 @@ if ($users_res) {
                 ['href'=>'students/add_student_form.php','icon'=>'fa-user-plus',         'color'=>'green',  'title'=>'New Enrollment',     'desc'=>'Enroll a new student into the system'],
                 ['href'=>'staff/view_staff.php',         'icon'=>'fa-id-card',           'color'=>'purple', 'title'=>'Staff Directory',    'desc'=>'View and manage teaching and support staff'],
                 ['href'=>'staff/add_staff.php',          'icon'=>'fa-user-tie',          'color'=>'indigo', 'title'=>'Add Staff',          'desc'=>'Create a new staff profile'],
-                ['href'=>'system_settings.php',          'icon'=>'fa-sliders-h',         'color'=>'orange', 'title'=>'System Settings',   'desc'=>'Configure semester, academic year, and school info'],
+                ['href'=>'staff_attendance.php',         'icon'=>'fa-map-location-dot',  'color'=>'emerald','title'=>'Staff Attendance',   'desc'=>'Track faculty geofence & punctuality'],
+                ['href'=>'system_settings.php',          'icon'=>'fa-sliders-h',         'color'=>'orange', 'title'=>'System Settings',   'desc'=>'Configure semester and academic year'],
                 ['href'=>'register.php',                 'icon'=>'fa-user-shield',       'color'=>'gray',   'title'=>'Register User',      'desc'=>'Add a new system user account'],
                 ['href'=>'students/bulk_upload_students.php','icon'=>'fa-file-arrow-up', 'color'=>'teal',   'title'=>'Bulk Upload',        'desc'=>'Import students via CSV file'],
-                ['href'=>'../../pages/finance/dashboard.php','icon'=>'fa-wallet',        'color'=>'emerald','title'=>'Go to Finance',      'desc'=>'View finance module'],
                 ['href'=>'../../pages/academics/dashboard.php','icon'=>'fa-graduation-cap','color'=>'violet','title'=>'Go to Academics',  'desc'=>'View academics module'],
             ];
             $colors = [

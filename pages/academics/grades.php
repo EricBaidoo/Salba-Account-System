@@ -67,12 +67,13 @@ $selected_subject_name = $allocated_subjects[$selected_subject_id] ?? '';
 // 3. Fetch Admin Assessment Configurations for Auto-scaling
 $assessment_configs = [];
 // Internal Rules (Scale to their respective weights)
-$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
+$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation, is_exam, is_locked FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
 while($c = $conf_res->fetch_assoc()) {
     $assessment_configs['sba_'.$c['id']] = [
         'name' => $c['assessment_name'],
         'weight' => floatval($c['max_marks_allocation']),
-        'is_exam' => (bool)$c['is_exam']
+        'is_exam' => (bool)$c['is_exam'],
+        'is_locked' => (bool)$c['is_locked']
     ];
 }
 
@@ -249,8 +250,13 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
                             <div class="px-8 py-5 border-b flex justify-between items-center <?= $selected_assessment['is_exam'] ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/50 border-amber-100' ?>">
                                 <div>
-                                    <h3 class="font-extrabold text-xl tracking-tight <?= $selected_assessment['is_exam'] ? 'text-red-900' : 'text-amber-900' ?>">
-                                        <?= htmlspecialchars($selected_subject_name) ?> <i class="fas fa-arrow-right-long text-opacity-30 mx-2"></i> <?= htmlspecialchars($selected_assessment['name']) ?>
+                                    <h3 class="font-bold text-gray-900 text-lg flex items-center gap-3">
+                                        <?= htmlspecialchars($selected_subject_name) ?> <i class="fas fa-arrow-right-long text-gray-300"></i> <?= htmlspecialchars($selected_assessment['name']) ?>
+                                        <?php if($selected_assessment['is_locked'] ?? false): ?>
+                                            <span class="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-100 flex items-center gap-1">
+                                                <i class="fas fa-lock text-[9px]"></i> LOCKED FOR TEACHERS
+                                            </span>
+                                        <?php endif; ?>
                                     </h3>
                                     <p class="text-[10px] font-black uppercase tracking-widest mt-1 <?= $selected_assessment['is_exam'] ? 'text-red-500' : 'text-amber-600' ?>">
                                         Internal Scaling Engine Output Matrix: <span class="bg-white px-2 py-0.5 rounded shadow-sm border border-opacity-50 ml-1"><?= $selected_assessment['weight'] ?> points max</span>

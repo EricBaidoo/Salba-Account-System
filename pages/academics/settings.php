@@ -13,6 +13,13 @@ $success = '';
 $error = '';
 $current_academic_year = getAcademicYear($conn);
 $current_term = getCurrentSemester($conn);
+$db_name = $conn->query("SELECT DATABASE()")->fetch_row()[0];
+
+// Auto-Migration: Ensure is_locked column exists in assessment_configurations
+$col_check = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'assessment_configurations' AND COLUMN_NAME = 'is_locked'")->fetch_row()[0];
+if (!$col_check) {
+    $conn->query("ALTER TABLE assessment_configurations ADD COLUMN is_locked TINYINT(1) DEFAULT 0");
+}
 
 // 1. Process Academic Level Operations (New Dictionary)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -76,6 +83,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $del_id = intval($_POST['delete_id']);
     $conn->query("DELETE FROM assessment_configurations WHERE id = $del_id");
     header("Location: settings.php?success=Rule+Deleted");
+    exit;
+}
+
+// 2b. Process Toggle Lock status
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_lock') {
+    $lock_id = intval($_POST['item_id']);
+    $new_status = intval($_POST['new_status']);
+    $conn->query("UPDATE assessment_configurations SET is_locked = $new_status WHERE id = $lock_id");
+    header("Location: settings.php?success=Access+Policy+Updated");
     exit;
 }
 
@@ -297,6 +313,7 @@ if($dl_res) {
                                 <tr>
                                     <th class="py-2 px-3">Assessment Type</th>
                                     <th class="py-2 px-3">Base Out Of</th>
+                                    <th class="py-2 px-3 text-center">Status</th>
                                     <th class="py-2 px-3 text-center w-10">Act</th>
                                 </tr>
                             </thead>
@@ -310,6 +327,17 @@ if($dl_res) {
                                             <?php endif; ?>
                                         </td>
                                         <td class="py-3 px-3 font-black <?= $c['is_exam'] ? 'text-red-500' : 'text-blue-500' ?>"><?= floatval($c['max_marks_allocation']) ?></td>
+                                        <td class="py-3 px-3 text-center">
+                                            <form method="POST">
+                                                <input type="hidden" name="action" value="toggle_lock">
+                                                <input type="hidden" name="item_id" value="<?= $c['id'] ?>">
+                                                <input type="hidden" name="new_status" value="<?= $c['is_locked'] ? '0' : '1' ?>">
+                                                <button type="submit" class="flex items-center gap-1 mx-auto px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter transition-all <?= $c['is_locked'] ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' ?>">
+                                                    <i class="fas <?= $c['is_locked'] ? 'fa-lock' : 'fa-lock-open' ?>"></i>
+                                                    <?= $c['is_locked'] ? 'Locked' : 'Active' ?>
+                                                </button>
+                                            </form>
+                                        </td>
                                         <td class="py-3 px-3 text-center">
                                             <form method="POST">
                                                 <input type="hidden" name="action" value="delete_assessment">

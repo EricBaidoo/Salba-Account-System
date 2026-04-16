@@ -64,12 +64,13 @@ $selected_subject_name = $allocated_subjects[$selected_subject_id] ?? '';
 // 3. Fetch Admin Assessment Configurations for Auto-scaling
 $assessment_configs = [];
 // Internal Rules (Scale to their respective weights)
-$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
+$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation, is_exam, is_locked FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
 while($c = $conf_res->fetch_assoc()) {
     $assessment_configs['sba_'.$c['id']] = [
         'name' => $c['assessment_name'],
         'weight' => floatval($c['max_marks_allocation']),
-        'is_exam' => (bool)$c['is_exam']
+        'is_exam' => (bool)$c['is_exam'],
+        'is_locked' => (bool)$c['is_locked']
     ];
 }
 $selected_assessment_id = $_GET['assessment'] ?? (array_keys($assessment_configs)[0] ?? '');
@@ -81,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
         $count = 0;
         $ass_name = $selected_assessment['name'];
         $ass_weight = $selected_assessment['weight'];
+        $is_locked = $selected_assessment['is_locked'] ?? false;
 
         foreach ($_POST['marks'] as $student_id => $raw_marks) {
             $sid = intval($student_id);
@@ -89,6 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
             $comment = $conn->real_escape_string($_POST['comments'][$sid] ?? '');
 
             if ($raw_marks !== '') {
+                // Security Check: Prevent editing if assessment is locked
+                if ($is_locked && $_SESSION['role'] !== 'admin') {
+                    $error = "Access Denied: This assessment is officially LOCKED. Edits are no longer permitted.";
+                    break; 
+                }
+
                 // Validation: Prevent entering figure higher than assessment max
                 if ($raw_marks > $ass_weight) {
                     $error = "Institutional Security: Student #$sid cannot have marks ($raw_marks) exceeding assessment maximum ($ass_weight).";
@@ -258,8 +266,25 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                 </div>
 
                 <!-- Grading Grid -->
-                <?php if($selected_class && $selected_subject_name && $selected_assessment): ?>
+                <?php if($selected_class && $selected_subject_name && $selected_assessment): 
+                    $is_locked = $selected_assessment['is_locked'] ?? false;
+                ?>
                     <form method="POST">
+                        <?php if($is_locked): ?>
+                            <div class="bg-red-900 text-white px-6 py-4 rounded-xl shadow-lg mb-6 flex items-center justify-between border border-red-700 animate-pulse">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-lock text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-sm uppercase tracking-widest">Grades Officially Locked</h4>
+                                        <p class="text-[10px] text-red-200 font-bold">The Administration has finalized this assessment. Editing is disabled.</p>
+                                    </div>
+                                </div>
+                                <div class="text-[10px] font-black bg-red-800 px-3 py-1 rounded-full border border-red-600">READ ONLY</div>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                             <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center <?= ($selected_assessment['is_exam'] ?? false) ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/50 border-amber-100' ?>">
                                 <div>
@@ -292,7 +317,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                 <?php endif; ?>
                                             </td>
                                             <td class="px-6 py-4 text-center">
-                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" class="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-yellow-500 focus:border-yellow-500 text-center font-bold">
+                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" <?= $is_locked ? 'disabled' : '' ?> class="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-yellow-500 focus:border-yellow-500 text-center font-bold <?= $is_locked ? 'bg-gray-100 text-gray-400 border-gray-200' : '' ?>">
                                             </td>
                                             <td class="px-2 py-4 text-center font-bold text-gray-300">/</td>
                                             <td class="px-6 py-4 text-center">
@@ -301,7 +326,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <input type="text" name="comments[<?= $s['id'] ?>]" value="<?= htmlspecialchars($s['comments'] ?? '') ?>" placeholder="Feedback..." class="w-full px-3 py-2 bg-transparent border-b border-gray-200 focus:border-yellow-500 focus:outline-none text-sm text-gray-600">
+                                                <input type="text" name="comments[<?= $s['id'] ?>]" value="<?= htmlspecialchars($s['comments'] ?? '') ?>" placeholder="Feedback..." <?= $is_locked ? 'disabled' : '' ?> class="w-full px-3 py-2 bg-transparent border-b border-gray-200 focus:border-yellow-500 focus:outline-none text-sm text-gray-600 <?= $is_locked ? 'opacity-50' : '' ?>">
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -313,8 +338,8 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                             <div class="text-gray-500 text-sm font-medium">
                                 <i class="fas fa-robot mr-1 text-gray-400"></i> Validation: <code>Entered Marks ≤ <?= $selected_assessment['weight'] ?> (Official Max)</code>
                             </div>
-                            <button type="submit" name="save_grades" class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-lg shadow border border-transparent hover:bg-yellow-600 transition flex items-center gap-2 text-lg">
-                                <i class="fas fa-bolt-lightning"></i> Process & Save
+                            <button type="submit" name="save_grades" <?= $is_locked ? 'disabled' : '' ?> class="<?= $is_locked ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600' ?> text-white font-bold py-3 px-8 rounded-lg shadow border border-transparent transition flex items-center gap-2 text-lg">
+                                <i class="fas <?= $is_locked ? 'fa-lock' : 'fa-bolt-lightning' ?>"></i> <?= $is_locked ? 'Locked by Admin' : 'Process & Save' ?>
                             </button>
                         </div>
                     </form>

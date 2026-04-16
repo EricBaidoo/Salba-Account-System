@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Update academic year (always stored in canonical full format YYYY/YYYY)
+    // Update academic year
     if (isset($_POST['academic_year'])) {
         $year_value = trim($_POST['academic_year']);
         if (preg_match('/^(\d{4})\/(\d{2,4})$/', $year_value, $m)) {
@@ -108,24 +108,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Update academic year format preference (full or short)
-    if (isset($_POST['academic_year_format'])) {
-        $fmt = in_array($_POST['academic_year_format'], ['full','short'], true) ? $_POST['academic_year_format'] : 'full';
-        setSystemSetting($conn, 'academic_year_format', $fmt, $updated_by);
+    // Preferences
+    $prefs = [
+        'academic_year_format', 'academic_year_start_month', 'academic_year_start_day',
+        'attendance_early_limit', 'attendance_ontime_limit'
+    ];
+    foreach ($prefs as $p) {
+        if (isset($_POST[$p])) {
+            setSystemSetting($conn, $p, $_POST[$p], $updated_by);
+        }
     }
-
-    // Update academic year start month/day used for reporting windows
-    if (isset($_POST['academic_year_start_month'])) {
-        $m = max(1, min(12, intval($_POST['academic_year_start_month'])));
-        setSystemSetting($conn, 'academic_year_start_month', sprintf('%02d', $m), $updated_by);
-    }
-    if (isset($_POST['academic_year_start_day'])) {
-        $d = max(1, min(31, intval($_POST['academic_year_start_day'])));
-        setSystemSetting($conn, 'academic_year_start_day', sprintf('%02d', $d), $updated_by);
-    }
-
-
     
+    // School Identity
     $fields = [
         'school_name', 'school_address', 'school_phone', 'school_email',
         'semester_start_date', 'semester_end_date', 'next_semester_begins'
@@ -147,28 +141,27 @@ $current_semester = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
 $available_semesters = getAvailableSemesters($conn);
 $year_format = getSystemSetting($conn, 'academic_year_format', 'full');
-$start_month = getSystemSetting($conn, 'academic_year_start_month', '09');
-$start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
 
-// Fetch all semesters for dictionary management
+// Attendance Config Defaults
+$early_limit = getSystemSetting($conn, 'attendance_early_limit', '06:30');
+$ontime_limit = getSystemSetting($conn, 'attendance_ontime_limit', '07:00');
+
+// Semester Dictionary
 $semester_dictionary = [];
 $dict_res = $conn->query("SELECT * FROM academic_semester_dictionary ORDER BY display_order ASC, id ASC");
 if($dict_res) {
     while($r = $dict_res->fetch_assoc()) $semester_dictionary[] = $r;
 }
 
-// Build year options centered around current academic year start
+// Year options
 $ay_parts = explode('/', $academic_year);
 $anchor_start_year = intval($ay_parts[0] ?? date('Y'));
 if ($anchor_start_year <= 0) { $anchor_start_year = (int)date('Y'); }
 $year_options = [];
 for ($i = -2; $i <= 5; $i++) {
-    $y1 = $anchor_start_year + $i;
-    $y2 = $y1 + 1;
-    $val = $y1 . '/' . $y2; // canonical stored value
-    $label = ($year_format === 'short')
-        ? ($y1 . '/' . substr((string)$y2, -2))
-        : $val;
+    $y1 = $anchor_start_year + $i; $y2 = $y1 + 1;
+    $val = $y1 . '/' . $y2;
+    $label = ($year_format === 'short') ? ($y1 . '/' . substr((string)$y2, -2)) : $val;
     $year_options[] = ['value' => $val, 'label' => $label];
 }
 ?>
@@ -187,7 +180,6 @@ for ($i = -2; $i <= 5; $i++) {
     <?php include '../../includes/sidebar_admin.php'; ?>
 
     <main class="ml-72 min-h-screen">
-        <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-40">
             <div class="flex items-center gap-3 mb-4">
                 <a href="dashboard.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
@@ -198,14 +190,11 @@ for ($i = -2; $i <= 5; $i++) {
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                     <i class="fas fa-sliders-h text-orange-500"></i> System Settings
                 </h1>
-                <p class="text-gray-500 mt-2 text-sm">
-                    Configure global parameters, active semesters, and school identity.
-                </p>
+                <p class="text-gray-500 mt-2 text-sm">Configure global parameters, active semesters, and school identity.</p>
             </div>
         </div>
 
         <div class="p-8 max-w-6xl">
-
             <?php if ($success_message): ?>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-3 mb-6 shadow-sm">
                     <i class="fas fa-check-circle text-emerald-500"></i>
@@ -213,18 +202,41 @@ for ($i = -2; $i <= 5; $i++) {
                 </div>
             <?php endif; ?>
 
-            <?php if ($error_message): ?>
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 mb-6 shadow-sm">
-                    <i class="fas fa-exclamation-triangle text-red-500"></i>
-                    <span><?php echo htmlspecialchars($error_message); ?></span>
-                </div>
-            <?php endif; ?>
-
             <form method="POST" action="">
-                
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-                    <!-- Academic Configuration -->
                     <div class="xl:col-span-2 space-y-6">
+                        <!-- Attendance Configuration Card -->
+                        <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+                            <div class="px-6 py-4 border-b border-indigo-50 bg-indigo-50/50">
+                                <h5 class="font-bold text-indigo-900 flex items-center gap-2">
+                                    <i class="fas fa-clock-rotate-left"></i> Attendance & Punctuality
+                                </h5>
+                            </div>
+                            <div class="p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <label for="attendance_early_limit" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Early Arrival Threshold</label>
+                                        <div class="relative">
+                                            <input type="time" id="attendance_early_limit" name="attendance_early_limit" 
+                                                   value="<?= htmlspecialchars($early_limit) ?>"
+                                                   class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700">
+                                            <div class="mt-2 text-[10px] text-slate-400 font-medium">Arrivals before this time are marked "Early".</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="attendance_ontime_limit" class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">On-Time Arrival Limit</label>
+                                        <div class="relative">
+                                            <input type="time" id="attendance_ontime_limit" name="attendance_ontime_limit" 
+                                                   value="<?= htmlspecialchars($ontime_limit) ?>"
+                                                   class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700">
+                                            <div class="mt-2 text-[10px] text-slate-400 font-medium italic">Arrivals after this time are marked "Late".</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Configuration -->
                         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                                 <h5 class="font-bold text-gray-800 flex items-center gap-2">
@@ -232,21 +244,13 @@ for ($i = -2; $i <= 5; $i++) {
                                 </h5>
                             </div>
                             <div class="p-6">
-                                <div class="bg-blue-50 border border-blue-100 text-blue-800 text-sm p-4 rounded-lg flex items-start gap-3 mb-6">
-                                    <i class="fas fa-info-circle mt-0.5 text-blue-500"></i>
-                                    <div>
-                                        <strong>Heads up:</strong> Changing the <strong>Current Active Semester</strong> updates it globally for all users. Invoices, grades, and attendance forms will immediately switch context.
-                                    </div>
-                                </div>
-
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div>
                                         <label for="current_semester" class="block text-sm font-semibold text-gray-700 mb-1">Current Active Semester</label>
                                         <select id="current_semester" name="current_semester" required
-                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors cursor-pointer appearance-none text-sm">
+                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
                                             <?php foreach ($available_semesters as $semester): ?>
-                                                <option value="<?php echo htmlspecialchars($semester); ?>" 
-                                                        <?php echo $semester === $current_semester ? 'selected' : ''; ?>>
+                                                <option value="<?php echo htmlspecialchars($semester); ?>" <?php echo $semester === $current_semester ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($semester); ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -255,7 +259,7 @@ for ($i = -2; $i <= 5; $i++) {
                                     <div>
                                         <label for="academic_year" class="block text-sm font-semibold text-gray-700 mb-1">Academic Year</label>
                                         <select id="academic_year" name="academic_year" required
-                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors cursor-pointer appearance-none text-sm">
+                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
                                             <?php foreach ($year_options as $opt): ?>
                                                 <option value="<?php echo htmlspecialchars($opt['value']); ?>" <?php echo ($opt['value'] === $academic_year) ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($opt['label']); ?>
@@ -264,156 +268,15 @@ for ($i = -2; $i <= 5; $i++) {
                                         </select>
                                     </div>
                                     <div class="col-span-full md:col-span-1">
-                                        <label for="semester_start_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                                            <i class="fas fa-play-circle text-xs text-blue-400"></i> Semester Start Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Week 1)</span>
-                                        </label>
-                                        <input type="date" id="semester_start_date" name="semester_start_date" 
-                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_start_date', '')); ?>"
-                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
+                                        <label for="semester_start_date" class="block text-sm font-semibold text-gray-700 mb-1">Semester Start Date</label>
+                                        <input type="date" id="semester_start_date" name="semester_start_date" value="<?= htmlspecialchars(getSystemSetting($conn, 'semester_start_date', '')) ?>"
+                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
                                     </div>
                                     <div class="col-span-full md:col-span-1">
-                                        <label for="semester_end_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                                            <i class="fas fa-stop-circle text-xs text-red-300"></i> Semester Vacation Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Current)</span>
-                                        </label>
-                                        <input type="date" id="semester_end_date" name="semester_end_date" 
-                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_end_date', '')); ?>"
-                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
+                                        <label for="semester_end_date" class="block text-sm font-semibold text-gray-700 mb-1">Semester End Date</label>
+                                        <input type="date" id="semester_end_date" name="semester_end_date" value="<?= htmlspecialchars(getSystemSetting($conn, 'semester_end_date', '')) ?>"
+                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm">
                                     </div>
-                                    <div class="col-span-full">
-                                        <label for="next_semester_begins" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2 text-indigo-600">
-                                            <i class="fas fa-calendar-plus text-xs"></i> Next Semester Begins <span class="text-[10px] text-gray-400 font-bold uppercase">(Transcript Re-opening Date)</span>
-                                        </label>
-                                        <input type="date" id="next_semester_begins" name="next_semester_begins" 
-                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'next_semester_begins', '')); ?>"
-                                               class="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors text-sm font-bold">
-                                    </div>
-                                </div>
-
-                                <hr class="border-gray-100 my-6">
-
-                                <h6 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Display & Preferences</h6>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">Year Format Preference</label>
-                                        <select name="academic_year_format" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                            <option value="full" <?php echo $year_format==='full'?'selected':''; ?>>Full (2025/2026)</option>
-                                            <option value="short" <?php echo $year_format==='short'?'selected':''; ?>>Short (2025/26)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">Start Month</label>
-                                        <input type="number" min="1" max="12" name="academic_year_start_month" 
-                                               value="<?php echo htmlspecialchars($start_month); ?>"
-                                               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">Start Day</label>
-                                        <input type="number" min="1" max="31" name="academic_year_start_day" 
-                                               value="<?php echo htmlspecialchars($start_day); ?>"
-                                               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- System Parameters -->
-                        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" id="user-management">
-                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-                                <h5 class="font-bold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-sliders text-indigo-500"></i> Semester & User Management
-                                </h5>
-                            </div>
-                            <div class="p-6">
-                                <!-- Semester Dictionary -->
-                                <div class="mb-8">
-                                    <h6 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Academic Semester Dictionary</h6>
-                                    <div class="space-y-3 mb-6">
-                                        <?php if(empty($semester_dictionary)): ?>
-                                            <p class="text-xs text-gray-500 italic">No semesters defined. System will use defaults.</p>
-                                        <?php else: ?>
-                                            <?php foreach($semester_dictionary as $sem): ?>
-                                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group">
-                                                    <div class="flex items-center gap-3 flex-1">
-                                                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
-                                                            <?php echo $sem['display_order'] ?: $sem['id']; ?>
-                                                        </div>
-                                                        
-                                                        <!-- Display Mode -->
-                                                        <div id="disp_sem_<?php echo $sem['id']; ?>" class="flex-1 flex items-center justify-between">
-                                                            <span class="text-sm font-bold text-gray-700"><?php echo htmlspecialchars($sem['semester_name']); ?></span>
-                                                            <div class="flex items-center gap-2">
-                                                                <button type="button" onclick="toggleEdit(<?php echo $sem['id']; ?>)" class="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                                                    <i class="fas fa-edit"></i>
-                                                                </button>
-                                                                <form method="POST" onsubmit="return confirm('Remove this semester from system dictionary?')">
-                                                                    <input type="hidden" name="semester_action" value="delete_semester">
-                                                                    <input type="hidden" name="delete_id" value="<?php echo $sem['id']; ?>">
-                                                                    <button type="submit" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                                                        <i class="fas fa-trash-alt"></i>
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <!-- Edit Mode -->
-                                                        <form id="edit_sem_<?php echo $sem['id']; ?>" method="POST" class="hidden flex-1 flex gap-2 items-center">
-                                                            <input type="hidden" name="semester_action" value="rename_semester">
-                                                            <input type="hidden" name="semester_id" value="<?php echo $sem['id']; ?>">
-                                                            <input type="hidden" name="old_name" value="<?php echo htmlspecialchars($sem['semester_name']); ?>">
-                                                            <input type="text" name="new_name" value="<?php echo htmlspecialchars($sem['semester_name']); ?>" 
-                                                                   class="flex-1 px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm">
-                                                            <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-indigo-700 shadow-sm transition-colors">Save</button>
-                                                            <button type="button" onclick="toggleEdit(<?php echo $sem['id']; ?>)" class="text-gray-400 text-xs font-bold hover:text-gray-600 px-2 transition-colors">Cancel</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <!-- Add New Semester -->
-                                    <div class="bg-indigo-50/30 p-4 rounded-xl border border-dashed border-indigo-100">
-                                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Build New Semester Node</div>
-                                        <div class="flex gap-2">
-                                            <input type="text" name="new_semester_name" placeholder="e.g. 'Fourth Semester'" 
-                                                   class="flex-1 bg-white border border-indigo-100 rounded-lg px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
-                                            <button type="submit" name="semester_action" value="add_semester" 
-                                                    class="bg-indigo-600 text-white w-10 h-10 rounded-lg shadow-sm hover:bg-indigo-700 transition flex items-center justify-center">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <script>
-                                    function toggleEdit(id) {
-                                        const disp = document.getElementById('disp_sem_' + id);
-                                        const edit = document.getElementById('edit_sem_' + id);
-                                        if (edit.classList.contains('hidden')) {
-                                            edit.classList.remove('hidden');
-                                            disp.classList.add('hidden');
-                                        } else {
-                                            edit.classList.add('hidden');
-                                            disp.classList.remove('hidden');
-                                        }
-                                    }
-                                </script>
-
-                                <hr class="border-gray-100 my-5">
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">User & Role Management</label>
-                                    <p class="text-xs text-gray-500 mb-3">To update system users, administrators, and staff roles, navigate to the User Management dashboard.</p>
-                                    <a href="staff/view_staff.php" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-sm font-medium rounded-lg transition-colors border border-indigo-100">
-                                        <i class="fas fa-users-gear"></i> Manage System Users
-                                    </a>
-                                </div>
-                                <hr class="border-gray-100 my-5">
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">System Audit Logs</label>
-                                    <p class="text-xs text-gray-500 mb-3">View the read-only dictionary of the system's configuration changes and history logs.</p>
-                                    <a href="audit_logs.php" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 text-sm font-medium rounded-lg transition-colors border border-gray-200 shadow-sm">
-                                        <i class="fas fa-clipboard-list text-gray-500"></i> View Audit Logs
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -429,43 +292,24 @@ for ($i = -2; $i <= 5; $i++) {
                             </div>
                             <div class="p-6 space-y-4">
                                 <div>
-                                    <label for="school_name" class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Company / School Name</label>
-                                    <input type="text" id="school_name" name="school_name" 
-                                           value="<?php echo htmlspecialchars(getSystemSetting($conn, 'school_name', '')); ?>"
-                                           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <label for="school_name" class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">School Name</label>
+                                    <input type="text" id="school_name" name="school_name" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_name', '')) ?>"
+                                           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
-                                <div>
-                                    <label for="school_email" class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Contact Email</label>
-                                    <input type="email" id="school_email" name="school_email" 
-                                           value="<?php echo htmlspecialchars(getSystemSetting($conn, 'school_email', '')); ?>"
-                                           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                </div>
-                                <div>
-                                    <label for="school_phone" class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Primary Phone</label>
-                                    <input type="text" id="school_phone" name="school_phone" 
-                                           value="<?php echo htmlspecialchars(getSystemSetting($conn, 'school_phone', '')); ?>"
-                                           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                </div>
-                                <div>
-                                    <label for="school_address" class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1">Physical Address</label>
-                                    <textarea id="school_address" name="school_address" rows="3"
-                                              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"><?php echo htmlspecialchars(getSystemSetting($conn, 'school_address', '')); ?></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex gap-3">
-                                <button type="submit" class="flex-1 bg-emerald-600 text-white font-medium text-sm px-4 py-2.5 rounded-lg border border-transparent shadow-sm hover:bg-emerald-700 transition-colors flex justify-center items-center gap-2">
-                                    <i class="fas fa-save"></i> Save All
+                                <hr class="border-gray-100">
+                                <button type="submit" class="w-full bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest px-4 py-4 rounded-xl shadow-lg hover:bg-black transition-all">
+                                    <i class="fas fa-save mr-2"></i> Commit All Changes
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </form>
-
-
-
         </div>
     </main>
 </body>
 </html>
+鼓鼓鼓鼓
+鼓鼓鼓
+鼓鼓
+鼓
