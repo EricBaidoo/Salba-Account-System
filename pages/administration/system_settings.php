@@ -126,9 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     
-    // Update school information
-    $school_fields = ['school_name', 'school_address', 'school_phone', 'school_email'];
-    foreach ($school_fields as $field) {
+    // Update academic and school information
+    $fields = [
+        'school_name', 'school_address', 'school_phone', 'school_email',
+        'semester_start_date', 'semester_end_date'
+    ];
+    foreach ($fields as $field) {
         if (isset($_POST[$field])) {
             setSystemSetting($conn, $field, $_POST[$field], $updated_by);
         }
@@ -260,6 +263,22 @@ for ($i = -2; $i <= 5; $i++) {
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label for="semester_start_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                                            <i class="fas fa-play-circle text-xs text-blue-400"></i> Semester Start Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Week 1)</span>
+                                        </label>
+                                        <input type="date" id="semester_start_date" name="semester_start_date" 
+                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_start_date', '')); ?>"
+                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="semester_end_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                                            <i class="fas fa-stop-circle text-xs text-red-300"></i> Semester End Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Final Week)</span>
+                                        </label>
+                                        <input type="date" id="semester_end_date" name="semester_end_date" 
+                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_end_date', '')); ?>"
+                                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
                                     </div>
                                 </div>
 

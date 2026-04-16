@@ -143,3 +143,59 @@ function formatAcademicYearDisplay($conn, $academic_year) {
     return $startY . '/' . $endY;
 }
 }
+/**
+ * Calculate total instructional days in a semester
+ * Logic: 
+ * 1. If explicit start/end dates exist, count weekdays minus holidays in that range.
+ * 2. Fallback: (Weeks * 5) - (Total holidays recorded)
+ */
+if (!function_exists('getInstructionalDaysCount')) {
+function getInstructionalDaysCount($conn, $semester = null, $year = null) {
+    if (!$semester) $semester = getCurrentSemester($conn);
+    if (!$year) $year = getAcademicYear($conn);
+    
+    $startDateStr = getSystemSetting($conn, 'semester_start_date');
+    $endDateStr = getSystemSetting($conn, 'semester_end_date');
+    
+    // Fetch Holidays/Breaks
+    $holidays = [];
+    $h_res = $conn->query("SELECT event_date FROM academic_calendar WHERE event_type IN ('holiday', 'break', 'mid-term')");
+    if ($h_res) {
+        while($row = $h_res->fetch_assoc()) $holidays[] = $row['event_date'];
+    }
+
+    if ($startDateStr && $endDateStr) {
+        $count = 0;
+        $current = strtotime($startDateStr);
+        $end = strtotime($endDateStr);
+        
+        while ($current <= $end) {
+            $dayOfWeek = date('N', $current);
+            $dateStr = date('Y-m-d', $current);
+            
+            if ($dayOfWeek < 6 && !in_array($dateStr, $holidays)) {
+                $count++;
+            }
+            $current = strtotime("+1 day", $current);
+        }
+        return $count;
+    }
+    
+    // Fallback logic
+    $weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
+    $total_possible = $weeks * 5;
+    
+    $holidays_count = 0;
+    $res = $conn->query("SELECT event_date FROM academic_calendar WHERE event_type IN ('holiday', 'break', 'mid-term')");
+    if ($res) {
+        while($row = $res->fetch_assoc()) {
+            $dayOfWeek = date('N', strtotime($row['event_date']));
+            if ($dayOfWeek < 6) { 
+                $holidays_count++;
+            }
+        }
+    }
+    
+    return max(0, $total_possible - $holidays_count);
+}
+}
