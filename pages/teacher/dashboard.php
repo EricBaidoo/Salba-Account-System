@@ -116,7 +116,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </a>
 
                 <!-- Card: Attendance -->
-                <a href="attendance.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
+                <a href="../academics/attendance.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-clipboard-user text-8xl text-blue-500"></i>
                     </div>

@@ -4,7 +4,8 @@ include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
-if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
+$allowed_roles = ['admin', 'facilitator', 'teacher', 'supervisor'];
+if (!is_logged_in() || !in_array($_SESSION['role'], $allowed_roles)) {
     header('Location: ../../includes/login.php');
     exit;
 }
@@ -21,14 +22,16 @@ $semester_end = getSystemSetting($conn, 'semester_end_date');
 
 // Fetch Holidays/Closed Dates
 $holidays = [];
+
+// [REMOVED SELF-REPAIR - ALIGNMENT COMPLETE]
 $h_res = $conn->query("SELECT event_date, description, event_type FROM academic_calendar");
 if ($h_res) {
     while($hr = $h_res->fetch_assoc()) $holidays[$hr['event_date']] = $hr;
 }
 
-// Find what classes this teacher is allocated to
+// Find what classes this user is authorized to see
 $allocated_classes = [];
-if ($_SESSION['role'] === 'admin') {
+if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'supervisor') {
     $res = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' ORDER BY class");
     while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class'];
 } else {
@@ -44,7 +47,7 @@ if ($_SESSION['role'] === 'admin') {
 
 $selected_class = $_GET['class'] ?? ($allocated_classes[0] ?? '');
 $selected_date = $_GET['date'] ?? date('Y-m-d');
-$selected_week = intval($_GET['week'] ?? getSystemSetting($conn, "active_week_{$selected_class}", 1));
+$selected_week = getWeekNumberForDate($conn, $selected_date);
 
 // Handle Week Number Update (Initialization)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'set_active_week') {
@@ -58,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
     $class_to_mark = $_POST['class_name'];
     $date_to_mark = $_POST['attendance_date'];
-    $week_to_mark = intval($_POST['week_val']);
+    $week_to_mark = getWeekNumberForDate($conn, $date_to_mark);
     
     if ($_SESSION['role'] === 'admin' || in_array($class_to_mark, $allocated_classes)) {
         $count = 0;
@@ -75,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
             }
             $count++;
         }
-        setSystemSetting($conn, "active_week_{$class_to_mark}", $week_to_mark, $_SESSION['username']);
         $success = "Successfully saved attendance for $count students.";
     }
 }
@@ -103,39 +105,64 @@ if ($view_mode === 'history' && $selected_class) {
     // Determine target week slice
     $target_week = intval($_GET['h_week'] ?? $selected_week);
     
-    // Fetch all attendance for this specific week across the whole semester
+    // Fetch all attendance for this specific class across the whole semester
     $t_res = $conn->query("
-        SELECT a.student_id, a.attendance_date, a.status, a.week_number
+        SELECT a.student_id, a.attendance_date, a.status
         FROM attendance a
         JOIN students s ON a.student_id = s.id
-        WHERE s.class = '$selected_class' AND a.week_number = $target_week AND a.semester = '$current_semester'
+        WHERE s.class = '$selected_class' AND a.semester = '$current_semester' AND a.academic_year = '$current_year'
         ORDER BY a.attendance_date ASC
     ");
     
     while($row = $t_res->fetch_assoc()) {
         $tracker_data[$row['student_id']][$row['attendance_date']] = $row['status'];
-        if (!in_array($row['attendance_date'], $tracker_dates)) $tracker_dates[] = $row['attendance_date'];
     }
-    sort($tracker_dates);
     
-    // Fallback: If no records for this week yet, show placeholders for Mon-Fri
-    if (empty($tracker_dates)) {
-        // Find the Monday of 'some' week. Since we don't have a calendar start date, we use current date as anchor
-        // This part is tricky without a true academic calendar start date. 
-        // We'll show the last 5 school days instead.
+    // Precision Display Window (Exactly 5 days for the selected week)
+    $tracker_dates = [];
+    if ($semester_start) {
+        $start_dt = new DateTime($semester_start);
+        $start_dt->modify('monday this week');
+        $start_dt->modify('+' . ($target_week - 1) . ' weeks');
+        
+        for($i=0; $i<5; $i++) {
+            $tracker_dates[] = $start_dt->format('Y-m-d');
+            $start_dt->modify('+1 day');
+        }
+    } else {
+        // Fallback: Last 5 days
         for($i=0; $i<5; $i++) {
             $d = date('Y-m-d', strtotime("-$i days"));
-            if (date('N', strtotime($d)) < 6) $tracker_dates[] = $d;
+            if (date('N', strtotime($d)) < 6) $tracker_dates[] = array_unshift($tracker_dates, $d);
         }
+        $tracker_dates = array_slice($tracker_dates, 0, 5);
         sort($tracker_dates);
     }
 }
 
-// Calculate Stats for header
+// Calculate Stats for header & Precision Totaling
+$total_semester_days = getInstructionalDaysCount($conn, $current_semester, $current_year); // Full semester target
+$instructional_days_to_date = [];
+if ($semester_start) {
+    $curr = strtotime($semester_start);
+    $limit = time(); // up to now
+    while ($curr <= $limit) {
+        $d = date('Y-m-d', $curr);
+        if (date('N', $curr) < 6 && !isset($holidays[$d])) {
+            $instructional_days_to_date[] = $d;
+        }
+        $curr = strtotime("+1 day", $curr);
+    }
+}
+
 $stats = ['present' => 0, 'absent' => 0, 'total' => count($students)];
 foreach ($students as $s) {
-    if ($s['status'] === 'present') $stats['present']++;
-    elseif ($s['status'] === 'absent') $stats['absent']++;
+    $st = strtolower($s['status'] ?? '');
+    if ($st === 'absent') {
+        $stats['absent']++;
+    } elseif ($st) {
+        $stats['present']++;
+    }
 }
 $participation_rate = $stats['total'] > 0 ? round(($stats['present'] / $stats['total']) * 100) : 0;
 $is_holiday = isset($holidays[$selected_date]);
@@ -170,9 +197,14 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
 </head>
 <body class="bg-[#fcfdfe] text-slate-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php 
+    $show_sidebar = ($_SESSION['role'] === 'admin');
+    if ($show_sidebar) {
+        include '../../includes/sidebar.php'; 
+    }
+    ?>
 
-    <main class="ml-72 min-h-screen pb-20">
+    <main class="<?= $show_sidebar ? 'ml-72' : 'w-full' ?> min-h-screen pb-20">
         <!-- Professional Header -->
         <header class="glass-nav sticky top-0 z-50 px-10 py-5">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -181,6 +213,14 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <i class="fas fa-fingerprint"></i> Institutional Biometrics
                     </div>
                     <div class="flex items-center gap-4">
+                        <?php 
+                        $dash_link = "../../index.php";
+                        if ($_SESSION['role'] === 'teacher') $dash_link = "../teacher/dashboard.php";
+                        if ($_SESSION['role'] === 'supervisor') $dash_link = "../supervisor/dashboard.php";
+                        ?>
+                        <a href="<?= $dash_link ?>" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Back to Dashboard">
+                            <i class="fas fa-house-chimney text-xs"></i>
+                        </a>
                         <h1 class="text-2xl font-black text-slate-900 tracking-tight">Attendance <span class="text-indigo-600">Hub</span></h1>
                         <div class="h-6 w-px bg-slate-200"></div>
                         <nav class="flex bg-slate-100 p-1 rounded-xl">
@@ -382,72 +422,83 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                 <?php endif; ?>
 
             <?php else: ?>
-                <!-- Semester Ledger Overhaul -->
-                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden tracker-grid overflow-x-auto">
+                <!-- Semester Ledger: Recovery Overhaul -->
+                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden tracker-grid overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr class="bg-slate-900 border-b border-slate-800">
-                                <th class="px-8 py-8 sticky-col bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800">Operational Log</th>
+                                <th class="px-8 py-10 sticky-col bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800">Operational Log</th>
                                 <?php foreach($tracker_dates as $date): 
                                     $is_h = isset($holidays[$date]);
                                 ?>
-                                    <th class="px-4 py-8 text-center border-r border-slate-800 min-w-[90px] <?= $is_h ? 'bg-orange-900/20':'' ?>">
+                                    <th class="px-2 py-8 text-center border-r border-slate-800 min-w-[70px] <?= $is_h ? 'bg-orange-950/20':'' ?>">
                                         <div class="text-[10px] font-black uppercase tracking-wider <?= $is_h ? 'text-orange-400':'text-slate-500' ?>"><?= date('D', strtotime($date)) ?></div>
-                                        <div class="text-lg font-black <?= $is_h ? 'text-orange-200':'text-white' ?>"><?= date('d', strtotime($date)) ?></div>
-                                        <div class="text-[9px] font-bold text-slate-600 mt-1 uppercase"><?= date('M', strtotime($date)) ?></div>
+                                        <div class="text-xl font-black leading-none my-1 <?= $is_h ? 'text-orange-200':'text-white' ?>"><?= date('d', strtotime($date)) ?></div>
+                                        <div class="text-[9px] font-bold text-slate-600 uppercase"><?= date('M', strtotime($date)) ?></div>
                                     </th>
                                 <?php endforeach; ?>
                                 <th class="px-6 py-8 text-center bg-indigo-950 text-indigo-400 border-l border-indigo-900 border-r border-indigo-900">
                                     <div class="text-[10px] font-black uppercase mb-1">Weekly Sum</div>
-                                    <i class="fas fa-plus-circle"></i>
+                                    <i class="fas fa-plus-circle text-xs"></i>
                                 </th>
                                 <th class="px-8 py-8 text-center bg-slate-950 text-white">
                                     <div class="text-[10px] font-black uppercase mb-1 text-slate-500">Institution Total</div>
-                                    <div class="text-xs font-black uppercase opacity-60">Semester</div>
+                                    <div class="text-[9px] font-black uppercase opacity-40">Semester</div>
                                 </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <?php 
-                            // Fetch raw totals for each student in current semester
-                            $totals = [];
-                            $t_res = $conn->query("SELECT student_id, COUNT(*) as p FROM attendance WHERE semester = '$current_semester' AND academic_year = '$current_year' AND status='present' GROUP BY student_id");
-                            while($tr = $t_res->fetch_assoc()) $totals[$tr['student_id']] = $tr['p'];
-
                             foreach($students as $s): 
                                 $id = $s['id'];
                                 $w_sum = 0;
+                                $sem_total = 0;
+                                
+                                // Precise Semester Numerator Calculation
+                                foreach($instructional_days_to_date as $id_date) {
+                                    $ist = strtolower($tracker_data[$id][$id_date] ?? '');
+                                    if ($ist && $ist !== 'absent') $sem_total++;
+                                }
                             ?>
                                 <tr class="attendance-row group transition-all" data-name="<?= strtolower(htmlspecialchars($s['first_name'].' '.$s['last_name'])) ?>">
-                                    <td class="px-8 py-4 sticky-col group-hover:bg-slate-50">
+                                    <td class="px-8 py-5 sticky-col group-hover:bg-slate-50 border-r border-slate-100 shadow-sm">
                                         <div class="font-bold text-slate-900 leading-tight"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?></div>
-                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">ID: #<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?></div>
+                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                            <span class="w-1 h-1 rounded-full bg-slate-300"></span> SID: #<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?>
+                                        </div>
                                     </td>
                                     <?php foreach($tracker_dates as $date): 
-                                        $st = $tracker_data[$id][$date] ?? null;
-                                        if($st === 'present') $w_sum++;
+                                        $st = strtolower($tracker_data[$id][$date] ?? '');
+                                        if($st && $st !== 'absent') $w_sum++;
                                         $is_h = isset($holidays[$date]);
                                     ?>
-                                        <td class="px-4 py-4 text-center border-r border-slate-50/50 <?= $is_h?'bg-orange-50/20':'' ?>">
-                                            <?php if($is_h): ?>
-                                                <div class="w-6 h-1 bg-orange-200 rounded-full mx-auto opacity-30"></div>
-                                            <?php elseif($st === 'present'): ?>
-                                                <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full mx-auto shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
-                                            <?php elseif($st === 'absent'): ?>
-                                                <div class="w-2 h-2 border-2 border-red-400 rounded-full mx-auto opacity-80"></div>
-                                            <?php else: ?>
-                                                <div class="w-1.5 h-1.5 bg-slate-200 rounded-full mx-auto opacity-20"></div>
-                                            <?php endif; ?>
+                                        <td class="px-2 py-5 text-center border-r border-slate-50/50 <?= $is_h?'bg-orange-50/10':'' ?>">
+                                            <div class="flex items-center justify-center">
+                                                <?php if($is_h): ?>
+                                                    <div class="w-5 h-1 bg-orange-200 rounded-full opacity-40" title="Holiday/Break"></div>
+                                                <?php elseif($st === 'absent'): ?>
+                                                    <div class="w-2.5 h-2.5 border-2 border-red-400 rounded-full opacity-90" title="Absent"></div>
+                                                <?php elseif($st): ?>
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)]" title="Present"></div>
+                                                <?php else: ?>
+                                                    <div class="w-1.5 h-1.5 bg-slate-100 rounded-full opacity-50"></div>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                     <?php endforeach; ?>
-                                    <td class="px-6 py-4 text-center bg-indigo-50/30 border-l border-indigo-100">
-                                        <span class="font-black text-indigo-600 text-sm"><?= $w_sum ?></span>
-                                        <div class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Present</div>
-                                    </td>
-                                    <td class="px-8 py-4 text-center bg-slate-50 border-l border-slate-100">
+                                    <td class="px-6 py-5 text-center bg-indigo-50/30 border-l border-indigo-100 shadow-inner">
                                         <div class="flex flex-col items-center">
-                                            <span class="font-black text-slate-900 text-sm"><?= $totals[$id] ?? 0 ?> <span class="text-[10px] text-slate-300">/</span> <?= $total_instructional_days ?></span>
-                                            <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Sessions Marked</div>
+                                            <span class="font-black text-indigo-700 text-base"><?= $w_sum ?></span>
+                                            <div class="text-[8px] font-black text-indigo-300 uppercase tracking-widest mt-0.5">Present</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-5 text-center bg-slate-50 border-l border-slate-100 shadow-inner">
+                                        <div class="flex flex-col items-center">
+                                            <div class="flex items-baseline gap-1">
+                                                <span class="font-black text-slate-900 text-base"><?= $sem_total ?></span>
+                                                <span class="text-[10px] text-slate-400 font-bold">/ <?= $total_semester_days ?></span>
+                                            </div>
+                                            <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Semester Total</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -457,10 +508,12 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                 </div>
                 
                 <div class="mt-8 flex justify-end">
-                    <div class="flex items-center gap-6 bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm">
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div> <span class="text-[10px] font-black text-slate-500 uppercase">Present</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 border-2 border-red-400 rounded-full"></div> <span class="text-[10px] font-black text-slate-500 uppercase">Absent</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-1 bg-orange-200 rounded-full"></div> <span class="text-[10px] font-black text-slate-500 uppercase">Institutional Break</span></div>
+                    <div class="flex items-center gap-6 bg-white px-8 py-4 rounded-[2rem] border border-slate-100 shadow-xl">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full shadow-lg"></div> <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Present</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 border-2 border-red-400 rounded-full"></div> <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Absent</span></div>
+                        <div class="flex items-center gap-2"><div class="w-4 h-1 bg-orange-300 rounded-full opacity-60"></div> <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Holiday</span></div>
+                        <div class="h-4 w-px bg-slate-100"></div>
+                        <div class="flex items-center gap-2 italic"><span class="text-[9px] font-bold text-slate-400">Values calculated based on session timeline</span></div>
                     </div>
                 </div>
             <?php endif; ?>

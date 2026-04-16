@@ -109,6 +109,15 @@ $total_students = $conn->query("SELECT COUNT(*) FROM students WHERE status='acti
                     <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Approve or rejected weekly teacher lesson plans.</p>
                 </a>
 
+                <!-- Card: Attendance Hub -->
+                <a href="../academics/attendance.php" class="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-500 flex flex-col items-center text-center group">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-inner group-hover:rotate-12 transition-transform">
+                        <i class="fas fa-clipboard-user"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Attendance Hub</h3>
+                    <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Monitor institutional presence and termly attendance analytics.</p>
+                </a>
+
                 <!-- Card: Transcripts -->
                 <a href="../academics/transcripts.php" class="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-500 flex flex-col items-center text-center group">
                     <div class="w-20 h-20 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-inner group-hover:rotate-12 transition-transform">

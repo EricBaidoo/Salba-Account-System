@@ -108,10 +108,7 @@ function getAvailableSemesters($conn) {
 }
 }
 
-// Deprecated aliases for backward compatibility during migration
-if (!function_exists('getCurrentSemester')) {
-function getCurrentSemester($conn) { return getCurrentSemester($conn); }
-}
+// Deprecated aliases removed - use canonical versions
 if (!function_exists('getAvailableSemesters')) {
 function getAvailableSemesters() { 
     // This is hard to maintain without $conn, so we'll just return standard ones if no conn available
@@ -150,12 +147,18 @@ function formatAcademicYearDisplay($conn, $academic_year) {
  * 2. Fallback: (Weeks * 5) - (Total holidays recorded)
  */
 if (!function_exists('getInstructionalDaysCount')) {
-function getInstructionalDaysCount($conn, $semester = null, $year = null) {
+function getInstructionalDaysCount($conn, $semester = null, $year = null, $uptoDate = null) {
     if (!$semester) $semester = getCurrentSemester($conn);
     if (!$year) $year = getAcademicYear($conn);
     
     $startDateStr = getSystemSetting($conn, 'semester_start_date');
     $endDateStr = getSystemSetting($conn, 'semester_end_date');
+    
+    if ($uptoDate) {
+        $realEnd = min(strtotime($endDateStr), strtotime($uptoDate));
+    } else {
+        $realEnd = strtotime($endDateStr);
+    }
     
     // Fetch Holidays/Breaks
     $holidays = [];
@@ -167,9 +170,8 @@ function getInstructionalDaysCount($conn, $semester = null, $year = null) {
     if ($startDateStr && $endDateStr) {
         $count = 0;
         $current = strtotime($startDateStr);
-        $end = strtotime($endDateStr);
         
-        while ($current <= $end) {
+        while ($current <= $realEnd) {
             $dayOfWeek = date('N', $current);
             $dateStr = date('Y-m-d', $current);
             
@@ -197,5 +199,34 @@ function getInstructionalDaysCount($conn, $semester = null, $year = null) {
     }
     
     return max(0, $total_possible - $holidays_count);
+}
+}
+/**
+ * Determine the Week Number for any given date based on Semester Start
+ * Returns 1 for the first week, 2 for the second, etc.
+ */
+if (!function_exists('getWeekNumberForDate')) {
+function getWeekNumberForDate($conn, $date) {
+    if (!$date) return 1;
+    $start = getSystemSetting($conn, 'semester_start_date');
+    if (!$start) return 1;
+
+    $startDate = new DateTime($start);
+    $targetDate = new DateTime($date);
+    
+    // Normalize to the start of the week (Monday) for the semester start
+    // If start date is a Tuesday, Week 1 still starts at that Monday context-wise
+    $startDate->modify('monday this week');
+    $targetDate->modify('monday this week');
+    
+    $interval = $startDate->diff($targetDate);
+    $days = $interval->days;
+    if ($interval->invert) {
+        // Target date is before semester start
+        return 1;
+    }
+    
+    $weeks = floor($days / 7) + 1;
+    return (int)$weeks;
 }
 }

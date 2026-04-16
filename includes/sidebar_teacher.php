@@ -37,7 +37,7 @@ if (!function_exists('nav_active')) {
         <div class="pt-4 pb-1 px-2 border-t border-gray-100 mt-2">
             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><i class="fas fa-book"></i> Academics</span>
         </div>
-        <a href="<?= nav_link($base_path, 'teacher/attendance.php') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?= nav_active('attendance.php', $current_page) ?>">
+        <a href="<?= nav_link($base_path, 'academics/attendance.php') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?= nav_active('attendance.php', $current_page) ?>">
             <i class="fas fa-clipboard-user w-4 text-center text-blue-500"></i>
             <span class="text-sm">Class Attendance</span>
         </a>

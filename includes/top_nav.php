@@ -20,7 +20,13 @@ if ($pages_pos !== false) {
 ?>
 <header class="w-full bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-50 shadow-sm flex items-center justify-between">
     <div class="flex items-center gap-4">
-        <a href="<?= $root_path ?>index.php" class="flex items-center gap-3 group">
+        <?php 
+        $logo_link = $root_path . "index.php";
+        if ($user_role === 'teacher') $logo_link = $root_path . "pages/teacher/dashboard.php";
+        if ($user_role === 'supervisor') $logo_link = $root_path . "pages/supervisor/dashboard.php";
+        if ($user_role === 'admin') $logo_link = $root_path . "pages/administration/dashboard.php";
+        ?>
+        <a href="<?= $logo_link ?>" class="flex items-center gap-3 group">
             <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
                 <i class="fas fa-graduation-cap"></i>
             </div>
@@ -32,7 +38,13 @@ if ($pages_pos !== false) {
     </div>
 
     <div class="flex items-center gap-6">
-        <a href="<?= $root_path ?>index.php" class="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
+        <?php 
+        $hub_link = $root_path . "index.php";
+        if ($user_role === 'teacher') $hub_link = $root_path . "pages/teacher/dashboard.php";
+        if ($user_role === 'supervisor') $hub_link = $root_path . "pages/supervisor/dashboard.php";
+        if ($user_role === 'admin') $hub_link = $root_path . "pages/administration/dashboard.php";
+        ?>
+        <a href="<?= $hub_link ?>" class="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-indigo-600 transition-colors bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
             <i class="fas fa-house"></i>
             <span>Dashboard Hub</span>
         </a>

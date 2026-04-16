@@ -41,6 +41,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-file-signature w-4 text-center text-green-500"></i>
             <span class="text-sm">Review Lesson Plans</span>
         </a>
+        <a href="<?= nav_link($base_path, 'academics/attendance.php') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?= nav_active('attendance.php', $current_page) ?>">
+            <i class="fas fa-clipboard-user w-4 text-center text-blue-500"></i>
+            <span class="text-sm">Class Attendance Hub</span>
+        </a>
         <a href="<?= nav_link($base_path, 'academics/transcripts.php') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all <?= nav_active('transcripts.php', $current_page) ?>">
             <i class="fas fa-scroll w-4 text-center text-purple-500"></i>
             <span class="text-sm">Manage Transcripts</span>
