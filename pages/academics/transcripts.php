@@ -12,7 +12,7 @@ if (!is_logged_in()) {
 $success = '';
 $error = '';
 $current_year = getAcademicYear($conn);
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $user_role = $_SESSION['role'] ?? 'staff';
 $uid = $_SESSION['user_id'];
 
@@ -29,15 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_remarks'])) {
     $r_tr = $conn->real_escape_string($_POST['teacher_remarks'] ?? '');
     $r_sr = $conn->real_escape_string($_POST['supervisor_remarks'] ?? '');
     
-    $check = $conn->query("SELECT id FROM student_term_remarks WHERE student_id = $r_student AND academic_year = '$current_year' AND term = '$current_term'");
+    $check = $conn->query("SELECT id FROM student_term_remarks WHERE student_id = $r_student AND academic_year = '$current_year' AND semester = '$current_term'");
     if ($check->num_rows > 0) {
         $q = "UPDATE student_term_remarks SET attitude='$r_attitude', conduct='$r_conduct', talent_and_interest='$r_talent'";
         if ($user_role === 'facilitator' || $user_role === 'admin') $q .= ", teacher_remarks='$r_tr', teacher_id=$uid";
         if ($user_role === 'supervisor' || $user_role === 'admin') $q .= ", supervisor_remarks='$r_sr', supervisor_id=$uid";
-        $q .= " WHERE student_id=$r_student AND academic_year='$current_year' AND term='$current_term'";
+        $q .= " WHERE student_id=$r_student AND academic_year='$current_year' AND semester='$current_term'";
         $conn->query($q);
     } else {
-        $stmt = $conn->prepare("INSERT INTO student_term_remarks (student_id, academic_year, term, attitude, conduct, talent_and_interest, teacher_remarks, teacher_id, supervisor_remarks, supervisor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO student_term_remarks (student_id, academic_year, semester, attitude, conduct, talent_and_interest, teacher_remarks, teacher_id, supervisor_remarks, supervisor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("issssssisi", $r_student, $current_year, $current_term, $r_attitude, $r_conduct, $r_talent, $r_tr, $uid, $r_sr, $uid);
         $stmt->execute();
     }
@@ -81,7 +81,7 @@ if ($selected_class && $selected_student_id) {
     
     // Map Configs to Array for robust matching
     $oa_types = []; $exam_types = [];
-    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND term = '$current_term'");
+    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
     while($r = $type_res->fetch_assoc()) {
         if ($r['is_exam']) $exam_types[] = $r['assessment_name'];
         else $oa_types[] = $r['assessment_name'];
@@ -91,7 +91,7 @@ if ($selected_class && $selected_student_id) {
     $g_res = $conn->query("
         SELECT student_id, subject, marks, assessment_type 
         FROM grades 
-        WHERE class_name = '$selected_class' AND term = '$current_term' AND year = '$current_year'
+        WHERE class_name = '$selected_class' AND semester = '$current_term' AND year = '$current_year'
     ");
     
     while($row = $g_res->fetch_assoc()) {
@@ -158,7 +158,7 @@ if ($selected_class && $selected_student_id) {
     }
     
     // Fetch Remarks
-    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE student_id = $selected_student_id AND academic_year = '$current_year' AND term = '$current_term'");
+    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE student_id = $selected_student_id AND academic_year = '$current_year' AND semester = '$current_term'");
     if($rem_res->num_rows > 0) $student_remarks = $rem_res->fetch_assoc();
 }
 

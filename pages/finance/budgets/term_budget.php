@@ -10,26 +10,26 @@ if (!is_logged_in()) {
 }
 
 // Handle budget lock/unlock actions
-if ((isset($_GET['action']) && $_GET['action'] === 'lock') && isset($_GET['term']) && isset($_GET['academic_year'])) {
-    $term = $_GET['term'];
+if ((isset($_GET['action']) && $_GET['action'] === 'lock') && isset($_GET['semester']) && isset($_GET['academic_year'])) {
+    $semester = $_GET['semester'];
     $year = $_GET['academic_year'];
     $user = $_SESSION['username'] ?? 'System';
     
     $conn->query("UPDATE term_budgets 
                  SET status = 'locked', locked_at = NOW(), locked_by = '$user' 
-                 WHERE term = '$term' AND academic_year = '$year'");
-    header("Location: term_budget.php?term=" . urlencode($term) . "&academic_year=" . urlencode($year) . "&locked=1");
+                 WHERE semester = '$semester' AND academic_year = '$year'");
+    header("Location: term_budget.php?semester=" . urlencode($semester) . "&academic_year=" . urlencode($year) . "&locked=1");
     exit;
 }
 
-if ((isset($_GET['action']) && $_GET['action'] === 'unlock') && isset($_GET['term']) && isset($_GET['academic_year'])) {
-    $term = $_GET['term'];
+if ((isset($_GET['action']) && $_GET['action'] === 'unlock') && isset($_GET['semester']) && isset($_GET['academic_year'])) {
+    $semester = $_GET['semester'];
     $year = $_GET['academic_year'];
     
     $conn->query("UPDATE term_budgets 
                  SET status = 'draft', locked_at = NULL, locked_by = NULL 
-                 WHERE term = '$term' AND academic_year = '$year'");
-    header("Location: term_budget.php?term=" . urlencode($term) . "&academic_year=" . urlencode($year) . "&unlocked=1");
+                 WHERE semester = '$semester' AND academic_year = '$year'");
+    header("Location: term_budget.php?semester=" . urlencode($semester) . "&academic_year=" . urlencode($year) . "&unlocked=1");
     exit;
 }
 
@@ -41,17 +41,17 @@ if ($_GET['unlocked'] ?? false) {
     $lock_notification = '<div class="p-4 bg-blue-100 text-blue-700 rounded border border-blue-200"><i class="fas fa-lock-open"></i> Budget UNLOCKED. You can now make edits.</div>';
 }
 
-// Get selected term and academic year (allow user to change)
-$system_term = getCurrentTerm($conn);
+// Get selected semester and academic year (allow user to change)
+$system_term = getCurrentSemester($conn);
 $system_academic_year = getAcademicYear($conn);
 
-$selected_term = $_GET['term'] ?? $system_term;
+$selected_term = $_GET['semester'] ?? $system_term;
 $selected_academic_year = $_GET['academic_year'] ?? $system_academic_year;
 $current_term = $selected_term;
 $academic_year = $selected_academic_year;
 
 // Get all available terms for dropdown
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
 // Get all available academic years
 $years_result = $conn->query("SELECT DISTINCT academic_year FROM student_fees ORDER BY academic_year DESC LIMIT 5");
@@ -62,24 +62,24 @@ while ($year_row = $years_result->fetch_assoc()) {
     }
 }
 
-// Get or create term budget
-$term_budget = $conn->query("SELECT * FROM term_budgets WHERE term = '$current_term' AND academic_year = '$academic_year'")->fetch_assoc();
+// Get or create semester budget
+$term_budget = $conn->query("SELECT * FROM term_budgets WHERE semester = '$current_term' AND academic_year = '$academic_year'")->fetch_assoc();
 $is_locked = $term_budget && isset($term_budget['status']) && $term_budget['status'] === 'locked';
 
 // Get ALL fee categories with assigned amounts as budget
 $income_items = [];
 $fees_result = $conn->query("SELECT id, name FROM fees ORDER BY name ASC");
 
-// Debug: Check what's in student_fees for this term
-$debug_all = "SELECT term, academic_year, COUNT(*) as count, SUM(amount) as total 
+// Debug: Check what's in student_fees for this semester
+$debug_all = "SELECT semester, academic_year, COUNT(*) as count, SUM(amount) as total 
               FROM student_fees 
-              WHERE term LIKE '%2%' OR academic_year = '$academic_year'
-              GROUP BY term, academic_year";
+              WHERE semester LIKE '%2%' OR academic_year = '$academic_year'
+              GROUP BY semester, academic_year";
 $debug_result = $conn->query($debug_all);
-echo "<!-- DEBUG: Looking for term='$current_term' and academic_year='$academic_year' -->";
+echo "<!-- DEBUG: Looking for semester='$current_term' and academic_year='$academic_year' -->";
 echo "<!-- Available data: ";
 while ($d = $debug_result->fetch_assoc()) {
-    echo "Term: '{$d['term']}', Year: '{$d['academic_year']}', Count: {$d['count']}, Total: {$d['total']} | ";
+    echo "Semester: '{$d['semester']}', Year: '{$d['academic_year']}', Count: {$d['count']}, Total: {$d['total']} | ";
 }
 echo "-->";
 
@@ -92,7 +92,7 @@ while ($fee = $fees_result->fetch_assoc()) {
                       FROM student_fees sf 
                       INNER JOIN students s ON sf.student_id = s.id
                       WHERE sf.fee_id = {$fee['id']} 
-                      AND sf.term = '$current_term' 
+                      AND sf.semester = '$current_term' 
                       AND sf.academic_year = '$academic_year'
                       AND s.status = 'active'";
     $assigned_result = $conn->query($assigned_query);
@@ -110,22 +110,22 @@ while ($fee = $fees_result->fetch_assoc()) {
     $income_items[] = $row;
 }
 
-// Get ALL expense categories with budgeted amounts from previous term actual spending
+// Get ALL expense categories with budgeted amounts from previous semester actual spending
 $expense_items = [];
 $categories_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
 
-// Get previous term
-$terms = getAvailableTerms();
+// Get previous semester
+$terms = getAvailableSemesters();
 $current_term_index = array_search($current_term, $terms);
 $previous_term = null;
 $previous_academic_year = $academic_year;
 
 if ($current_term_index > 0) {
-    // Previous term in same academic year
+    // Previous semester in same academic year
     $previous_term = $terms[$current_term_index - 1];
 } elseif ($current_term_index === 0) {
-    // Previous term is Term 3 of previous academic year
-    $previous_term = 'Term 3';
+    // Previous semester is Semester 3 of previous academic year
+    $previous_term = 'Semester 3';
     $year_parts = explode('/', $academic_year);
     $previous_academic_year = ($year_parts[0] - 1) . '/' . ($year_parts[1] - 1);
 }
@@ -134,7 +134,7 @@ while ($category = $categories_result->fetch_assoc()) {
     $row = [];
     $row['category'] = $category['name'];
     
-    // Get previous term's actual spending as budget
+    // Get previous semester's actual spending as budget
     if ($previous_term) {
         $row['amount'] = getTermCategorySpending($conn, $category['name'], $previous_term, $previous_academic_year);
     } else {
@@ -153,7 +153,7 @@ while ($category = $categories_result->fetch_assoc()) {
         }
     }
     
-    // Get actual spending for current term
+    // Get actual spending for current semester
     $row['actual'] = getTermCategorySpending($conn, $category['name'], $current_term, $academic_year);
     $row['variance'] = $row['amount'] - $row['actual'];
     $row['variance_percent'] = $row['amount'] > 0 ? round(($row['actual'] / $row['amount']) * 100, 2) : 0;
@@ -174,7 +174,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Term Budget - Salba Montessori Accounting</title>
+    <title>Semester Budget - Salba Montessori Accounting</title>
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -195,11 +195,11 @@ $net_actual = $total_income_actual - $total_expense_actual;
             </div>
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="clean-page-title"><i class="fas fa-calculator mr-2"></i>Term Budget</h1>
+                    <h1 class="clean-page-title"><i class="fas fa-calculator mr-2"></i>Semester Budget</h1>
                     <p class="clean-page-subtitle"><?php echo htmlspecialchars($current_term); ?> - <?php echo htmlspecialchars($academic_year); ?></p>
                 </div>
                 <div class="flex gap-2 print:hidden">
-                    <a href="download_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-outline">
+                    <a href="download_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-outline">
                         <i class="fas fa-download"></i> DOWNLOAD PDF
                     </a>
                     <a href="#" onclick="window.print()" class="px-3 py-2 rounded-clean-outline">
@@ -207,16 +207,16 @@ $net_actual = $total_income_actual - $total_expense_actual;
                     </a>
                     <?php if (!$is_locked): ?>
                         <?php if (!$term_budget): ?>
-                            <a href="edit_term_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-primary">
+                            <a href="edit_term_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-primary">
                                 <i class="fas fa-plus"></i> SET UP BUDGET
                             </a>
                         <?php else: ?>
-                            <a href="edit_term_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-primary">
+                            <a href="edit_term_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-3 py-2 rounded-clean-primary">
                                 <i class="fas fa-edit"></i> EDIT BUDGET
                             </a>
                         <?php endif; ?>
                         <?php if ($term_budget): ?>
-                            <a href="term_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>&action=lock" class="px-3 py-2 rounded px-3 py-2 rounded-warning" onclick="return confirm('Lock this budget? You will not be able to edit it.');">
+                            <a href="term_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>&action=lock" class="px-3 py-2 rounded px-3 py-2 rounded-warning" onclick="return confirm('Lock this budget? You will not be able to edit it.');">
                                 <i class="fas fa-lock"></i> LOCK BUDGET
                             </a>
                         <?php endif; ?>
@@ -224,7 +224,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700" style="padding: 8px 12px; font-size: 0.9rem;">
                             <i class="fas fa-lock"></i> LOCKED BY <?php echo htmlspecialchars($term_budget['locked_by']); ?> ON <?php echo date('d M Y H:i', strtotime($term_budget['locked_at'])); ?>
                         </span>
-                        <a href="term_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>&action=unlock" class="px-4 py-2 bg-gray-600 text-white rounded" onclick="return confirm('Unlock this budget to allow edits again?');">
+                        <a href="term_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>&action=unlock" class="px-4 py-2 bg-gray-600 text-white rounded" onclick="return confirm('Unlock this budget to allow edits again?');">
                             <i class="fas fa-lock-open"></i> UNLOCK
                         </a>
                     <?php endif; ?>

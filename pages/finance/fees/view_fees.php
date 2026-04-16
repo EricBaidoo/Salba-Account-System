@@ -63,7 +63,7 @@ $stats = $conn->query("
                     <h1 class="clean-page-title"><i class="fas fa-money-bill-wave mr-2"></i>Fee Management</h1>
                     <p class="clean-page-subtitle">
                         View and manage all school fees
-                        <?php $ct = getCurrentTerm($conn); $cy = getAcademicYear($conn); ?>
+                        <?php $ct = getCurrentSemester($conn); $cy = getAcademicYear($conn); ?>
                         <span class="clean-badge clean-badge-primary ml-2"><i class="fas fa-calendar-alt mr-1"></i><?php echo htmlspecialchars($ct); ?></span>
                         <span class="clean-badge clean-badge-info ml-1"><i class="fas fa-graduation-cap mr-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $cy)); ?></span>
                     </p>

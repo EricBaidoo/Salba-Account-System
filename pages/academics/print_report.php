@@ -9,7 +9,7 @@ if (!is_logged_in()) {
     header('Location: ../../includes/login.php'); exit;
 }
 
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
 
 // Get academic statistics
@@ -21,14 +21,14 @@ $total_classes = 0;
 $res = $conn->query("SELECT COUNT(DISTINCT class) as cnt FROM students WHERE status='active' AND class IS NOT NULL");
 if($res) $total_classes = $res->fetch_assoc()['cnt'];
 
-// Calculate average attendance for the current term!
+// Calculate average attendance for the current semester!
 $avg_attendance = 0;
 $att_res = $conn->prepare("
     SELECT AVG(presence_rate) as avg_attendance 
     FROM (
         SELECT (SUM(CASE WHEN status IN ('present', 'late') THEN 1 ELSE 0 END) / COUNT(*)) * 100 as presence_rate
         FROM attendance
-        WHERE term = ? AND academic_year = ?
+        WHERE semester = ? AND academic_year = ?
         GROUP BY student_id
     ) as attendance_rates
 ");
@@ -39,14 +39,14 @@ if($att_res) {
     $att_res->close();
 }
 
-// Get class-wise performance for current term
+// Get class-wise performance for current semester
 $class_performance = $conn->prepare("
     SELECT s.class, 
            COUNT(DISTINCT g.student_id) as students_graded,
            AVG(CASE WHEN g.out_of > 0 THEN (g.marks / g.out_of) * 100 ELSE 0 END) as avg_grade_pct
     FROM grades g
     JOIN students s ON g.student_id = s.id
-    WHERE g.term = ? AND g.year = ?
+    WHERE g.semester = ? AND g.year = ?
     GROUP BY s.class
     ORDER BY s.class
 ");
@@ -119,7 +119,7 @@ ob_start();
             </td>
             <td width="25%">
                 <div class="stat-card">
-                    <div class="stat-label">Term Cycle</div>
+                    <div class="stat-label">Semester Cycle</div>
                     <div class="stat-value"><?= $current_term ?></div>
                 </div>
             </td>

@@ -20,12 +20,70 @@ $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $updated_by = $_SESSION['username'] ?? 'Admin';
     
-    // Update current term
-    if (isset($_POST['current_term'])) {
-        if (setSystemSetting($conn, 'current_term', $_POST['current_term'], $updated_by)) {
-            $success_message .= 'Current term updated. ';
+    // Update current semester
+    if (isset($_POST['current_semester'])) {
+        if (setSystemSetting($conn, 'current_semester', $_POST['current_semester'], $updated_by)) {
+            $success_message .= 'Current semester updated. ';
         } else {
-            $error_message .= 'Failed to update term. ';
+            $error_message .= 'Failed to update semester. ';
+        }
+    }
+    
+    // Semester Dictionary Operations
+    if (isset($_POST['semester_action'])) {
+        if ($_POST['semester_action'] === 'add_semester') {
+            $s_name = trim($_POST['new_semester_name']);
+            if ($s_name) {
+                $stmt = $conn->prepare("INSERT IGNORE INTO academic_semester_dictionary (semester_name) VALUES (?)");
+                $stmt->bind_param("s", $s_name);
+                $stmt->execute();
+                $success_message .= "New semester '$s_name' added to dictionary. ";
+            }
+        }
+        if ($_POST['semester_action'] === 'delete_semester') {
+            $del_id = intval($_POST['delete_id']);
+            $conn->query("DELETE FROM academic_semester_dictionary WHERE id = $del_id");
+            $success_message .= "Semester removed from system. ";
+        }
+        if ($_POST['semester_action'] === 'rename_semester') {
+            $s_id = intval($_POST['semester_id']);
+            $old_name = trim($_POST['old_name']);
+            $new_name = trim($_POST['new_name']);
+            
+            if ($s_id && $old_name && $new_name && $old_name !== $new_name) {
+                $conn->begin_transaction();
+                try {
+                    // 1. Update Dictionary
+                    $stmt = $conn->prepare("UPDATE academic_semester_dictionary SET semester_name = ? WHERE id = ?");
+                    $stmt->bind_param("si", $new_name, $s_id);
+                    $stmt->execute();
+                    
+                    // 2. Cascade to all tables using semester name
+                    $tables = [
+                        'assessment_configurations', 'attendance', 'budgets', 'expenses', 
+                        'grades', 'lesson_plans', 'payments', 'student_fees', 
+                        'student_semester_remarks', 'teacher_allocations', 
+                        'semester_budgets', 'semester_invoices'
+                    ];
+                    
+                    foreach($tables as $t) {
+                        $stmt = $conn->prepare("UPDATE `$t` SET semester = ? WHERE semester = ?");
+                        $stmt->bind_param("ss", $new_name, $old_name);
+                        $stmt->execute();
+                    }
+                    
+                    // 3. Update Global Setting if active
+                    if (getCurrentSemester($conn) === $old_name) {
+                        setSystemSetting($conn, 'current_semester', $new_name, $updated_by);
+                    }
+                    
+                    $conn->commit();
+                    $success_message .= "Semester '$old_name' renamed to '$new_name' across all records.";
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $error_message .= "Renaming failed: " . $e->getMessage();
+                }
+            }
         }
     }
     
@@ -83,13 +141,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get current settings
 $all_settings = getAllSettings($conn);
-$current_term = getCurrentTerm($conn);
+$current_semester = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
-$available_terms = getAvailableTerms();
+$available_semesters = getAvailableSemesters($conn);
 $year_format = getSystemSetting($conn, 'academic_year_format', 'full');
 $start_month = getSystemSetting($conn, 'academic_year_start_month', '09');
 $start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
-$start_day = getSystemSetting($conn, 'academic_year_start_day', '01');
+
+// Fetch all semesters for dictionary management
+$semester_dictionary = [];
+$dict_res = $conn->query("SELECT * FROM academic_semester_dictionary ORDER BY display_order ASC, id ASC");
+if($dict_res) {
+    while($r = $dict_res->fetch_assoc()) $semester_dictionary[] = $r;
+}
 
 // Build year options centered around current academic year start
 $ay_parts = explode('/', $academic_year);
@@ -169,19 +233,19 @@ for ($i = -2; $i <= 5; $i++) {
                                 <div class="bg-blue-50 border border-blue-100 text-blue-800 text-sm p-4 rounded-lg flex items-start gap-3 mb-6">
                                     <i class="fas fa-info-circle mt-0.5 text-blue-500"></i>
                                     <div>
-                                        <strong>Heads up:</strong> Changing the <strong>Current Active Term</strong> updates it globally for all users. Invoices, grades, and attendance forms will immediately switch context.
+                                        <strong>Heads up:</strong> Changing the <strong>Current Active Semester</strong> updates it globally for all users. Invoices, grades, and attendance forms will immediately switch context.
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div>
-                                        <label for="current_term" class="block text-sm font-semibold text-gray-700 mb-1">Current Active Term</label>
-                                        <select id="current_term" name="current_term" required
+                                        <label for="current_semester" class="block text-sm font-semibold text-gray-700 mb-1">Current Active Semester</label>
+                                        <select id="current_semester" name="current_semester" required
                                                 class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors cursor-pointer appearance-none text-sm">
-                                            <?php foreach ($available_terms as $term): ?>
-                                                <option value="<?php echo htmlspecialchars($term); ?>" 
-                                                        <?php echo $term === $current_term ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($term); ?>
+                                            <?php foreach ($available_semesters as $semester): ?>
+                                                <option value="<?php echo htmlspecialchars($semester); ?>" 
+                                                        <?php echo $semester === $current_semester ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($semester); ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -230,10 +294,84 @@ for ($i = -2; $i <= 5; $i++) {
                         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" id="user-management">
                             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                                 <h5 class="font-bold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-sliders text-indigo-500"></i> Advanced Rules
+                                    <i class="fas fa-sliders text-indigo-500"></i> Semester & User Management
                                 </h5>
                             </div>
                             <div class="p-6">
+                                <!-- Semester Dictionary -->
+                                <div class="mb-8">
+                                    <h6 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Academic Semester Dictionary</h6>
+                                    <div class="space-y-3 mb-6">
+                                        <?php if(empty($semester_dictionary)): ?>
+                                            <p class="text-xs text-gray-500 italic">No semesters defined. System will use defaults.</p>
+                                        <?php else: ?>
+                                            <?php foreach($semester_dictionary as $sem): ?>
+                                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group">
+                                                    <div class="flex items-center gap-3 flex-1">
+                                                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                                            <?php echo $sem['display_order'] ?: $sem['id']; ?>
+                                                        </div>
+                                                        
+                                                        <!-- Display Mode -->
+                                                        <div id="disp_sem_<?php echo $sem['id']; ?>" class="flex-1 flex items-center justify-between">
+                                                            <span class="text-sm font-bold text-gray-700"><?php echo htmlspecialchars($sem['semester_name']); ?></span>
+                                                            <div class="flex items-center gap-2">
+                                                                <button type="button" onclick="toggleEdit(<?php echo $sem['id']; ?>)" class="text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <form method="POST" onsubmit="return confirm('Remove this semester from system dictionary?')">
+                                                                    <input type="hidden" name="semester_action" value="delete_semester">
+                                                                    <input type="hidden" name="delete_id" value="<?php echo $sem['id']; ?>">
+                                                                    <button type="submit" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                                        <i class="fas fa-trash-alt"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Edit Mode -->
+                                                        <form id="edit_sem_<?php echo $sem['id']; ?>" method="POST" class="hidden flex-1 flex gap-2 items-center">
+                                                            <input type="hidden" name="semester_action" value="rename_semester">
+                                                            <input type="hidden" name="semester_id" value="<?php echo $sem['id']; ?>">
+                                                            <input type="hidden" name="old_name" value="<?php echo htmlspecialchars($sem['semester_name']); ?>">
+                                                            <input type="text" name="new_name" value="<?php echo htmlspecialchars($sem['semester_name']); ?>" 
+                                                                   class="flex-1 px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm">
+                                                            <button type="submit" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase hover:bg-indigo-700 shadow-sm transition-colors">Save</button>
+                                                            <button type="button" onclick="toggleEdit(<?php echo $sem['id']; ?>)" class="text-gray-400 text-xs font-bold hover:text-gray-600 px-2 transition-colors">Cancel</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Add New Semester -->
+                                    <div class="bg-indigo-50/30 p-4 rounded-xl border border-dashed border-indigo-100">
+                                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Build New Semester Node</div>
+                                        <div class="flex gap-2">
+                                            <input type="text" name="new_semester_name" placeholder="e.g. 'Fourth Semester'" 
+                                                   class="flex-1 bg-white border border-indigo-100 rounded-lg px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
+                                            <button type="submit" name="semester_action" value="add_semester" 
+                                                    class="bg-indigo-600 text-white w-10 h-10 rounded-lg shadow-sm hover:bg-indigo-700 transition flex items-center justify-center">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <script>
+                                    function toggleEdit(id) {
+                                        const disp = document.getElementById('disp_sem_' + id);
+                                        const edit = document.getElementById('edit_sem_' + id);
+                                        if (edit.classList.contains('hidden')) {
+                                            edit.classList.remove('hidden');
+                                            disp.classList.add('hidden');
+                                        } else {
+                                            edit.classList.add('hidden');
+                                            disp.classList.remove('hidden');
+                                        }
+                                    }
+                                </script>
 
                                 <hr class="border-gray-100 my-5">
                                 <div>

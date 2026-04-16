@@ -66,14 +66,14 @@ function calculateFeeAmount($conn, $fee_id, $student_class) {
 
 // Check if this is a preview or confirmation
 $action = $_POST['action'] ?? 'preview';
-$term = $_POST['term'] ?? '';
+$semester = $_POST['semester'] ?? '';
 $due_date = $_POST['due_date'] ?? '';
 $class_filter = $_POST['class_filter'] ?? 'all';
 $notes = $_POST['notes'] ?? '';
 $selected_fees = $_POST['selected_fees'] ?? '';
 
 // Validate inputs
-if (empty($term) || empty($due_date) || empty($selected_fees)) {
+if (empty($semester) || empty($due_date) || empty($selected_fees)) {
     die('<div class="p-4 bg-red-100 text-red-700 rounded border border-red-200">Missing required fields. Please go back and fill all required fields.</div>');
 }
 
@@ -123,12 +123,12 @@ while ($student = $students_result->fetch_assoc()) {
     $student_class = $student['class'];
     
     foreach ($fee_ids as $fee_id) {
-        // Check if already assigned for this term
+        // Check if already assigned for this semester
         $check_stmt = $conn->prepare("
             SELECT id FROM student_fees 
-            WHERE student_id = ? AND fee_id = ? AND term = ? AND status != 'cancelled'
+            WHERE student_id = ? AND fee_id = ? AND semester = ? AND status != 'cancelled'
         ");
-        $check_stmt->bind_param("iis", $student_id, $fee_id, $term);
+        $check_stmt->bind_param("iis", $student_id, $fee_id, $semester);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
         $already_assigned = $check_result->num_rows > 0;
@@ -169,7 +169,7 @@ if ($action === 'confirm') {
     try {
         $success_count = 0;
         $insert_stmt = $conn->prepare("
-            INSERT INTO student_fees (student_id, fee_id, due_date, amount, term, notes, assigned_date, status) 
+            INSERT INTO student_fees (student_id, fee_id, due_date, amount, semester, notes, assigned_date, status) 
             VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')
         ");
         
@@ -180,7 +180,7 @@ if ($action === 'confirm') {
                 $assignment['fee_id'],
                 $due_date,
                 $assignment['amount'],
-                $term,
+                $semester,
                 $notes
             );
             
@@ -266,7 +266,7 @@ if ($action === 'confirm') {
                 <h5 class="bg-white rounded shadow-title mb-"><i class="fas fa-info-circle mr-2"></i>Billing Details</h5>
                 <div class="flex flex-wrap">
                     <div class="col-md-3">
-                        <strong>Term:</strong> <?php echo htmlspecialchars($term); ?>
+                        <strong>Semester:</strong> <?php echo htmlspecialchars($semester); ?>
                     </div>
                     <div class="col-md-3">
                         <strong>Due Date:</strong> <?php echo htmlspecialchars($due_date); ?>
@@ -333,7 +333,7 @@ if ($action === 'confirm') {
             <!-- Confirmation Form -->
             <form method="POST" action="bulk_term_billing.php">
                 <input type="hidden" name="action" value="confirm">
-                <input type="hidden" name="term" value="<?php echo htmlspecialchars($term); ?>">
+                <input type="hidden" name="semester" value="<?php echo htmlspecialchars($semester); ?>">
                 <input type="hidden" name="due_date" value="<?php echo htmlspecialchars($due_date); ?>">
                 <input type="hidden" name="class_filter" value="<?php echo htmlspecialchars($class_filter); ?>">
                 <input type="hidden" name="notes" value="<?php echo htmlspecialchars($notes); ?>">
@@ -351,7 +351,7 @@ if ($action === 'confirm') {
         <?php else: ?>
             <div class="alert alert-info text-center">
                 <i class="fas fa-info-circle mr-2"></i>
-                No new assignments to create. All selected students already have these fees assigned for this term.
+                No new assignments to create. All selected students already have these fees assigned for this semester.
             </div>
             <div class="text-center">
                 <a href="bulk_term_billing_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">

@@ -10,7 +10,7 @@ if (!is_logged_in()) {
 }
 
 $school_name          = getSystemSetting($conn, 'school_name', 'Salba Montessori');
-$current_term         = getCurrentTerm($conn);
+$current_term         = getCurrentSemester($conn);
 $academic_year        = getAcademicYear($conn);
 $display_academic_year = formatAcademicYearDisplay($conn, $academic_year);
 
@@ -31,9 +31,9 @@ $total_teachers  = 0;
 $r = $conn->query("SELECT COUNT(*) as c FROM users WHERE role IN ('facilitator','staff')");
 if ($r) $total_teachers = $r->fetch_assoc()['c'] ?? 0;
 
-// Grades entered this term
+// Grades entered this semester
 $grades_count = 0;
-$g = $conn->prepare("SELECT COUNT(*) as c FROM grades WHERE term=? AND year=?");
+$g = $conn->prepare("SELECT COUNT(*) as c FROM grades WHERE semester=? AND year=?");
 if ($g) {
     $g->bind_param('ss', $current_term, $academic_year);
     $g->execute();
@@ -43,7 +43,7 @@ if ($g) {
 
 // Attendance records
 $attendance_count = 0;
-$at = $conn->prepare("SELECT COUNT(*) as c FROM attendance WHERE term=? AND academic_year=?");
+$at = $conn->prepare("SELECT COUNT(*) as c FROM attendance WHERE semester=? AND academic_year=?");
 if ($at) {
     $at->bind_param('ss', $current_term, $academic_year);
     $at->execute();
@@ -94,8 +94,8 @@ if ($sub_res) {
     }
 }
 
-// Graded subjects per class this term
-$grad_res = $conn->prepare("SELECT class_name, COUNT(DISTINCT subject_id) as graded_count FROM grades WHERE term = ? AND year = ? GROUP BY class_name");
+// Graded subjects per class this semester
+$grad_res = $conn->prepare("SELECT class_name, COUNT(DISTINCT subject_id) as graded_count FROM grades WHERE semester = ? AND year = ? GROUP BY class_name");
 if ($grad_res) {
     $grad_res->bind_param('ss', $current_term, $academic_year);
     $grad_res->execute();
@@ -284,7 +284,7 @@ if ($grad_res) {
                         <tr class="bg-gray-50 border-b border-gray-100 font-semibold text-gray-500">
                             <th class="px-6 py-4">Class</th>
                             <th class="px-6 py-4">Today's Attendance (<?php echo date('M j'); ?>)</th>
-                            <th class="px-6 py-4">Term Grade Entry progress</th>
+                            <th class="px-6 py-4">Semester Grade Entry progress</th>
                             <th class="px-6 py-4 text-right">Action</th>
                         </tr>
                     </thead>

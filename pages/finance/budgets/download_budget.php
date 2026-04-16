@@ -10,13 +10,13 @@ if (!is_logged_in()) {
     exit;
 }
 
-$term = $_GET['term'] ?? getCurrentTerm($conn);
+$semester = $_GET['semester'] ?? getCurrentSemester($conn);
 $academic_year = $_GET['academic_year'] ?? getAcademicYear($conn);
 
-// Get term budget
-$budget_query = "SELECT * FROM term_budgets WHERE term = ? AND academic_year = ?";
+// Get semester budget
+$budget_query = "SELECT * FROM term_budgets WHERE semester = ? AND academic_year = ?";
 $budget_stmt = $conn->prepare($budget_query);
-$budget_stmt->bind_param('ss', $term, $academic_year);
+$budget_stmt->bind_param('ss', $semester, $academic_year);
 $budget_stmt->execute();
 $term_budget = $budget_stmt->get_result()->fetch_assoc();
 
@@ -31,7 +31,7 @@ while ($fee = $fees_result->fetch_assoc()) {
                       FROM student_fees sf 
                       INNER JOIN students s ON sf.student_id = s.id
                       WHERE sf.fee_id = {$fee['id']} 
-                      AND sf.term = '$term' 
+                      AND sf.semester = '$semester' 
                       AND sf.academic_year = '$academic_year'
                       AND s.status = 'active'";
     $assigned_result = $conn->query($assigned_query);
@@ -44,9 +44,9 @@ while ($fee = $fees_result->fetch_assoc()) {
 
 // Get actual income collected from payments
 require_once '../../includes/term_helpers.php';
-$range = getTermDateRange($conn, $term, $academic_year);
+$range = getTermDateRange($conn, $semester, $academic_year);
 
-// Get expenses - either from saved budget or from previous term actual spending
+// Get expenses - either from saved budget or from previous semester actual spending
 if ($term_budget) {
     $items_query = "SELECT * FROM term_budget_items WHERE term_budget_id = ? AND type = 'expense' ORDER BY category ASC";
     $items_stmt = $conn->prepare($items_query);
@@ -59,12 +59,12 @@ if ($term_budget) {
     }
 }
 
-// If no saved expense budget, get from previous term spending
+// If no saved expense budget, get from previous semester spending
 if (empty($expense_items)) {
     $expense_cats_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
     while ($cat = $expense_cats_result->fetch_assoc()) {
-        $prev_term = getPreviousTerm($term);
-        $prev_year = ($prev_term === 'Third Term') ? ($academic_year - 1) : $academic_year;
+        $prev_term = getPreviousTerm($semester);
+        $prev_year = ($prev_term === 'Third Semester') ? ($academic_year - 1) : $academic_year;
         $amount = getTermCategorySpending($conn, $cat['id'], $prev_term, $prev_year);
         
         if ($amount > 0) {
@@ -116,7 +116,7 @@ $mpdf->SetHTMLFooter('
     <tr>
         <td width="33%">Generated: ' . date('d/m/Y H:i') . '</td>
         <td width="33%" align="center">Page {PAGENO} of {nbpg}</td>
-        <td width="33%" align="right">Term Budget Report</td>
+        <td width="33%" align="right">Semester Budget Report</td>
     </tr>
 </table>
 ');
@@ -125,7 +125,7 @@ $mpdf->SetHTMLFooter('
 $html = '
 
 <h1>TERM BUDGET REPORT</h1>
-<h2>' . htmlspecialchars($term) . ' &bull; ' . htmlspecialchars($academic_year) . '</h2>
+<h2>' . htmlspecialchars($semester) . ' &bull; ' . htmlspecialchars($academic_year) . '</h2>
 ';
 
 if ($term_budget) {
@@ -159,7 +159,7 @@ if (count($income_items) > 0) {
         </tr>';
     }
 } else {
-    $html .= '<tr><td colspan="2" class="empty-message">No income items budgeted for this term</td></tr>';
+    $html .= '<tr><td colspan="2" class="empty-message">No income items budgeted for this semester</td></tr>';
 }
 
 $html .= '
@@ -191,7 +191,7 @@ if (count($expense_items) > 0) {
         </tr>';
     }
 } else {
-    $html .= '<tr><td colspan="2" class="empty-message">No expense items budgeted for this term</td></tr>';
+    $html .= '<tr><td colspan="2" class="empty-message">No expense items budgeted for this semester</td></tr>';
 }
 
 $html .= '
@@ -227,5 +227,5 @@ $html .= '
 $mpdf->WriteHTML($html);
 
 // Output PDF
-$filename = 'Budget_' . str_replace(' ', '_', $term) . '_' . $academic_year . '.pdf';
+$filename = 'Budget_' . str_replace(' ', '_', $semester) . '_' . $academic_year . '.pdf';
 $mpdf->Output($filename, 'D'); // D = download

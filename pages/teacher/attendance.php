@@ -19,7 +19,7 @@ $exists = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TA
 if (!$exists) {
     $conn->query("ALTER TABLE attendance ADD COLUMN remarks TEXT NULL AFTER status");
 }
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
 
 // Find what classes this teacher is allocated to
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
                 $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem' WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
             } else {
                 // Insert
-                $conn->query("INSERT INTO attendance (student_id, attendance_date, status, remarks, term, academic_year) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_term', '$current_year')");
+                $conn->query("INSERT INTO attendance (student_id, attendance_date, status, remarks, semester, academic_year) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_term', '$current_year')");
             }
             $count++;
         }
@@ -141,7 +141,7 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
                         <i class="fas fa-link-slash"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">No Classes Assigned</h3>
-                    <p class="text-gray-500 max-w-md mx-auto">You have not been assigned to any classes for the <?= $current_term ?> <?= $current_year ?> term. Please contact the Academic Supervisor.</p>
+                    <p class="text-gray-500 max-w-md mx-auto">You have not been assigned to any classes for the <?= $current_term ?> <?= $current_year ?> semester. Please contact the Academic Supervisor.</p>
                 </div>
             <?php else: ?>
                 <!-- Filters -->

@@ -28,7 +28,7 @@ function getSystemModules()
                 ['label' => 'View Payments', 'url' => 'finance/payments/view_payments.php', 'icon' => 'fa-credit-card'],
                 ['label' => 'View Expenses', 'url' => 'finance/expenses/view_expenses.php', 'icon' => 'fa-receipt'],
                 ['label' => 'View Budgets', 'url' => 'finance/budgets/budgets.php', 'icon' => 'fa-sack-dollar'],
-                ['label' => 'Term Invoices', 'url' => 'finance/invoices/term_invoice.php', 'icon' => 'fa-print'],
+                ['label' => 'Semester Invoices', 'url' => 'finance/invoices/term_invoice.php', 'icon' => 'fa-print'],
                 ['label' => 'Reports', 'url' => 'finance/reports/report.php', 'icon' => 'fa-chart-line'],
                 ['label' => 'Student Balances', 'url' => 'finance/reports/student_balances.php', 'icon' => 'fa-wallet']
             ]
@@ -52,32 +52,32 @@ function getSystemModules()
             'primary_action' => ['label' => 'View Payments', 'url' => 'finance/payments/view_payments.php'],
             'secondary_action' => ['label' => 'Record Payment', 'url' => 'finance/payments/record_payment_form.php'],
             'links' => [
-                ['label' => 'Reallocate Term Payments', 'url' => 'finance/payments/reallocate_term_payments.php', 'icon' => 'fa-shuffle'],
+                ['label' => 'Reallocate Semester Payments', 'url' => 'finance/payments/reallocate_term_payments.php', 'icon' => 'fa-shuffle'],
                 ['label' => 'Payment Receipts', 'url' => 'finance/payments/receipt.php', 'icon' => 'fa-receipt']
             ]
         ],
         [
             'title' => 'Expenses & Budgeting',
             'icon' => 'fa-receipt',
-            'description' => 'Track expenses and manage term and annual budgets.',
+            'description' => 'Track expenses and manage semester and annual budgets.',
             'primary_action' => ['label' => 'View Expenses', 'url' => 'finance/expenses/view_expenses.php'],
             'secondary_action' => ['label' => 'Add Expense', 'url' => 'finance/expenses/add_expense_form.php'],
             'links' => [
                 ['label' => 'View Budgets', 'url' => 'finance/budgets/budgets.php', 'icon' => 'fa-sack-dollar'],
-                ['label' => 'Term Budget', 'url' => 'finance/budgets/term_budget.php', 'icon' => 'fa-calendar-days'],
-                ['label' => 'Setup Term Budget', 'url' => 'finance/budgets/setup_term_budget.php', 'icon' => 'fa-sliders'],
+                ['label' => 'Semester Budget', 'url' => 'finance/budgets/term_budget.php', 'icon' => 'fa-calendar-days'],
+                ['label' => 'Setup Semester Budget', 'url' => 'finance/budgets/setup_term_budget.php', 'icon' => 'fa-sliders'],
                 ['label' => 'Expense Categories', 'url' => 'finance/expenses/add_expense_category_form.php', 'icon' => 'fa-tags']
             ]
         ],
         [
             'title' => 'Billing & Invoices',
             'icon' => 'fa-file-invoice',
-            'description' => 'Generate and manage term bills and invoices.',
+            'description' => 'Generate and manage semester bills and invoices.',
             'primary_action' => ['label' => 'Generate Bills', 'url' => 'finance/invoices/generate_term_bills.php'],
-            'secondary_action' => ['label' => 'View Term Bills', 'url' => 'finance/invoices/view_term_bills.php'],
+            'secondary_action' => ['label' => 'View Semester Bills', 'url' => 'finance/invoices/view_term_bills.php'],
             'links' => [
-                ['label' => 'Term Invoices', 'url' => 'finance/invoices/term_invoice.php', 'icon' => 'fa-print'],
-                ['label' => 'Bulk Term Billing', 'url' => 'finance/invoices/bulk_term_billing_form.php', 'icon' => 'fa-layer-group'],
+                ['label' => 'Semester Invoices', 'url' => 'finance/invoices/term_invoice.php', 'icon' => 'fa-print'],
+                ['label' => 'Bulk Semester Billing', 'url' => 'finance/invoices/bulk_term_billing_form.php', 'icon' => 'fa-layer-group'],
                 ['label' => 'Download Invoice', 'url' => 'finance/invoices/download_term_invoice.php', 'icon' => 'fa-download']
             ]
         ],

@@ -27,17 +27,17 @@ if (!file_exists('../vendor/autoload.php')) {
 require_once '../vendor/autoload.php';
 
 // Get parameters
-$term = isset($_GET['term']) ? $_GET['term'] : '';
+$semester = isset($_GET['semester']) ? $_GET['semester'] : '';
 $class_filter = isset($_GET['class']) ? $_GET['class'] : 'all';
 $student_id = isset($_GET['student_id']) ? intval($_GET['student_id']) : 0;
 
-if (empty($term)) {
+if (empty($semester)) {
     ob_end_clean();
-    die('Error: Term is required');
+    die('Error: Semester is required');
 }
 
 // Get system settings
-$current_term = getSystemSetting($conn, 'current_term', 'First Term');
+$current_term = getSystemSetting($conn, 'current_term', 'First Semester');
 $default_academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
 // Academic year override via GET
 $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'] !== ''
@@ -66,7 +66,7 @@ if ($student_id > 0) {
         SELECT DISTINCT s.id, s.first_name, s.last_name, s.class, s.parent_contact
         FROM students s
         INNER JOIN student_fees sf ON s.id = sf.student_id
-        WHERE s.status = 'active' AND sf.term = ? AND ".($strict_year ? "sf.academic_year = ?" : "(sf.academic_year = ? OR sf.academic_year IS NULL)")." AND sf.status != 'cancelled'
+        WHERE s.status = 'active' AND sf.semester = ? AND ".($strict_year ? "sf.academic_year = ?" : "(sf.academic_year = ? OR sf.academic_year IS NULL)")." AND sf.status != 'cancelled'
     ";
 
     if ($class_filter !== 'all') {
@@ -77,9 +77,9 @@ if ($student_id > 0) {
 
     $student_stmt = $conn->prepare($student_query);
     if ($class_filter !== 'all') {
-        $student_stmt->bind_param('sss', $term, $selected_academic_year, $class_filter);
+        $student_stmt->bind_param('sss', $semester, $selected_academic_year, $class_filter);
     } else {
-        $student_stmt->bind_param('ss', $term, $selected_academic_year);
+        $student_stmt->bind_param('ss', $semester, $selected_academic_year);
     }
     $student_stmt->execute();
     $students_result = $student_stmt->get_result();
@@ -99,20 +99,20 @@ if (count($students) > 0) {
 
 // Process each student's fees and calculations
 foreach ($students as &$student) {
-    // Ensure arrears is materialized as a fee in the current term/year
-    ensureArrearsAssignment($conn, $student['id'], $term, $selected_academic_year);
+    // Ensure arrears is materialized as a fee in the current semester/year
+    ensureArrearsAssignment($conn, $student['id'], $semester, $selected_academic_year);
 
-    // Fetch current term fees (includes arrears carry-forward row if any)
+    // Fetch current semester fees (includes arrears carry-forward row if any)
     $fees_sql = "
         SELECT sf.*, f.name as fee_name, f.fee_type,
                (sf.amount - sf.amount_paid) as balance_remaining
         FROM student_fees sf
         JOIN fees f ON sf.fee_id = f.id
-        WHERE sf.student_id = ? AND sf.term = ? AND ".($strict_year ? "sf.academic_year = ?" : "(sf.academic_year = ? OR sf.academic_year IS NULL)")." AND sf.status != 'cancelled'
+        WHERE sf.student_id = ? AND sf.semester = ? AND ".($strict_year ? "sf.academic_year = ?" : "(sf.academic_year = ? OR sf.academic_year IS NULL)")." AND sf.status != 'cancelled'
         ORDER BY f.name
     ";
     $fees_stmt = $conn->prepare($fees_sql);
-    $fees_stmt->bind_param('iss', $student['id'], $term, $selected_academic_year);
+    $fees_stmt->bind_param('iss', $student['id'], $semester, $selected_academic_year);
     $fees_stmt->execute();
     $fees_result = $fees_stmt->get_result();
     
@@ -131,14 +131,14 @@ foreach ($students as &$student) {
     // Arrears is embedded as a fee; don't compute separately
     $student['arrears'] = 0.0;
     
-    // Get total paid for THIS term/year only
-    $paid_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE student_id = ? AND term = ? AND ".($strict_year ? "academic_year = ?" : "(academic_year = ? OR academic_year IS NULL)"));
-    $paid_stmt->bind_param('iss', $student['id'], $term, $selected_academic_year);
+    // Get total paid for THIS semester/year only
+    $paid_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE student_id = ? AND semester = ? AND ".($strict_year ? "academic_year = ?" : "(academic_year = ? OR academic_year IS NULL)"));
+    $paid_stmt->bind_param('iss', $student['id'], $semester, $selected_academic_year);
     $paid_stmt->execute();
     $student['total_paid'] = $paid_stmt->get_result()->fetch_assoc()['total'];
     $paid_stmt->close();
     
-    // Invoice total is the sum of current term fees (including arrears fee row)
+    // Invoice total is the sum of current semester fees (including arrears fee row)
     $student['total_bill'] = $student['current_term_total'];
     $student['balance_due'] = max(0, $student['total_bill'] - $student['total_paid']);
 }unset($student); // CRITICAL: Unset reference to prevent array corruption
@@ -169,7 +169,7 @@ foreach ($students as $student) {
         $endYear = intval($endPart);
     }
     $yearCode = substr((string)$startYear, -2) . substr((string)$endYear, -2);
-    $invoice_number = strtoupper($term[0]) . $yearCode . str_pad($student['id'], 4, '0', STR_PAD_LEFT);
+    $invoice_number = strtoupper($semester[0]) . $yearCode . str_pad($student['id'], 4, '0', STR_PAD_LEFT);
     
     // Build individual student HTML
     $student_html = '
@@ -188,7 +188,7 @@ foreach ($students as $student) {
             </div>
         </div>
 
-        <div class="bill-title">SCHOOL FEES BILL - ' . strtoupper($term) . '</div>
+        <div class="bill-title">SCHOOL FEES BILL - ' . strtoupper($semester) . '</div>
 
         <div class="student-details">
             <table class="student-details-table">
@@ -205,7 +205,7 @@ foreach ($students as $student) {
                 <tr>
                     <td>
                         <span class="label">TERM:</span>
-                        <span>' . strtoupper(htmlspecialchars($term)) . '</span>
+                        <span>' . strtoupper(htmlspecialchars($semester)) . '</span>
                     </td>
                     <td>
                         <span class="label">ACADEMIC YEAR:</span>
@@ -234,7 +234,7 @@ foreach ($students as $student) {
             </thead>
             <tbody>';
     
-    // No separate ARREARS row; arrears is part of current term fees as a materialized fee
+    // No separate ARREARS row; arrears is part of current semester fees as a materialized fee
     
     foreach ($student['fees'] as $fee) {
         $student_html .= '
@@ -313,7 +313,7 @@ foreach ($students as $student) {
             <h3>NOTE:</h3>
             <ol class="footer-notes">
                 <li>All outstanding fees must be cleared before school reopens.</li>
-                <li>All fees must be paid before the end of the term.</li>
+                <li>All fees must be paid before the end of the semester.</li>
                 <li>Please ensure all items are provided on time.</li>
                 <li>Feeding fee is strictly weekly, monthly, or termly (<strong>NO DAILY FEEDING FEE</strong>).</li>
                 <li>For any queries, contact the school administration.</li>
@@ -428,7 +428,7 @@ if (count($pdf_files) > 1) {
         exit;
     }
     
-    $zip_filename = 'Term_Invoices_' . str_replace(' ', '_', $term);
+    $zip_filename = 'Term_Invoices_' . str_replace(' ', '_', $semester);
     if ($class_filter !== 'all') {
         $zip_filename .= '_' . str_replace(' ', '_', $class_filter);
     }

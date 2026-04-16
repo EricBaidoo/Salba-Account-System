@@ -19,7 +19,7 @@ if ($conn->query($sql)) {
 
 // Insert default settings
 $defaults = [
-    ['current_term', 'First Term', 'The active academic term for the entire system', 'System'],
+    ['current_term', 'First Semester', 'The active academic semester for the entire system', 'System'],
     ['academic_year', '2024/2025', 'Current academic year', 'System'],
     ['school_name', 'Salba Montessori School', 'Official school name', 'System'],
     ['school_address', 'Accra, Ghana', 'School physical address', 'System'],

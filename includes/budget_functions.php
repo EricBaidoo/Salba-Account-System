@@ -5,11 +5,11 @@
  */
 
 /**
- * Get spending for a category in a term
+ * Get spending for a category in a semester
  */
-function getTermCategorySpending($conn, $category, $term, $academic_year) {
+function getTermCategorySpending($conn, $category, $semester, $academic_year) {
     require_once __DIR__ . '/term_helpers.php';
-    $range = getTermDateRange($conn, $term, $academic_year);
+    $range = getTermDateRange($conn, $semester, $academic_year);
     
     $stmt = $conn->prepare("
         SELECT COALESCE(SUM(e.amount), 0) AS total 
@@ -31,7 +31,7 @@ function getTermCategorySpending($conn, $category, $term, $academic_year) {
  * Get all budgets for a specific academic year (all terms)
  */
 function getBudgetsByYear($conn, $academic_year) {
-    $stmt = $conn->prepare("SELECT * FROM budgets WHERE academic_year = ? ORDER BY term DESC, created_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM budgets WHERE academic_year = ? ORDER BY semester DESC, created_at DESC");
     $stmt->bind_param('s', $academic_year);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -97,14 +97,14 @@ function getBudgetStatus($variance_percent) {
 }
 
 /**
- * Get budgets that have exceeded their alert threshold for a term
+ * Get budgets that have exceeded their alert threshold for a semester
  */
-function getAlertedBudgets($conn, $term, $academic_year) {
-    $budgets = getBudgetsByTerm($conn, $term, $academic_year);
+function getAlertedBudgets($conn, $semester, $academic_year) {
+    $budgets = getBudgetsByTerm($conn, $semester, $academic_year);
     $alerted = [];
     
     foreach ($budgets as $budget) {
-        $spent = getBudgetSpent($conn, $budget['id'], $budget['term']);
+        $spent = getBudgetSpent($conn, $budget['id'], $budget['semester']);
         $percent = ((float)$budget['amount'] > 0) ? round(($spent / (float)$budget['amount']) * 100, 2) : 0;
         
         if ($percent >= $budget['alert_threshold']) {
@@ -118,10 +118,10 @@ function getAlertedBudgets($conn, $term, $academic_year) {
 }
 
 /**
- * Get budget summary statistics for a term
+ * Get budget summary statistics for a semester
  */
-function getBudgetSummary($conn, $term, $academic_year) {
-    $budgets = getBudgetsByTerm($conn, $term, $academic_year);
+function getBudgetSummary($conn, $semester, $academic_year) {
+    $budgets = getBudgetsByTerm($conn, $semester, $academic_year);
     
     $summary = [
         'total_budgeted' => 0,
@@ -133,7 +133,7 @@ function getBudgetSummary($conn, $term, $academic_year) {
     ];
     
     foreach ($budgets as $budget) {
-        $spent = getBudgetSpent($conn, $budget['id'], $term);
+        $spent = getBudgetSpent($conn, $budget['id'], $semester);
         $summary['total_budgeted'] += (float)$budget['amount'];
         $summary['total_spent'] += $spent;
         
@@ -151,14 +151,14 @@ function getBudgetSummary($conn, $term, $academic_year) {
 }
 
 /**
- * Get variance report for budgets in a term
+ * Get variance report for budgets in a semester
  */
-function getVarianceReport($conn, $term, $academic_year) {
-    $budgets = getBudgetsByTerm($conn, $term, $academic_year);
+function getVarianceReport($conn, $semester, $academic_year) {
+    $budgets = getBudgetsByTerm($conn, $semester, $academic_year);
     $variance = [];
     
     foreach ($budgets as $budget) {
-        $spent = getBudgetSpent($conn, $budget['id'], $term);
+        $spent = getBudgetSpent($conn, $budget['id'], $semester);
         $variance_amount = (float)$budget['amount'] - $spent;
         $variance_percent = ((float)$budget['amount'] > 0) ? round(($spent / (float)$budget['amount']) * 100, 2) : 0;
         

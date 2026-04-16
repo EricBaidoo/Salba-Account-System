@@ -2,10 +2,10 @@
 include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 
-// Get current term and academic year from system settings
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year from system settings
+$current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
-$available_terms = getAvailableTerms($conn);
+$available_terms = getAvailableSemesters($conn);
 
 // Build Academic Year options: distinct values from data + current system year
 $year_options = [];
@@ -396,16 +396,16 @@ while ($row = $classes_result->fetch_assoc()) {
                                     <input type="date" class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="due_date" name="due_date" required>
                                 </div>
                                 <div class="md:col-span-6">
-                                    <label for="term" class="clean-block text-sm font-medium mb-">
-                                        <i class="fas fa-calendar-week mr-2"></i>Academic Term *
+                                    <label for="semester" class="clean-block text-sm font-medium mb-">
+                                        <i class="fas fa-calendar-week mr-2"></i>Academic Semester *
                                     </label>
-                                    <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="term" name="term" required>
-                                        <option value="">Select Term...</option>
-                                            <?php foreach ($available_terms as $term): ?>
-                                                <option value="<?php echo htmlspecialchars($term); ?>" 
-                                                    <?php echo $term === $current_term ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($term); ?>
-                                                    <?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                                    <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="semester" name="semester" required>
+                                        <option value="">Select Semester...</option>
+                                            <?php foreach ($available_terms as $semester): ?>
+                                                <option value="<?php echo htmlspecialchars($semester); ?>" 
+                                                    <?php echo $semester === $current_term ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($semester); ?>
+                                                    <?php echo $semester === $current_term ? ' (Current)' : ''; ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -870,7 +870,7 @@ while ($row = $classes_result->fetch_assoc()) {
         function resetForm() {
             resetSelections();
             document.getElementById('due_date').value = '';
-            document.getElementById('term').value = '';
+            document.getElementById('semester').value = '';
             document.getElementById('notes').value = '';
             updateAssignmentSummary();
             checkFormComplete();
@@ -937,7 +937,7 @@ while ($row = $classes_result->fetch_assoc()) {
         document.addEventListener('DOMContentLoaded', function() {
             // Add event listeners
             document.getElementById('due_date').addEventListener('change', checkFormComplete);
-            document.getElementById('term').addEventListener('change', checkFormComplete);
+            document.getElementById('semester').addEventListener('change', checkFormComplete);
             document.getElementById('classSelect').addEventListener('change', function() {
                 updateAssignmentSummary();
                 checkFormComplete();

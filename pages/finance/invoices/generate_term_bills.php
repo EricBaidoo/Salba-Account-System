@@ -52,7 +52,7 @@ $display_year = formatAcademicYearDisplay($conn, $default_academic_year);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Generate Term Bills - Salba Montessori</title>
+    <title>Generate Semester Bills - Salba Montessori</title>
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="../../../assets/css/style.css">
@@ -66,7 +66,7 @@ $display_year = formatAcademicYearDisplay($conn, $default_academic_year);
                     <span>Back to Dashboard</span>
                 </a>
                 <div class="clean-header-title">
-                    <h1><i class="fas fa-file-invoice-dollar"></i>Generate Term Bills</h1>
+                    <h1><i class="fas fa-file-invoice-dollar"></i>Generate Semester Bills</h1>
                     <p>Select fees, assign them to students, and generate prinw-full border-collapse invoices</p>
                 </div>
             </div>
@@ -81,14 +81,14 @@ $display_year = formatAcademicYearDisplay($conn, $default_academic_year);
                     <div class="flex flex-wrap gap-3">
                         <div class="col-md-4">
                             <label class="clean-block text-sm font-medium mb-">
-                                <i class="fas fa-calendar-check"></i>Academic Term
+                                <i class="fas fa-calendar-check"></i>Academic Semester
                                 <span class="required-indicator">*</span>
                             </label>
-                            <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" name="term" id="term" required>
-                                <option value="">Select Term</option>
-                                <option value="First Term">First Term</option>
-                                <option value="Second Term">Second Term</option>
-                                <option value="Third Term">Third Term</option>
+                            <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" name="semester" id="semester" required>
+                                <option value="">Select Semester</option>
+                                <option value="First Semester">First Semester</option>
+                                <option value="Second Semester">Second Semester</option>
+                                <option value="Third Semester">Third Semester</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -203,7 +203,7 @@ $display_year = formatAcademicYearDisplay($conn, $default_academic_year);
         const selectedFeesInput = document.getElementById('selected_fees');
         const submitBtn = document.getElementById('submitBtn');
         const preview = document.getElementById('preview');
-        const termSelect = document.getElementById('term');
+        const termSelect = document.getElementById('semester');
         const dueDateInput = document.getElementById('due_date');
         const classFilter = document.getElementById('class_filter');
         const yearSelect = document.getElementById('academic_year');

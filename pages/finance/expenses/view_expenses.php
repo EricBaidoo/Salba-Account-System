@@ -7,13 +7,13 @@ if (!is_logged_in()) {
     exit;
 }
 
-// Get current term and academic year
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
-// Filters: term, academic year, and category
-$selected_term = isset($_GET['term']) ? trim($_GET['term']) : $current_term;
+// Filters: semester, academic year, and category
+$selected_term = isset($_GET['semester']) ? trim($_GET['semester']) : $current_term;
 $selected_year = isset($_GET['year']) ? trim($_GET['year']) : $current_year;
 $selected_category = isset($_GET['category']) ? intval($_GET['category']) : 0;
 
@@ -40,7 +40,7 @@ $where = [];
 $params = [];
 $types = '';
 if ($selected_term !== '') { 
-    $where[] = 'e.term = ?'; 
+    $where[] = 'e.semester = ?'; 
     $params[] = $selected_term; 
     $types .= 's'; 
 }
@@ -169,8 +169,8 @@ $total_count = $result->num_rows;
             <form method="GET" action="">
                 <div class="flex flex-wrap gap-3 items-end">
                     <div class="col-md-3">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-week mr-2"></i>Term</label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="term">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-week mr-2"></i>Semester</label>
+                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="semester">
                             <option value="">All Terms</option>
                             <?php foreach ($available_terms as $t): ?>
                                 <option value="<?php echo htmlspecialchars($t); ?>" <?php echo ($selected_term === $t) ? 'selected' : ''; ?>>
@@ -240,7 +240,7 @@ $total_count = $result->num_rows;
         <div class="print-header text-center">
             <h3 class="mb-"><?php echo htmlspecialchars($school_name); ?></h3>
             <div class="small text-gray-600">Expenses Overview</div>
-            <div class="mt-1">Term: <strong><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : 'All Terms'); ?></strong> | Academic Year: <strong><?php echo htmlspecialchars($selected_year !== '' ? formatAcademicYearDisplay($conn, $selected_year) : 'All Years'); ?></strong></div>
+            <div class="mt-1">Semester: <strong><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : 'All Terms'); ?></strong> | Academic Year: <strong><?php echo htmlspecialchars($selected_year !== '' ? formatAcademicYearDisplay($conn, $selected_year) : 'All Years'); ?></strong></div>
             <div class="small text-gray-600">Printed on <?php echo date('M j, Y'); ?></div>
         </div>
 
@@ -257,7 +257,7 @@ $total_count = $result->num_rows;
                             <th>Category</th>
                             <th>Amount</th>
                             <th>Expense Date</th>
-                            <th>Term</th>
+                            <th>Semester</th>
                             <th>Year</th>
                             <th>Description</th>
                             <th class="print:hidden">Actions</th>
@@ -270,7 +270,7 @@ $total_count = $result->num_rows;
                             <td><?php echo htmlspecialchars($row['category_name'] ?? 'Uncategorized'); ?></td>
                             <td><strong class="text-red-600">GHâ‚µ<?php echo number_format($row['amount'], 2); ?></strong></td>
                             <td><?php echo date('M j, Y', strtotime($row['expense_date'])); ?></td>
-                            <td><?php echo htmlspecialchars($row['term'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($row['semester'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars(!empty($row['academic_year']) ? formatAcademicYearDisplay($conn, $row['academic_year']) : ''); ?></td>
                             <td><?php echo htmlspecialchars($row['description']); ?></td>
                             <td class="print:hidden">

@@ -11,9 +11,9 @@ require_once '../../includes/term_helpers.php';
 
 $student_id = intval($_GET['id'] ?? 0);
 
-// Get current term from system settings or URL parameter
-$current_term = getCurrentTerm($conn);
-$selected_term = $_GET['term'] ?? $current_term;
+// Get current semester from system settings or URL parameter
+$current_term = getCurrentSemester($conn);
+$selected_term = $_GET['semester'] ?? $current_term;
 $default_academic_year = getAcademicYear($conn);
 $selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
@@ -23,23 +23,23 @@ if ($student_id === 0) {
     exit;
 }
 
-// Ensure arrears are carried forward as an assigned fee in the current term BEFORE computing balances
+// Ensure arrears are carried forward as an assigned fee in the current semester BEFORE computing balances
 ensureArrearsAssignment($conn, $student_id, $selected_term, $selected_academic_year);
 
-// Get student balance information for selected term/year (now includes arrears assignment)
+// Get student balance information for selected semester/year (now includes arrears assignment)
 $student_balance = getStudentBalance($conn, $student_id, $selected_term, $selected_academic_year);
 if (!$student_balance) {
     header('Location: student_balances.php');
     exit;
 }
 
-// Get all assigned fees for selected term/year (pending or paid)
+// Get all assigned fees for selected semester/year (pending or paid)
 $term_fees = getStudentTermFees($conn, $student_id, $selected_term, $selected_academic_year);
 
-// Get payment history for selected term/year
+// Get payment history for selected semester/year
 $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, $selected_academic_year);
 
-// Arrears are now represented as a fee within the current term via ensureArrearsAssignment
+// Arrears are now represented as a fee within the current semester via ensureArrearsAssignment
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,20 +72,20 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                             <span class="clean-badge clean-badge-danger">Inactive</span>
                         <?php endif; ?>
                     </p>
-                    <p class="text-gray-600 small"><i class="fas fa-calendar-alt mr-1"></i>Term: <?php echo htmlspecialchars($selected_term); ?> | <i class="fas fa-graduation-cap mr-1"></i>Year: <?php echo htmlspecialchars($display_academic_year); ?></p>
+                    <p class="text-gray-600 small"><i class="fas fa-calendar-alt mr-1"></i>Semester: <?php echo htmlspecialchars($selected_term); ?> | <i class="fas fa-graduation-cap mr-1"></i>Year: <?php echo htmlspecialchars($display_academic_year); ?></p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="w-full px-4 py-4">
-                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-light px-3 py-2 rounded-lg shadow-sm block d-md-inline-block mb-">
+                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-light px-3 py-2 rounded-lg shadow-sm block d-md-inline-block mb-">
                         <i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Record Payment
                     </a>
-                    <a href="assign_fee_form.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-outline-light px-3 py-2 rounded-lg shadow-sm block d-md-inline-block">
+                    <a href="assign_fee_form.php?student_id=<?php echo $student_id; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-outline-light px-3 py-2 rounded-lg shadow-sm block d-md-inline-block">
                         <i class="fas fa-plus mr-2"></i>Assign Fee
                     </a>
-                    <a href="download_term_invoice.php?student_id=<?php echo $student_id; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-lg shadow-sm block d-md-inline-block ml-md-2 mt-2 mt-md-0">
+                    <a href="download_term_invoice.php?student_id=<?php echo $student_id; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" target="_blank" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-lg shadow-sm block d-md-inline-block ml-md-2 mt-2 mt-md-0">
                         <i class="fas fa-download mr-2"></i>Download Invoice (PDF)
                     </a>
                 </div>
@@ -95,27 +95,27 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
 
     <div class="max-w-7xl mx-auto mb-">
         <div class="flex justify-content-end">
-            <a class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-outline-danger" href="reallocate_term_payments.php?student_id=<?php echo intval($student_id); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">Re-allocate payments for this term</a>
+            <a class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-outline-danger" href="reallocate_term_payments.php?student_id=<?php echo intval($student_id); ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">Re-allocate payments for this semester</a>
         </div>
     </div>
 
     <div class="max-w-7xl mx-auto">
-        <!-- Term Selector -->
+        <!-- Semester Selector -->
         <div class="row mb- g-4">
             <div class="md:col-span-6">
                 <div class="bg-white rounded shadow border-0 shadow-sm h-full">
                     <div class="bg-white rounded shadow-body">
                         <label for="termFilter" class="block text-sm font-medium mb- fw-bold">
-                            <i class="fas fa-calendar-alt text-primary mr-2"></i>Academic Term
+                            <i class="fas fa-calendar-alt text-primary mr-2"></i>Academic Semester
                         </label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="termFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&term=' + this.value + '&academic_year=' + encodeURIComponent(document.getElementById('yearFilter').value);">
+                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="termFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&semester=' + this.value + '&academic_year=' + encodeURIComponent(document.getElementById('yearFilter').value);">
                             <?php 
-                            $available_terms = getAvailableTerms();
-                            foreach ($available_terms as $term): 
+                            $available_terms = getAvailableSemesters();
+                            foreach ($available_terms as $semester): 
                             ?>
-                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $term === $selected_term ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($term); ?>
-                                    <?php if ($term === $current_term): ?>(Current)<?php endif; ?>
+                                <option value="<?php echo htmlspecialchars($semester); ?>" <?php echo $semester === $selected_term ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($semester); ?>
+                                    <?php if ($semester === $current_term): ?>(Current)<?php endif; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -123,7 +123,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                             <label for="yearFilter" class="block text-sm font-medium mb- fw-bold">
                                 <i class="fas fa-graduation-cap text-blue-600 mr-2"></i>Academic Year
                             </label>
-                            <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="yearFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&term=' + encodeURIComponent(document.getElementById('termFilter').value) + '&academic_year=' + this.value;">
+                            <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="yearFilter" onchange="window.location.href='?id=<?php echo $student_id; ?>&semester=' + encodeURIComponent(document.getElementById('termFilter').value) + '&academic_year=' + this.value;">
                                 <?php 
                                 $year_options = [];
                                 $yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
@@ -186,7 +186,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                     <th>Fee Name / Payment</th>
                                     <th>Amount (GHâ‚µ)</th>
                                     <th>Date</th>
-                                    <th>Term</th>
+                                    <th>Semester</th>
                                     <th>Status</th>
                                     <th>Receipt No</th>
                                     <th>Description / Notes</th>
@@ -194,7 +194,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Term Fees (pending or paid) -->
+                                <!-- Semester Fees (pending or paid) -->
                                 <?php if (!empty($term_fees)): ?>
                                     <?php foreach($term_fees as $fee): ?>
                                     <tr>
@@ -215,7 +215,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                                 <i class="far fa-calendar mr-1"></i><?php echo date('M j, Y', strtotime($fee['due_date'])); ?>
                                             <?php else: ?>-<?php endif; ?>
                                         </td>
-                                        <td><?php echo htmlspecialchars($fee['term'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($fee['semester'] ?? ''); ?></td>
                                         <td>
                                             <span class="badge <?php echo ($fee['status'] === 'paid') ? 'bg-success' : 'bg-secondary'; ?>">
                                                 <?php echo ucfirst($fee['status']); ?>
@@ -225,18 +225,18 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                         <td><?php if (!empty($fee['notes'])): ?><i class="fas fa-sticky-note mr-1 text-gray-600"></i> <?php echo htmlspecialchars($fee['notes']); ?><?php endif; ?></td>
                                         <td>
                                             <?php if ($is_ob_fee): ?>
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700" title="Auto-managed from previous term">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700" title="Auto-managed from previous semester">
                                                     <i class="fas fa-robot mr-1"></i>Auto-calculated
                                                 </span>
                                             <?php else: ?>
                                             <div class="px-3 py-2 rounded-group" role="group">
                                                 <?php if ($fee['status'] !== 'paid'): ?>
-                                                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-success" title="Pay this fee">
+                                                    <a href="record_payment_form.php?student_id=<?php echo $student_id; ?>&fee_id=<?php echo $fee['id']; ?>&amount=<?php echo $fee['amount']; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-success" title="Pay this fee">
                                                         <i class="fas fa-credit-bg-white rounded shadow"></i>
                                                     </a>
                                                 <?php endif; ?>
                                                 <button type="button" class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-outline-primary" 
-                                                        onclick="editFee(<?php echo $fee['id']; ?>, <?php echo $student_id; ?>, '<?php echo htmlspecialchars($fee['fee_name'], ENT_QUOTES); ?>', <?php echo $fee['amount']; ?>, '<?php echo $fee['due_date']; ?>', '<?php echo htmlspecialchars($fee['term'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($fee['notes'] ?? '', ENT_QUOTES); ?>')"
+                                                        onclick="editFee(<?php echo $fee['id']; ?>, <?php echo $student_id; ?>, '<?php echo htmlspecialchars($fee['fee_name'], ENT_QUOTES); ?>', <?php echo $fee['amount']; ?>, '<?php echo $fee['due_date']; ?>', '<?php echo htmlspecialchars($fee['semester'] ?? '', ENT_QUOTES); ?>', '<?php echo htmlspecialchars($fee['notes'] ?? '', ENT_QUOTES); ?>')"
                                                         title="Edit this fee assignment">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -253,7 +253,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                 <?php else: ?>
                                     <tr>
                                         <td colspan="9" class="text-center text-green-600 fw-bold py-3">
-                                            <i class="fas fa-check-circle mr-2"></i>No fees assigned in this term
+                                            <i class="fas fa-check-circle mr-2"></i>No fees assigned in this semester
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -265,7 +265,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                         <td class="fw-semibold">Payment Received</td>
                                         <td class="fw-bold text-green-600">GHâ‚µ<?php echo number_format($payment['amount'], 2); ?></td>
                                         <td><i class="far fa-calendar mr-1"></i><?php echo date('M j, Y', strtotime($payment['payment_date'])); ?></td>
-                                        <td><?php echo htmlspecialchars($payment['term'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($payment['semester'] ?? ''); ?></td>
                                         <td><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700"><i class="fas fa-check mr-1"></i>Paid</span></td>
                                         <td><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><?php echo htmlspecialchars($payment['receipt_no'] ?? 'N/A'); ?></span></td>
                                         <td><?php echo htmlspecialchars($payment['description'] ?? ''); ?></td>
@@ -401,19 +401,19 @@ function deletePayment(paymentId, studentId) {
                         <div class="flex flex-wrap">
                             <div class="md:col-span-6 mb-">
                                 <label for="editFeeTerm" class="block text-sm font-medium mb-">
-                                    <i class="fas fa-calendar-alt mr-1"></i>Term/Period
+                                    <i class="fas fa-calendar-alt mr-1"></i>Semester/Period
                                 </label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="editFeeTerm" name="term">
-                                    <option value="">Select Term...</option>
+                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="editFeeTerm" name="semester">
+                                    <option value="">Select Semester...</option>
                                     <?php 
-                                        $available_terms = getAvailableTerms();
+                                        $available_terms = getAvailableSemesters();
                                         foreach ($available_terms as $t): ?>
                                         <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars($t); ?></option>
                                     <?php endforeach; ?>
                                     <option value="Annual">Annual</option>
                                     <option value="One-time">One-time</option>
                                 </select>
-                                <small class="text-gray-600 block mt-1"><i class="fas fa-info-circle mr-1"></i>Changing the term moves this fee to that term. It may no longer appear in the current view.</small>
+                                <small class="text-gray-600 block mt-1"><i class="fas fa-info-circle mr-1"></i>Changing the semester moves this fee to that semester. It may no longer appear in the current view.</small>
                             </div>
                             <div class="md:col-span-6 mb-">
                                 <label for="editFeeStatus" class="block text-sm font-medium mb-">
@@ -493,14 +493,14 @@ function deletePayment(paymentId, studentId) {
         let currentFeeId = null;
         let currentStudentId = null;
 
-        function editFee(studentFeeId, studentId, feeName, feeAmount, dueDate, term, notes) {
+        function editFee(studentFeeId, studentId, feeName, feeAmount, dueDate, semester, notes) {
             // Set form values
             document.getElementById('editStudentFeeId').value = studentFeeId;
             document.getElementById('editStudentId').value = studentId;
             document.getElementById('editModalFeeName').textContent = feeName;
             document.getElementById('editFeeAmount').value = parseFloat(feeAmount).toFixed(2);
             document.getElementById('editFeeDueDate').value = dueDate;
-            document.getElementById('editFeeTerm').value = term || '';
+            document.getElementById('editFeeTerm').value = semester || '';
             document.getElementById('editFeeNotes').value = notes || '';
             
             // Show modal

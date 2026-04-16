@@ -6,10 +6,10 @@
 
 // Helper functions that are defined locally in this file
 if (!function_exists('reportApplyTermYearScope')) {
-    function reportApplyTermYearScope(array &$conditions, array &$params, string &$types, string $tableAlias, ?string $term, ?string $academic_year): void {
-        if ($term !== null && $term !== '') {
-            $conditions[] = $tableAlias . '.term = ?';
-            $params[] = $term;
+    function reportApplyTermYearScope(array &$conditions, array &$params, string &$types, string $tableAlias, ?string $semester, ?string $academic_year): void {
+        if ($semester !== null && $semester !== '') {
+            $conditions[] = $tableAlias . '.semester = ?';
+            $params[] = $semester;
             $types .= 's';
         }
 
@@ -316,7 +316,7 @@ if (!function_exists('reportBuildBudgetData')) {
         $income_budget = 0.0;
         $expense_budget = 0.0;
 
-        $budget_stmt = $conn->prepare("SELECT id, expected_income FROM term_budgets WHERE term = ? AND academic_year = ? LIMIT 1");
+        $budget_stmt = $conn->prepare("SELECT id, expected_income FROM term_budgets WHERE semester = ? AND academic_year = ? LIMIT 1");
         $budget_stmt->bind_param('ss', $selected_term, $selected_year);
         $budget_stmt->execute();
         $budget_row = $budget_stmt->get_result()->fetch_assoc();
@@ -357,7 +357,7 @@ if (!function_exists('reportBuildOverdueStudents')) {
             FROM student_fees sf
             JOIN students s ON sf.student_id = s.id
             WHERE sf.status != 'cancelled'
-              AND sf.term = ?
+              AND sf.semester = ?
               AND (sf.academic_year = ? OR sf.academic_year IS NULL)
               AND (sf.amount - sf.amount_paid) > 0
             ORDER BY balance_due DESC, s.class ASC, student_name ASC
@@ -387,7 +387,7 @@ if (!function_exists('reportBuildSummaryInsights')) {
             [
                 'label' => 'Collections vs budget',
                 'value' => $income_collection_rate > 0 ? number_format($income_collection_rate, 1) . '%' : 'N/A',
-                'note' => $income_budget > 0 ? 'Income collected against expected revenue' : 'No term budget set',
+                'note' => $income_budget > 0 ? 'Income collected against expected revenue' : 'No semester budget set',
                 'tone' => $income_collection_rate >= 100 ? 'green' : ($income_collection_rate >= 75 ? 'blue' : 'red'),
             ],
             [

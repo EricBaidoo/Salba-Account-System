@@ -13,15 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = floatval($_POST['amount']);
     $expense_date = $_POST['expense_date'];
     $description = trim($_POST['description']);
-    $term = trim($_POST['term'] ?? '');
+    $semester = trim($_POST['semester'] ?? '');
     $academic_year = trim($_POST['academic_year'] ?? '');
     
     // Get current values if not provided
-    if (empty($term)) { $term = getCurrentTerm($conn); }
+    if (empty($semester)) { $semester = getCurrentSemester($conn); }
     if (empty($academic_year)) { $academic_year = getAcademicYear($conn); }
 
-    $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("idssss", $category_id, $amount, $expense_date, $description, $term, $academic_year);
+    $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description, semester, academic_year) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("idssss", $category_id, $amount, $expense_date, $description, $semester, $academic_year);
     if ($stmt->execute()) {
         echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>Expense added successfully!</div>";
     } else {

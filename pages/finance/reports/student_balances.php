@@ -8,12 +8,12 @@ include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 include '../../includes/student_balance_functions.php';
 
-// Get current term and academic year from system settings
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year from system settings
+$current_term = getCurrentSemester($conn);
 $default_academic_year = getAcademicYear($conn);
 
-// Allow manual term override via URL parameter (for historical viewing)
-$selected_term = $_GET['term'] ?? $current_term;
+// Allow manual semester override via URL parameter (for historical viewing)
+$selected_term = $_GET['semester'] ?? $current_term;
 // Academic year selection (override via GET if provided)
 $selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
@@ -42,7 +42,7 @@ $owing_filter = $_GET['owing'] ?? 'all'; // all, owing, paid_up
     $stmt->close();
 }
 
-// Get all student balances for the selected term/year (now includes arrears as part of fees)
+// Get all student balances for the selected semester/year (now includes arrears as part of fees)
 $student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);
 
 // Apply owing filter
@@ -159,10 +159,10 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                     <a href="../payments/record_payment_form.php" class="px-3 py-2 rounded font-medium-clean-primary">
                         <i class="fas fa-credit-card"></i> RECORD PAYMENT
                     </a>
-                    <a href="download_student_balances.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded font-medium-clean-success">
+                    <a href="download_student_balances.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded font-medium-clean-success">
                         <i class="fas fa-file-csv"></i> DOWNLOAD CSV
                     </a>
-                    <a href="download_student_balances_pdf.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded font-medium-clean-danger">
+                    <a href="download_student_balances_pdf.php?class=<?php echo urlencode($class_filter); ?>&status=<?php echo urlencode($status_filter); ?>&owing=<?php echo urlencode($owing_filter); ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="px-3 py-2 rounded font-medium-clean-danger">
                         <i class="fas fa-file-pdf"></i> DOWNLOAD PDF
                     </a>
                 </div>
@@ -196,16 +196,16 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <div class="col-md-2">
                     <label class="clean-form-label">
-                        <i class="fas fa-calendar-alt me-2"></i>Term
+                        <i class="fas fa-calendar-alt me-2"></i>Semester
                     </label>
-                    <select name="term" class="clean-border border-gray-300 rounded px-3 py-2">
+                    <select name="semester" class="clean-border border-gray-300 rounded px-3 py-2">
                         <?php 
-                        $available_terms = getAvailableTerms();
-                        foreach ($available_terms as $term): ?>
-                            <option value="<?php echo htmlspecialchars($term); ?>" 
-                                    <?php echo $selected_term === $term ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($term); ?>
-                                <?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                        $available_terms = getAvailableSemesters();
+                        foreach ($available_terms as $semester): ?>
+                            <option value="<?php echo htmlspecialchars($semester); ?>" 
+                                    <?php echo $selected_term === $semester ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($semester); ?>
+                                <?php echo $semester === $current_term ? ' (Current)' : ''; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -294,7 +294,7 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
             <h3 class="mb-"><?php echo htmlspecialchars($school_name); ?></h3>
             <div class="small text-muted">Student Balances Report</div>
             <div class="mt-1">
-                Term: <strong><?php echo htmlspecialchars($selected_term); ?></strong>
+                Semester: <strong><?php echo htmlspecialchars($selected_term); ?></strong>
                 | Academic Year: <strong><?php echo htmlspecialchars($display_academic_year); ?></strong>
                 | Class: <strong><?php echo $class_filter !== 'all' ? htmlspecialchars($class_filter) : 'All Classes'; ?></strong>
                 | Status: <strong><?php echo htmlspecialchars(ucfirst($status_filter)); ?></strong>
@@ -339,7 +339,7 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                                         <tr>
                                             <td>
                                                 <div class="fw-semibold">
-                                                    <a href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="text-decoration-none">
+                                                    <a href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>" class="text-decoration-none">
                                                         <?php echo htmlspecialchars($student['student_name']); ?>
                                                     </a>
                                                     <?php if ($student['student_status'] === 'inactive'): ?>
@@ -365,7 +365,7 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                                                         <i class="fas fa-ellipsis-v"></i>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow">
-                                                        <li><a class="dropdown-item" href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
+                                                        <li><a class="dropdown-item" href="student_balance_details.php?id=<?php echo $student['student_id']; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
                                                             <i class="fas fa-eye me-2 text-primary"></i>View Details
                                                         </a></li>
                                                         <li><a class="dropdown-item" href="../payments/record_payment_form.php?student_id=<?php echo $student['student_id']; ?>">
@@ -377,7 +377,7 @@ $classes_result = $conn->query("SELECT DISTINCT class FROM students ORDER BY cla
                                                         <li><a class="dropdown-item" href="student_percentage.php?id=<?php echo $student['student_id']; ?>">
                                                             <i class="fas fa-chart-pie me-2 text-secondary"></i>Percentage
                                                         </a></li>
-                                                        <li><a class="dropdown-item" target="_blank" href="download_term_invoice.php?student_id=<?php echo $student['student_id']; ?>&term=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
+                                                        <li><a class="dropdown-item" target="_blank" href="download_term_invoice.php?student_id=<?php echo $student['student_id']; ?>&semester=<?php echo urlencode($selected_term); ?>&academic_year=<?php echo urlencode($selected_academic_year); ?>">
                                                             <i class="fas fa-download me-2 text-dark"></i>Download Invoice
                                                         </a></li>
                                                     </ul>

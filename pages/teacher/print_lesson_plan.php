@@ -119,7 +119,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         </div>
 
         <div class="header-title">
-            <h2>TERM <?= strtoupper($v('term')) ?: 'THREE' ?></h2>
+            <h2>TERM <?= strtoupper($v('semester')) ?: 'THREE' ?></h2>
             <h1>WEEKLY LESSON NOTES</h1>
             <h2>WEEK <?= $v('week_number') ?></h2>
         </div>

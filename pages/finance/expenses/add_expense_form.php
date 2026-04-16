@@ -3,10 +3,10 @@ include '../../includes/auth_check.php';
 include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 
-// Get current term and academic year
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year
+$current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
 // Fetch categories from DB
 $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
@@ -69,14 +69,14 @@ $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                     </div>
                     
                     <div class="clean-mb-">
-                        <label for="term" class="clean-block text-sm font-medium mb-">
-                            <i class="fas fa-calendar-alt"></i>Term
+                        <label for="semester" class="clean-block text-sm font-medium mb-">
+                            <i class="fas fa-calendar-alt"></i>Semester
                             <span class="required-indicator">*</span>
                         </label>
-                        <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="term" name="term" required>
-                            <?php foreach ($available_terms as $term): ?>
-                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $term === $current_term ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($term); ?><?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                        <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="semester" name="semester" required>
+                            <?php foreach ($available_terms as $semester): ?>
+                                <option value="<?php echo htmlspecialchars($semester); ?>" <?php echo $semester === $current_term ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($semester); ?><?php echo $semester === $current_term ? ' (Current)' : ''; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

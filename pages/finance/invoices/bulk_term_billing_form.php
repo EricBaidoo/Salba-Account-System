@@ -40,7 +40,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Term Billing - Salba Montessori Accounting</title>
+    <title>Bulk Semester Billing - Salba Montessori Accounting</title>
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="../../../assets/css/style.css">
@@ -56,10 +56,10 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
                 </a>
             </div>
             <div class="text-center">
-                <h1 class="clean-page-title"><i class="fas fa-file-invoice-dollar mr-2"></i>Bulk Term Billing</h1>
+                <h1 class="clean-page-title"><i class="fas fa-file-invoice-dollar mr-2"></i>Bulk Semester Billing</h1>
                 <p class="clean-page-subtitle">
-                    Assign fees to multiple students at once for the academic term
-                    <?php $ct = getCurrentTerm($conn); $ay = getAcademicYear($conn); ?>
+                    Assign fees to multiple students at once for the academic semester
+                    <?php $ct = getCurrentSemester($conn); $ay = getAcademicYear($conn); ?>
                     <span class="clean-badge clean-badge-primary ml-2"><i class="fas fa-calendar-alt mr-1"></i><?php echo htmlspecialchars($ct); ?></span>
                     <span class="clean-badge clean-badge-info ml-1"><i class="fas fa-graduation-cap mr-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $ay)); ?></span>
                 </p>
@@ -89,14 +89,14 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
                 <h5 class="mb-"><i class="fas fa-filter mr-2"></i>Billing Options</h5>
                 <div class="flex flex-wrap gap-3">
                     <div class="col-md-3">
-                        <label for="term" class="block text-sm font-medium mb- fw-bold">
-                            <i class="fas fa-calendar-alt mr-1"></i>Academic Term *
+                        <label for="semester" class="block text-sm font-medium mb- fw-bold">
+                            <i class="fas fa-calendar-alt mr-1"></i>Academic Semester *
                         </label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="term" name="term" required>
-                            <option value="">Select Term</option>
-                            <option value="First Term">First Term</option>
-                            <option value="Second Term">Second Term</option>
-                            <option value="Third Term">Third Term</option>
+                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            <option value="First Semester">First Semester</option>
+                            <option value="Second Semester">Second Semester</option>
+                            <option value="Third Semester">Third Semester</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -188,7 +188,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
             <div id="previewSection" class="preview-section mt-4">
                 <h6 class="mb-"><i class="fas fa-eye mr-2"></i>Billing Preview</h6>
                 <p class="mb-">
-                    <strong>Term:</strong> <span id="previewTerm">-</span> | 
+                    <strong>Semester:</strong> <span id="previewTerm">-</span> | 
                     <strong>Due Date:</strong> <span id="previewDueDate">-</span> | 
                     <strong>Classes:</strong> <span id="previewClasses">-</span>
                 </p>
@@ -198,7 +198,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
                 </p>
                 <p class="mb- text-gray-600">
                     <i class="fas fa-exclamation-triangle mr-1"></i>
-                    <small>Students who already have these fees assigned for this term will be skipped.</small>
+                    <small>Students who already have these fees assigned for this semester will be skipped.</small>
                 </p>
             </div>
 
@@ -220,7 +220,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
         const selectedFeesInput = document.getElementById('selectedFees');
         const submitBtn = document.getElementById('submitBtn');
         const previewSection = document.getElementById('previewSection');
-        const termSelect = document.getElementById('term');
+        const termSelect = document.getElementById('semester');
         const dueDateInput = document.getElementById('due_date');
         const classFilter = document.getElementById('class_filter');
 

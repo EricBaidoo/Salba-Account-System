@@ -175,7 +175,7 @@ if (!function_exists('nav_active')) {
         <a href="<?php echo nav_link($base_path, 'finance/invoices/view_term_bills.php'); ?>"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-600 hover:bg-gray-50 hover:text-gray-900">
             <i class="fas fa-receipt w-4 text-center text-gray-400"></i>
-            <span class="text-sm">Term Invoices</span>
+            <span class="text-sm">Semester Invoices</span>
         </a>
 
         <a href="<?php echo nav_link($base_path, 'finance/invoices/generate_term_bills.php'); ?>"
@@ -223,7 +223,7 @@ if (!function_exists('nav_active')) {
         <a href="<?php echo nav_link($base_path, 'finance/budgets/term_budget.php'); ?>"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-gray-600 hover:bg-gray-50 hover:text-gray-900">
             <i class="fas fa-chart-column w-4 text-center text-gray-400"></i>
-            <span class="text-sm">Term Budget</span>
+            <span class="text-sm">Semester Budget</span>
         </a>
 
         <a href="<?php echo nav_link($base_path, 'finance/reports/report.php'); ?>"

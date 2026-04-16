@@ -10,7 +10,7 @@ if (!is_logged_in()) {
 }
 
 $school_name          = getSystemSetting($conn, 'school_name', 'Salba Montessori');
-$current_term         = getCurrentTerm($conn);
+$current_term         = getCurrentSemester($conn);
 $academic_year        = getAcademicYear($conn);
 $display_academic_year = formatAcademicYearDisplay($conn, $academic_year);
 

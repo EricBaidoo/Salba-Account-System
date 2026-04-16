@@ -12,6 +12,26 @@ if (!is_logged_in()) {
 $success = '';
 $error = '';
 
+// 1. Process Class Subject Mapping (Migrated from Settings)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'map_subjects' && isset($_POST['save_binder'])) {
+    $mapped_class = trim($_POST['class']);
+    $sub_ids = $_POST['subjects'] ?? [];
+    if ($mapped_class) {
+        $stmt = $conn->prepare("DELETE FROM class_subjects WHERE class_name = ?");
+        $stmt->bind_param("s", $mapped_class);
+        $stmt->execute();
+        if (!empty($sub_ids)) {
+            $insert_stmt = $conn->prepare("INSERT INTO class_subjects (class_name, subject_id) VALUES (?, ?)");
+            foreach($sub_ids as $sid) {
+                $sid = intval($sid);
+                $insert_stmt->bind_param("si", $mapped_class, $sid);
+                $insert_stmt->execute();
+            }
+            $success = count($sub_ids)." subjects mapped to ".htmlspecialchars($mapped_class)."!";
+        }
+    }
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_subject') {
     $subject_name = trim($_POST['subject_name'] ?? '');
@@ -41,6 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Get subjects
 $subjects = $conn->query("SELECT id, name as subject_name, code as subject_code, description FROM subjects ORDER BY name");
+
+// Fetch Classes & Mappings (Migrated from Settings)
+$classes_res = $conn->query("SELECT DISTINCT name as class FROM classes ORDER BY name");
+$classes_list = [];
+if ($classes_res) { while($r = $classes_res->fetch_assoc()) $classes_list[] = $r['class']; }
+
+$mappings = [];
+$map_res = $conn->query("SELECT class_name, subject_id FROM class_subjects");
+if ($map_res) {
+    while($r = $map_res->fetch_assoc()){ $mappings[$r['class_name']][] = $r['subject_id']; }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -85,19 +116,24 @@ $subjects = $conn->query("SELECT id, name as subject_name, code as subject_code,
             </div>
         </div>
 
-        <div class="p-8 max-w-6xl">
+        <div class="p-8">
             <?php if ($success): ?>
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
-                    <i class="fas fa-check-circle text-emerald-500"></i>
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl mb-6 flex items-center gap-3 shadow-sm font-bold">
+                    <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
                     <?php echo htmlspecialchars($success); ?>
                 </div>
             <?php endif; ?>
             <?php if ($error): ?>
-                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
-                    <i class="fas fa-exclamation-circle text-red-500"></i>
+                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl mb-6 flex items-center gap-3 shadow-sm font-bold">
+                    <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
                     <?php echo htmlspecialchars($error); ?>
                 </div>
             <?php endif; ?>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left: Subjects List (8 cols) -->
+                <div class="lg:col-span-7 space-y-6">
 
             <!-- Subjects Table -->
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -165,6 +201,65 @@ $subjects = $conn->query("SELECT id, name as subject_name, code as subject_code,
                         </tbody>
                     </table>
                 </div>
+                    </div>
+                </div>
+
+                <!-- Right: Class Curriculum Binder (5 cols) -->
+                <div class="lg:col-span-5">
+                    <div class="bg-gray-900 rounded-2xl shadow-xl border border-gray-800 overflow-hidden sticky top-32">
+                        <div class="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 px-8 py-5 border-b border-gray-800">
+                            <h2 class="text-white font-black flex items-center gap-3 tracking-tight">
+                                <i class="fas fa-sitemap text-purple-400"></i> Class Curriculum Binder
+                            </h2>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Bind subjects to specific class levels</p>
+                        </div>
+                        
+                        <form method="POST" class="p-8">
+                            <input type="hidden" name="action" value="map_subjects">
+                            
+                            <div class="mb-8">
+                                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">1. Target Class</label>
+                                <select name="class" required onchange="this.form.submit()" class="w-full px-5 py-4 border border-gray-700 rounded-xl text-sm bg-gray-800 text-white font-bold hover:border-purple-500 focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-pointer">
+                                    <option value="">-- Select Enrollment Level --</option>
+                                    <?php foreach($classes_list as $cl): ?>
+                                        <option value="<?= htmlspecialchars($cl) ?>" <?= (trim($_POST['class'] ?? '') === $cl) ? 'selected' : '' ?>><?= htmlspecialchars($cl) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <?php if(!empty($_POST['class'])): 
+                                $target_cl = trim($_POST['class']);
+                                $active_maps = $mappings[$target_cl] ?? [];
+                            ?>
+                                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">2. Permitted Curriculum for <span class="text-purple-400"><?= htmlspecialchars($target_cl) ?></span></label>
+                                <div class="space-y-2 max-h-[400px] overflow-y-auto mb-8 pr-2 custom-scrollbar">
+                                    <?php 
+                                    $subjects->data_seek(0);
+                                    while($sub = $subjects->fetch_assoc()): 
+                                        $checked = in_array($sub['id'], $active_maps) ? 'checked' : '';
+                                    ?>
+                                        <label class="flex items-center gap-4 p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl hover:border-purple-500/50 hover:bg-gray-800 transition-all cursor-pointer group">
+                                            <input type="checkbox" name="subjects[]" value="<?= $sub['id'] ?>" <?= $checked ?> class="w-5 h-5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 bg-gray-900 cursor-pointer">
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-bold text-gray-200 group-hover:text-white transition-colors"><?= htmlspecialchars($sub['subject_name']) ?></span>
+                                                <span class="text-[10px] font-mono text-gray-500 tracking-tighter"><?= htmlspecialchars($sub['subject_code']) ?></span>
+                                            </div>
+                                        </label>
+                                    <?php endwhile; ?>
+                                </div>
+                                <button type="submit" name="save_binder" class="w-full bg-purple-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-purple-700 hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center justify-center gap-3">
+                                    <i class="fas fa-save"></i> UPDATE CURRICULUM
+                                </button>
+                            <?php else: ?>
+                                <div class="text-center py-20 bg-gray-800/20 rounded-2xl border border-dashed border-gray-700/50">
+                                    <i class="fas fa-layer-group text-5xl mb-4 text-gray-700"></i>
+                                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest leading-relaxed">Select a class from the dropdown above<br>to configure its valid subjects.</p>
+                                </div>
+                            <?php endif; ?>
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>

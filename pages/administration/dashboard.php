@@ -14,7 +14,7 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
 }
 
 $school_name          = getSystemSetting($conn, 'school_name', 'Salba Montessori');
-$current_term         = getCurrentTerm($conn);
+$current_term         = getCurrentSemester($conn);
 $academic_year        = getAcademicYear($conn);
 $display_academic_year = formatAcademicYearDisplay($conn, $academic_year);
 
@@ -32,7 +32,7 @@ $present_students = (int)$present_stmt->get_result()->fetch_assoc()['c'];
 $present_stmt->close();
 $attendance_rate = ($active_students > 0) ? round(($present_students / $active_students) * 100) : 0;
 
-// Financial stats for current term
+// Financial stats for current semester
 require_once '../../includes/student_balance_functions.php';
 $student_balances    = getAllStudentBalances($conn, null, 'active', $current_term, $academic_year);
 $total_fees_assigned = 0;
@@ -42,15 +42,15 @@ foreach ($student_balances as $s) {
     $outstanding_fees    += (float)($s['net_balance'] ?? 0);
 }
 
-// Payments this term
-$pay_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE term=? AND academic_year=?");
+// Payments this semester
+$pay_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE semester=? AND academic_year=?");
 $pay_stmt->bind_param('ss', $current_term, $academic_year);
 $pay_stmt->execute();
 $total_payments = (float)$pay_stmt->get_result()->fetch_assoc()['total'];
 $pay_stmt->close();
 
-// Expenses this term
-$exp_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE term=? AND academic_year=?");
+// Expenses this semester
+$exp_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE semester=? AND academic_year=?");
 $exp_stmt->bind_param('ss', $current_term, $academic_year);
 $exp_stmt->execute();
 $total_expenses = (float)$exp_stmt->get_result()->fetch_assoc()['total'];
@@ -124,7 +124,7 @@ if ($users_res) {
             </div>
         </div>
 
-        <!-- Financial Overview (current term) -->
+        <!-- Financial Overview (current semester) -->
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             <i class="fas fa-chart-line"></i> Financial Overview — <?php echo htmlspecialchars($current_term); ?>
         </h2>
@@ -177,7 +177,7 @@ if ($users_res) {
                 ['href'=>'students/add_student_form.php','icon'=>'fa-user-plus',         'color'=>'green',  'title'=>'New Enrollment',     'desc'=>'Enroll a new student into the system'],
                 ['href'=>'staff/view_staff.php',         'icon'=>'fa-id-card',           'color'=>'purple', 'title'=>'Staff Directory',    'desc'=>'View and manage teaching and support staff'],
                 ['href'=>'staff/add_staff.php',          'icon'=>'fa-user-tie',          'color'=>'indigo', 'title'=>'Add Staff',          'desc'=>'Create a new staff profile'],
-                ['href'=>'system_settings.php',          'icon'=>'fa-sliders-h',         'color'=>'orange', 'title'=>'System Settings',   'desc'=>'Configure term, academic year, and school info'],
+                ['href'=>'system_settings.php',          'icon'=>'fa-sliders-h',         'color'=>'orange', 'title'=>'System Settings',   'desc'=>'Configure semester, academic year, and school info'],
                 ['href'=>'register.php',                 'icon'=>'fa-user-shield',       'color'=>'gray',   'title'=>'Register User',      'desc'=>'Add a new system user account'],
                 ['href'=>'students/bulk_upload_students.php','icon'=>'fa-file-arrow-up', 'color'=>'teal',   'title'=>'Bulk Upload',        'desc'=>'Import students via CSV file'],
                 ['href'=>'../../pages/finance/dashboard.php','icon'=>'fa-wallet',        'color'=>'emerald','title'=>'Go to Finance',      'desc'=>'View finance module'],

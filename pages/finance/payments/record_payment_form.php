@@ -4,10 +4,10 @@ include '../../includes/auth_check.php';
 include '../../includes/system_settings.php';
 include '../../includes/student_balance_functions.php';
 
-// Get current term and academic year
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year
+$current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
 // Build Academic Year options from data + system default
 $year_options = [];
@@ -31,7 +31,7 @@ if (!in_array($academic_year, $year_options, true)) { array_unshift($year_option
 $pre_student_id = intval($_GET['student_id'] ?? 0);
 $pre_fee_id = intval($_GET['fee_id'] ?? 0);
 $pre_amount = floatval($_GET['amount'] ?? 0);
-$pre_term = isset($_GET['term']) ? trim($_GET['term']) : '';
+$pre_term = isset($_GET['semester']) ? trim($_GET['semester']) : '';
 $pre_academic_year = isset($_GET['academic_year']) ? trim($_GET['academic_year']) : '';
 $selected_term = $pre_term !== '' ? $pre_term : $current_term;
 $selected_academic_year = $pre_academic_year !== '' ? $pre_academic_year : $academic_year;
@@ -227,15 +227,15 @@ if ($pre_student_id > 0) {
                         <div class="bg-white rounded shadow-body">
                             <div class="flex flex-wrap">
                                 <div class="md:col-span-6 mb-">
-                                    <label for="term" class="block text-sm font-medium mb- fw-semibold">
-                                        <i class="fas fa-calendar-alt mr-2"></i>Term *
+                                    <label for="semester" class="block text-sm font-medium mb- fw-semibold">
+                                        <i class="fas fa-calendar-alt mr-2"></i>Semester *
                                     </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="term" name="term" required>
-                                        <?php foreach ($available_terms as $term): ?>
-                                            <option value="<?php echo htmlspecialchars($term); ?>" 
-                                                    <?php echo $term === $selected_term ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($term); ?>
-                                                <?php echo $term === $current_term ? ' (Current)' : ''; ?>
+                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="semester" name="semester" required>
+                                        <?php foreach ($available_terms as $semester): ?>
+                                            <option value="<?php echo htmlspecialchars($semester); ?>" 
+                                                    <?php echo $semester === $selected_term ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($semester); ?>
+                                                <?php echo $semester === $current_term ? ' (Current)' : ''; ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -378,11 +378,11 @@ if ($pre_student_id > 0) {
                 amountInput.classList.remove('is-invalid');
             }
             
-            // Validate term
-            const termInput = document.getElementById('term');
+            // Validate semester
+            const termInput = document.getElementById('semester');
             if (!termInput.value) {
                 isValid = false;
-                errorMessage = errorMessage || 'Please select a term';
+                errorMessage = errorMessage || 'Please select a semester';
                 termInput.classList.add('is-invalid');
             } else {
                 termInput.classList.remove('is-invalid');

@@ -126,7 +126,7 @@ $alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'global');
                                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Fee Payment Allocation</label>
                                 <select name="payment_allocation_scope" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700 appearance-none">
                                     <option value="global" <?= $alloc_scope === 'global' ? 'selected' : '' ?>>Global (Pays oldest debts first)</option>
-                                    <option value="term_year" <?= $alloc_scope === 'term_year' ? 'selected' : '' ?>>Term Context (Target term only)</option>
+                                    <option value="term_year" <?= $alloc_scope === 'term_year' ? 'selected' : '' ?>>Semester Context (Target semester only)</option>
                                 </select>
                             </div>
 

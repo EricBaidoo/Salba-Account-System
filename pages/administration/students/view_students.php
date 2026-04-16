@@ -92,7 +92,7 @@ while ($row = $class_result->fetch_assoc()) {
                     </h1>
                     <p class="text-gray-500 mt-2 text-sm">
                         Manage and view all enrolled students.
-                        <?php $ct = getCurrentTerm($conn); $cy = getAcademicYear($conn); ?>
+                        <?php $ct = getCurrentSemester($conn); $cy = getAcademicYear($conn); ?>
                         <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-md ml-3">
                             <i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($ct); ?>
                         </span>

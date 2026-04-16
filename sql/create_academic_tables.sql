@@ -5,15 +5,15 @@
 CREATE TABLE IF NOT EXISTS `assessment_configurations` (
   `id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `academic_year` VARCHAR(9) NOT NULL COMMENT 'Format: YYYY/YYYY',
-  `term` VARCHAR(50) NOT NULL COMMENT 'Term 1, Term 2, Term 3, etc.',
+  `semester` VARCHAR(50) NOT NULL COMMENT 'Semester 1, Semester 2, Semester 3, etc.',
   `assessment_name` VARCHAR(100) NOT NULL COMMENT 'e.g., Exam, Class Test, Assignment',
   `max_marks_allocation` DECIMAL(5,2) NOT NULL COMMENT 'Percentage (0-100)',
   `is_exam` TINYINT(1) DEFAULT 0 COMMENT '1 for exam, 0 for OA/continuous assessment',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `created_by` VARCHAR(100),
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY `unique_assessment` (`academic_year`, `term`, `assessment_name`),
-  INDEX `idx_year_term` (`academic_year`, `term`),
+  UNIQUE KEY `unique_assessment` (`academic_year`, `semester`, `assessment_name`),
+  INDEX `idx_year_term` (`academic_year`, `semester`),
   INDEX `idx_exam_flag` (`is_exam`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

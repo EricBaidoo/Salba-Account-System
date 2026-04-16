@@ -5,14 +5,14 @@
  */
 
 if (!function_exists('getAssessmentConfigs')) {
-    function getAssessmentConfigs($conn, $academic_year, $term) {
+    function getAssessmentConfigs($conn, $academic_year, $semester) {
         try {
             $stmt = $conn->prepare("
                 SELECT * FROM assessment_configurations 
-                WHERE academic_year = ? AND term = ? 
+                WHERE academic_year = ? AND semester = ? 
                 ORDER BY is_exam ASC, id ASC
             ");
-            $stmt->bind_param("ss", $academic_year, $term);
+            $stmt->bind_param("ss", $academic_year, $semester);
             $stmt->execute();
             $result = $stmt->get_result();
             
@@ -28,14 +28,14 @@ if (!function_exists('getAssessmentConfigs')) {
 }
 
 if (!function_exists('addAssessmentConfig')) {
-    function addAssessmentConfig($conn, $academic_year, $term, $name, $marks, $is_exam, $created_by) {
+    function addAssessmentConfig($conn, $academic_year, $semester, $name, $marks, $is_exam, $created_by) {
         try {
             $stmt = $conn->prepare("
                 INSERT INTO assessment_configurations 
-                (academic_year, term, assessment_name, max_marks_allocation, is_exam, created_by) 
+                (academic_year, semester, assessment_name, max_marks_allocation, is_exam, created_by) 
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $stmt->bind_param("sssdis", $academic_year, $term, $name, $marks, $is_exam, $created_by);
+            $stmt->bind_param("sssdis", $academic_year, $semester, $name, $marks, $is_exam, $created_by);
             return $stmt->execute();
         } catch (Exception $e) {
             return false;
@@ -161,14 +161,14 @@ if (!function_exists('getPassMarks')) {
 }
 
 if (!function_exists('calculateAssessmentTotals')) {
-    function calculateAssessmentTotals($conn, $academic_year, $term) {
+    function calculateAssessmentTotals($conn, $academic_year, $semester) {
         try {
             $result = $conn->query("
                 SELECT 
                     SUM(CASE WHEN is_exam = 0 THEN max_marks_allocation ELSE 0 END) as oa_total,
                     SUM(CASE WHEN is_exam = 1 THEN max_marks_allocation ELSE 0 END) as exam_total
                 FROM assessment_configurations 
-                WHERE academic_year = '$academic_year' AND term = '$term'
+                WHERE academic_year = '$academic_year' AND semester = '$semester'
             ");
             
             $row = $result->fetch_assoc();

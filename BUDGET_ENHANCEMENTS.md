@@ -1,13 +1,13 @@
 # Budget System - All Enhancements Implemented
 
 ## Overview
-Comprehensive budget management system for Salba Montessori School with term-based budgeting, variance tracking, historical comparison, and PDF export.
+Comprehensive budget management system for Salba Montessori School with semester-based budgeting, variance tracking, historical comparison, and PDF export.
 
 ## Features Implemented
 
-### 1. ✅ Term Selection
+### 1. ✅ Semester Selection
 - **File:** `budget_breakdown.php`
-- **Feature:** Dropdown to view any term's budget (not just current term)
+- **Feature:** Dropdown to view any semester's budget (not just current semester)
 - **Benefit:** Allows viewing historical budgets for comparison and analysis
 - **Location:** Top of budget page with academic year selector
 
@@ -47,16 +47,16 @@ Comprehensive budget management system for Salba Montessori School with term-bas
 - **File:** `budget_templates.php` (new)
 - **Features:**
   - View all previous budgets
-  - Copy any previous budget to new term
+  - Copy any previous budget to new semester
   - Shows total income/expenses for each budget
-  - Modal dialog for selecting target term and year
-- **Benefit:** Quickly replicate similar term budgets without manual entry
+  - Modal dialog for selecting target semester and year
+- **Benefit:** Quickly replicate similar semester budgets without manual entry
 - **Location:** Accessible from main budget page via "Templates" button
 
 ### 6. ✅ Budget History & Comparison
 - **File:** `budget_history.php` (new)
 - **Features:**
-  - Compare current term budget with previous term
+  - Compare current semester budget with previous semester
   - Side-by-side category comparison
   - Percentage change calculations
   - Bar chart showing budget trends
@@ -77,7 +77,7 @@ Comprehensive budget management system for Salba Montessori School with term-bas
   - Includes notes on budget items
   - Formatted for printing
 - **Technology:** mPDF library (already in vendor)
-- **Filename:** Budget_[Term]_[Year].pdf
+- **Filename:** Budget_[Semester]_[Year].pdf
 - **Location:** "PDF" button in main budget page
 
 ## Database Changes
@@ -88,7 +88,7 @@ ALTER TABLE term_budget_items ADD COLUMN notes TEXT NULL AFTER amount;
 ```
 
 ### Table Structure
-- **term_budgets:** Stores budget headers (term, academic_year, created_at)
+- **term_budgets:** Stores budget headers (semester, academic_year, created_at)
 - **term_budget_items:** Stores budget line items with:
   - category (fee type or expense category)
   - amount (budgeted amount)
@@ -103,15 +103,15 @@ ALTER TABLE term_budget_items ADD COLUMN notes TEXT NULL AFTER amount;
 3. `budget_history.php` - Historical comparison and trend analysis
 
 ### Modified Files
-1. `budget_breakdown.php` - Added term selection, variance alerts, charts
-2. `setup_budget_breakdown.php` - Added notes input fields, term selection support
-3. `process_budget_breakdown.php` - Added notes saving, term parameter passing
+1. `budget_breakdown.php` - Added semester selection, variance alerts, charts
+2. `setup_budget_breakdown.php` - Added notes input fields, semester selection support
+3. `process_budget_breakdown.php` - Added notes saving, semester parameter passing
 4. `report.php` - Already has budget link
 
 ## User Experience Flow
 
 ### Main Budget Page (budget_breakdown.php)
-1. **Header Section:** Term/year selector, Print, PDF export, Templates, History, Edit buttons
+1. **Header Section:** Semester/year selector, Print, PDF export, Templates, History, Edit buttons
 2. **Alert Section:** Variance alerts (if any)
 3. **Charts Section:** Visual distribution and comparison charts
 4. **Data Tables:** Two-column layout with income left, expenses right
@@ -125,11 +125,11 @@ ALTER TABLE term_budget_items ADD COLUMN notes TEXT NULL AFTER amount;
 
 ### Budget Templates (budget_templates.php)
 1. **Browse Previous Budgets:** Table of all existing budgets
-2. **Select Budget to Copy:** Choose term/year for destination
+2. **Select Budget to Copy:** Choose semester/year for destination
 3. **Auto-Copy:** All items and notes copied to new budget
 
 ### Budget History (budget_history.php)
-1. **Term Selection:** Compare any two terms
+1. **Semester Selection:** Compare any two terms
 2. **Trend Chart:** Visual comparison of expense categories
 3. **Detailed Table:** Row-by-row comparison with percentages
 4. **Insights:** Shows which categories increased/decreased
@@ -137,10 +137,10 @@ ALTER TABLE term_budget_items ADD COLUMN notes TEXT NULL AFTER amount;
 ## Technical Implementation
 
 ### Data Calculation Logic
-- **Budgeted Income:** Sum of student_fees for fees assigned in that term
-- **Actual Income:** Sum of payments made for those fees during term dates
+- **Budgeted Income:** Sum of student_fees for fees assigned in that semester
+- **Actual Income:** Sum of payments made for those fees during semester dates
 - **Budgeted Expenses:** Manual entries in budget setup
-- **Actual Expenses:** Sum of expenses by category during term dates
+- **Actual Expenses:** Sum of expenses by category during semester dates
 
 ### Variance Detection
 ```php
@@ -168,7 +168,7 @@ if ($actual < $budgeted) {
 - Charts hidden in print view
 - Tables formatted for clean printing
 - Color-independent formatting
-- Term/year shown on each view
+- Semester/year shown on each view
 
 ### Responsive Design
 - Works on desktop and tablet
@@ -187,7 +187,7 @@ if ($actual < $budgeted) {
 ### Connected To:
 - **Dashboard:** Budget breakdown link added
 - **Report Page:** Budget breakdown link already exists
-- **System Settings:** Uses getCurrentTerm(), getAcademicYear(), getTermDateRange()
+- **System Settings:** Uses getCurrentSemester(), getAcademicYear(), getTermDateRange()
 - **Fee Management:** Pulls actual fees from fees table
 - **Payment System:** Gets collected payments for variance calculation
 - **Expense Tracking:** Gets actual expenses for variance analysis
@@ -212,7 +212,7 @@ if ($actual < $budgeted) {
 
 ### Database Queries
 - Efficient use of prepared statements
-- Proper indexing (academic_year, term fields)
+- Proper indexing (academic_year, semester fields)
 - Aggregate functions (SUM, COUNT)
 - Limited result sets where needed
 
@@ -226,7 +226,7 @@ if ($actual < $budgeted) {
 
 1. **Budget vs Actual Dashboard Widget** - Summary on main dashboard
 2. **Email Alerts** - Notify when variances exceed threshold
-3. **Multi-Year Comparison** - Compare same term across years
+3. **Multi-Year Comparison** - Compare same semester across years
 4. **Budget Forecasting** - Predict future spending based on trends
 5. **Department/Class Budgets** - Break down by academic division
 6. **Custom Report Builder** - User-defined report formats
@@ -235,7 +235,7 @@ if ($actual < $budgeted) {
 
 ## Testing Checklist
 
-- ✅ Term selection changes budget displayed
+- ✅ Semester selection changes budget displayed
 - ✅ Variance alerts show for over-budget items
 - ✅ Charts display with correct data
 - ✅ PDF exports successfully
@@ -256,12 +256,12 @@ if ($actual < $budgeted) {
 - **budget_templates.php:** Template management
 - **budget_history.php:** Historical comparison
 - **budget_functions.php:** Helper functions
-- **term_helpers.php:** Term management functions
+- **term_helpers.php:** Semester management functions
 
 ### Key Functions
-- `getCurrentTerm()` - Get current academic term
+- `getCurrentSemester()` - Get current academic semester
 - `getAcademicYear()` - Get current academic year
-- `getTermDateRange()` - Get term start/end dates
+- `getTermDateRange()` - Get semester start/end dates
 - `getTermCategorySpending()` - Get actual expenses for category
 
 ### Database Tables

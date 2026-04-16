@@ -15,8 +15,8 @@
 ### 1. Viewing a Budget
 
 **Step 1:** Budget Breakdown Page
-- Default shows current term's budget
-- Use the **"Select Term"** dropdown to view other terms
+- Default shows current semester's budget
+- Use the **"Select Semester"** dropdown to view other terms
 - Budget shows side-by-side: INCOME (left) and EXPENSES (right)
 
 **View Includes:**
@@ -56,11 +56,11 @@
 **Step 4:** Save
 - Click **"SAVE BUDGET"** button
 - Redirected back to Budget Breakdown with success message
-- Budget is now live for that term
+- Budget is now live for that semester
 
 ### 4. Using Budget Templates
 
-**Scenario:** Next term starts and you want to use similar budget to this term
+**Scenario:** Next semester starts and you want to use similar budget to this semester
 
 **Step 1:** Click **"TEMPLATES"** button on Budget Breakdown
 - Shows list of all previous budgets
@@ -68,23 +68,23 @@
 
 **Step 2:** Select Budget to Copy
 - Click **"Copy"** button on the budget you want to replicate
-- Modal dialog appears asking which term to copy to
-- Select target term and academic year
+- Modal dialog appears asking which semester to copy to
+- Select target semester and academic year
 
 **Step 3:** Confirm
 - Click **"Copy Budget"** button
-- All budget items and notes are copied to new term
+- All budget items and notes are copied to new semester
 - Automatically redirects to new budget's breakdown page
 
 ### 5. Comparing Budget History
 
-**Scenario:** Want to see how expenses changed from last term
+**Scenario:** Want to see how expenses changed from last semester
 
 **Step 1:** Click **"HISTORY"** button on Budget Breakdown
 - Takes you to Budget History & Comparison page
 
 **Step 2:** Select Comparison Terms
-- Choose which term to compare
+- Choose which semester to compare
 - Choose academic year
 - Click **"Compare"** button
 
@@ -121,11 +121,11 @@
 - Includes all budget data and variance information
 
 **Step 2:** Save File
-- Browser automatically downloads as `Budget_[Term]_[Year].pdf`
+- Browser automatically downloads as `Budget_[Semester]_[Year].pdf`
 - File ready for email, storage, or printing
 
 **PDF Includes:**
-- Budget header with term and date
+- Budget header with semester and date
 - Income sources with budgeted vs actual
 - Expense categories with budgeted vs actual
 - Variance analysis
@@ -176,19 +176,19 @@
 
 ### Problem: Template Copy Shows Error
 **Solution:**
-- Cannot copy to same term and year (creates duplicate)
-- Must select a different term or academic year
+- Cannot copy to same semester and year (creates duplicate)
+- Must select a different semester or academic year
 - Ensure target budget doesn't already exist
 
 ### Problem: Can't See Other Terms
 **Solution:**
-- Term dropdown only shows terms that have budgets created
-- Create a new budget for a term first
-- Then term appears in selection
+- Semester dropdown only shows terms that have budgets created
+- Create a new budget for a semester first
+- Then semester appears in selection
 
 ## Common Tasks
 
-### Task: Create Budget for New Term
+### Task: Create Budget for New Semester
 1. Click "EDIT BUDGET"
 2. Enter income and expense amounts
 3. Add notes if needed
@@ -198,25 +198,25 @@
 ### Task: Quick Budget from Template
 1. Go to Budget Breakdown
 2. Click "TEMPLATES"
-3. Find previous similar term
+3. Find previous similar semester
 4. Click "Copy"
-5. Select new term
+5. Select new semester
 6. Done! Budget copied automatically
 
 ### Task: Check Spending Against Budget
 1. Go to Budget Breakdown
-2. Select the term you want to check
+2. Select the semester you want to check
 3. Look at variance columns
 4. Check variance alerts (yellow box)
 5. Use History to see trends
 
 ### Task: Share Budget Report
-1. Go to Budget Breakdown for desired term
+1. Go to Budget Breakdown for desired semester
 2. Click "PDF" button
 3. Send PDF file to stakeholders
 4. OR Click "PRINT" to print copies
 
-### Task: Update Budget Mid-Term
+### Task: Update Budget Mid-Semester
 1. Go to Budget Breakdown
 2. Click "EDIT BUDGET"
 3. Update amounts or notes
@@ -249,9 +249,9 @@
 2. **Investigate Variances:** Understand why amounts differ from budget
 3. **Use Notes:** Add context to budget items for future reference
 4. **Compare Trends:** Use History to identify spending patterns
-5. **Plan Early:** Use Templates to quickly set up next term's budget
+5. **Plan Early:** Use Templates to quickly set up next semester's budget
 6. **Share Reports:** Export PDF for stakeholder communication
-7. **Adjust as Needed:** Update budget mid-term if circumstances change
+7. **Adjust as Needed:** Update budget mid-semester if circumstances change
 8. **Archive Budgets:** Keep old budgets for historical reference
 
 ## Important Reminders
@@ -264,10 +264,10 @@
 - You decide how much to allocate for each category
 - Actual spending pulls from expense records
 
-✅ **All data is term-specific**
-- Budgets are created per term per academic year
-- Income/expenses filtered by term dates
-- Comparisons are term-to-term only
+✅ **All data is semester-specific**
+- Budgets are created per semester per academic year
+- Income/expenses filtered by semester dates
+- Comparisons are semester-to-semester only
 
 ✅ **Notes are optional but valuable**
 - Use for explaining assumptions

@@ -26,7 +26,7 @@ $student_fee_id = intval($_POST['student_fee_id'] ?? 0);
 $student_id = intval($_POST['student_id'] ?? 0);
 $amount = floatval($_POST['amount'] ?? 0);
 $due_date = $_POST['due_date'] ?? '';
-$term = trim($_POST['term'] ?? '');
+$semester = trim($_POST['semester'] ?? '');
 $status = $_POST['status'] ?? 'pending';
 $notes = trim($_POST['notes'] ?? '');
 
@@ -66,7 +66,7 @@ try {
     
     // First, verify the fee belongs to the student and get current details
     $check_sql = "SELECT sf.id, sf.student_id, sf.fee_id, sf.amount as current_amount, 
-                         sf.status as current_status, sf.term as current_term, f.name as fee_name, 
+                         sf.status as current_status, sf.semester as current_term, f.name as fee_name, 
                          s.first_name, s.last_name
                   FROM student_fees sf 
                   JOIN fees f ON sf.fee_id = f.id 
@@ -86,34 +86,34 @@ try {
         exit;
     }
     
-    // Normalize term input to canonical labels and prevent accidental blanking
+    // Normalize semester input to canonical labels and prevent accidental blanking
     // Map shorthand to system terms
     $term_map = [
-        '1st term' => 'First Term',
-        'first term' => 'First Term',
-        '2nd term' => 'Second Term',
-        'second term' => 'Second Term',
-        '3rd term' => 'Third Term',
-        'third term' => 'Third Term'
+        '1st semester' => 'First Semester',
+        'first semester' => 'First Semester',
+        '2nd semester' => 'Second Semester',
+        'second semester' => 'Second Semester',
+        '3rd semester' => 'Third Semester',
+        'third semester' => 'Third Semester'
     ];
-    $term_lower = strtolower($term);
+    $term_lower = strtolower($semester);
     if (isset($term_map[$term_lower])) {
-        $term = $term_map[$term_lower];
+        $semester = $term_map[$term_lower];
     }
-    if ($term === '') {
-        // Keep original term if none provided to avoid disappearing from current view
-        $term = $current_fee['current_term'] ?? '';
+    if ($semester === '') {
+        // Keep original semester if none provided to avoid disappearing from current view
+        $semester = $current_fee['current_term'] ?? '';
     }
 
     // Prevent manual edits to auto-managed arrears fee
     $fee_name_lower = strtolower(trim($current_fee['fee_name'] ?? ''));
     $is_arrears_fee = ($fee_name_lower === 'outstanding balance' || $fee_name_lower === 'arrears carry forward');
     if ($is_arrears_fee) {
-        // Allow notes-only updates; block changes to amount/due_date/term/status
+        // Allow notes-only updates; block changes to amount/due_date/semester/status
         if (
             $amount != $current_fee['current_amount'] ||
             (!empty($due_date) && $due_date !== ($_POST['due_date'] ?? $due_date)) ||
-            (!empty($term) && $term !== ($_POST['term'] ?? $term)) ||
+            (!empty($semester) && $semester !== ($_POST['semester'] ?? $semester)) ||
             ($status !== $current_fee['current_status'])
         ) {
             // Silently ignore attempted structural changes and inform the user
@@ -125,7 +125,7 @@ try {
                 $conn->commit();
                 echo json_encode([
                     'success' => true,
-                    'message' => "Outstanding Balance is auto-calculated from prior term. Notes updated only."
+                    'message' => "Outstanding Balance is auto-calculated from prior semester. Notes updated only."
                 ]);
                 exit;
             } else {
@@ -157,7 +157,7 @@ try {
 
     // Check if fee is already paid - only allow certain changes for paid fees
     if ($current_fee['current_status'] === 'paid') {
-        // For paid fees, only allow notes and term changes, not amount or due date
+        // For paid fees, only allow notes and semester changes, not amount or due date
         if ($amount != $current_fee['current_amount']) {
             $conn->rollback();
             echo json_encode(['success' => false, 'message' => 'Cannot change amount for a paid fee. Please process a refund first.']);
@@ -193,11 +193,11 @@ try {
     
     // Update the fee assignment
     $update_sql = "UPDATE student_fees 
-                   SET amount = ?, due_date = ?, term = ?, status = ?, notes = ?
+                   SET amount = ?, due_date = ?, semester = ?, status = ?, notes = ?
                    WHERE id = ? AND student_id = ?";
     
     $update_stmt = $conn->prepare($update_sql);
-    $update_stmt->bind_param("dssssii", $amount, $due_date, $term, $status, $notes, $student_fee_id, $student_id);
+    $update_stmt->bind_param("dssssii", $amount, $due_date, $semester, $status, $notes, $student_fee_id, $student_id);
     
     if ($update_stmt->execute()) {
         $updated_rows = $update_stmt->affected_rows;
@@ -216,7 +216,7 @@ try {
                 'old_amount' => $current_fee['current_amount'],
                 'new_amount' => $amount,
                 'due_date' => $due_date,
-                'term' => $term,
+                'semester' => $semester,
                 'status' => $status,
                 'notes' => $notes,
                 'action' => 'Fee assignment updated'

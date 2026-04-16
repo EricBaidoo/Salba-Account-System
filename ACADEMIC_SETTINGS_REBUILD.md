@@ -41,7 +41,7 @@
 ### 1. Grading Weights Tab
 - Set OA vs Exam percentage split
 - Real-time validation (must equal 100%)
-- Per-academic year/term configuration
+- Per-academic year/semester configuration
 - Help text and visual indicators
 
 ### 2. Assessment Configuration Tab
@@ -89,7 +89,7 @@
 assessment_configurations
 ├── id (INT, PK, AI)
 ├── academic_year (VARCHAR)
-├── term (VARCHAR)
+├── semester (VARCHAR)
 ├── assessment_name (VARCHAR)
 ├── max_marks_allocation (DECIMAL)
 ├── is_exam (TINYINT)
@@ -144,14 +144,14 @@ pass_marks
    - Verify form submissions
    - Check database records
 
-### Short-term (1-2 days)
+### Short-semester (1-2 days)
 - [ ] Create export PHP scripts (export_assessments.php, etc.)
 - [ ] Implement CSV import functionality
 - [ ] Add bulk operations UI
 - [ ] Create audit logging for academic changes
 - [ ] Add undo/rollback options
 
-### Medium-term (1 week)
+### Medium-semester (1 week)
 - [ ] Rebuild view_announcements.php
 - [ ] Create comprehensive audit logs page
 - [ ] Implement broadcast queue for notifications

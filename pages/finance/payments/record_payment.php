@@ -31,14 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_date = $_POST['payment_date'];
     $receipt_no = trim($_POST['receipt_no']);
     $description = trim($_POST['description']);
-    $term = trim($_POST['term'] ?? ''); // Capture term from form
+    $semester = trim($_POST['semester'] ?? ''); // Capture semester from form
     $created_by = $_SESSION['user_id'] ?? null;
     $academic_year = trim($_POST['academic_year'] ?? '');
     if ($academic_year === '') { $academic_year = getAcademicYear($conn); }
 
     // Basic validation for required fields
-    if ($term === '') {
-        echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Please select a term for this payment.</div>";
+    if ($semester === '') {
+        echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Please select a semester for this payment.</div>";
         exit;
     }
     if ($academic_year === '') {
@@ -70,12 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $fee_check->close();
             // Insert with fee_id
-            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?, ?)");
-            $stmt->bind_param("dsssiss", $amount, $payment_date, $receipt_no, $description, $fee_id, $term, $academic_year);
+            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, fee_id, semester, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?, ?)");
+            $stmt->bind_param("dsssiss", $amount, $payment_date, $receipt_no, $description, $fee_id, $semester, $academic_year);
         } else {
             // Insert without fee_id (pure general payment)
-            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, term, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?)");
-            $stmt->bind_param("dsssss", $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
+            $stmt = $conn->prepare("INSERT INTO payments (amount, payment_date, receipt_no, description, payment_type, semester, academic_year) VALUES (?, ?, ?, ?, 'general', ?, ?)");
+            $stmt->bind_param("dsssss", $amount, $payment_date, $receipt_no, $description, $semester, $academic_year);
         }
         
         if ($stmt->execute()) {
@@ -95,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $conn->begin_transaction();
 
-            // Ensure arrears carry-forward exists in this term/year before allocating payment
-            ensureArrearsAssignment($conn, $student_id, $term, $academic_year);
+            // Ensure arrears carry-forward exists in this semester/year before allocating payment
+            ensureArrearsAssignment($conn, $student_id, $semester, $academic_year);
 
-            $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description, term, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("idsssss", $student_id, $amount, $payment_date, $receipt_no, $description, $term, $academic_year);
+            $stmt = $conn->prepare("INSERT INTO payments (student_id, amount, payment_date, receipt_no, description, semester, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("idsssss", $student_id, $amount, $payment_date, $receipt_no, $description, $semester, $academic_year);
             if (!$stmt->execute()) {
                 throw new Exception($stmt->error);
             }
@@ -115,8 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $processed_arrears_fee_id = null;
             if ($arrears_fee_id) {
                 if ($alloc_scope === 'term_year') {
-                    $arr_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'paid' AND term = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) LIMIT 1");
-                    $arr_stmt->bind_param("iisss", $student_id, $arrears_fee_id, $term, $academic_year, $academic_year);
+                    $arr_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'paid' AND semester = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) LIMIT 1");
+                    $arr_stmt->bind_param("iisss", $student_id, $arrears_fee_id, $semester, $academic_year, $academic_year);
                 } else {
                     $arr_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND fee_id = ? AND status != 'paid' LIMIT 1");
                     $arr_stmt->bind_param("ii", $student_id, $arrears_fee_id);
@@ -149,8 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Then allocate to the rest in due_date order
             if ($alloc_scope === 'term_year') {
-                $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' AND term = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) ORDER BY due_date ASC, id ASC");
-                $fees_stmt->bind_param("isss", $student_id, $term, $academic_year, $academic_year);
+                $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' AND semester = ? AND (academic_year = ? OR (academic_year IS NULL AND ? = '')) ORDER BY due_date ASC, id ASC");
+                $fees_stmt->bind_param("isss", $student_id, $semester, $academic_year, $academic_year);
             } else {
                 $fees_stmt = $conn->prepare("SELECT id, amount, amount_paid FROM student_fees WHERE student_id = ? AND status != 'paid' ORDER BY due_date ASC, id ASC");
                 $fees_stmt->bind_param("i", $student_id);

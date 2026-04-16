@@ -134,7 +134,7 @@ $balance = $total_payments - $total_expenses;
                         <i class="fas fa-sack-dollar text-purple-500 text-2xl mr-3"></i>
                         <h3 class="text-xl font-bold">Budgets</h3>
                     </div>
-                    <p class="text-gray-600 mb-4">Create and manage term and annual budgets</p>
+                    <p class="text-gray-600 mb-4">Create and manage semester and annual budgets</p>
                     <a href="budgets/budgets.php" class="inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Go to Budgets</a>
                 </div>
 
@@ -143,7 +143,7 @@ $balance = $total_payments - $total_expenses;
                         <i class="fas fa-file-invoice text-indigo-500 text-2xl mr-3"></i>
                         <h3 class="text-xl font-bold">Invoices</h3>
                     </div>
-                    <p class="text-gray-600 mb-4">Generate and manage term bills and invoices</p>
+                    <p class="text-gray-600 mb-4">Generate and manage semester bills and invoices</p>
                     <a href="invoices/term_invoice.php" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Go to Invoices</a>
                 </div>
 

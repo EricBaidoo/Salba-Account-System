@@ -2,15 +2,15 @@
 // Idempotent helpers: guard function declarations to avoid redeclare on multiple includes
 
 /**
- * Helper function to determine term order in academic year
+ * Helper function to determine semester order in academic year
  * Returns array of terms that should be considered "previous" (for arrears calculation)
  */
 if (!function_exists('getPreviousTerms')) {
     function getPreviousTerms($current_term) {
         $term_order = [
-            'First Term' => [],  // First term has no previous terms in same academic year
-            'Second Term' => ['First Term'],  // Second term: First is previous
-            'Third Term' => ['First Term', 'Second Term']  // Third term: First and Second are previous
+            'First Semester' => [],  // First semester has no previous terms in same academic year
+            'Second Semester' => ['First Semester'],  // Second semester: First is previous
+            'Third Semester' => ['First Semester', 'Second Semester']  // Third semester: First and Second are previous
         ];
         
         return $term_order[$current_term] ?? [];
@@ -18,53 +18,53 @@ if (!function_exists('getPreviousTerms')) {
 }
 
 /**
- * Get the immediate previous term (cyclic across academic years)
+ * Get the immediate previous semester (cyclic across academic years)
  */
 if (!function_exists('getImmediatePreviousTerm')) {
     function getImmediatePreviousTerm($current_term) {
         $prev = [
-            'First Term' => 'Third Term',
-            'Second Term' => 'First Term',
-            'Third Term' => 'Second Term',
+            'First Semester' => 'Third Semester',
+            'Second Semester' => 'First Semester',
+            'Third Semester' => 'Second Semester',
         ];
-        return $prev[$current_term] ?? 'First Term';
+        return $prev[$current_term] ?? 'First Semester';
     }
 }
 
 /**
- * Get next term in sequence
+ * Get next semester in sequence
  */
 if (!function_exists('getNextTerm')) {
     function getNextTerm($current_term) {
         $next = [
-            'First Term' => 'Second Term',
-            'Second Term' => 'Third Term',
-            'Third Term' => 'First Term'  // Cycles back
+            'First Semester' => 'Second Semester',
+            'Second Semester' => 'Third Semester',
+            'Third Semester' => 'First Semester'  // Cycles back
         ];
         
-        return $next[$current_term] ?? 'First Term';
+        return $next[$current_term] ?? 'First Semester';
     }
 }
 
 /**
- * Check if term A comes before term B in academic calendar
+ * Check if semester A comes before semester B in academic calendar
  */
 if (!function_exists('isTermBefore')) {
     function isTermBefore($term_a, $term_b) {
-        $order = ['First Term' => 1, 'Second Term' => 2, 'Third Term' => 3];
+        $order = ['First Semester' => 1, 'Second Semester' => 2, 'Third Semester' => 3];
         return ($order[$term_a] ?? 0) < ($order[$term_b] ?? 0);
     }
 }
 
 /**
- * Given a current term and academic year (YYYY/YYYY or YYYY/YY),
- * compute the immediate previous term and its academic year.
+ * Given a current semester and academic year (YYYY/YYYY or YYYY/YY),
+ * compute the immediate previous semester and its academic year.
  */
 if (!function_exists('getPreviousTermYear')) {
     function getPreviousTermYear($current_term, $current_academic_year) {
         $prev_term = getImmediatePreviousTerm($current_term);
         $prev_year = $current_academic_year;
-        if ($current_term === 'First Term') {
+        if ($current_term === 'First Semester') {
             $parts = explode('/', $current_academic_year);
             if (count($parts) === 2) {
                 $start = intval($parts[0]);
@@ -83,7 +83,7 @@ if (!function_exists('getPreviousTermYear')) {
 }
 ?>
 <?php
-// Additional date range helpers for term-scoped summaries
+// Additional date range helpers for semester-scoped summaries
 
 if (!function_exists('getAcademicYearStart')) {
     function getAcademicYearStart($conn, $academic_year) {
@@ -98,20 +98,20 @@ if (!function_exists('getAcademicYearStart')) {
 }
 
 if (!function_exists('getTermDateRange')) {
-    function getTermDateRange($conn, $term, $academic_year) {
+    function getTermDateRange($conn, $semester, $academic_year) {
         // Divide academic year into 3 blocks of ~4 months each from the configured start.
         $start_date = getAcademicYearStart($conn, $academic_year);
         $start_ts = strtotime($start_date);
-        // Term offsets in months - support both "Term 1" and "First Term" formats
+        // Semester offsets in months - support both "Semester 1" and "First Semester" formats
         $offsets = [
-            'First Term' => 0,
-            'Second Term' => 4,
-            'Third Term' => 8,
-            'Term 1' => 0,
-            'Term 2' => 4,
-            'Term 3' => 8,
+            'First Semester' => 0,
+            'Second Semester' => 4,
+            'Third Semester' => 8,
+            'Semester 1' => 0,
+            'Semester 2' => 4,
+            'Semester 3' => 8,
         ];
-        $offset = $offsets[$term] ?? 0;
+        $offset = $offsets[$semester] ?? 0;
         $term_start_ts = strtotime("+{$offset} months", $start_ts);
         $term_end_ts = strtotime("+" . ($offset + 4) . " months -1 day", $start_ts);
         return [

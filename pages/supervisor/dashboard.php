@@ -10,7 +10,7 @@ if (!is_logged_in() || ($_SESSION['role'] !== 'supervisor' && $_SESSION['role'] 
 }
 
 $uid = $_SESSION['user_id'];
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
 
 // Fetch Profile Data

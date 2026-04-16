@@ -8,16 +8,16 @@ if (!is_logged_in()) {
     exit;
 }
 
-// Get term from URL or use current
-$current_term = $_GET['term'] ?? getCurrentTerm($conn);
+// Get semester from URL or use current
+$current_term = $_GET['semester'] ?? getCurrentSemester($conn);
 $academic_year = $_GET['academic_year'] ?? getAcademicYear($conn);
 
 // Get existing budget if any
-$existing = $conn->query("SELECT * FROM term_budgets WHERE term = '$current_term' AND academic_year = '$academic_year'")->fetch_assoc();
+$existing = $conn->query("SELECT * FROM term_budgets WHERE semester = '$current_term' AND academic_year = '$academic_year'")->fetch_assoc();
 
 // Check if budget is locked
 if ($existing && isset($existing['status']) && $existing['status'] === 'locked') {
-    header("Location: term_budget.php?term=" . urlencode($current_term) . "&academic_year=" . urlencode($academic_year) . "&error=locked");
+    header("Location: term_budget.php?semester=" . urlencode($current_term) . "&academic_year=" . urlencode($academic_year) . "&error=locked");
     exit;
 }
 
@@ -27,17 +27,17 @@ $fees = $conn->query("SELECT id, name FROM fees ORDER BY name ASC");
 // Get all expense categories
 $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
 
-// Get previous term for auto-population
-$terms = getAvailableTerms();
+// Get previous semester for auto-population
+$terms = getAvailableSemesters();
 $current_term_index = array_search($current_term, $terms);
 $previous_term = null;
 $previous_academic_year = $academic_year;
 
 if ($current_term_index > 0) {
-    // Previous term in same academic year
+    // Previous semester in same academic year
     $previous_term = $terms[$current_term_index - 1];
 } elseif ($current_term_index === 0) {
-    // Previous term is last term of previous academic year
+    // Previous semester is last semester of previous academic year
     $previous_term = $terms[count($terms) - 1];
     $year_parts = explode('/', $academic_year);
     $previous_academic_year = ($year_parts[0] - 1) . '/' . ($year_parts[1] - 1);
@@ -57,7 +57,7 @@ if ($existing) {
         $expense_items[] = $row;
     }
 } else {
-    // Pre-populate from previous term's actual spending
+    // Pre-populate from previous semester's actual spending
     if ($previous_term) {
         require_once '../../includes/budget_functions.php';
         $categories->data_seek(0);
@@ -79,7 +79,7 @@ if ($existing) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $existing ? 'Edit' : 'Set Up'; ?> Term Budget - Salba Montessori</title>
+    <title><?php echo $existing ? 'Edit' : 'Set Up'; ?> Semester Budget - Salba Montessori</title>
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -90,12 +90,12 @@ if ($existing) {
     <div class="clean-page-header">
         <div class="w-full px-4">
             <div class="flex justify-between items-center mb-">
-                <a href="term_budget.php?term=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="clean-back-px-3 py-2 rounded">
+                <a href="term_budget.php?semester=<?php echo urlencode($current_term); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="clean-back-px-3 py-2 rounded">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             </div>
             <div>
-                <h1 class="clean-page-title"><i class="fas fa-calculator mr-2"></i><?php echo $existing ? 'Edit' : 'Set Up'; ?> Term Budget</h1>
+                <h1 class="clean-page-title"><i class="fas fa-calculator mr-2"></i><?php echo $existing ? 'Edit' : 'Set Up'; ?> Semester Budget</h1>
                 <p class="clean-page-subtitle"><?php echo htmlspecialchars($current_term); ?> - <?php echo htmlspecialchars($academic_year); ?></p>
             </div>
         </div>
@@ -110,7 +110,7 @@ if ($existing) {
                     </div>
                     <div class="clean-bg-white rounded shadow-body">
                         <form id="budgetForm" action="process_term_budget.php" method="POST">
-                            <input type="hidden" name="term" value="<?php echo htmlspecialchars($current_term); ?>">
+                            <input type="hidden" name="semester" value="<?php echo htmlspecialchars($current_term); ?>">
                             <input type="hidden" name="academic_year" value="<?php echo htmlspecialchars($academic_year); ?>">
 
                             <!-- Income by Fee Category -->
@@ -124,12 +124,12 @@ if ($existing) {
                                     <?php 
                                     $fees->data_seek(0);
                                     while ($fee = $fees->fetch_assoc()): 
-                                        // Calculate total assigned fees for this fee type and term (active students only)
+                                        // Calculate total assigned fees for this fee type and semester (active students only)
                                         $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
                                                           FROM student_fees sf 
                                                           INNER JOIN students s ON sf.student_id = s.id
                                                           WHERE sf.fee_id = {$fee['id']} 
-                                                          AND sf.term = '$current_term' 
+                                                          AND sf.semester = '$current_term' 
                                                           AND sf.academic_year = '$academic_year'
                                                           AND s.status = 'active'";
                                         $assigned_result = $conn->query($assigned_query);
@@ -174,14 +174,14 @@ if ($existing) {
                                 <label class="block text-sm font-medium mb-" style="font-size: 1.1rem; font-weight: bold;">
                                     <i class="fas fa-arrow-up mr-2 text-red-600"></i>Expense Budget by Category
                                 </label>
-                                <p class="text-gray-600 small mb-">Budgets pre-filled from previous term's spending</p>
+                                <p class="text-gray-600 small mb-">Budgets pre-filled from previous semester's spending</p>
 
                                 <div id="budgetItemsmax-w-7xl mx-auto">
                                     <?php 
                                     // Show ALL expense categories
                                     $categories->data_seek(0);
                                     while ($cat = $categories->fetch_assoc()): 
-                                        // Find existing amount or use previous term's spending
+                                        // Find existing amount or use previous semester's spending
                                         $cat_amount = 0;
                                         $found = false;
                                         
@@ -193,7 +193,7 @@ if ($existing) {
                                             }
                                         }
                                         
-                                        // If not found in existing items and we have previous term, get previous spending
+                                        // If not found in existing items and we have previous semester, get previous spending
                                         if (!$found && $previous_term) {
                                             require_once '../../includes/budget_functions.php';
                                             $cat_amount = getTermCategorySpending($conn, $cat['name'], $previous_term, $previous_academic_year);
@@ -204,7 +204,7 @@ if ($existing) {
                                             <label class="small text-gray-600 block mb-">Category</label>
                                             <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded" value="<?php echo htmlspecialchars($cat['name']); ?>" readonly>
                                             <?php if (!$existing && $previous_term && $cat_amount > 0): ?>
-                                            <small class="text-gray-600">Previous term spent: GHâ‚µ<?php echo number_format($cat_amount, 2); ?></small>
+                                            <small class="text-gray-600">Previous semester spent: GHâ‚µ<?php echo number_format($cat_amount, 2); ?></small>
                                             <?php endif; ?>
                                         </div>
                                         <div>

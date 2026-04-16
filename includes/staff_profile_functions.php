@@ -131,7 +131,7 @@ function ensureClassesTable(mysqli $conn): void
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         Level VARCHAR(50),
-        term VARCHAR(50),
+        semester VARCHAR(50),
         year VARCHAR(10),
         capacity INT DEFAULT 0,
         status ENUM('active', 'inactive') DEFAULT 'active',

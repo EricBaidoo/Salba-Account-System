@@ -50,7 +50,7 @@ foreach ($cols_to_check as $col => $def) {
 }
 
 include_once '../../includes/system_settings.php';
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
 
 // Handle Unsubmit / Deletion
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_plan'])) {
              content_standard, indicator, lesson_number, performance_indicator, core_competencies,
              references_materials, new_words, starter_activities, starter_resources,
              learning_activities, learning_resources, learning_assessment,
-             reflection_activities, reflection_resources, homework, term, academic_year,
+             reflection_activities, reflection_resources, homework, semester, academic_year,
              phase1_duration, phase2_duration, phase3_duration) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");

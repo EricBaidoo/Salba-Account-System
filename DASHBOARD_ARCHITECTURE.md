@@ -10,7 +10,7 @@ Implemented a hierarchical dashboard structure with a main system dashboard and 
 - **Location**: Root of pages folder
 - **Content**: Module navigation cards for all 6 modules
 - **Features**:
-  - Welcome header with current term and academic year
+  - Welcome header with current semester and academic year
   - User info and logout button
   - 6 module cards linking to respective module dashboards
   - Styled with Bootstrap 5.3.0 + custom CSS
@@ -37,8 +37,8 @@ Implemented a hierarchical dashboard structure with a main system dashboard and 
 #### Academics & Billing (`pages/academics/dashboard.php`)
 - Academic statistics:
   - Students enrolled
-  - Term bills count
-- Quick actions: View Term Bills, Term Budget, Generate Bills
+  - Semester bills count
+- Quick actions: View Semester Bills, Semester Budget, Generate Bills
 - Navigation back to main dashboard
 
 #### Reports & Analytics (`pages/reports/dashboard.php`)
@@ -49,7 +49,7 @@ Implemented a hierarchical dashboard structure with a main system dashboard and 
 
 #### Communication (`pages/communication/dashboard.php`)
 - Quick actions:
-  - Term Invoices
+  - Semester Invoices
   - Receipts
 - Navigation back to main dashboard
 

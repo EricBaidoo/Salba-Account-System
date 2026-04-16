@@ -46,7 +46,7 @@ $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
             </div>
             <div>
                 <h1 class="clean-page-title"><i class="fas fa-edit mr-2"></i>Edit Budget</h1>
-                <p class="clean-page-subtitle">Update budget details for <?php echo htmlspecialchars($budget['category']); ?> - <?php echo htmlspecialchars($budget['term']); ?></p>
+                <p class="clean-page-subtitle">Update budget details for <?php echo htmlspecialchars($budget['category']); ?> - <?php echo htmlspecialchars($budget['semester']); ?></p>
             </div>
         </div>
     </div>

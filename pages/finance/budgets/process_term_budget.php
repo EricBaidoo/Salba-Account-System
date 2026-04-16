@@ -7,14 +7,14 @@ if (!is_logged_in()) {
     exit;
 }
 
-$term = $_POST['term'] ?? '';
+$semester = $_POST['semester'] ?? '';
 $academic_year = $_POST['academic_year'] ?? '';
 $income_categories = $_POST['income_category'] ?? [];
 $income_amounts = $_POST['income_amount'] ?? [];
 $categories = $_POST['category'] ?? [];
 $amounts = $_POST['amount'] ?? [];
 
-if (!$term || !$academic_year) {
+if (!$semester || !$academic_year) {
     header('Location: edit_term_budget.php?error=Please fill in all required fields');
     exit;
 }
@@ -26,7 +26,7 @@ foreach ($income_amounts as $amt) {
 }
 
 // Check if budget exists
-$existing = $conn->query("SELECT id FROM term_budgets WHERE term = '$term' AND academic_year = '$academic_year'")->fetch_assoc();
+$existing = $conn->query("SELECT id FROM term_budgets WHERE semester = '$semester' AND academic_year = '$academic_year'")->fetch_assoc();
 
 if ($existing) {
     // Update existing
@@ -40,8 +40,8 @@ if ($existing) {
     $conn->query("DELETE FROM term_budget_items WHERE term_budget_id = $budget_id");
 } else {
     // Create new
-    $stmt = $conn->prepare("INSERT INTO term_budgets (term, academic_year, expected_income, created_at) VALUES (?, ?, ?, NOW())");
-    $stmt->bind_param('ssd', $term, $academic_year, $expected_income);
+    $stmt = $conn->prepare("INSERT INTO term_budgets (semester, academic_year, expected_income, created_at) VALUES (?, ?, ?, NOW())");
+    $stmt->bind_param('ssd', $semester, $academic_year, $expected_income);
     $stmt->execute();
     $budget_id = $conn->insert_id;
     $stmt->close();
@@ -73,6 +73,6 @@ for ($i = 0; $i < count($categories); $i++) {
     }
 }
 
-header('Location: term_budget.php?term=' . urlencode($term) . '&academic_year=' . urlencode($academic_year) . '&success=Budget saved successfully');
+header('Location: term_budget.php?semester=' . urlencode($semester) . '&academic_year=' . urlencode($academic_year) . '&success=Budget saved successfully');
 exit;
 ?>

@@ -18,7 +18,7 @@ if (!$payment) {
 }
 // Fetch fee breakdown (if using payment_allocations w-full border-collapse)
 $allocations = [];
-$alloc_sql = "SELECT pa.*, f.name AS fee_name, f.fee_type, sf.term AS sf_term, sf.academic_year AS sf_academic_year
+$alloc_sql = "SELECT pa.*, f.name AS fee_name, f.fee_type, sf.semester AS sf_term, sf.academic_year AS sf_academic_year
              FROM payment_allocations pa
              LEFT JOIN student_fees sf ON pa.student_fee_id = sf.id
              LEFT JOIN fees f ON sf.fee_id = f.id
@@ -77,14 +77,14 @@ if ($student_id) {
             <div><strong>Date:</strong> <?php echo date('M j, Y', strtotime($payment['payment_date'])); ?></div>
             <div><strong>Student:</strong> <?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></div>
             <div><strong>Class:</strong> <?php echo htmlspecialchars($payment['class']); ?></div>
-            <div><strong>Term:</strong> <?php echo htmlspecialchars($payment['term'] ?? ''); ?></div>
+            <div><strong>Semester:</strong> <?php echo htmlspecialchars($payment['semester'] ?? ''); ?></div>
             <div><strong>Academic Year:</strong> <?php echo htmlspecialchars(!empty($payment['academic_year']) ? formatAcademicYearDisplay($conn, $payment['academic_year']) : ''); ?></div>
         </div>
         <table class="w-full border-collapse receipt-w-full border-collapse">
             <thead>
                 <tr>
                     <th>Fee/Category</th>
-                    <th>Term</th>
+                    <th>Semester</th>
                     <th>Year</th>
                     <th>Amount Paid (GHâ‚µ)</th>
                 </tr>
@@ -102,7 +102,7 @@ if ($student_id) {
                 <?php else: ?>
                     <tr>
                         <td><?php echo htmlspecialchars($payment['description']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['term'] ?? ''); ?></td>
+                        <td><?php echo htmlspecialchars($payment['semester'] ?? ''); ?></td>
                         <td><?php echo htmlspecialchars(!empty($payment['academic_year']) ? formatAcademicYearDisplay($conn, $payment['academic_year']) : ''); ?></td>
                         <td><?php echo number_format($payment['amount'], 2); ?></td>
                     </tr>

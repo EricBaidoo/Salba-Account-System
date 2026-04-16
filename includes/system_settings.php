@@ -51,13 +51,13 @@ function setSystemSetting($conn, $key, $value, $updated_by = 'System') {
 }
 
 /**
- * Get the current active term for the entire system
+ * Get the current active semester for the entire system
  * @param mysqli $conn Database connection
- * @return string Current term (e.g., "First Term", "Second Term", "Third Term")
+ * @return string Current semester (e.g., "First Semester", "Second Semester", "Third Semester")
  */
-if (!function_exists('getCurrentTerm')) {
-function getCurrentTerm($conn) {
-    return getSystemSetting($conn, 'current_term', '');
+if (!function_exists('getCurrentSemester')) {
+function getCurrentSemester($conn) {
+    return getSystemSetting($conn, 'current_semester', '');
 }
 }
 
@@ -91,12 +91,31 @@ function getAllSettings($conn) {
 }
 
 /**
- * Get list of available terms
- * @return array List of terms
+ * Get list of available semesters from dictionary
+ * @param mysqli $conn Database connection
+ * @return array List of semesters
  */
-if (!function_exists('getAvailableTerms')) {
-function getAvailableTerms() {
-    return ['First Term', 'Second Term', 'Third Term'];
+if (!function_exists('getAvailableSemesters')) {
+function getAvailableSemesters($conn) {
+    $semesters = [];
+    $res = $conn->query("SELECT semester_name FROM academic_semester_dictionary WHERE is_active = 1 ORDER BY display_order ASC");
+    if($res) {
+        while($row = $res->fetch_assoc()) $semesters[] = $row['semester_name'];
+    }
+    // Fallback if dictionary empty
+    if (empty($semesters)) return ['First Semester', 'Second Semester', 'Third Semester'];
+    return $semesters;
+}
+}
+
+// Deprecated aliases for backward compatibility during migration
+if (!function_exists('getCurrentSemester')) {
+function getCurrentSemester($conn) { return getCurrentSemester($conn); }
+}
+if (!function_exists('getAvailableSemesters')) {
+function getAvailableSemesters() { 
+    // This is hard to maintain without $conn, so we'll just return standard ones if no conn available
+    return ['First Semester', 'Second Semester', 'Third Semester'];
 }
 }
 

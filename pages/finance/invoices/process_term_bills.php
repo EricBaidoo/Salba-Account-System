@@ -50,7 +50,7 @@ function calculateFeeAmount($conn, $fee_id, $student_class) {
 }
 
 // Get form data
-$term = $_POST['term'] ?? '';
+$semester = $_POST['semester'] ?? '';
 $academic_year = trim($_POST['academic_year'] ?? '');
 if ($academic_year === '') {
     $academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
@@ -59,7 +59,7 @@ $due_date = $_POST['due_date'] ?? '';
 $class_filter = $_POST['class_filter'] ?? 'all';
 $selected_fees = $_POST['selected_fees'] ?? '';
 
-if (empty($term) || empty($due_date) || empty($selected_fees)) {
+if (empty($semester) || empty($due_date) || empty($selected_fees)) {
     die('Missing required fields');
 }
 
@@ -100,7 +100,7 @@ try {
     $skipped_count = 0;
     
     $insert_stmt = $conn->prepare(
-        "INSERT INTO student_fees (student_id, fee_id, due_date, amount, term, academic_year, assigned_date, status) 
+        "INSERT INTO student_fees (student_id, fee_id, due_date, amount, semester, academic_year, assigned_date, status) 
          VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')"
     );
     
@@ -109,9 +109,9 @@ try {
             // Check if already assigned
             $check_stmt = $conn->prepare(
                 "SELECT id FROM student_fees 
-                 WHERE student_id = ? AND fee_id = ? AND term = ? AND academic_year = ? AND status != 'cancelled'"
+                 WHERE student_id = ? AND fee_id = ? AND semester = ? AND academic_year = ? AND status != 'cancelled'"
             );
-            $check_stmt->bind_param("iiss", $student['id'], $fee_id, $term, $academic_year);
+            $check_stmt->bind_param("iiss", $student['id'], $fee_id, $semester, $academic_year);
             $check_stmt->execute();
             $already_exists = $check_stmt->get_result()->num_rows > 0;
             $check_stmt->close();
@@ -127,7 +127,7 @@ try {
             $amount = floatval($amount);
             
             // Insert assignment
-            $insert_stmt->bind_param("iisdss", $student['id'], $fee_id, $due_date, $amount, $term, $academic_year);
+            $insert_stmt->bind_param("iisdss", $student['id'], $fee_id, $due_date, $amount, $semester, $academic_year);
             if ($insert_stmt->execute()) {
                 $assigned_count++;
             }
@@ -138,7 +138,7 @@ try {
     $conn->commit();
     
     // Redirect to invoice generation
-    header("Location: term_invoice.php?term=" . urlencode($term) . "&class=" . urlencode($class_filter) . "&academic_year=" . urlencode($academic_year) . "&generated=1&count=$assigned_count&skipped=$skipped_count");
+    header("Location: term_invoice.php?semester=" . urlencode($semester) . "&class=" . urlencode($class_filter) . "&academic_year=" . urlencode($academic_year) . "&generated=1&count=$assigned_count&skipped=$skipped_count");
     exit;
     
 } catch (Exception $e) {

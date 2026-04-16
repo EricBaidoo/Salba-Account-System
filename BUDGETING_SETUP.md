@@ -144,7 +144,7 @@ Budgets use existing expense categories. To add new categories:
 ### Date Ranges
 Budgets can span any date range, useful for:
 - Fiscal years (entire year)
-- Terms (per academic term)
+- Terms (per academic semester)
 - Months (monthly budgets)
 - Custom periods
 

@@ -14,7 +14,7 @@ $selected_class = $_GET['class'] ?? '';
 if (!$id) die("Invalid Student ID.");
 
 $current_year = getAcademicYear($conn);
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 
 // Fetch Student Data
 $p = $conn->query("SELECT * FROM students WHERE id = $id")->fetch_assoc();
@@ -53,7 +53,7 @@ if ($selected_class && $id) {
     
     // Map Configs to Array for robust matching
     $oa_types = []; $exam_types = [];
-    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND term = '$current_term'");
+    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
     while($r = $type_res->fetch_assoc()) {
         if ($r['is_exam']) $exam_types[] = $r['assessment_name'];
         else $oa_types[] = $r['assessment_name'];
@@ -63,7 +63,7 @@ if ($selected_class && $id) {
     $g_res = $conn->query("
         SELECT student_id, subject, marks, assessment_type 
         FROM grades 
-        WHERE class_name = '$selected_class' AND term = '$current_term' AND year = '$current_year'
+        WHERE class_name = '$selected_class' AND semester = '$current_term' AND year = '$current_year'
     ");
     
     while($row = $g_res->fetch_assoc()) {
@@ -123,7 +123,7 @@ if ($selected_class && $id) {
     }
     
     // Fetch Remarks
-    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE student_id = $id AND academic_year = '$current_year' AND term = '$current_term'");
+    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE student_id = $id AND academic_year = '$current_year' AND semester = '$current_term'");
     if($rem_res->num_rows > 0) $student_remarks = $rem_res->fetch_assoc();
 }
 
@@ -133,7 +133,7 @@ $school_address = getSystemSetting($conn, 'school_address', '');
 $school_phone   = getSystemSetting($conn, 'school_phone', '');
 $school_email   = getSystemSetting($conn, 'school_email', '');
 
-// Next term dates (Optional dynamic)
+// Next semester dates (Optional dynamic)
 $reopening_date = getSystemSetting($conn, 'next_term_reopening', '—');
 $vacation_date  = getSystemSetting($conn, 'current_term_vacation', '—');
 
@@ -221,7 +221,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
             <tr>
                 <td><span class="label">Class:</span> <span class="content"><?= strtoupper($selected_class) ?></span></td>
-                <td><span class="label">Term:</span> <span class="content"><?= strtoupper($current_term) ?></span></td>
+                <td><span class="label">Semester:</span> <span class="content"><?= strtoupper($current_term) ?></span></td>
             </tr>
             <tr>
                 <td><span class="label">Position:</span> <span class="content">—</span></td> <!-- Master rank can be calculated later -->
@@ -260,7 +260,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="7" style="padding: 20px; font-style: italic;">No academic records found for this term.</td></tr>
+                    <tr><td colspan="7" style="padding: 20px; font-style: italic;">No academic records found for this semester.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

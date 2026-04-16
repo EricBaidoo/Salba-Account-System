@@ -12,11 +12,11 @@ include '../../includes/budget_functions.php';
 
 // Get system defaults
 $default_academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
-$default_term = getCurrentTerm($conn);
+$default_term = getCurrentSemester($conn);
 
 // Get filter parameters
 $selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
-$selected_term = $_GET['term'] ?? 'All';
+$selected_term = $_GET['semester'] ?? 'All';
 $report_type = $_GET['report_type'] ?? 'overview';
 $date_from = $_GET['date_from'] ?? '';
 $date_to = $_GET['date_to'] ?? '';
@@ -44,7 +44,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
 }
 
 // Get available terms
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
 // Determine date range based on filters
 if ($date_from && $date_to) {
@@ -65,7 +65,7 @@ if ($date_from && $date_to) {
 }
 
 // DEBUG: Show what date range is being used
-$debug_info = "<!-- DEBUG: Term='$selected_term', Year='$selected_academic_year', Start='$start_date', End='$end_date' -->";
+$debug_info = "<!-- DEBUG: Semester='$selected_term', Year='$selected_academic_year', Start='$start_date', End='$end_date' -->";
 echo $debug_info;
 
 // Check actual data in database
@@ -74,15 +74,15 @@ $payment_data = $payment_check->fetch_assoc();
 echo "<!-- Payments by DATE RANGE: Count={$payment_data['cnt']}, Total={$payment_data['total']} -->";
 
 // Also check student_fees amount_paid
-$term_filter_debug = ($selected_term !== 'All') ? "AND term = '" . $conn->real_escape_string($selected_term) . "'" : "";
+$term_filter_debug = ($selected_term !== 'All') ? "AND semester = '" . $conn->real_escape_string($selected_term) . "'" : "";
 $sf_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount_paid) as total FROM student_fees WHERE academic_year = '$selected_academic_year' $term_filter_debug AND amount_paid > 0");
 $sf_data = $sf_check->fetch_assoc();
 echo "<!-- Student_fees amount_paid for $selected_term: Count={$sf_data['cnt']}, Total={$sf_data['total']} -->";
 
-// Check if there are payments OUTSIDE the term date range
+// Check if there are payments OUTSIDE the semester date range
 $outside_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount) as total FROM payments WHERE payment_date NOT BETWEEN '$start_date' AND '$end_date' AND payment_date >= DATE_SUB('$start_date', INTERVAL 30 DAY) AND payment_date <= DATE_ADD('$end_date', INTERVAL 30 DAY)");
 $outside_data = $outside_check->fetch_assoc();
-echo "<!-- Payments NEAR term (Â±30 days): Count={$outside_data['cnt']}, Total={$outside_data['total']} -->";
+echo "<!-- Payments NEAR semester (Â±30 days): Count={$outside_data['cnt']}, Total={$outside_data['total']} -->";
 
 $expense_check = $conn->query("SELECT COUNT(*) as cnt, SUM(amount) as total FROM expenses WHERE expense_date BETWEEN '$start_date' AND '$end_date'");
 $expense_data = $expense_check->fetch_assoc();
@@ -95,21 +95,21 @@ $income_by_category = [];
 $expense_by_category = [];
 
 if ($report_type === 'overview' || $report_type === 'income' || $report_type === 'expenses') {
-    // Income from payments w-full border-collapse - filtered by term and academic year like view_payments.php
+    // Income from payments w-full border-collapse - filtered by semester and academic year like view_payments.php
     $payment_where = [];
     if ($selected_term !== 'All') {
-        $payment_where[] = "p.term = '" . $conn->real_escape_string($selected_term) . "'";
+        $payment_where[] = "p.semester = '" . $conn->real_escape_string($selected_term) . "'";
     }
     $payment_where[] = "p.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'";
     $payment_where_sql = ' WHERE ' . implode(' AND ', $payment_where);
     
-    // Total income from all payments (active students only + general payments) - use term/year fields
+    // Total income from all payments (active students only + general payments) - use semester/year fields
     $income_total_stmt = $conn->prepare("
         SELECT COALESCE(SUM(p.amount), 0) as total 
         FROM payments p 
         LEFT JOIN students s ON p.student_id = s.id
         WHERE p.academic_year = ? 
-        " . ($selected_term !== 'All' ? "AND p.term = ? " : "") . "
+        " . ($selected_term !== 'All' ? "AND p.semester = ? " : "") . "
         AND (s.status = 'active' OR p.payment_type = 'general')
     ");
     if ($selected_term !== 'All') {
@@ -133,7 +133,7 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
                 JOIN payments p ON pa.payment_id = p.id
                 LEFT JOIN fees f ON sf.fee_id = f.id
                 LEFT JOIN students s ON p.student_id = s.id
-                WHERE p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                WHERE p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
                 GROUP BY f.id, f.name";
 
     $general_fee_sql = "SELECT CONCAT(f.name, ' (General)') AS category, 'general' AS payment_type, SUM(p.amount) AS total
@@ -141,14 +141,14 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
                 JOIN fees f ON p.fee_id = f.id
                 LEFT JOIN students s ON p.student_id = s.id
                 WHERE p.payment_type = 'general' AND p.fee_id IS NOT NULL
-                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
+                AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)
                 GROUP BY f.id, f.name";
 
     $general_none_sql = "SELECT 'General Payment (Unallocated)' AS category, 'general' AS payment_type, SUM(p.amount) AS total
                 FROM payments p
                 LEFT JOIN students s ON p.student_id = s.id
                 WHERE p.payment_type = 'general' AND p.fee_id IS NULL
-                AND p.academic_year = ? " . ($filter_term ? "AND p.term = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)";
+                AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "AND (s.status = 'active' OR s.id IS NULL)";
 
     $income_union_sql = "($student_sql) UNION ALL ($general_fee_sql) UNION ALL ($general_none_sql) ORDER BY category";
 
@@ -166,13 +166,13 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     }
     $income_stmt->close();
 
-    // Expenses by category - use term/academic_year fields
+    // Expenses by category - use semester/academic_year fields
     $expense_stmt = $conn->prepare("
         SELECT COALESCE(ec.name, 'Uncategorized') AS category, SUM(e.amount) AS total
         FROM expenses e
         LEFT JOIN expense_categories ec ON e.category_id = ec.id
         WHERE e.academic_year = ?
-        " . ($selected_term !== 'All' ? "AND e.term = ? " : "") . "
+        " . ($selected_term !== 'All' ? "AND e.semester = ? " : "") . "
         GROUP BY e.category_id, ec.id, ec.name
         HAVING total > 0
         ORDER BY ec.name
@@ -196,21 +196,21 @@ $budget_comparison = [];
 if ($report_type === 'budget' || $report_type === 'overview') {
     $terms_to_check = $selected_term === 'All' ? $available_terms : [$selected_term];
     
-    foreach ($terms_to_check as $term) {
-        $term_budget = $conn->query("SELECT * FROM term_budgets WHERE term = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc();
+    foreach ($terms_to_check as $semester) {
+        $term_budget = $conn->query("SELECT * FROM term_budgets WHERE semester = '$semester' AND academic_year = '$selected_academic_year'")->fetch_assoc();
         
         if ($term_budget) {
-            $term_range = getTermDateRange($conn, $term, $selected_academic_year);
+            $term_range = getTermDateRange($conn, $semester, $selected_academic_year);
             
             // Get budgeted income (sum of all fee assignments for active students only)
             $income_budget_stmt = $conn->prepare("
                 SELECT COALESCE(SUM(sf.amount), 0) as total 
                 FROM student_fees sf 
                 INNER JOIN students s ON sf.student_id = s.id
-                WHERE sf.term = ? AND sf.academic_year = ?
+                WHERE sf.semester = ? AND sf.academic_year = ?
                 AND s.status = 'active'
             ");
-            $income_budget_stmt->bind_param('ss', $term, $selected_academic_year);
+            $income_budget_stmt->bind_param('ss', $semester, $selected_academic_year);
             $income_budget_stmt->execute();
             $income_budget = (float)$income_budget_stmt->get_result()->fetch_assoc()['total'];
             $income_budget_stmt->close();
@@ -220,10 +220,10 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 SELECT COALESCE(SUM(p.amount), 0) as total 
                 FROM payments p
                 LEFT JOIN students s ON p.student_id = s.id
-                WHERE p.term = ? AND p.academic_year = ?
+                WHERE p.semester = ? AND p.academic_year = ?
                 AND (s.status = 'active' OR p.payment_type = 'general')
             ");
-            $income_actual_stmt->bind_param('ss', $term, $selected_academic_year);
+            $income_actual_stmt->bind_param('ss', $semester, $selected_academic_year);
             $income_actual_stmt->execute();
             $income_actual = (float)$income_actual_stmt->get_result()->fetch_assoc()['total'];
             $income_actual_stmt->close();
@@ -231,14 +231,14 @@ if ($report_type === 'budget' || $report_type === 'overview') {
             // Get budgeted expenses
             $expenses_budget = (float)$conn->query("SELECT COALESCE(SUM(amount), 0) as total FROM term_budget_items WHERE term_budget_id = {$term_budget['id']} AND type = 'expense'")->fetch_assoc()['total'];
             
-            // Get actual expenses using term/academic_year columns
-            $expenses_actual_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE term = ? AND academic_year = ?");
-            $expenses_actual_stmt->bind_param('ss', $term, $selected_academic_year);
+            // Get actual expenses using semester/academic_year columns
+            $expenses_actual_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE semester = ? AND academic_year = ?");
+            $expenses_actual_stmt->bind_param('ss', $semester, $selected_academic_year);
             $expenses_actual_stmt->execute();
             $expenses_actual = (float)$expenses_actual_stmt->get_result()->fetch_assoc()['total'];
             $expenses_actual_stmt->close();
             
-            $budget_comparison[$term] = [
+            $budget_comparison[$semester] = [
                 'income_budget' => $income_budget,
                 'income_actual' => $income_actual,
                 'income_variance' => $income_actual - $income_budget,
@@ -268,7 +268,7 @@ if ($report_type === 'student_fees') {
         FROM students s
         LEFT JOIN student_fees sf ON s.id = sf.student_id 
             AND sf.academic_year = ? 
-            " . ($selected_term !== 'All' ? "AND sf.term = ?" : "") . "
+            " . ($selected_term !== 'All' ? "AND sf.semester = ?" : "") . "
         WHERE s.status = 'active'
         GROUP BY s.id, s.name, s.class
         HAVING total_assigned > 0
@@ -304,7 +304,7 @@ if ($report_type === 'transactions') {
         FROM payments p
         LEFT JOIN students s ON p.student_id = s.id
         WHERE p.academic_year = ?
-        " . ($selected_term !== 'All' ? "AND p.term = ? " : "") . "
+        " . ($selected_term !== 'All' ? "AND p.semester = ? " : "") . "
         AND (s.status = 'active' OR p.payment_type = 'general')
         ORDER BY p.payment_date DESC, p.id DESC
         LIMIT 500
@@ -335,7 +335,7 @@ if ($report_type === 'expense_details') {
         FROM expenses e
         LEFT JOIN expense_categories ec ON e.category_id = ec.id
         WHERE e.academic_year = ?
-        " . ($selected_term !== 'All' ? "AND e.term = ? " : "") . "
+        " . ($selected_term !== 'All' ? "AND e.semester = ? " : "") . "
         ORDER BY e.expense_date DESC, e.id DESC
         LIMIT 500
     ");
@@ -417,12 +417,12 @@ if ($report_type === 'expense_details') {
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar"></i> Term</label>
-                        <select name="term" class="border border-gray-300 rounded px-3 py-2 bg-white" onchange="this.form.submit()">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar"></i> Semester</label>
+                        <select name="semester" class="border border-gray-300 rounded px-3 py-2 bg-white" onchange="this.form.submit()">
                             <option value="All" <?php echo $selected_term === 'All' ? 'selected' : ''; ?>>All Terms</option>
-                            <?php foreach ($available_terms as $term): ?>
-                                <option value="<?php echo htmlspecialchars($term); ?>" <?php echo $selected_term === $term ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($term); ?>
+                            <?php foreach ($available_terms as $semester): ?>
+                                <option value="<?php echo htmlspecialchars($semester); ?>" <?php echo $selected_term === $semester ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($semester); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -568,7 +568,7 @@ if ($report_type === 'expense_details') {
                     <table class="clean-w-full border-collapse">
                         <thead>
                             <tr>
-                                <th>Term</th>
+                                <th>Semester</th>
                                 <th class="text-center">Income Budget</th>
                                 <th class="text-center">Income Actual</th>
                                 <th class="text-center">Variance</th>
@@ -579,9 +579,9 @@ if ($report_type === 'expense_details') {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($budget_comparison as $term => $data): ?>
+                            <?php foreach ($budget_comparison as $semester => $data): ?>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($term); ?></strong></td>
+                                <td><strong><?php echo htmlspecialchars($semester); ?></strong></td>
                                 <td class="text-center">GHâ‚µ<?php echo number_format($data['income_budget'], 2); ?></td>
                                 <td class="text-center <?php echo $data['income_variance'] >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
                                     GHâ‚µ<?php echo number_format($data['income_actual'], 2); ?>

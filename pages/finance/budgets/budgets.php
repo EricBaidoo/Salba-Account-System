@@ -1,5 +1,5 @@
 <?php
-// Redirect to new term budget page
+// Redirect to new semester budget page
 header('Location: term_budget.php');
 exit;
 ?>

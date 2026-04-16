@@ -13,7 +13,7 @@
   - Includes variance analysis
   - Displays notes on budget items
 - **Accessed Via:** "PDF" button on budget_breakdown.php
-- **Output:** Downloads file as `Budget_[Term]_[Year].pdf`
+- **Output:** Downloads file as `Budget_[Semester]_[Year].pdf`
 
 #### 2. budget_templates.php  
 - **Purpose:** Browse and copy previous budgets as templates
@@ -25,13 +25,13 @@
   - Validates no duplicates
   - Copies all items and notes
 - **Accessed Via:** "TEMPLATES" button on budget_breakdown.php
-- **Workflow:** Select budget → Choose target term → Confirm copy
+- **Workflow:** Select budget → Choose target semester → Confirm copy
 
 #### 3. budget_history.php
 - **Purpose:** Compare budgets across terms and identify trends
 - **Size:** ~280 lines
 - **Key Features:**
-  - Term/year selection
+  - Semester/year selection
   - Category-by-category comparison
   - Variance calculation (% change)
   - Bar chart visualization
@@ -45,23 +45,23 @@
 - **Original Size:** ~250 lines  
 - **New Size:** ~687 lines
 - **Enhancements Added:**
-  - ✅ Term selection dropdown (lines 256-271)
+  - ✅ Semester selection dropdown (lines 256-271)
   - ✅ Variance alerts display (lines 291-339)
   - ✅ Four Chart.js charts (lines 493-535, 551-680)
   - ✅ Chart.js library import (line 161)
   - ✅ Chart initialization JavaScript (lines 551-680)
   - ✅ Buttons for History, Templates, PDF export (line 249)
-  - ✅ Enhanced header with term switcher (line 255-271)
+  - ✅ Enhanced header with semester switcher (line 255-271)
 - **Key Logic:**
   - Gets available terms from database
-  - Supports GET parameters for term selection
+  - Supports GET parameters for semester selection
   - Calculates variance alerts
   - Prepares data for Chart.js visualization
 
 #### 2. setup_budget_breakdown.php
 - **Original Size:** ~245 lines
 - **Enhancements Added:**
-  - ✅ Support for term selection in URL parameters (line 11)
+  - ✅ Support for semester selection in URL parameters (line 11)
   - ✅ Fetches existing budget notes (lines 25-42)
   - ✅ Notes input fields for each income item (lines 113-120)
   - ✅ Notes input fields for each expense item (lines 159-166)
@@ -77,7 +77,7 @@
   - ✅ Captures notes from POST data (lines 12-13)
   - ✅ Passes notes to database insert (lines 41, 55)
   - ✅ Updated query to include notes field (lines 41, 55)
-  - ✅ Redirect includes term/year parameters (line 61)
+  - ✅ Redirect includes semester/year parameters (line 61)
 - **Key Changes:**
   - `$income_notes = $_POST['income_notes']`
   - `$expense_notes = $_POST['expense_notes']`
@@ -141,7 +141,7 @@ ADD COLUMN notes TEXT NULL AFTER amount;
 ```
 term_budgets
 ├── id (primary key)
-├── term (First Term, Second Term, Third Term)
+├── semester (First Semester, Second Semester, Third Semester)
 ├── academic_year (e.g., 2024/2025)
 ├── expected_income
 ├── created_at
@@ -206,7 +206,7 @@ budget_breakdown.php loads
      ↓
 Gets available terms from database
      ↓
-Loads current term (or GET parameter term)
+Loads current semester (or GET parameter semester)
      ↓
 Queries student_fees for budgeted income
      ↓
@@ -227,7 +227,7 @@ Renders page with charts, alerts, tables
 ```
 User clicks "PDF" button
      ↓
-export_budget_pdf.php?term=X&academic_year=Y
+export_budget_pdf.php?semester=X&academic_year=Y
      ↓
 Collects same data as budget_breakdown.php
      ↓
@@ -246,7 +246,7 @@ budget_templates.php lists all budgets
      ↓
 User selects budget and clicks "Copy"
      ↓
-Modal shows target term/year options
+Modal shows target semester/year options
      ↓
 User confirms
      ↓
@@ -267,7 +267,7 @@ budget_history.php loads
      ↓
 Gets list of available budgets
      ↓
-User selects term and year to compare
+User selects semester and year to compare
      ↓
 Queries current budget items
      ↓
@@ -285,7 +285,7 @@ Renders comparison table and chart
 | Feature | Primary File | Supporting Files |
 |---------|--------------|------------------|
 | Budget Breakdown | budget_breakdown.php | process_budget_breakdown.php |
-| Term Selection | budget_breakdown.php | (GET parameters) |
+| Semester Selection | budget_breakdown.php | (GET parameters) |
 | Variance Alerts | budget_breakdown.php | (calculation logic) |
 | Charts | budget_breakdown.php | (Chart.js library) |
 | Budget Notes | setup_budget_breakdown.php | process_budget_breakdown.php, budget_breakdown.php |
@@ -305,9 +305,9 @@ Renders comparison table and chart
 $stmt = $conn->prepare("
     SELECT COALESCE(SUM(amount), 0) AS total 
     FROM student_fees 
-    WHERE fee_id = ? AND term = ? AND academic_year = ? AND status != 'cancelled'
+    WHERE fee_id = ? AND semester = ? AND academic_year = ? AND status != 'cancelled'
 ");
-$stmt->bind_param('iss', $fee_id, $term, $academic_year);
+$stmt->bind_param('iss', $fee_id, $semester, $academic_year);
 $stmt->execute();
 $budgeted = (float)$stmt->get_result()->fetch_assoc()['total'];
 ```
@@ -374,14 +374,14 @@ const incomeActual = <?php echo json_encode(array_column($income_data, 'actual')
 - `includes/db_connect.php` - Database connection
 - `includes/auth_functions.php` - Authentication check
 - `includes/system_settings.php` - System configuration
-- `includes/term_helpers.php` - Term date functions
+- `includes/term_helpers.php` - Semester date functions
 
 ---
 
 ## 🧪 TESTING CHECKLIST
 
 ### Feature Testing
-- [x] Term selection dropdown works
+- [x] Semester selection dropdown works
 - [x] Variance alerts appear for over/under budget
 - [x] Charts display with correct data
 - [x] PDF exports successfully
@@ -400,7 +400,7 @@ const incomeActual = <?php echo json_encode(array_column($income_data, 'actual')
 ### Data Testing
 - [x] Empty budget doesn't crash
 - [x] Large numbers format correctly
-- [x] Date ranges work across term boundaries
+- [x] Date ranges work across semester boundaries
 - [x] Multiple terms show independently
 - [x] Notes with special characters handled
 
@@ -450,17 +450,17 @@ const incomeActual = <?php echo json_encode(array_column($income_data, 'actual')
 - Check process_budget_breakdown.php saves notes
 - Verify term_budget_items table has notes column
 
-#### Term dropdown empty
+#### Semester dropdown empty
 - Must have at least one budget created
-- Create budget for term first
-- Then term appears in dropdown
+- Create budget for semester first
+- Then semester appears in dropdown
 
 ---
 
 ## 📝 CHANGE LOG
 
 ### Version 1.0 - Complete Implementation
-- ✅ Term selection dropdown
+- ✅ Semester selection dropdown
 - ✅ Variance alerts system
 - ✅ Four Chart.js visualizations
 - ✅ Budget notes functionality

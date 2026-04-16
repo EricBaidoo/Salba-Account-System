@@ -276,7 +276,7 @@ $classes = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
             <div class="bg-white rounded shadow-body p-0">
                 <div class="clean-w-full border-collapse-scroll">
                     <table class="w-full border-collapse w-full border-collapse-hover mb-">
-                        <thead class="w-full border-collapse-dark">\n                            <tr>\n                                <th>Student</th>\n                                <th>Class</th>\n                                <th>Fee</th>\n                                <th>Type</th>\n                                <th>Amount</th>\n                                <th>Due Date</th>\n                                <th>Term</th>\n                                <th>Year</th>\n                                <th>Status</th>\n                                <th>Actions</th>\n                            </tr>\n                        </thead>
+                        <thead class="w-full border-collapse-dark">\n                            <tr>\n                                <th>Student</th>\n                                <th>Class</th>\n                                <th>Fee</th>\n                                <th>Type</th>\n                                <th>Amount</th>\n                                <th>Due Date</th>\n                                <th>Semester</th>\n                                <th>Year</th>\n                                <th>Status</th>\n                                <th>Actions</th>\n                            </tr>\n                        </thead>
                         <tbody>
                             <?php if($result && $result->num_rows > 0): ?>
                                 <?php while($row = $result->fetch_assoc()): ?>
@@ -308,7 +308,7 @@ $classes = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php echo !empty($row['term']) ? htmlspecialchars($row['term']) : '<small class="text-gray-600">N/A</small>'; ?>
+                                        <?php echo !empty($row['semester']) ? htmlspecialchars($row['semester']) : '<small class="text-gray-600">N/A</small>'; ?>
                                     </td>
                                     <td>
                                         <?php echo !empty($row['academic_year']) ? htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) : '<small class="text-gray-600">N/A</small>'; ?>
@@ -331,7 +331,7 @@ $classes = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
                                     <td>
                                         <div class="px-3 py-2 rounded-group px-3 py-2 rounded-group-sm" role="group">
                                             <?php if($row['status'] !== 'paid'): ?>
-                                                <a href="record_payment_form.php?assignment_id=<?php echo $row['assignment_id']; ?>&term=<?php echo urlencode($row['term']); ?>&academic_year=<?php echo urlencode($row['academic_year'] ?? ''); ?>" 
+                                                <a href="record_payment_form.php?assignment_id=<?php echo $row['assignment_id']; ?>&semester=<?php echo urlencode($row['semester']); ?>&academic_year=<?php echo urlencode($row['academic_year'] ?? ''); ?>" 
                                                    class="px-3 py-2 rounded px-3 py-2 rounded-outline-success" title="Record Payment">
                                                     <i class="fas fa-credit-bg-white rounded shadow"></i>
                                                 </a>

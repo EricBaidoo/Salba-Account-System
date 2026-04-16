@@ -12,7 +12,7 @@ if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role']
 $success = '';
 $error = '';
 $uid = $_SESSION['user_id'];
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
 
 // Fetch Profile Data for Greeting
@@ -63,7 +63,7 @@ $selected_subject_name = $allocated_subjects[$selected_subject_id] ?? '';
 
 // 3. Fetch Admin Assessment Configurations for Auto-scaling
 $assessment_configs = [];
-$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation FROM assessment_configurations WHERE academic_year = '$current_year' AND term = '$current_term'");
+$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
 while($c = $conf_res->fetch_assoc()) {
     $assessment_configs[$c['id']] = [
         'name' => $c['assessment_name'],
@@ -93,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
                 // Math: (30 / 50) * 15 = 9 marks.
                 $scaled_mark = ($raw_marks / $raw_out_of) * $ass_weight;
 
-                $check = $conn->query("SELECT id FROM grades WHERE student_id = $sid AND subject = '$selected_subject_name' AND assessment_type = '$ass_name' AND term = '$current_term' AND year = '$current_year'");
+                $check = $conn->query("SELECT id FROM grades WHERE student_id = $sid AND subject = '$selected_subject_name' AND assessment_type = '$ass_name' AND semester = '$current_term' AND year = '$current_year'");
                 
                 if ($check->num_rows > 0) {
-                    $stmt = $conn->prepare("UPDATE grades SET marks = ?, out_of = ?, comments = ? WHERE student_id = ? AND subject = ? AND assessment_type = ? AND term = ? AND year = ?");
+                    $stmt = $conn->prepare("UPDATE grades SET marks = ?, out_of = ?, comments = ? WHERE student_id = ? AND subject = ? AND assessment_type = ? AND semester = ? AND year = ?");
                     $stmt->bind_param("ddssisss", $scaled_mark, $ass_weight, $comment, $sid, $selected_subject_name, $ass_name, $current_term, $current_year);
                     $stmt->execute();
                 } else {
-                    $stmt = $conn->prepare("INSERT INTO grades (student_id, class_name, subject, marks, out_of, assessment_type, term, year, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt = $conn->prepare("INSERT INTO grades (student_id, class_name, subject, marks, out_of, assessment_type, semester, year, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->bind_param("issddssss", $sid, $selected_class, $selected_subject_name, $scaled_mark, $ass_weight, $ass_name, $current_term, $current_year, $comment);
                     $stmt->execute();
                 }
@@ -134,7 +134,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
     $stmt = $conn->prepare("
         SELECT s.id, s.first_name, s.last_name, g.marks as scaled_marks, g.comments 
         FROM students s 
-        LEFT JOIN grades g ON s.id = g.student_id AND g.subject = ? AND g.assessment_type = ? AND g.term = ? AND g.year = ?
+        LEFT JOIN grades g ON s.id = g.student_id AND g.subject = ? AND g.assessment_type = ? AND g.semester = ? AND g.year = ?
         WHERE s.class = ? AND s.status = 'active'
         ORDER BY s.first_name ASC
     ");
@@ -189,7 +189,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                 <i class="fas fa-star text-yellow-500"></i> My Gradebook
             </h1>
             <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                Term: <?= $current_term ?> · Year: <?= $current_year ?>
+                Semester: <?= $current_term ?> · Year: <?= $current_year ?>
             </div>
         </div>
 

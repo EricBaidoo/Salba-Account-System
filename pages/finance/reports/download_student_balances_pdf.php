@@ -8,12 +8,12 @@ include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 include '../../includes/student_balance_functions.php';
 
-// Get current term and academic year from system settings
-$current_term = getCurrentTerm($conn);
+// Get current semester and academic year from system settings
+$current_term = getCurrentSemester($conn);
 $default_academic_year = getAcademicYear($conn);
 
-// Allow manual term override via URL parameter
-$selected_term = $_GET['term'] ?? $current_term;
+// Allow manual semester override via URL parameter
+$selected_term = $_GET['semester'] ?? $current_term;
 $selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
 
@@ -41,7 +41,7 @@ $owing_filter = $_GET['owing'] ?? 'all';
     $stmt->close();
 }
 
-// Get all student balances for the selected term/year
+// Get all student balances for the selected semester/year
 $student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);
 
 // Apply owing filter
@@ -101,7 +101,7 @@ $html .= '
 
 // Add filter information
 $html .= '<div class="filters">
-    <strong>Term:</strong> ' . htmlspecialchars($selected_term) . ' | 
+    <strong>Semester:</strong> ' . htmlspecialchars($selected_term) . ' | 
     <strong>Academic Year:</strong> ' . htmlspecialchars($display_academic_year);
 if ($class_filter !== 'all') {
     $html .= ' | <strong>Class:</strong> ' . htmlspecialchars($class_filter);

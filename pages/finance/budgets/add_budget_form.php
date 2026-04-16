@@ -8,7 +8,7 @@ if (!is_logged_in()) {
     exit;
 }
 
-$current_term = getCurrentTerm($conn);
+$current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
 
 // Fetch expense categories for budget categories
@@ -50,7 +50,7 @@ $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                     </div>
                     <div class="clean-bg-white rounded shadow-body">
                         <form action="process_budget.php" method="POST" onsubmit="return validateForm()">
-                            <input type="hidden" name="term" value="<?php echo htmlspecialchars($current_term); ?>">
+                            <input type="hidden" name="semester" value="<?php echo htmlspecialchars($current_term); ?>">
                             <input type="hidden" name="academic_year" value="<?php echo htmlspecialchars($academic_year); ?>">
                             
                             <!-- Category Selection -->
@@ -68,7 +68,7 @@ $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                             <!-- Description -->
                             <div class="mb-">
                                 <label for="description" class="block text-sm font-medium mb-">Description</label>
-                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded" id="description" name="description" rows="3" placeholder="e.g., Staff salaries for this term"></textarea>
+                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded" id="description" name="description" rows="3" placeholder="e.g., Staff salaries for this semester"></textarea>
                                 <small class="text-gray-600">Optional: Provide additional context for this budget</small>
                             </div>
 

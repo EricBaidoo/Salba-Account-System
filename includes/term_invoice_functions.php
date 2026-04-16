@@ -28,7 +28,7 @@ function getDefaultTermInvoiceSettings() {
         ],
         'notes' => [
             'All outstanding fees must be cleared before school reopens.',
-            'All fees must be paid before the end of the term.',
+            'All fees must be paid before the end of the semester.',
             'Please ensure all items are provided on time.',
             'Feeding fee is strictly weekly, monthly, or termly (NO DAILY FEEDING FEE).',
             'For any queries, contact the school administration.',
@@ -96,14 +96,14 @@ function normalizeAcademicYearForKey($academic_year) {
 }
 
 if (!function_exists('normalizeTermForKey')) {
-function normalizeTermForKey($term) {
-    return trim((string)$term);
+function normalizeTermForKey($semester) {
+    return trim((string)$semester);
 }
 }
 
 if (!function_exists('getTermInvoiceSettingsKey')) {
-function getTermInvoiceSettingsKey($term, $academic_year) {
-    $normalized_term = normalizeTermForKey($term);
+function getTermInvoiceSettingsKey($semester, $academic_year) {
+    $normalized_term = normalizeTermForKey($semester);
     $normalized_year = normalizeAcademicYearForKey($academic_year);
     $term_slug = strtolower(preg_replace('/[^A-Za-z0-9]+/', '_', $normalized_term));
     $year_slug = preg_replace('/[^A-Za-z0-9]+/', '_', $normalized_year);
@@ -112,16 +112,16 @@ function getTermInvoiceSettingsKey($term, $academic_year) {
 }
 
 if (!function_exists('getTermInvoiceSettings')) {
-function getTermInvoiceSettings($conn, $term, $academic_year) {
+function getTermInvoiceSettings($conn, $semester, $academic_year) {
     $defaults = getDefaultTermInvoiceSettings();
-    $normalized_term = normalizeTermForKey($term);
+    $normalized_term = normalizeTermForKey($semester);
     $normalized_year = normalizeAcademicYearForKey($academic_year);
 
     $candidate_keys = [
         getTermInvoiceSettingsKey($normalized_term, $normalized_year),
         getTermInvoiceSettingsKey($normalized_term, $academic_year),
-        getTermInvoiceSettingsKey($term, $normalized_year),
-        getTermInvoiceSettingsKey($term, $academic_year),
+        getTermInvoiceSettingsKey($semester, $normalized_year),
+        getTermInvoiceSettingsKey($semester, $academic_year),
     ];
     $candidate_keys = array_values(array_unique($candidate_keys));
 
@@ -195,25 +195,25 @@ if (!function_exists('resolveTermInvoiceContext')) {
 function resolveTermInvoiceContext($conn, array $criteria = []) {
     $invoice_id = intval($criteria['invoice_id'] ?? 0);
     $student_id = intval($criteria['student_id'] ?? 0);
-    $term = trim((string)($criteria['term'] ?? ''));
+    $semester = trim((string)($criteria['semester'] ?? ''));
     $academic_year = trim((string)($criteria['academic_year'] ?? ''));
 
-    if ($term === '') {
-        $term = null;
+    if ($semester === '') {
+        $semester = null;
     }
 
     if ($academic_year === '') {
         $academic_year = null;
     }
 
-    if ($academic_year === null && $term !== null) {
+    if ($academic_year === null && $semester !== null) {
         $academic_year = getAcademicYear($conn);
     }
 
     $invoice = null;
 
     if ($invoice_id > 0) {
-        $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.term, ti.academic_year, ti.generated_at,
+        $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.semester, ti.academic_year, ti.generated_at,
                        s.first_name, s.last_name, s.class, s.status AS student_status
                 FROM term_invoices ti
                 LEFT JOIN students s ON ti.student_id = s.id
@@ -226,27 +226,27 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
         $stmt->close();
     }
 
-    if (!$invoice && $student_id > 0 && $term !== null) {
+    if (!$invoice && $student_id > 0 && $semester !== null) {
         if ($academic_year !== null) {
-            $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.term, ti.academic_year, ti.generated_at,
+            $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.semester, ti.academic_year, ti.generated_at,
                            s.first_name, s.last_name, s.class, s.status AS student_status
                     FROM term_invoices ti
                     LEFT JOIN students s ON ti.student_id = s.id
-                    WHERE ti.student_id = ? AND ti.term = ? AND (ti.academic_year = ? OR ti.academic_year IS NULL)
+                    WHERE ti.student_id = ? AND ti.semester = ? AND (ti.academic_year = ? OR ti.academic_year IS NULL)
                     ORDER BY ti.id DESC
                     LIMIT 1";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('iss', $student_id, $term, $academic_year);
+            $stmt->bind_param('iss', $student_id, $semester, $academic_year);
         } else {
-            $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.term, ti.academic_year, ti.generated_at,
+            $sql = "SELECT ti.id AS invoice_id, ti.student_id, ti.semester, ti.academic_year, ti.generated_at,
                            s.first_name, s.last_name, s.class, s.status AS student_status
                     FROM term_invoices ti
                     LEFT JOIN students s ON ti.student_id = s.id
-                    WHERE ti.student_id = ? AND ti.term = ?
+                    WHERE ti.student_id = ? AND ti.semester = ?
                     ORDER BY ti.id DESC
                     LIMIT 1";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('is', $student_id, $term);
+            $stmt->bind_param('is', $student_id, $semester);
         }
 
         $stmt->execute();
@@ -266,7 +266,7 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
             $invoice = [
                 'invoice_id' => null,
                 'student_id' => intval($student['student_id']),
-                'term' => $term,
+                'semester' => $semester,
                 'academic_year' => $academic_year,
                 'generated_at' => null,
                 'first_name' => $student['first_name'],
@@ -282,11 +282,11 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
     }
 
     $student_id = intval($invoice['student_id'] ?? 0);
-    $term = trim((string)($invoice['term'] ?? $term));
+    $semester = trim((string)($invoice['semester'] ?? $semester));
     $academic_year = trim((string)($invoice['academic_year'] ?? $academic_year));
 
-    if ($term === '') {
-        $term = trim((string)($criteria['term'] ?? ''));
+    if ($semester === '') {
+        $semester = trim((string)($criteria['semester'] ?? ''));
     }
     if ($academic_year === '') {
         $academic_year = trim((string)($criteria['academic_year'] ?? ''));
@@ -295,19 +295,19 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
         $academic_year = getAcademicYear($conn);
     }
 
-    if ($student_id <= 0 || $term === '' || $academic_year === '') {
+    if ($student_id <= 0 || $semester === '' || $academic_year === '') {
         return null;
     }
 
-    ensureArrearsAssignment($conn, $student_id, $term, $academic_year);
+    ensureArrearsAssignment($conn, $student_id, $semester, $academic_year);
 
-    $student_balance = getStudentBalance($conn, $student_id, $term, $academic_year);
+    $student_balance = getStudentBalance($conn, $student_id, $semester, $academic_year);
     if (!$student_balance) {
         return null;
     }
 
-    $term_fees = getStudentTermFees($conn, $student_id, $term, $academic_year);
-    $payment_history = getStudentPaymentHistory($conn, $student_id, $term, $academic_year);
+    $term_fees = getStudentTermFees($conn, $student_id, $semester, $academic_year);
+    $payment_history = getStudentPaymentHistory($conn, $student_id, $semester, $academic_year);
 
     return [
         'invoice' => $invoice,
@@ -316,7 +316,7 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
         'payment_history' => $payment_history,
         'school_name' => getSystemSetting($conn, 'school_name', 'Salba Montessori'),
         'display_academic_year' => formatAcademicYearDisplay($conn, $academic_year),
-        'term' => $term,
+        'semester' => $semester,
         'academic_year' => $academic_year,
     ];
 }
@@ -331,7 +331,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
     $payment_history = $context['payment_history'];
     $school_name = $context['school_name'];
     $display_academic_year = $context['display_academic_year'];
-    $term = $context['term'];
+    $semester = $context['semester'];
     $academic_year = $context['academic_year'];
 
     $invoice_id = $invoice['invoice_id'] ? intval($invoice['invoice_id']) : 0;
@@ -356,12 +356,12 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
         $end_year = intval($end_part);
     }
     $year_code = substr((string)$start_year, -2) . substr((string)$end_year, -2);
-    $bill_no = strtoupper(substr((string)$term, 0, 1)) . $year_code . str_pad((string)intval($student_balance['student_id']), 4, '0', STR_PAD_LEFT);
+    $bill_no = strtoupper(substr((string)$semester, 0, 1)) . $year_code . str_pad((string)intval($student_balance['student_id']), 4, '0', STR_PAD_LEFT);
     $installment_50 = $total_fees * 0.50;
     $installment_30 = $total_fees * 0.30;
     $installment_20 = $total_fees * 0.20;
     if ($conn) {
-        $invoice_settings = getTermInvoiceSettings($conn, $term, $academic_year);
+        $invoice_settings = getTermInvoiceSettings($conn, $semester, $academic_year);
     } else {
         $invoice_settings = getDefaultTermInvoiceSettings();
     }
@@ -379,7 +379,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
             . '<p class="contact">GC-051-0961 | Tel: 059 887 2309 | Email: info@salbamontessori.edu.gh</p>'
             . '</div>';
 
-        $pdf_html .= '<div class="bill-title">SCHOOL FEES BILL - ' . htmlspecialchars(strtoupper((string)$term)) . '</div>';
+        $pdf_html .= '<div class="bill-title">SCHOOL FEES BILL - ' . htmlspecialchars(strtoupper((string)$semester)) . '</div>';
 
         $pdf_html .= '<table class="student-details-table">'
             . '<tr>'
@@ -387,7 +387,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
             . '<td><span class="label">CLASS:</span> ' . htmlspecialchars(strtoupper((string)$student_class)) . '</td>'
             . '</tr>'
             . '<tr>'
-            . '<td><span class="label">TERM:</span> ' . htmlspecialchars(strtoupper((string)$term)) . '</td>'
+            . '<td><span class="label">TERM:</span> ' . htmlspecialchars(strtoupper((string)$semester)) . '</td>'
             . '<td><span class="label">ACADEMIC YEAR:</span> ' . htmlspecialchars((string)$display_academic_year) . '</td>'
             . '</tr>'
             . '<tr>'
@@ -409,7 +409,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
                     . '</tr>';
             }
         } else {
-            $pdf_html .= '<tr><td colspan="2">No fee assignments found for this term.</td></tr>';
+            $pdf_html .= '<tr><td colspan="2">No fee assignments found for this semester.</td></tr>';
         }
 
         $pdf_html .= '</tbody></table>';
@@ -470,11 +470,11 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
         return $pdf_html;
     }
 
-    $base_url = 'student_balance_details.php?id=' . intval($student_balance['student_id']) . '&term=' . urlencode((string)$term) . '&academic_year=' . urlencode((string)$academic_year);
+    $base_url = 'student_balance_details.php?id=' . intval($student_balance['student_id']) . '&semester=' . urlencode((string)$semester) . '&academic_year=' . urlencode((string)$academic_year);
     if ($invoice_id > 0) {
         $download_url = 'download_term_invoice.php?id=' . intval($invoice_id);
     } else {
-        $download_url = 'download_term_invoice.php?student_id=' . intval($student_balance['student_id']) . '&term=' . urlencode((string)$term) . '&academic_year=' . urlencode((string)$academic_year);
+        $download_url = 'download_term_invoice.php?student_id=' . intval($student_balance['student_id']) . '&semester=' . urlencode((string)$semester) . '&academic_year=' . urlencode((string)$academic_year);
     }
 
     $html = '<!DOCTYPE html>
@@ -490,14 +490,14 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
     <div class="header">
         <div class="header-top">
             <div>
-                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">Term Invoice</div>
+                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">Semester Invoice</div>
                 <h1 class="school">' . htmlspecialchars($school_name) . '</h1>
-                <p class="subtitle">Student billing statement for term-based fees and payments.</p>
+                <p class="subtitle">Student billing statement for semester-based fees and payments.</p>
             </div>
             <div class="meta">
                 <div><strong>Invoice No:</strong> ' . htmlspecialchars($invoice_code) . '</div>
                 <div><strong>Generated:</strong> ' . htmlspecialchars($generated_at) . '</div>
-                <div><strong>Term:</strong> ' . htmlspecialchars((string)$term) . '</div>
+                <div><strong>Semester:</strong> ' . htmlspecialchars((string)$semester) . '</div>
                 <div><strong>Academic Year:</strong> ' . htmlspecialchars((string)$display_academic_year) . '</div>
             </div>
         </div>
@@ -582,7 +582,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
             </tr>';
         }
     } else {
-        $html .= '<tr><td colspan="6" class="muted">No fee assignments found for this term.</td></tr>';
+        $html .= '<tr><td colspan="6" class="muted">No fee assignments found for this semester.</td></tr>';
     }
 
     $html .= '</tbody>
@@ -613,7 +613,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
             </tr>';
         }
     } else {
-        $html .= '<tr><td colspan="4" class="muted">No payments recorded for this term.</td></tr>';
+        $html .= '<tr><td colspan="4" class="muted">No payments recorded for this semester.</td></tr>';
     }
 
     $html .= '</tbody>
@@ -670,7 +670,7 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
     $html .= '</ol>
     </div>';
 
-    $html .= '<div class="note">This invoice is generated from assigned fees and payment records for the selected term. Arrears are carried forward automatically when applicable.</div>';
+    $html .= '<div class="note">This invoice is generated from assigned fees and payment records for the selected semester. Arrears are carried forward automatically when applicable.</div>';
     $html .= '<div class="footer">Generated by the accounts module on ' . htmlspecialchars(date('M j, Y g:i A')) . '.</div>';
     $html .= '</div></div></body></html>';
 

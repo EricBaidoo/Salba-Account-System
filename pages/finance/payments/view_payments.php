@@ -7,13 +7,13 @@ include '../../includes/db_connect.php';
 include '../../includes/system_settings.php';
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
-// Filters: term + academic year
-$current_term = getCurrentTerm($conn);
+// Filters: semester + academic year
+$current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
 
-$selected_term = isset($_GET['term']) ? trim($_GET['term']) : $current_term;
+$selected_term = isset($_GET['semester']) ? trim($_GET['semester']) : $current_term;
 $selected_year = isset($_GET['year']) ? trim($_GET['year']) : $current_year;
-$available_terms = getAvailableTerms();
+$available_terms = getAvailableSemesters();
 
 // Academic year options from payments + ensure current
 $year_options = [];
@@ -30,11 +30,11 @@ if (!in_array($current_year, $year_options, true)) { array_unshift($year_options
 $where = [];
 $params = [];
 $types = '';
-if ($selected_term !== '') { $where[] = 'p.term = ?'; $params[] = $selected_term; $types .= 's'; }
+if ($selected_term !== '') { $where[] = 'p.semester = ?'; $params[] = $selected_term; $types .= 's'; }
 if ($selected_year !== '') { $where[] = 'p.academic_year = ?'; $params[] = $selected_year; $types .= 's'; }
 $where_sql = empty($where) ? '' : (' WHERE ' . implode(' AND ', $where));
 
-$sql = "SELECT p.id, s.first_name, s.last_name, s.class, p.amount, p.payment_date, p.receipt_no, p.description, p.term, p.academic_year, p.payment_type, f.name as fee_name
+$sql = "SELECT p.id, s.first_name, s.last_name, s.class, p.amount, p.payment_date, p.receipt_no, p.description, p.semester, p.academic_year, p.payment_type, f.name as fee_name
         FROM payments p
         LEFT JOIN students s ON p.student_id = s.id
         LEFT JOIN fees f ON p.fee_id = f.id" .
@@ -68,7 +68,7 @@ $add_where_student = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
 $add_where_general = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
 
 // Replace w-full border-collapse aliases for student query
-$where_payments = str_replace('p.term', 'payments.term', $add_where_student);
+$where_payments = str_replace('p.semester', 'payments.semester', $add_where_student);
 $where_payments = str_replace('p.academic_year', 'payments.academic_year', $where_payments);
 $where_payments = str_replace('s.status', 'students.status', $where_payments);
 
@@ -218,8 +218,8 @@ if (!empty($params)) {
             <form method="GET" action="">
                 <div class="flex flex-wrap gap-3 items-end">
                     <div class="col-md-3">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-week mr-2"></i>Term</label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="term">
+                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-week mr-2"></i>Semester</label>
+                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="semester">
                             <option value="">All Terms</option>
                             <?php foreach ($available_terms as $t): ?>
                                 <option value="<?php echo htmlspecialchars($t); ?>" <?php echo ($selected_term === $t) ? 'selected' : ''; ?>>
@@ -255,7 +255,7 @@ if (!empty($params)) {
         <div class="print-header text-center">
             <h3 class="mb-"><?php echo htmlspecialchars($school_name); ?></h3>
             <div class="small text-gray-600">Payment History Report</div>
-            <div class="mt-1">Term: <strong><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : 'All Terms'); ?></strong> | Academic Year: <strong><?php echo htmlspecialchars($selected_year !== '' ? formatAcademicYearDisplay($conn, $selected_year) : 'All Years'); ?></strong></div>
+            <div class="mt-1">Semester: <strong><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : 'All Terms'); ?></strong> | Academic Year: <strong><?php echo htmlspecialchars($selected_year !== '' ? formatAcademicYearDisplay($conn, $selected_year) : 'All Years'); ?></strong></div>
             <div class="small text-gray-600">Printed on <?php echo date('M j, Y'); ?></div>
         </div>
         <!-- Payment w-full border-collapse -->
@@ -270,7 +270,7 @@ if (!empty($params)) {
                             <th>Class</th>
                             <th>Amount</th>
                             <th>Date</th>
-                            <th>Term</th>
+                            <th>Semester</th>
                             <th>Year</th>
                             <th>Receipt No.</th>
                             <th>Description</th>
@@ -304,7 +304,7 @@ if (!empty($params)) {
                             </td>
                             <td><strong class="text-green-600">GHâ‚µ<?php echo number_format($row['amount'], 2); ?></strong></td>
                             <td><?php echo date('M j, Y', strtotime($row['payment_date'])); ?></td>
-                            <td><?php echo htmlspecialchars($row['term'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($row['semester'] ?? ''); ?></td>
                             <td><?php echo htmlspecialchars(!empty($row['academic_year']) ? formatAcademicYearDisplay($conn, $row['academic_year']) : ''); ?></td>
                             <td><?php echo htmlspecialchars($row['receipt_no']); ?></td>
                             <td><?php echo htmlspecialchars($row['description']); ?></td>

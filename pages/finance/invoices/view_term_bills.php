@@ -7,11 +7,11 @@ if (!is_logged_in()) {
 }
 
 // Get all terms that have assigned fees
-$terms_query = "SELECT DISTINCT term FROM student_fees WHERE status != 'cancelled' ORDER BY 
-    CASE term 
-        WHEN 'First Term' THEN 1
-        WHEN 'Second Term' THEN 2
-        WHEN 'Third Term' THEN 3
+$terms_query = "SELECT DISTINCT semester FROM student_fees WHERE status != 'cancelled' ORDER BY 
+    CASE semester 
+        WHEN 'First Semester' THEN 1
+        WHEN 'Second Semester' THEN 2
+        WHEN 'Third Semester' THEN 3
         ELSE 4
     END";
 $terms_result = $conn->query($terms_query);
@@ -23,7 +23,7 @@ $classes_result = $conn->query("SELECT DISTINCT name FROM classes ORDER BY name"
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>View Term Bills - Salba Montessori</title>
+    <title>View Semester Bills - Salba Montessori</title>
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="../../../assets/css/style.css">
@@ -35,32 +35,32 @@ $classes_result = $conn->query("SELECT DISTINCT name FROM classes ORDER BY name"
         </div>
         
         <div class="page-header rounded shadow-sm mb- p-4 text-center">
-            <h2 class="mb-"><i class="fas fa-file-invoice mr-2"></i>View & Reprint Term Bills</h2>
+            <h2 class="mb-"><i class="fas fa-file-invoice mr-2"></i>View & Reprint Semester Bills</h2>
             <p class="lead mb-">Access previously generated bills for printing</p>
         </div>
 
         <div class="flex flex-wrap gap-4">
-            <!-- Bulk Bills by Term/Class -->
+            <!-- Bulk Bills by Semester/Class -->
             <div class="md:col-span-6">
                 <div class="bg-white rounded shadow shadow-sm h-full">
                     <div class="bg-white rounded shadow-header bg-primary text-white">
                         <h5 class="mb-"><i class="fas fa-users mr-2"></i>Print Bulk Bills</h5>
                     </div>
                     <div class="bg-white rounded shadow-body">
-                        <p>Generate bills for all students in a specific term/class</p>
+                        <p>Generate bills for all students in a specific semester/class</p>
                         <form method="GET" action="term_invoice.php" target="_blank">
                             <div class="mb-">
                                 <label for="bulk_term" class="block text-sm font-medium mb- fw-bold">
-                                    <i class="fas fa-calendar-alt mr-1"></i>Select Term *
+                                    <i class="fas fa-calendar-alt mr-1"></i>Select Semester *
                                 </label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="bulk_term" name="term" required>
-                                    <option value="">Choose Term...</option>
+                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="bulk_term" name="semester" required>
+                                    <option value="">Choose Semester...</option>
                                     <?php 
                                     $terms_result->data_seek(0);
-                                    while ($term = $terms_result->fetch_assoc()): 
+                                    while ($semester = $terms_result->fetch_assoc()): 
                                     ?>
-                                        <option value="<?php echo htmlspecialchars($term['term']); ?>">
-                                            <?php echo htmlspecialchars($term['term']); ?>
+                                        <option value="<?php echo htmlspecialchars($semester['semester']); ?>">
+                                            <?php echo htmlspecialchars($semester['semester']); ?>
                                         </option>
                                     <?php endwhile; ?>
                                 </select>
@@ -97,16 +97,16 @@ $classes_result = $conn->query("SELECT DISTINCT name FROM classes ORDER BY name"
                         <form method="GET" action="term_invoice.php" target="_blank">
                             <div class="mb-">
                                 <label for="student_term" class="block text-sm font-medium mb- fw-bold">
-                                    <i class="fas fa-calendar-alt mr-1"></i>Select Term *
+                                    <i class="fas fa-calendar-alt mr-1"></i>Select Semester *
                                 </label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="student_term" name="term" required>
-                                    <option value="">Choose Term...</option>
+                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="student_term" name="semester" required>
+                                    <option value="">Choose Semester...</option>
                                     <?php 
                                     $terms_result->data_seek(0);
-                                    while ($term = $terms_result->fetch_assoc()): 
+                                    while ($semester = $terms_result->fetch_assoc()): 
                                     ?>
-                                        <option value="<?php echo htmlspecialchars($term['term']); ?>">
-                                            <?php echo htmlspecialchars($term['term']); ?>
+                                        <option value="<?php echo htmlspecialchars($semester['semester']); ?>">
+                                            <?php echo htmlspecialchars($semester['semester']); ?>
                                         </option>
                                     <?php endwhile; ?>
                                 </select>
