@@ -25,7 +25,7 @@ $ontime_limit = date('H:i:s', strtotime($ontime_limit_val));
 
 // Geofence Calibration
 $school_lat = 5.5786875; $school_lng = -0.2911875;
-$allowed_radius = 250;
+$allowed_radius = 300;
 
 function getDistanceMeters($lat1, $lon1, $lat2, $lon2) {
     if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return 999999;

@@ -59,8 +59,19 @@ $initials = substr($initials, 0, 2);
             <div class="h-24 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600"></div>
             <div class="px-8 pb-6 -mt-12 flex items-end justify-between">
                 <div class="flex items-end gap-5">
-                    <?php if($s['photo_path']): ?>
-                        <img src="../../../<?= htmlspecialchars($s['photo_path']) ?>" class="w-24 h-28 object-cover rounded-xl border-4 border-white shadow-lg" alt="">
+                    <?php 
+                    $photo_src = $s['photo_path'];
+                    if ($photo_src && strpos($photo_src, 'http') === 0) {
+                        // Extract ID and use robust direct link format
+                        if (preg_match('/id=([a-zA-Z0-9_-]+)/', $photo_src, $matches)) {
+                            $photo_src = "https://lh3.googleusercontent.com/d/" . $matches[1];
+                        }
+                    } else {
+                        $photo_src = $photo_src ? "../../../" . $photo_src : null;
+                    }
+                    
+                    if($s['photo_path']): ?>
+                        <img src="<?= htmlspecialchars($photo_src) ?>" class="w-24 h-28 object-cover rounded-xl border-4 border-white shadow-lg" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <?php else: ?>
                         <div class="w-24 h-28 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl border-4 border-white shadow-lg flex items-center justify-center text-white font-extrabold text-3xl">
                             <?= $initials ?>

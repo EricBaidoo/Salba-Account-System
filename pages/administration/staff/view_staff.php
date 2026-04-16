@@ -85,9 +85,14 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
                 </h1>
                 <p class="text-gray-500 mt-2 font-medium">Manage institutional human resources and system access credentials.</p>
             </div>
-            <a href="add_staff.php" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-1">
-                <i class="fas fa-plus-circle text-lg"></i> Register New Staff
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="bulk_upload_staff.php" class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-6 py-4 rounded-2xl flex items-center gap-3 hover:bg-emerald-100 transition-all">
+                    <i class="fas fa-file-import text-lg"></i> Bulk Import
+                </a>
+                <a href="add_staff.php" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-1">
+                    <i class="fas fa-plus-circle text-lg"></i> Register New Staff
+                </a>
+            </div>
         </div>
 
         <!-- Stat Cards -->
@@ -191,8 +196,19 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
                                 <td class="px-6 py-5">
                                     <div class="flex items-center gap-4">
                                         <div class="relative">
-                                            <?php if($s['photo_path']): ?>
-                                                <img src="../../../<?= htmlspecialchars($s['photo_path']) ?>" class="w-12 h-14 object-cover rounded-xl border border-gray-100 shadow-sm" alt="">
+                                            <?php 
+                                            $photo_src = $s['photo_path'];
+                                            if ($photo_src && strpos($photo_src, 'http') === 0) {
+                                                // Extract ID and use robust direct link format
+                                                if (preg_match('/id=([a-zA-Z0-9_-]+)/', $photo_src, $matches)) {
+                                                    $photo_src = "https://lh3.googleusercontent.com/d/" . $matches[1];
+                                                }
+                                            } else {
+                                                $photo_src = $photo_src ? "../../../" . $photo_src : null;
+                                            }
+                                            
+                                            if($s['photo_path']): ?>
+                                                <img src="<?= htmlspecialchars($photo_src) ?>" class="w-12 h-14 object-cover rounded-xl border border-gray-100 shadow-sm" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <?php else: ?>
                                                 <div class="w-12 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
                                                     <?= $initials ?>

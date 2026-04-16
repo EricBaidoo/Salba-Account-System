@@ -16,7 +16,7 @@ $selected_date = $_GET['date'] ?? date('Y-m-d');
 // Geofence Calibration
 $school_lat = 5.5786875;
 $school_lng = -0.2911875;
-$allowed_radius = 250;
+$allowed_radius = 300;
 
 // Fetch Dynamic Punctuality Rules
 $early_limit_setting = getSystemSetting($conn, 'attendance_early_limit', '06:30');
@@ -150,6 +150,9 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                             <td class="px-10 py-6">
                                 <span class="text-[10px] font-black uppercase tracking-widest <?= $log['geofence_status'] === 'Violation' ? 'text-red-600 animate-pulse' : 'text-indigo-600' ?>"><?= $log['geofence_status'] ?></span>
                                 <div class="text-[8px] text-slate-400 font-bold italic"><?= $log['distance_m'] ?>m from campus</div>
+                                <?php if(isset($log['accuracy']) && $log['accuracy'] > 0): ?>
+                                    <div class="text-[7px] text-slate-300 font-black uppercase tracking-widest mt-1">±<?= round($log['accuracy']) ?>m Accuracy</div>
+                                <?php endif; ?>
                             </td>
                             <td class="px-10 py-6 text-center">
                                 <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-indigo-700 hover:text-white transition-all"><i class="fas fa-map-location-dot"></i></a>
