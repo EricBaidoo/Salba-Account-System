@@ -119,7 +119,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         </div>
 
         <div class="header-title">
-            <h2>TERM <?= strtoupper($v('semester')) ?: 'THREE' ?></h2>
+            <h2>SEMESTER <?= strtoupper($v('semester')) ?: 'THREE' ?></h2>
             <h1>WEEKLY LESSON NOTES</h1>
             <h2>WEEK <?= $v('week_number') ?></h2>
         </div>
@@ -201,8 +201,8 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         <div class="footer">
             <table class="footer-table">
                 <tr>
-                    <td><div class="sig-line">Class Teacher: <?= strtoupper($v('teacher_full_name')) ?></div></td>
-                    <td><div class="sig-line" style="width: 100%;">Headteacher / Supervisor Approval</div></td>
+                    <td><div class="sig-line">Class Teacher's Signature</div></td>
+                    <td><div class="sig-line" style="width: 100%;">Principal's / Headteacher's / Supervisor's Approval</div></td>
                 </tr>
             </table>
         </div>

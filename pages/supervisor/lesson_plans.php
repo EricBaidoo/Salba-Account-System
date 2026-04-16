@@ -80,7 +80,7 @@ $reviewed_plans = $conn->query("
 
     <main class=" min-h-screen relative p-8">
         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
-            <i class="fas fa-file-signature text-green-500"></i> Lesson Plan Approvals
+            <i class="fas fa-file-signature text-green-500"></i> Principal's / Headteacher's / Supervisor's Approvals
         </h1>
 
         <?php if ($success): ?>
@@ -93,7 +93,7 @@ $reviewed_plans = $conn->query("
         <div class="space-y-8">
             <!-- Pending Queue -->
             <div>
-                <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-clock text-yellow-500"></i> Pending Review Queue</h2>
+                <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-clock text-yellow-500"></i> Pending Review Queue (Principal / Headteacher / Supervisor)</h2>
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <?php if($pending_plans && $pending_plans->num_rows > 0): while($p = $pending_plans->fetch_assoc()): ?>
                         <div class="bg-white rounded-xl shadow-sm border border-yellow-200 p-6 flex flex-col justify-between">
@@ -159,7 +159,7 @@ $reviewed_plans = $conn->query("
                                 <input type="hidden" name="review_plan" value="1">
                                 <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
                                 
-                                <textarea name="comments" rows="2" placeholder="Leave remarks for the teacher to see..." class="w-full px-3 py-2 border border-gray-300 rounded focus:border-green-500 text-sm"></textarea>
+                                <textarea name="comments" rows="2" placeholder="Leave Principal's / Headteacher's / Supervisor's remarks for the teacher to see..." class="w-full px-3 py-2 border border-gray-300 rounded focus:border-green-500 text-sm"></textarea>
                                 
                                 <div class="flex gap-3">
                                     <button type="submit" name="status" value="approved" class="flex-1 bg-green-600 text-white font-bold py-2 rounded shadow hover:bg-green-700 transition">Approve Plan</button>

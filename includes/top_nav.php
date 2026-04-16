@@ -22,7 +22,7 @@ if ($pages_pos !== false) {
     <div class="flex items-center gap-4">
         <?php 
         $logo_link = $root_path . "index.php";
-        if ($user_role === 'teacher') $logo_link = $root_path . "pages/teacher/dashboard.php";
+        if ($user_role === 'facilitator') $logo_link = $root_path . "pages/teacher/dashboard.php";
         if ($user_role === 'supervisor') $logo_link = $root_path . "pages/supervisor/dashboard.php";
         if ($user_role === 'admin') $logo_link = $root_path . "pages/administration/dashboard.php";
         ?>
@@ -40,7 +40,7 @@ if ($pages_pos !== false) {
     <div class="flex items-center gap-6">
         <?php 
         $hub_link = $root_path . "index.php";
-        if ($user_role === 'teacher') $hub_link = $root_path . "pages/teacher/dashboard.php";
+        if ($user_role === 'facilitator') $hub_link = $root_path . "pages/teacher/dashboard.php";
         if ($user_role === 'supervisor') $hub_link = $root_path . "pages/supervisor/dashboard.php";
         if ($user_role === 'admin') $hub_link = $root_path . "pages/administration/dashboard.php";
         ?>

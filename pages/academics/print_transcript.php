@@ -9,6 +9,13 @@ if (!is_logged_in()) {
     header('Location: ../../includes/login.php'); exit;
 }
 
+// Security Guard: Only admins can generate official PDFs. 
+// Staff can only use the HTML viewer.
+$render_type = (isset($_GET['view']) && $_GET['view'] == 'html') ? 'html' : 'pdf';
+if ($render_type === 'pdf' && ($_SESSION['role'] ?? '') !== 'admin') {
+    die("Institutional Security: PDF generation is restricted to the Administrative role. Please use the Digital Preview only.");
+}
+
 $id = intval($_GET['student'] ?? ($_GET['id'] ?? 0));
 $selected_class = $_GET['class'] ?? '';
 if (!$id) die("Invalid Student ID.");
@@ -133,9 +140,12 @@ $school_address = getSystemSetting($conn, 'school_address', '');
 $school_phone   = getSystemSetting($conn, 'school_phone', '');
 $school_email   = getSystemSetting($conn, 'school_email', '');
 
-// Next semester dates (Optional dynamic)
-$reopening_date = getSystemSetting($conn, 'next_term_reopening', '—');
-$vacation_date  = getSystemSetting($conn, 'current_term_vacation', '—');
+// Next semester dates (Dynamic from System Settings)
+$raw_reopening = getSystemSetting($conn, 'next_semester_begins', '');
+$raw_vacation   = getSystemSetting($conn, 'semester_end_date', '');
+
+$reopening_date = $raw_reopening ? date('jS F Y', strtotime($raw_reopening)) : '—';
+$vacation_date  = $raw_vacation  ? date('jS F Y', strtotime($raw_vacation))  : '—';
 
 $v = fn($k) => htmlspecialchars($p[$k] ?? '-');
 
@@ -185,9 +195,11 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         <div class="web-only-nav" style="background: #fff; padding: 10px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <div style="font-weight: bold; color: #1e293b; font-size: 14px;"><i class="fas fa-certificate text-indigo-500 mr-2"></i> Official Transcript Preview</div>
             <div style="display: flex; gap: 10px;">
-                <a href="?student=<?= $id ?>&class=<?= urlencode($selected_class) ?>" class="btn-action" style="background: #ef4444; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-file-pdf"></i> Download PDF
-                </a>
+                <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+                    <a href="?student=<?= $id ?>&class=<?= urlencode($selected_class) ?>" class="btn-action" style="background: #ef4444; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
+                <?php endif; ?>
                 <button onclick="window.close()" class="btn-action" style="background: #64748b; color: #fff; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; font-size: 12px;">
                     Close Window
                 </button>
@@ -229,7 +241,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
             <tr>
                 <td><span class="label">Vacation Date:</span> <span class="content"><?= $vacation_date ?></span></td>
-                <td><span class="label">Re-opening Date:</span> <span class="content"><?= $reopening_date ?></span></td>
+                <td><span class="label">Next Semester Begins:</span> <span class="content"><?= $reopening_date ?></span></td>
             </tr>
         </table>
 
@@ -282,19 +294,17 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <td colspan="3" class="remark-content" style="padding: 15px 8px; font-size: 14px;"><?= htmlspecialchars($student_remarks['teacher_remarks'] ?? '—') ?></td>
             </tr>
             <tr>
-                <td class="remark-label" style="padding: 15px 8px;">Headmaster's Remarks</td>
+                <td class="remark-label" style="padding: 15px 8px;">Principal's / Headteacher's / Supervisor's Remarks</td>
                 <td colspan="3" class="remark-content" style="padding: 15px 8px; font-size: 14px; border-bottom: none;"><?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '—') ?></td>
             </tr>
         </table>
 
         <div style="display: flex; justify-content: space-between;">
             <div class="sig-box">
-                <div style="font-weight: normal; margin-bottom: 5px;"><?= strtoupper($class_teacher_name) ?></div>
                 Class Teacher's Signature
             </div>
             <div class="sig-box">
-                <div style="font-weight: normal; margin-bottom: 5px;"><?= strtoupper(getSystemSetting($conn, 'head_teacher_name', '__________________________')) ?></div>
-                Headmaster's Signature
+                Principal's / Headteacher's / Supervisor's Signature
             </div>
         </div>
 

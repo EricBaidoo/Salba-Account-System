@@ -126,10 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     
-    // Update academic and school information
     $fields = [
         'school_name', 'school_address', 'school_phone', 'school_email',
-        'semester_start_date', 'semester_end_date'
+        'semester_start_date', 'semester_end_date', 'next_semester_begins'
     ];
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
@@ -200,7 +199,7 @@ for ($i = -2; $i <= 5; $i++) {
                     <i class="fas fa-sliders-h text-orange-500"></i> System Settings
                 </h1>
                 <p class="text-gray-500 mt-2 text-sm">
-                    Configure global parameters, active terms, and school identity.
+                    Configure global parameters, active semesters, and school identity.
                 </p>
             </div>
         </div>
@@ -264,7 +263,7 @@ for ($i = -2; $i <= 5; $i++) {
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div>
+                                    <div class="col-span-full md:col-span-1">
                                         <label for="semester_start_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
                                             <i class="fas fa-play-circle text-xs text-blue-400"></i> Semester Start Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Week 1)</span>
                                         </label>
@@ -272,13 +271,21 @@ for ($i = -2; $i <= 5; $i++) {
                                                value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_start_date', '')); ?>"
                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
                                     </div>
-                                    <div>
+                                    <div class="col-span-full md:col-span-1">
                                         <label for="semester_end_date" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
-                                            <i class="fas fa-stop-circle text-xs text-red-300"></i> Semester End Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Final Week)</span>
+                                            <i class="fas fa-stop-circle text-xs text-red-300"></i> Semester Vacation Date <span class="text-[10px] text-gray-400 font-bold uppercase">(Current)</span>
                                         </label>
                                         <input type="date" id="semester_end_date" name="semester_end_date" 
                                                value="<?php echo htmlspecialchars(getSystemSetting($conn, 'semester_end_date', '')); ?>"
                                                class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors text-sm">
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="next_semester_begins" class="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2 text-indigo-600">
+                                            <i class="fas fa-calendar-plus text-xs"></i> Next Semester Begins <span class="text-[10px] text-gray-400 font-bold uppercase">(Transcript Re-opening Date)</span>
+                                        </label>
+                                        <input type="date" id="next_semester_begins" name="next_semester_begins" 
+                                               value="<?php echo htmlspecialchars(getSystemSetting($conn, 'next_semester_begins', '')); ?>"
+                                               class="w-full px-4 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors text-sm font-bold">
                                     </div>
                                 </div>
 

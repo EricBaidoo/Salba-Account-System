@@ -16,6 +16,26 @@ $current_term = getCurrentSemester($conn);
 $user_role = $_SESSION['role'] ?? 'staff';
 $uid = $_SESSION['user_id'];
 
+// Auto-Migration: Create student_term_remarks if missing
+$conn->query("
+    CREATE TABLE IF NOT EXISTS student_term_remarks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        academic_year VARCHAR(20) NOT NULL,
+        semester VARCHAR(50) NOT NULL,
+        attitude TEXT,
+        conduct TEXT,
+        talent_and_interest TEXT,
+        teacher_remarks TEXT,
+        teacher_id INT,
+        supervisor_remarks TEXT,
+        supervisor_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY(student_id, academic_year, semester)
+    ) ENGINE=InnoDB;
+");
+
 // Global Transcript Settings
 $global_oa_weight = floatval(getSystemSetting($conn, 'term_oa_weight', 30));
 $global_exam_weight = floatval(getSystemSetting($conn, 'term_exam_weight', 70));
@@ -195,16 +215,17 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
             </div>
             
             <div class="flex items-center gap-3">
-                <?php if($user_role !== 'facilitator'): ?>
-                    <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
-                        <i class="fas fa-eye"></i> View Results
-                    </a>
+                <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
+                    <i class="fas fa-eye"></i> View Results
+                </a>
+
+                <?php if($user_role === 'admin'): ?>
                     <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
                 <?php else: ?>
-                    <span class="bg-red-50 text-red-600 border border-red-200 font-bold px-4 py-2 rounded-lg text-sm">
-                        <i class="fas fa-lock mr-1"></i> Print Role Restricted
+                    <span class="bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
+                        <i class="fas fa-lock text-[10px]"></i> Download PDF Restricted
                     </span>
                 <?php endif; ?>
             </div>
@@ -267,7 +288,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
                     <?php if($user_role === 'supervisor' || $user_role === 'admin'): ?>
                     <div class="col-span-full border-t border-gray-100 pt-4 mt-2 bg-red-50 p-4 rounded mt-4">
-                        <label class="block text-xs font-bold text-red-800 uppercase mb-1"><i class="fas fa-user-tie"></i> Supervisor/Headmaster Remarks</label>
+                        <label class="block text-xs font-bold text-red-800 uppercase mb-1"><i class="fas fa-user-tie"></i> Principal's / Headteacher's / Supervisor's Remarks</label>
                         <input type="text" name="supervisor_remarks" value="<?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '') ?>" class="w-full border border-red-200 p-2 rounded font-bold italic text-red-900">
                     </div>
                     <?php endif; ?>

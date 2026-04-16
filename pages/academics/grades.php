@@ -88,21 +88,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
 
         foreach ($_POST['marks'] as $student_id => $raw_marks) {
             $sid = intval($student_id);
-            $raw_out_of = floatval($_POST['out_of'][$sid] ?? 100);
+            $raw_out_of = $ass_weight; // System-Defined Base
             $raw_marks = floatval($raw_marks);
             $comment = $conn->real_escape_string($_POST['comments'][$sid] ?? '');
 
-            if ($raw_marks !== '' && $raw_out_of > 0) {
-                // Auto-Scaling Mathematical Logic
-                // Scale native score (e.g. 8/10) directly to the Internal Target Config (e.g. 30). Output = 24.
-                // Exam native score (e.g. 80/100) scales directly to 100 Target Config. Output = 80.
-                $scaled_mark = ($raw_marks / $raw_out_of) * $ass_weight;
+            if ($raw_marks !== '') {
+                // Validation: Prevent entering figure higher than assessment max
+                if ($raw_marks > $ass_weight) {
+                    $error = "Institutional Security: Student #$sid cannot have marks ($raw_marks) exceeding assessment maximum ($ass_weight).";
+                    continue; 
+                }
+
+                // Mathematical Logic: Entering raw points directly out of the Weight
+                $scaled_mark = $raw_marks; 
 
                 $check = $conn->query("SELECT id FROM grades WHERE student_id = $sid AND subject = '$selected_subject_name' AND assessment_type = '$ass_name' AND semester = '$current_term' AND year = '$current_year'");
                 
                 if ($check->num_rows > 0) {
                     $stmt = $conn->prepare("UPDATE grades SET marks = ?, out_of = ?, comments = ? WHERE student_id = ? AND subject = ? AND assessment_type = ? AND semester = ? AND year = ?");
-                    $stmt->bind_param("ddssisss", $scaled_mark, $ass_weight, $comment, $sid, $selected_subject_name, $ass_name, $current_term, $current_year);
+                    $stmt->bind_param("ddsissss", $scaled_mark, $ass_weight, $comment, $sid, $selected_subject_name, $ass_name, $current_term, $current_year);
                     $stmt->execute();
                 } else {
                     $stmt = $conn->prepare("INSERT INTO grades (student_id, class_name, subject, marks, out_of, assessment_type, semester, year, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -259,13 +263,13 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                             </div>
 
                             <table class="w-full text-left">
-                                <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[10px] uppercase font-black tracking-widest">
+                                <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[10px] uppercase font-black tracking-widest text-center">
                                     <tr>
-                                        <th class="px-8 py-5">Student Identity</th>
-                                        <th class="px-8 py-5 text-center">Raw Marks</th>
-                                        <th class="px-4 py-5 text-center text-gray-300">/</th>
-                                        <th class="px-8 py-5 text-center">NATIVE TOTAL</th>
-                                        <th class="px-8 py-5">Evaluation Comments</th>
+                                        <th class="px-8 py-5 text-left">Student Identity</th>
+                                        <th class="px-8 py-5">Marks Awarded</th>
+                                        <th class="px-4 py-5 text-gray-300">/</th>
+                                        <th class="px-8 py-5">Target Weight</th>
+                                        <th class="px-8 py-5 text-left">Evaluation Comments</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50/50">
@@ -287,11 +291,13 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                 </div>
                                             </td>
                                             <td class="px-8 py-5 text-center">
-                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" placeholder="..." class="w-20 px-3 py-2.5 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 text-center font-black text-lg shadow-inner transition-all">
+                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" class="w-24 px-3 py-2.5 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 text-center font-black text-lg shadow-inner transition-all">
                                             </td>
                                             <td class="px-2 py-5 text-center font-black text-gray-200">/</td>
                                             <td class="px-8 py-5 text-center">
-                                                <input type="number" step="0.1" name="out_of[<?= $s['id'] ?>]" value="10" class="w-20 px-3 py-2.5 bg-gray-100/50 border-none rounded-xl text-gray-400 text-center font-bold text-sm shadow-inner transition-all" title="What did you grade this test out of natively?">
+                                                <div class="w-20 mx-auto px-3 py-2.5 bg-gray-100/50 rounded-xl text-gray-400 font-black text-sm border border-gray-100 shadow-sm flex items-center justify-center">
+                                                    <?= $selected_assessment['weight'] ?>
+                                                </div>
                                             </td>
                                             <td class="px-8 py-5">
                                                 <div class="relative">
@@ -311,8 +317,8 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                     <i class="fas fa-square-root-variable"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-gray-900 text-sm">Real-time Scaling Engine</h4>
-                                    <p class="text-xs text-gray-500">Algorithm: <code>(Raw Marks / Native Total) * <?= $selected_assessment['weight'] ?></code></p>
+                                    <h4 class="font-bold text-gray-900 text-sm">System Math Engine</h4>
+                                    <p class="text-xs text-gray-500">Validation: <code>Entered Marks ≤ <?= $selected_assessment['weight'] ?> (Official Max)</code></p>
                                 </div>
                             </div>
                             <button type="submit" name="save_grades" class="bg-gray-900 text-white font-black py-4 px-10 rounded-2xl shadow-xl hover:bg-black hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 text-lg">

@@ -148,7 +148,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                         <i class="fas fa-scroll"></i>
                     </div>
                     <h3 class="text-2xl font-black text-gray-900 mb-2">Student Transcripts</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">View generated official terminal reports for your allocated classes.</p>
+                    <p class="text-gray-500 text-sm leading-relaxed">View generated official semester reports for your allocated classes.</p>
                 </a>
 
                 <!-- Card: Check-in -->

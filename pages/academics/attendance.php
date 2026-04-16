@@ -215,7 +215,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     <div class="flex items-center gap-4">
                         <?php 
                         $dash_link = "../../index.php";
-                        if ($_SESSION['role'] === 'teacher') $dash_link = "../teacher/dashboard.php";
+                        if ($_SESSION['role'] === 'facilitator') $dash_link = "../teacher/dashboard.php";
                         if ($_SESSION['role'] === 'supervisor') $dash_link = "../supervisor/dashboard.php";
                         ?>
                         <a href="<?= $dash_link ?>" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Back to Dashboard">

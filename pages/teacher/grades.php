@@ -63,11 +63,13 @@ $selected_subject_name = $allocated_subjects[$selected_subject_id] ?? '';
 
 // 3. Fetch Admin Assessment Configurations for Auto-scaling
 $assessment_configs = [];
-$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
+// Internal Rules (Scale to their respective weights)
+$conf_res = $conn->query("SELECT id, assessment_name, max_marks_allocation, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
 while($c = $conf_res->fetch_assoc()) {
-    $assessment_configs[$c['id']] = [
+    $assessment_configs['sba_'.$c['id']] = [
         'name' => $c['assessment_name'],
-        'weight' => floatval($c['max_marks_allocation'])
+        'weight' => floatval($c['max_marks_allocation']),
+        'is_exam' => (bool)$c['is_exam']
     ];
 }
 $selected_assessment_id = $_GET['assessment'] ?? (array_keys($assessment_configs)[0] ?? '');
@@ -82,22 +84,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
 
         foreach ($_POST['marks'] as $student_id => $raw_marks) {
             $sid = intval($student_id);
-            $raw_out_of = floatval($_POST['out_of'][$sid] ?? 100);
+            $raw_out_of = $ass_weight; // System-Defined Base
             $raw_marks = floatval($raw_marks);
             $comment = $conn->real_escape_string($_POST['comments'][$sid] ?? '');
 
-            if ($raw_marks !== '' && $raw_out_of > 0) {
-                // Auto-Scaling Mathematical Logic!
-                // Instead of saving 50/100, we save the geometrically scaled value into `marks` and `out_of` becomes the `max_marks_allocation`.
-                // Example: Teacher graded 30 out of 50. Admin allocated weight: 15.
-                // Math: (30 / 50) * 15 = 9 marks.
-                $scaled_mark = ($raw_marks / $raw_out_of) * $ass_weight;
+            if ($raw_marks !== '') {
+                // Validation: Prevent entering figure higher than assessment max
+                if ($raw_marks > $ass_weight) {
+                    $error = "Institutional Security: Student #$sid cannot have marks ($raw_marks) exceeding assessment maximum ($ass_weight).";
+                    continue; 
+                }
+
+                // Mathematical Logic: Entering raw points directly out of the Weight
+                $scaled_mark = $raw_marks; 
 
                 $check = $conn->query("SELECT id FROM grades WHERE student_id = $sid AND subject = '$selected_subject_name' AND assessment_type = '$ass_name' AND semester = '$current_term' AND year = '$current_year'");
                 
                 if ($check->num_rows > 0) {
                     $stmt = $conn->prepare("UPDATE grades SET marks = ?, out_of = ?, comments = ? WHERE student_id = ? AND subject = ? AND assessment_type = ? AND semester = ? AND year = ?");
-                    $stmt->bind_param("ddssisss", $scaled_mark, $ass_weight, $comment, $sid, $selected_subject_name, $ass_name, $current_term, $current_year);
+                    $stmt->bind_param("ddsissss", $scaled_mark, $ass_weight, $comment, $sid, $selected_subject_name, $ass_name, $current_term, $current_year);
                     $stmt->execute();
                 } else {
                     $stmt = $conn->prepare("INSERT INTO grades (student_id, class_name, subject, marks, out_of, assessment_type, semester, year, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -256,12 +261,14 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                 <?php if($selected_class && $selected_subject_name && $selected_assessment): ?>
                     <form method="POST">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                            <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center">
+                            <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center <?= ($selected_assessment['is_exam'] ?? false) ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/50 border-amber-100' ?>">
                                 <div>
-                                    <h3 class="font-bold text-yellow-900 text-lg">
-                                        <?= htmlspecialchars($selected_subject_name) ?> <i class="fas fa-arrow-right text-yellow-400 text-sm mx-1"></i> <?= htmlspecialchars($selected_assessment['name']) ?>
+                                    <h3 class="font-bold text-yellow-900 text-lg <?= ($selected_assessment['is_exam'] ?? false) ? 'text-red-900' : 'text-amber-900' ?>">
+                                        <?= htmlspecialchars($selected_subject_name) ?> <i class="fas fa-arrow-right-long text-opacity-30 mx-2"></i> <?= htmlspecialchars($selected_assessment['name']) ?>
                                     </h3>
-                                    <p class="text-xs text-yellow-700 font-medium mt-0.5">Admin Official Target Math Weight: <span class="bg-yellow-200 px-1 rounded text-black"><?= $selected_assessment['weight'] ?> points</span></p>
+                                    <p class="text-xs text-yellow-700 font-medium mt-0.5 <?= ($selected_assessment['is_exam'] ?? false) ? 'text-red-500' : 'text-amber-600' ?>">
+                                        Official Target Weight: <span class="bg-white px-2 py-0.5 rounded shadow-sm border border-opacity-50 ml-1"><?= $selected_assessment['weight'] ?> points max</span>
+                                    </p>
                                 </div>
                             </div>
 
@@ -284,12 +291,14 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                     <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-800 text-[10px] rounded uppercase">Already Sent</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td class="px-6 py-4">
-                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" placeholder="e.g. 8" class="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-yellow-500 focus:border-yellow-500 text-center font-bold">
+                                            <td class="px-6 py-4 text-center">
+                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" class="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-yellow-500 focus:border-yellow-500 text-center font-bold">
                                             </td>
                                             <td class="px-2 py-4 text-center font-bold text-gray-300">/</td>
-                                            <td class="px-6 py-4">
-                                                <input type="number" step="0.1" name="out_of[<?= $s['id'] ?>]" value="10" class="w-24 px-3 py-2 border border-gray-200 bg-gray-50 rounded text-gray-500 text-center font-bold" title="What did you grade this test out of natively?">
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="w-20 mx-auto px-3 py-2.5 bg-gray-100/50 rounded-lg text-gray-400 font-black text-sm border border-gray-100 shadow-sm flex items-center justify-center">
+                                                    <?= $selected_assessment['weight'] ?>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4">
                                                 <input type="text" name="comments[<?= $s['id'] ?>]" value="<?= htmlspecialchars($s['comments'] ?? '') ?>" placeholder="Feedback..." class="w-full px-3 py-2 bg-transparent border-b border-gray-200 focus:border-yellow-500 focus:outline-none text-sm text-gray-600">
@@ -302,10 +311,10 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                         
                         <div class="flex justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-100">
                             <div class="text-gray-500 text-sm font-medium">
-                                <i class="fas fa-robot mr-1 text-gray-400"></i> The system will automatically compute the <code>(Marks / Out Of) * <?= $selected_assessment['weight'] ?></code> algorithm.
+                                <i class="fas fa-robot mr-1 text-gray-400"></i> Validation: <code>Entered Marks ≤ <?= $selected_assessment['weight'] ?> (Official Max)</code>
                             </div>
                             <button type="submit" name="save_grades" class="bg-yellow-500 text-white font-bold py-3 px-8 rounded-lg shadow border border-transparent hover:bg-yellow-600 transition flex items-center gap-2 text-lg">
-                                <i class="fas fa-square-root-variable"></i> Auto-Scale & Save
+                                <i class="fas fa-bolt-lightning"></i> Process & Save
                             </button>
                         </div>
                     </form>

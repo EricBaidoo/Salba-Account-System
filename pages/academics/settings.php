@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// 1. Process Global Transcript Terminal Weights
+// 1. Process Global Transcript Semester Report Weights
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_global_weights') {
     $oa_w = floatval($_POST['oa_weight']);
     $ex_w = floatval($_POST['exam_weight']);
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (($oa_w + $ex_w) == 100) {
         setSystemSetting($conn, 'term_oa_weight', $oa_w, $_SESSION['username']);
         setSystemSetting($conn, 'term_exam_weight', $ex_w, $_SESSION['username']);
-        $success = "Terminal Report Rules saved strictly at 100% split!";
+        $success = "Semester Report Rules saved strictly at 100% split!";
     } else {
         $error = "Error: The Final Transcript weights must equal exactly 100% (Not ".($oa_w+$ex_w)."%)";
     }
@@ -149,8 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // 6. Process Semester Structure (Weeks per Semester)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_term_structure') {
-    $weeks = intval($_POST['weeks_per_term']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_semester_structure') {
+    $weeks = intval($_POST['weeks_per_semester']);
     if ($weeks > 0 && $weeks < 53) {
         setSystemSetting($conn, 'weeks_per_term', $weeks, $_SESSION['username']);
         $success = "Institutional Semester Structure updated to $weeks weeks.";
@@ -207,7 +207,7 @@ if ($c_meta_res) {
     }
 }
 
-$weeks_per_term = intval(getSystemSetting($conn, 'weeks_per_term', 12));
+$weeks_per_semester = intval(getSystemSetting($conn, 'weeks_per_term', 12));
 
 // Fetch Calendar events
 $calendar_events = [];
@@ -432,11 +432,11 @@ if($dl_res) {
                         </h2>
                     </div>
                     <form method="POST" class="p-6">
-                        <input type="hidden" name="action" value="save_term_structure">
+                        <input type="hidden" name="action" value="save_semester_structure">
                         <div class="mb-6">
                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Weeks per Academic Semester</label>
                             <div class="flex items-center gap-4">
-                                <input type="number" name="weeks_per_term" value="<?= $weeks_per_term ?>" min="1" max="52" required class="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-xl font-black text-indigo-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                <input type="number" name="weeks_per_semester" value="<?= $weeks_per_semester ?>" min="1" max="52" required class="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center text-xl font-black text-indigo-600 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                                 <div class="flex-1 text-xs text-gray-500 leading-relaxed">
                                     Define the standard duration for the current semester. This value is used to calculate the <strong>Attendance Participation Rate</strong> in reports.
                                 </div>

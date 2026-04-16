@@ -112,12 +112,15 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
     <?php include '../../includes/top_nav.php'; ?>
 
     <main class=" min-h-screen relative">
-        <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm flex justify-between items-center bg-pattern">
+        <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30 shadow-sm flex items-center gap-6 bg-pattern">
+            <a href="dashboard.php" class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm group" title="Back to Dashboard">
+                <i class="fas fa-house-chimney text-sm"></i>
+            </a>
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                     <i class="fas fa-clipboard-user text-blue-500"></i> My Class Register
                 </h1>
-                <p class="text-gray-500 mt-2 text-sm">
+                <p class="text-gray-500 mt-1 text-sm">
                     Mark daily attendance strictly for your assigned classes.
                 </p>
             </div>

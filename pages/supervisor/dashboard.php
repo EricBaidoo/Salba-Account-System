@@ -115,7 +115,7 @@ $total_students = $conn->query("SELECT COUNT(*) FROM students WHERE status='acti
                         <i class="fas fa-clipboard-user"></i>
                     </div>
                     <h3 class="text-xl font-black text-gray-900 mb-2">Attendance Hub</h3>
-                    <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Monitor institutional presence and termly attendance analytics.</p>
+                    <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Monitor institutional presence and semester attendance analytics.</p>
                 </a>
 
                 <!-- Card: Transcripts -->
@@ -142,7 +142,7 @@ $total_students = $conn->query("SELECT COUNT(*) FROM students WHERE status='acti
                         <i class="fas fa-gears"></i>
                     </div>
                     <h3 class="text-xl font-black text-gray-900 mb-2">Academic Rules</h3>
-                    <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Configure grading scales, weightages and terms.</p>
+                    <p class="text-xs text-gray-400 font-bold leading-relaxed px-4">Configure grading scales, weightages and semesters.</p>
                 </a>
             </div>
         </div>

@@ -229,7 +229,7 @@ if ($grad_res) {
                 ],
                 [
                     'icon' => 'fa-sliders', 'color' => 'indigo',
-                    'title' => 'Academic Rules', 'desc' => 'Configure assessment weights, terminal report rules, and pass marks',
+                    'title' => 'Academic Rules', 'desc' => 'Configure assessment weights, semester report rules, and pass marks',
                     'links' => [
                         ['label' => 'Configure Rules', 'href' => 'settings.php'],
                     ]

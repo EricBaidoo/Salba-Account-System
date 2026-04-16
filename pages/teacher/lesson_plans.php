@@ -392,7 +392,7 @@ if ($_SESSION['role'] === 'admin') {
                     </div>
 
                     <button type="submit" name="submit_plan" class="w-full bg-green-600 text-white font-extrabold py-4 rounded-2xl hover:bg-green-700 transition shadow-lg shadow-green-200 flex items-center justify-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Submit Lesson Note to Supervisor
+                        <i class="fas fa-paper-plane"></i> Submit Lesson Note to Principal / Headteacher / Supervisor
                     </button>
                     
                     <input type="hidden" name="objectives" value="See Detailed Structure"> <!-- Backward compatibility -->
@@ -427,6 +427,7 @@ if ($_SESSION['role'] === 'admin') {
                                     <div class="mt-3 text-xs bg-white p-3 rounded-lg border-l-2 border-green-500 italic text-gray-600 shadow-sm">
                                         "<?= htmlspecialchars($p['supervisor_comments']) ?>"
                                     </div>
+                                    <div class="text-[9px] text-green-600 font-bold uppercase mt-1 pl-3">Principal / Headteacher / Supervisor Feedback</div>
                                 <?php endif; ?>
                             </div>
                             
