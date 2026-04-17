@@ -19,13 +19,13 @@ Redirect 301 /ACCOUNTING/includes/logout /ACCOUNTING/logout
 
 # ── CLEAN URLS (MOD_REWRITE) ───────────────────────────
 RewriteEngine On
+RewriteBase /ACCOUNTING/
 
 # 1. Force Redirect /pagename.php to /pagename (Aesthetics)
 # Skip if the request is an internal subrequest to avoid loops
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
 RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{REQUEST_FILENAME} \.php$
-RewriteRule ^(.+)\.php$ $1 [R=301,L]
+RewriteRule ^(.*)\.php$ $1 [R=301,L]
 
 # 2. Internally map /pagename to /pagename.php
 RewriteCond %{REQUEST_FILENAME} !-d

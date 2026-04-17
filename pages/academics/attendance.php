@@ -255,7 +255,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
             </div>
         </header>
 
-        <div class="max-w-7xl mx-auto px-10 py-8">
+        <div class="max-w-7xl mx-auto px-4 md:px-10 py-6 md:py-8">
             
             <?php if ($success): ?>
                 <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-6 py-4 rounded-2xl mb-8 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -311,10 +311,10 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
             </div>
 
             <!-- Filters -->
-            <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm mb-10">
-                <form method="GET" class="flex flex-wrap items-end gap-6">
+            <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm mb-10">
+                <form method="GET" class="flex flex-col md:flex-row flex-wrap items-end gap-6">
                     <input type="hidden" name="mode" value="<?= $view_mode ?>">
-                    <div class="flex-1 min-w-[200px]">
+                    <div class="w-full md:flex-1 md:min-w-[200px]">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Selected Class / Level</label>
                         <select name="class" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer appearance-none">
                             <?php foreach($allocated_classes as $cl): ?>
@@ -323,12 +323,12 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         </select>
                     </div>
                     <?php if($view_mode === 'daily'): ?>
-                        <div class="w-48">
+                        <div class="w-full md:w-48">
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Session Date</label>
                             <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
                     <?php else: ?>
-                        <div class="w-48">
+                        <div class="w-full md:w-48">
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Analysis Week</label>
                             <select name="h_week" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
                                 <?php for($w=1; $w<=$weeks_limit; $w++): ?>
@@ -338,7 +338,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         </div>
                     <?php endif; ?>
                     
-                    <div class="flex-1 min-w-[280px]">
+                    <div class="w-full md:flex-1 md:min-w-[280px]">
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Real-time Search</label>
                         <div class="relative">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
@@ -367,8 +367,8 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <input type="hidden" name="attendance_date" value="<?= $selected_date ?>">
                         <input type="hidden" name="week_val" value="<?= $selected_week ?>">
                         
-                        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-8">
-                            <table class="w-full text-left">
+                        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-8 overflow-x-auto">
+                            <table class="w-full text-left min-w-[700px]">
                                 <thead>
                                     <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                         <th class="px-10 py-6">Identity & Records</th>
