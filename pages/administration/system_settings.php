@@ -301,13 +301,13 @@ for ($i = -2; $i <= 5; $i++) {
                             <div class="p-6 space-y-6">
                                 <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                     <div class="w-16 h-16 bg-white rounded-xl shadow-inner flex items-center justify-center p-2 border border-gray-100 overflow-hidden">
-                                        <img src="../../<?= getSystemLogo($conn) ?>" class="w-full h-full object-contain">
+                                        <img id="logoPreview" src="../../<?= getSystemLogo($conn) ?>" class="w-full h-full object-contain">
                                     </div>
                                     <div>
                                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Active Logo</p>
                                         <label class="cursor-pointer group">
                                             <span class="text-[10px] font-black text-emerald-600 hover:text-black transition-colors uppercase tracking-widest bg-emerald-100 px-3 py-1.5 rounded-lg">Change Logo</span>
-                                            <input type="file" name="system_logo" class="hidden" accept="image/*">
+                                            <input type="file" name="system_logo" id="logoInput" class="hidden" accept="image/*" onchange="previewLogo(event)">
                                         </label>
                                     </div>
                                 </div>
@@ -378,5 +378,18 @@ for ($i = -2; $i <= 5; $i++) {
             </div>
         </div>
     </main>
+
+    <script>
+    function previewLogo(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('logoPreview');
+            output.src = reader.result;
+        }
+        if (event.target.files[0]) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+    </script>
 </body>
 </html>
