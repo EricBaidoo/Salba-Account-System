@@ -41,26 +41,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (empty($subject_name) || empty($subject_code)) {
         $error = "Subject Name and Code are required.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO subjects (name, code, description) VALUES (?, ?, ?)");
-        if ($stmt) {
-            $stmt->bind_param('sss', $subject_name, $subject_code, $description);
-            if ($stmt->execute()) {
-                $success = "Subject added successfully!";
-            } else {
-                // Handle duplicate codes nicely
-                if ($conn->errno === 1062) {
-                    $error = "A subject with this code already exists.";
+        // Enforce code uniqueness via PHP check first since DB constraint might be missing
+        $check = $conn->prepare("SELECT id FROM subjects WHERE code = ?");
+        $check->bind_param('s', $subject_code);
+        $check->execute();
+        if ($check->get_result()->num_rows > 0) {
+            $error = "A subject with this code already exists.";
+        } else {
+            $stmt = $conn->prepare("INSERT INTO subjects (name, code, description) VALUES (?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param('sss', $subject_name, $subject_code, $description);
+                if ($stmt->execute()) {
+                    $success = "Subject added successfully!";
                 } else {
                     $error = "Database Error: " . $conn->error;
                 }
+                $stmt->close();
             }
-            $stmt->close();
         }
+        $check->close();
+    }
+}
+
+// Handle Subject Deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_subject') {
+    $subject_id = intval($_POST['subject_id'] ?? 0);
+    if ($subject_id > 0) {
+        $del = $conn->prepare("DELETE FROM subjects WHERE id = ?");
+        $del->bind_param("i", $subject_id);
+        if ($del->execute()) {
+            $success = "Subject deleted successfully.";
+        } else {
+            $error = "Database Error: " . $conn->error;
+        }
+    }
+}
+
+// Handle Subject Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_subject') {
+    $subject_id = intval($_POST['subject_id'] ?? 0);
+    $subject_name = trim($_POST['subject_name'] ?? '');
+    $subject_code = trim($_POST['subject_code'] ?? '');
+    $description  = trim($_POST['description'] ?? '');
+
+    if (empty($subject_name) || empty($subject_code) || $subject_id <= 0) {
+        $error = "Subject Name and Code are required.";
+    } else {
+        $check = $conn->prepare("SELECT id FROM subjects WHERE code = ? AND id != ?");
+        $check->bind_param('si', $subject_code, $subject_id);
+        $check->execute();
+        if ($check->get_result()->num_rows > 0) {
+            $error = "Another subject with this code already exists.";
+        } else {
+            $stmt = $conn->prepare("UPDATE subjects SET name = ?, code = ?, description = ? WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param('sssi', $subject_name, $subject_code, $description, $subject_id);
+                if ($stmt->execute()) {
+                    $success = "Subject updated successfully!";
+                } else {
+                    $error = "Database Error: " . $conn->error;
+                }
+                $stmt->close();
+            }
+        }
+        $check->close();
     }
 }
 
 // Get subjects
 $subjects = $conn->query("SELECT id, name as subject_name, code as subject_code, description FROM subjects ORDER BY name");
+
 
 // Fetch Classes & Mappings (Migrated from Settings)
 $classes_res = $conn->query("SELECT DISTINCT name as class FROM classes ORDER BY name");
@@ -86,6 +136,36 @@ if ($map_res) {
         function toggleModal(modalID){
             document.getElementById(modalID).classList.toggle("hidden");
             document.getElementById(modalID).classList.toggle("flex");
+        }
+
+        function openEditModal(id, name, code, description) {
+            document.getElementById('edit_subject_id').value = id;
+            document.getElementById('edit_subject_name').value = name;
+            document.getElementById('edit_subject_code').value = code;
+            document.getElementById('edit_description').value = description;
+            toggleModal('editSubjectModal');
+        }
+
+        function triggerDelete(id, name) {
+            if (confirm("Are you sure you want to permanently delete '" + name + "'? This action cannot be undone.")) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                
+                const action = document.createElement('input');
+                action.type = 'hidden';
+                action.name = 'action';
+                action.value = 'delete_subject';
+                
+                const sid = document.createElement('input');
+                sid.type = 'hidden';
+                sid.name = 'subject_id';
+                sid.value = id;
+                
+                form.appendChild(action);
+                form.appendChild(sid);
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
     </script>
 </head>
@@ -175,10 +255,10 @@ if ($map_res) {
                                         <?php echo htmlspecialchars($row['description']) ?: '<span class="text-gray-300 italic">No description</span>'; ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <button class="text-gray-400 hover:text-indigo-600 transition-colors mr-3" title="Edit Subject">
+                                        <button onclick="openEditModal(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['subject_name'])) ?>', '<?= addslashes(htmlspecialchars($row['subject_code'])) ?>', '<?= addslashes(htmlspecialchars($row['description'])) ?>')" class="text-gray-400 hover:text-indigo-600 transition-colors mr-3" title="Edit Subject">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="text-gray-400 hover:text-red-600 transition-colors" title="Delete Subject">
+                                        <button onclick="triggerDelete(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['subject_name'])) ?>')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete Subject">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </td>
@@ -301,6 +381,49 @@ if ($map_res) {
                     </button>
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm transition-colors flex items-center gap-2">
                         <i class="fas fa-save"></i> Save Subject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Subject Modal -->
+    <div id="editSubjectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-xl border border-gray-100 w-full max-w-lg overflow-hidden relative">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-900"><i class="fas fa-edit text-indigo-500 mr-2"></i> Edit Subject</h3>
+                <button onclick="toggleModal('editSubjectModal')" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form action="" method="POST" class="p-6">
+                <input type="hidden" name="action" value="edit_subject">
+                <input type="hidden" name="subject_id" id="edit_subject_id">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit_subject_name" class="block text-sm font-semibold text-gray-700 mb-1">Subject Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit_subject_name" name="subject_name" required placeholder="e.g., General Science"
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                    </div>
+                    <div>
+                        <label for="edit_subject_code" class="block text-sm font-semibold text-gray-700 mb-1">Subject Code <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit_subject_code" name="subject_code" required placeholder="e.g., SCI-101"
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors font-mono">
+                    </div>
+                    <div>
+                        <label for="edit_description" class="block text-sm font-semibold text-gray-700 mb-1">Description (Optional)</label>
+                        <textarea id="edit_description" name="description" rows="3" placeholder="Brief overview of the subject..."
+                                  class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors resize-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
+                    <button type="button" onclick="toggleModal('editSubjectModal')" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-sm transition-colors flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
                     </button>
                 </div>
             </form>

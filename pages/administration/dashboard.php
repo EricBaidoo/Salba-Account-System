@@ -70,6 +70,48 @@ if ($users_res) {
         else                         $total_staff_users += $row['c'];
     }
 }
+
+// Progress Tracking (Attendance & Grades)
+$today_date = date('Y-m-d');
+$class_progress = [];
+
+// Get all active classes and their total active students
+$c_res = $conn->query("SELECT class, COUNT(*) as student_count FROM students WHERE status='active' GROUP BY class ORDER BY class");
+if ($c_res) {
+    while ($row = $c_res->fetch_assoc()) {
+        $cname = $row['class'];
+        $class_progress[$cname] = [
+            'total_students' => (int)$row['student_count'],
+            'attendance_marked' => 0,
+            'expected_subjects' => 0,
+            'graded_subjects' => 0
+        ];
+    }
+}
+
+// Attendance (Present) today
+$att_res = $conn->prepare("SELECT s.class, COUNT(DISTINCT a.student_id) as marked_count FROM attendance a JOIN students s ON a.student_id = s.id WHERE a.attendance_date = ? AND s.status='active' AND LOWER(a.status) = 'present' GROUP BY s.class");
+if ($att_res) {
+    $att_res->bind_param('s', $today_date);
+    $att_res->execute();
+    $res = $att_res->get_result();
+    while ($row = $res->fetch_assoc()) {
+        if (isset($class_progress[$row['class']])) {
+            $class_progress[$row['class']]['attendance_marked'] = (int)$row['marked_count'];
+        }
+    }
+    $att_res->close();
+}
+
+// Expected subjects per class
+$sub_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as sub_count FROM class_subjects GROUP BY class_name");
+if ($sub_res) {
+    while ($row = $sub_res->fetch_assoc()) {
+        if (isset($class_progress[$row['class_name']])) {
+            $class_progress[$row['class_name']]['expected_subjects'] = (int)$row['sub_count'];
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -163,6 +205,63 @@ if ($users_res) {
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                 <div class="text-3xl font-bold text-blue-500"><?php echo $total_staff_users; ?></div>
                 <div class="text-xs font-semibold text-gray-400 uppercase mt-1">Staff</div>
+            </div>
+        </div>
+
+        <!-- Academic Progress Tracker -->
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2 mt-4">
+            <i class="fas fa-list-check"></i> Class Progress Tracker
+        </h2>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+            <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar relative">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm border-b border-gray-100">
+                        <tr class="font-semibold text-gray-500">
+                            <th class="px-6 py-4">Class</th>
+                            <th class="px-6 py-4">Today's Attendance (<?php echo date('M j'); ?>)</th>
+                            <th class="px-6 py-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <?php if(empty($class_progress)): ?>
+                            <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400">No active classes found.</td></tr>
+                        <?php else: foreach($class_progress as $cname => $data): 
+                            // Attendance logic
+                            $att_total = $data['total_students'];
+                            $att_marked = $data['attendance_marked'];
+                            $att_pct = $att_total > 0 ? round(($att_marked / $att_total) * 100) : 0;
+                            
+                            $att_color = 'bg-red-500';
+                            if ($att_pct == 100) $att_color = 'bg-emerald-500';
+                            elseif ($att_pct > 0) $att_color = 'bg-amber-400';
+                        ?>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-gray-900">
+                                <?php echo htmlspecialchars($cname); ?>
+                                <span class="block text-[10px] uppercase text-gray-400 font-normal"><?php echo $att_total; ?> Active Students</span>
+                            </td>
+                            
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-between text-xs mb-1">
+                                    <span class="font-medium text-gray-700"><?php echo $att_marked; ?> of <?php echo $att_total; ?> Present</span>
+                                    <span class="font-bold <?php echo str_replace('bg-','text-',$att_color); ?>"><?php echo $att_pct; ?>%</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2">
+                                    <div class="<?php echo $att_color; ?> h-2 rounded-full transition-all duration-500" style="width: <?php echo $att_pct; ?>%"></div>
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="../academics/attendance.php?class=<?php echo urlencode($cname); ?>&action=entry" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-green-100 hover:text-green-600 transition" title="Mark Attendance">
+                                        <i class="fas fa-calendar-check text-sm"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
 

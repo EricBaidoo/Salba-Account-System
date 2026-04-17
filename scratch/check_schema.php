@@ -1,7 +1,13 @@
 <?php
 $conn = new mysqli('localhost', 'root', 'root', 'Salba_acc');
-$res = $conn->query("DESCRIBE classes");
-while($row = $res->fetch_assoc()) {
-    print_r($row);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+$res = $conn->query("SHOW CREATE TABLE subjects");
+if ($res) {
+    $row = $res->fetch_assoc();
+    echo $row['Create Table'];
+} else {
+    echo $conn->error;
 }
 ?>

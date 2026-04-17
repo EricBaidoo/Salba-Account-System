@@ -15,7 +15,7 @@ run_staff_migration($conn);
 $tab = $_GET['tab'] ?? 'all';
 $dept_filter = $_GET['dept'] ?? '';
 $search = trim($_GET['q'] ?? '');
-$status_filter = $_GET['status'] ?? 'all'; // Default to all statuses
+$status_filter = $_GET['status'] ?? 'all'; 
 
 $where = "WHERE 1=1";
 if ($search) {
@@ -47,7 +47,6 @@ $non_teaching_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE st
 $male_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender = 'Male'")->fetch_row()[0];
 $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender = 'Female'")->fetch_row()[0];
 
-$dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE department != '' ORDER BY department");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,243 +56,331 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
     <title>Personnel Directory | HR Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-header { backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.9); }
-        .staff-row:hover { background-color: rgba(249, 250, 251, 1); }
-        .status-pulse { animation: pulse-custom 2s infinite; }
-        @keyframes pulse-custom {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        
+        .stat-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
         }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            border-color: #e2e8f0;
+        }
+
+        .stat-icon-wrapper {
+            position: absolute;
+            right: -10px;
+            bottom: -15px;
+            opacity: 0.04;
+            font-size: 6rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon-wrapper {
+            transform: scale(1.1) rotate(-5deg);
+            opacity: 0.08;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        .table-row-hover {
+            transition: all 0.2s ease;
+        }
+        .table-row-hover:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-button {
+            transition: all 0.2s ease;
+        }
+        .action-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Custom Scrollbar for table */
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="text-slate-800 antialiased">
 
     <?php include '../../../includes/sidebar_admin.php'; ?>
 
-    <main class="ml-72 min-h-screen p-8">
+    <main class="ml-72 min-h-screen p-8 lg:p-10 max-w-[1600px] mx-auto">
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-10">
+        <div class="flex items-center justify-between mb-8">
             <div>
-                <h1 class="text-4xl font-extrabold text-gray-900 flex items-center gap-4">
-                    <i class="fas fa-users-viewfinder text-indigo-600"></i> Personnel Directory
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <i class="fas fa-users-viewfinder text-lg"></i>
+                    </div>
+                    Personnel Directory
                 </h1>
-                <p class="text-gray-500 mt-2 font-medium">Manage institutional human resources and system access credentials.</p>
+                <p class="text-slate-500 mt-2 font-medium text-sm ml-14">Manage institutional human resources and system credentials.</p>
             </div>
+            
             <div class="flex items-center gap-3">
-                <a href="bulk_upload_staff.php" class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-6 py-4 rounded-2xl flex items-center gap-3 hover:bg-emerald-100 transition-all">
-                    <i class="fas fa-file-import text-lg"></i> Bulk Import
+                <a href="bulk_upload_staff.php" class="action-button bg-white text-emerald-600 border border-slate-200 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 hover:border-emerald-200 hover:bg-emerald-50 shadow-sm text-sm">
+                    <i class="fas fa-file-csv"></i> Bulk Import
                 </a>
-                <a href="add_staff.php" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-1">
-                    <i class="fas fa-plus-circle text-lg"></i> Register New Staff
+                <a href="add_staff.php" class="action-button bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-sm shadow-indigo-200 text-sm">
+                    <i class="fas fa-plus"></i> New Staff
                 </a>
             </div>
         </div>
 
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-indigo-500 transition-all duration-300">
-                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl mb-3 shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fas fa-id-card"></i>
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+            <div class="stat-card p-5 border-t-4 border-t-indigo-500">
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Total Personnel</div>
+                        <div class="text-3xl font-black text-slate-800"><?= $total_count ?></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                        <i class="fas fa-id-card"></i>
+                    </div>
                 </div>
-                <div class="text-2xl font-black text-gray-900"><?= $total_count ?></div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Personnel</div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-emerald-500 transition-all duration-300">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-3 shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fas fa-chalkboard-user"></i>
-                </div>
-                <div class="text-2xl font-black text-gray-900"><?= $teaching_count ?></div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Teaching</div>
+                <i class="fas fa-id-card stat-icon-wrapper text-indigo-500"></i>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-orange-500 transition-all duration-300">
-                <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl mb-3 shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fas fa-user-tie"></i>
+            <div class="stat-card p-5 border-t-4 border-t-emerald-500">
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Teaching</div>
+                        <div class="text-3xl font-black text-slate-800"><?= $teaching_count ?></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
                 </div>
-                <div class="text-2xl font-black text-gray-900"><?= $non_teaching_count ?></div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Non-Teaching</div>
+                <i class="fas fa-chalkboard-user stat-icon-wrapper text-emerald-500"></i>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-blue-500 transition-all duration-300">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-3 shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fas fa-person"></i>
+            <div class="stat-card p-5 border-t-4 border-t-orange-500">
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Non-Teaching</div>
+                        <div class="text-3xl font-black text-slate-800"><?= $non_teaching_count ?></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
                 </div>
-                <div class="text-2xl font-black text-gray-900"><?= $male_count ?></div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Males</div>
+                <i class="fas fa-user-tie stat-icon-wrapper text-orange-500"></i>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:border-rose-500 transition-all duration-300">
-                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl mb-3 shadow-inner group-hover:rotate-6 transition-transform">
-                    <i class="fas fa-person-dress"></i>
+            <div class="stat-card p-5 border-t-4 border-t-blue-500">
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Males</div>
+                        <div class="text-3xl font-black text-slate-800"><?= $male_count ?></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                        <i class="fas fa-mars"></i>
+                    </div>
                 </div>
-                <div class="text-2xl font-black text-gray-900"><?= $female_count ?></div>
-                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Females</div>
+                <i class="fas fa-mars stat-icon-wrapper text-blue-500"></i>
+            </div>
+
+            <div class="stat-card p-5 border-t-4 border-t-rose-500">
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Females</div>
+                        <div class="text-3xl font-black text-slate-800"><?= $female_count ?></div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center">
+                        <i class="fas fa-venus"></i>
+                    </div>
+                </div>
+                <i class="fas fa-venus stat-icon-wrapper text-rose-500"></i>
             </div>
         </div>
 
-        <!-- Tabbed Filtering -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-            <div class="flex p-1 bg-gray-50 rounded-xl overflow-hidden">
-                <a href="?tab=all&status=<?= $status_filter ?>&q=<?= $search ?>" class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all <?= $tab === 'all' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-400 hover:text-gray-600' ?>">All Personnel</a>
-                <a href="?tab=teaching&status=<?= $status_filter ?>&q=<?= $search ?>" class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all <?= $tab === 'teaching' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-400 hover:text-gray-600' ?>">Teaching Staff</a>
-                <a href="?tab=non-teaching&status=<?= $status_filter ?>&q=<?= $search ?>" class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all <?= $tab === 'non-teaching' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-400 hover:text-gray-600' ?>">Non-Teaching</a>
+        <!-- Filters Bar (Glass Panel) -->
+        <div class="glass-panel rounded-2xl p-3 mb-6 flex flex-col xl:flex-row gap-4 items-center justify-between sticky top-4 z-40">
+            <!-- Tabs -->
+            <div class="flex bg-slate-100/50 p-1 rounded-xl w-full xl:w-auto">
+                <a href="?tab=all&status=<?= $status_filter ?>&q=<?= $search ?>" class="flex-1 xl:flex-none px-6 py-2 rounded-lg text-xs font-bold text-center transition-all <?= $tab === 'all' ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700' ?>">All Staff</a>
+                <a href="?tab=teaching&status=<?= $status_filter ?>&q=<?= $search ?>" class="flex-1 xl:flex-none px-6 py-2 rounded-lg text-xs font-bold text-center transition-all <?= $tab === 'teaching' ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700' ?>">Teaching</a>
+                <a href="?tab=non-teaching&status=<?= $status_filter ?>&q=<?= $search ?>" class="flex-1 xl:flex-none px-6 py-2 rounded-lg text-xs font-bold text-center transition-all <?= $tab === 'non-teaching' ? 'bg-white text-orange-700 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700' ?>">Non-Teaching</a>
             </div>
-            
-            <form method="GET" class="flex items-center gap-3 flex-1 w-full md:max-w-2xl">
+
+            <form method="GET" class="flex w-full xl:w-auto gap-3 flex-1 xl:flex-none justify-end">
                 <input type="hidden" name="tab" value="<?= $tab ?>">
                 
-                <!-- Status Filter Dropdown -->
-                <select name="status" onchange="this.form.submit()" class="px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-gray-600 transition-all outline-none">
-                    <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Statuses</option>
-                    <option value="active" <?= $status_filter === 'active' ? 'selected' : '' ?>>Active Only</option>
-                    <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactive Only</option>
-                    <option value="retired" <?= $status_filter === 'retired' ? 'selected' : '' ?>>Retired Only</option>
-                </select>
+                <div class="relative min-w-[160px]">
+                    <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm">
+                        <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Statuses</option>
+                        <option value="active" <?= $status_filter === 'active' ? 'selected' : '' ?>>Active Only</option>
+                        <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactive Only</option>
+                        <option value="retired" <?= $status_filter === 'retired' ? 'selected' : '' ?>>Retired Only</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                </div>
 
-                <div class="relative flex-1">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Search by name, title or ID..." class="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm font-medium transition-all">
+                <div class="relative w-full max-w-sm">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Search ID, Name, Role..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm placeholder-slate-400">
+                    <?php if($search): ?>
+                        <a href="?tab=<?= $tab ?>&status=<?= $status_filter ?>" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 bg-white px-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </form>
         </div>
 
-        <!-- Staff Table -->
+        <!-- Data Area -->
         <?php if($staff && $staff->num_rows > 0): ?>
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr class="glass-header sticky top-0 border-b border-gray-100">
-                                <th class="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Personnel</th>
-                                <th class="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Functional Area</th>
-                                <th class="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Contact</th>
-                                <th class="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-                                <th class="px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right">Operations</th>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                <th class="px-6 py-4">Personnel Identity</th>
+                                <th class="px-6 py-4">Role & Function</th>
+                                <th class="px-6 py-4">Contact Info</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
+                        <tbody class="divide-y divide-slate-100">
                             <?php while($s = $staff->fetch_assoc()): 
                                 $has_login = !empty($s['user_id']);
                                 $initials = implode('', array_map(fn($w) => strtoupper($w[0]), explode(' ', $s['full_name'])));
                                 $initials = substr($initials, 0, 2);
                                 $status = $s['employment_status'] ?? 'active';
-                                $status_color = match($status) {
-                                    'active' => 'emerald',
-                                    'retired' => 'amber',
-                                    'inactive' => 'gray',
-                                    'deleted' => 'red',
-                                    default => 'indigo'
+                                
+                                // Status styling
+                                $s_color = match($status) {
+                                    'active' => 'emerald', 'retired' => 'amber', 'inactive' => 'slate', default => 'indigo'
                                 };
+                                
+                                // Handle photos robustly
+                                $photo_src = $s['photo_path'];
+                                if ($photo_src && strpos($photo_src, 'http') === 0) {
+                                    if (preg_match('/id=([a-zA-Z0-9_-]+)/', $photo_src, $matches)) {
+                                        $photo_src = "https://lh3.googleusercontent.com/d/" . $matches[1];
+                                    }
+                                } else {
+                                    $photo_src = $photo_src ? "../../../" . $photo_src : null;
+                                }
                             ?>
-                            <tr class="staff-row transition-colors group <?= $status !== 'active' ? 'opacity-60 bg-gray-50/30' : '' ?>">
-                                <td class="px-6 py-5">
+                            <tr class="table-row-hover group <?= $status !== 'active' ? 'opacity-75 bg-slate-50/50' : '' ?>">
+                                <td class="px-6 py-4">
                                     <div class="flex items-center gap-4">
-                                        <div class="relative">
-                                            <?php 
-                                            $photo_src = $s['photo_path'];
-                                            if ($photo_src && strpos($photo_src, 'http') === 0) {
-                                                // Extract ID and use robust direct link format
-                                                if (preg_match('/id=([a-zA-Z0-9_-]+)/', $photo_src, $matches)) {
-                                                    $photo_src = "https://lh3.googleusercontent.com/d/" . $matches[1];
-                                                }
-                                            } else {
-                                                $photo_src = $photo_src ? "../../../" . $photo_src : null;
-                                            }
-                                            
-                                            if($s['photo_path']): ?>
-                                                <img src="<?= htmlspecialchars($photo_src) ?>" class="w-12 h-14 object-cover rounded-xl border border-gray-100 shadow-sm" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="relative flex-shrink-0">
+                                            <?php if($photo_src): ?>
+                                                <img src="<?= htmlspecialchars($photo_src) ?>" class="w-12 h-12 object-cover rounded-full border-2 border-white shadow-sm bg-white" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-indigo-600 font-extrabold text-sm hidden">
+                                                    <?= $initials ?>
+                                                </div>
                                             <?php else: ?>
-                                                <div class="w-12 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-indigo-600 font-extrabold text-sm">
                                                     <?= $initials ?>
                                                 </div>
                                             <?php endif; ?>
-                                            <?php if($status === 'active'): ?>
-                                                <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full status-pulse"></span>
-                                            <?php endif; ?>
                                         </div>
                                         <div>
-                                            <div class="font-extrabold text-gray-900 leading-none mb-1"><?= htmlspecialchars($s['full_name']) ?></div>
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-[9px] font-black bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded uppercase tracking-tighter cursor-help" title="Staff ID"><?= htmlspecialchars($s['staff_code'] ?? 'N/A') ?></span>
+                                            <div class="font-extrabold text-slate-900 text-sm mb-0.5"><?= htmlspecialchars($s['full_name']) ?></div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"><?= htmlspecialchars($s['staff_code'] ?? 'N/A') ?></span>
                                                 <?php if($has_login): ?>
-                                                    <span class="text-[9px] font-black text-gray-400 uppercase tracking-tighter">@<?= htmlspecialchars($s['username']) ?></span>
+                                                    <span class="text-[9px] font-bold text-slate-400 flex items-center gap-1"><i class="fas fa-lock text-[8px]"></i> @<?= htmlspecialchars($s['username']) ?></span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-5">
-                                    <div>
-                                        <div class="text-xs font-bold text-gray-700"><?= htmlspecialchars($s['job_title'] ?: 'Not Specified') ?></div>
-                                        <div class="flex flex-wrap items-center gap-1 mt-1.5">
-                                            <?php 
-                                            $types = explode(',', $s['staff_type'] ?? 'teaching');
-                                            foreach($types as $t): 
-                                                $t = trim($t);
-                                                if ($t === 'teaching'): ?>
-                                                <span class="text-[8px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 uppercase">Teaching</span>
-                                            <?php elseif ($t === 'non-teaching'): ?>
-                                                <span class="text-[8px] font-black bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100 uppercase">Non-Teaching</span>
-                                            <?php endif; endforeach; ?>
-                                        </div>
+                                
+                                <td class="px-6 py-4">
+                                    <div class="text-xs font-bold text-slate-700 mb-1"><?= htmlspecialchars($s['job_title'] ?: 'Not Specified') ?></div>
+                                    <div class="flex gap-1.5">
+                                        <?php 
+                                        $types = explode(',', $s['staff_type'] ?? 'teaching');
+                                        foreach($types as $t): 
+                                            $t = trim($t);
+                                            if ($t === 'teaching'): ?>
+                                            <span class="text-[9px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wide">Teaching</span>
+                                        <?php elseif ($t === 'non-teaching'): ?>
+                                            <span class="text-[9px] font-black bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100 uppercase tracking-wide">Non-Teaching</span>
+                                        <?php endif; endforeach; ?>
                                     </div>
                                 </td>
-                                <td class="px-6 py-5 text-center">
-                                    <?php if($s['phone_number']): ?>
-                                        <a href="tel:<?= $s['phone_number'] ?>" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 transition shadow-inner">
-                                            <i class="fas fa-phone text-xs"></i>
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-[10px] text-gray-300 font-bold uppercase">No Phone</span>
-                                    <?php endif; ?>
+
+                                <td class="px-6 py-4">
+                                    <div class="text-xs font-medium text-slate-600 flex items-center gap-2">
+                                        <i class="fas fa-phone text-slate-400 w-3 text-center"></i>
+                                        <?= htmlspecialchars($s['phone_number'] ?: '—') ?>
+                                    </div>
                                 </td>
-                                <td class="px-6 py-5 text-center">
-                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-black bg-<?= $status_color ?>-50 text-<?= $status_color ?>-700 border border-<?= $status_color ?>-100 px-3 py-1 rounded-full uppercase tracking-tight">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-<?= $status_color ?>-500"></span>
+
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-black bg-<?= $s_color ?>-50 text-<?= $s_color ?>-700 border border-<?= $s_color ?>-200 px-2.5 py-1.5 rounded-full uppercase tracking-wider">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-<?= $s_color ?>-500"></span>
                                         <?= ucfirst($status) ?>
                                     </span>
                                 </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="flex items-center justify-end gap-2 pr-1">
-                                        <a href="profile_staff.php?id=<?= $s['id'] ?>" class="p-2 text-indigo-400 hover:text-indigo-600 transition" title="View Profile">
-                                            <i class="fas fa-eye text-sm"></i>
+
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-1.5 pr-2">
+                                        <a href="profile_staff.php?id=<?= $s['id'] ?>" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="View Profile">
+                                            <i class="fas fa-eye text-xs"></i>
                                         </a>
-                                        <a href="edit_staff.php?id=<?= $s['id'] ?>" class="p-2 text-indigo-400 hover:text-indigo-600 transition" title="Edit Profile">
-                                            <i class="fas fa-pen-to-square text-sm"></i>
+                                        <a href="edit_staff.php?id=<?= $s['id'] ?>" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm" title="Edit Data">
+                                            <i class="fas fa-pen-to-square text-xs"></i>
                                         </a>
-                                        <div class="relative group/menu inline-block ml-2">
-                                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition shadow-inner">
-                                                <i class="fas fa-ellipsis-v text-xs"></i>
+                                        
+                                        <!-- Actions Dropdown -->
+                                        <div class="relative group/menu inline-block">
+                                            <button class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm shadow-slate-100">
+                                                <i class="fas fa-ellipsis-v text-[10px]"></i>
                                             </button>
-                                            <div class="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-20 overflow-hidden">
-                                                <?php if($status !== 'active'): ?>
-                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'activate')" class="w-full px-4 py-2.5 text-left text-[11px] font-bold text-emerald-600 hover:bg-emerald-50 transition border-b border-gray-50">
-                                                        <i class="fas fa-rotate-left mr-2 opacity-60"></i> <?= $status === 'retired' ? 'Unretire' : 'Reactivate' ?>
-                                                    </button>
-                                                <?php endif; ?>
-                                                
-                                                <?php if($status === 'active'): ?>
-                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'deactivate')" class="w-full px-4 py-2.5 text-left text-[11px] font-bold text-orange-600 hover:bg-orange-50 transition border-b border-gray-50">
-                                                        <i class="fas fa-power-off mr-2 opacity-60"></i> Deactivate
-                                                    </button>
-                                                <?php endif; ?>
+                                            <div class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden transform origin-bottom-right scale-95 group-hover/menu:scale-100">
+                                                <div class="p-1">
+                                                    <?php if($status !== 'active'): ?>
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'activate')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-emerald-700 bg-white hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-2">
+                                                            <i class="fas fa-rotate-left w-3 text-center opacity-70"></i> <?= $status === 'retired' ? 'Unretire' : 'Reactivate' ?>
+                                                        </button>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if($status === 'active'): ?>
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'deactivate')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-orange-700 bg-white hover:bg-orange-50 rounded-lg transition-colors flex items-center gap-2">
+                                                            <i class="fas fa-power-off w-3 text-center opacity-70"></i> Deactivate
+                                                        </button>
+                                                    <?php endif; ?>
 
-                                                <?php if($status !== 'retired'): ?>
-                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'retire')" class="w-full px-4 py-2.5 text-left text-[11px] font-bold text-amber-600 hover:bg-amber-50 transition border-b border-gray-50">
-                                                        <i class="fas fa-bed mr-2 opacity-60"></i> Retire
-                                                    </button>
-                                                <?php endif; ?>
+                                                    <?php if($status !== 'retired'): ?>
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'retire')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-amber-700 bg-white hover:bg-amber-50 rounded-lg transition-colors flex items-center gap-2">
+                                                            <i class="fas fa-bed w-3 text-center opacity-70"></i> Retire
+                                                        </button>
+                                                    <?php endif; ?>
 
-                                                <button onclick="updateStatus(<?= $s['id'] ?>, 'delete')" class="w-full px-4 py-2.5 text-left text-[11px] font-bold text-red-600 hover:bg-red-50 transition">
-                                                    <i class="fas fa-trash-alt mr-2 opacity-60"></i> Delete
-                                                </button>
+                                                    <div class="h-px bg-slate-100 my-1"></div>
+
+                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'delete')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-rose-600 bg-white hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2">
+                                                        <i class="fas fa-trash-alt w-3 text-center opacity-70"></i> Delete
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -319,46 +406,37 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
                     text: `Are you sure you want to ${actionText}?`,
                     icon: action === 'delete' ? 'warning' : 'question',
                     showCancelButton: true,
-                    confirmButtonColor: action === 'delete' ? '#ef4444' : '#4f46e5',
-                    cancelButtonColor: '#6b7280',
+                    confirmButtonColor: action === 'delete' ? '#e11d48' : '#4f46e5',
+                    cancelButtonColor: '#94a3b8',
                     confirmButtonText: 'Yes, proceed',
-                    cancelButtonText: 'Cancel'
+                    cancelButtonText: 'Cancel',
+                    customClass: {
+                        popup: 'rounded-2xl border border-slate-100',
+                        title: 'text-slate-800 font-extrabold text-xl',
+                        confirmButton: 'rounded-xl font-bold px-6',
+                        cancelButton: 'rounded-xl font-bold px-6'
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const formData = new FormData();
                         formData.append('id', id);
                         formData.append('action', action);
 
-                        fetch('staff_actions.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(async response => {
-                            const text = await response.text();
-                            try {
-                                return JSON.parse(text);
-                            } catch (e) {
-                                throw new Error('Server returned invalid response: ' + text.substring(0, 100));
-                            }
-                        })
+                        fetch('staff_actions.php', { method: 'POST', body: formData })
+                        .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 Swal.fire({
-                                    title: 'Success!',
-                                    text: data.message,
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                }).then(() => {
-                                    location.reload();
-                                });
+                                    title: 'Success!', text: data.message, icon: 'success',
+                                    timer: 2000, showConfirmButton: false,
+                                    customClass: { popup: 'rounded-2xl', title: 'font-extrabold' }
+                                }).then(() => location.reload());
                             } else {
                                 Swal.fire('Error!', data.message, 'error');
                             }
                         })
                         .catch(error => {
-                            Swal.fire('Error!', error.message, 'error');
-                            console.error('Error:', error);
+                            Swal.fire('Error!', 'An unexpected error occurred.', 'error');
                         });
                     }
                 });
@@ -366,13 +444,21 @@ $dept_list = $conn->query("SELECT DISTINCT department FROM staff_profiles WHERE 
             </script>
 
         <?php else: ?>
-            <div class="bg-white rounded-3xl border border-dashed border-gray-200 p-20 text-center shadow-inner">
-                <i class="fas fa-users-slash text-6xl text-gray-100 mb-6"></i>
-                <h3 class="text-2xl font-black text-gray-900 mb-2 tracking-tight">Personnel Vacancy</h3>
-                <p class="text-gray-400 mb-10 max-w-sm mx-auto font-medium">No personnel records currently match your filters. Expand your search or add new staff.</p>
-                <a href="add_staff.php" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-4 rounded-2xl inline-flex items-center gap-2 shadow-lg shadow-indigo-100 transition-all hover:scale-105">
-                    <i class="fas fa-user-plus text-lg"></i> Onboard New Staff
-                </a>
+            <!-- Blank State -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-20 text-center shadow-sm max-w-2xl mx-auto mt-10">
+                <div class="w-24 h-24 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-users-slash text-4xl text-slate-300"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-800 mb-2">No Personnel Found</h3>
+                <p class="text-slate-500 text-sm font-medium mb-8">We couldn't find any staff records matching your current filter criteria. Try adjusting your search or add a new record.</p>
+                <div class="flex items-center justify-center gap-3">
+                    <?php if($search || $tab !== 'all' || $status_filter !== 'all'): ?>
+                        <a href="view_staff.php" class="px-6 py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition shadow-sm text-sm">Clear Filters</a>
+                    <?php endif; ?>
+                    <a href="add_staff.php" class="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm shadow-indigo-200 text-sm flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Register Staff
+                    </a>
+                </div>
             </div>
         <?php endif; ?>
     </main>
