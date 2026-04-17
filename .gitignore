@@ -23,5 +23,4 @@ error_log
 Thumbs.db
 
 # 5. Vendor Dependencies
-vendor/
 node_modules/
