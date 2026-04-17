@@ -138,6 +138,11 @@ if (!function_exists('nav_active')) {
 <!-- Mobile Backdrop Overly -->
 <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden opacity-0 lg:hidden" onclick="toggleSidebar()"></div>
 
+<!-- Mobile Floating Menu Toggle -->
+<button onclick="toggleSidebar()" class="lg:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all outline-none ring-4 ring-indigo-500/20">
+    <i class="fas fa-bars text-xl"></i>
+</button>
+
 <aside id="sidebar-modern" class="fixed left-0 top-0 bottom-0 w-72 bg-slate-950 z-50 flex flex-col border-r border-slate-900 transform -translate-x-full lg:translate-x-0">
 
     <!-- Branding & Close Button -->
