@@ -26,8 +26,8 @@ $root_path = BASE_URL;
         if ($user_role === 'admin') $logo_link = BASE_URL . "pages/administration/dashboard";
         ?>
         <a href="<?= $logo_link ?>" class="flex items-center gap-2 md:gap-4 group">
-            <div class="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-all">
-                <i class="fas fa-graduation-cap text-sm md:text-xl"></i>
+            <div class="w-9 h-9 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden shadow-lg shadow-indigo-500/10 group-hover:scale-105 transition-all border border-slate-100">
+                <img src="<?= BASE_URL . getSystemLogo($conn) ?>" alt="System Logo" class="w-full h-full object-contain">
             </div>
             <div class="hidden xs:block">
                 <span class="font-black text-slate-900 tracking-tighter text-base md:text-2xl leading-none">SALBA</span>

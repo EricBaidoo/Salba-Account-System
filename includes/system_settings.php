@@ -225,3 +225,14 @@ function getWeekNumberForDate($conn, $date) {
     return (int)$weeks;
 }
 }
+/**
+ * Get the system logo path
+ * @param mysqli $conn Database connection
+ * @return string Path to the logo relative to root
+ */
+if (!function_exists('getSystemLogo')) {
+function getSystemLogo($conn) {
+    $logo = getSystemSetting($conn, 'system_logo', 'assets/img/salba_logo.jpg');
+    return !empty($logo) ? $logo : 'assets/img/salba_logo.jpg';
+}
+}

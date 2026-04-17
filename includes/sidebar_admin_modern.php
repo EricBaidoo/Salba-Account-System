@@ -148,8 +148,8 @@ if (!function_exists('nav_active')) {
     <!-- Branding & Close Button -->
     <div class="px-6 py-8 flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-500/10">
-                <i class="fas fa-graduation-cap"></i>
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-500/10">
+                <img src="<?= $root_path . getSystemLogo($conn) ?>" alt="Logo" class="w-full h-full object-contain">
             </div>
             <div>
                 <h1 class="text-white font-black tracking-tighter text-xl leading-none">SALBA</h1>

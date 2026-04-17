@@ -21,8 +21,9 @@ Redirect 301 /ACCOUNTING/includes/logout /ACCOUNTING/logout
 RewriteEngine On
 
 # 1. Force Redirect /pagename.php to /pagename (Aesthetics)
-# Skip if the request is an internal subrequest to avoid loops
+# Skip if the request is an internal subrequest or a POST hit to avoid loops / data loss
 RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteCond %{REQUEST_METHOD} !POST
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_URI} ^(.*?)\.php$
 RewriteRule ^ %1 [R=301,L]
