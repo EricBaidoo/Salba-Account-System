@@ -1,7 +1,7 @@
 <?php 
 include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 include '../../../includes/db_connect.php';
@@ -48,7 +48,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

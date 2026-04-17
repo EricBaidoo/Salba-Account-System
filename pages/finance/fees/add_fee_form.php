@@ -33,7 +33,7 @@ if ($classes_result) {
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

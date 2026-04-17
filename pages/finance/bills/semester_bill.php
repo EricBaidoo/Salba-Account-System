@@ -7,7 +7,7 @@ include '../../../includes/semester_bill_functions.php';
 require_once '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();

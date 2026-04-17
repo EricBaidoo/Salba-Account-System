@@ -3,7 +3,7 @@ include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 
@@ -121,7 +121,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header Section -->

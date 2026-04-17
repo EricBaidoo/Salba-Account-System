@@ -5,7 +5,7 @@ include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../../includes/login.php'); exit;
+    header('Location: ../../../login'); exit;
 }
 
 $id = intval($_GET['id'] ?? 0);
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>body { font-family: 'Inter', sans-serif; } .fi { width:100%; padding:10px 14px; border:1.5px solid #e8e8f0; border-radius:10px; font-size:14px; font-weight:500; outline:none; transition:all .2s; background:#fafafa; } .fi:focus { border-color:#f59e0b; background:white; box-shadow:0 0 0 3px rgba(245,158,11,.08); } .fl { display:block; font-size:11px; font-weight:700; color:#8b8fa8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }</style>
 </head>
 <body class="bg-gray-50">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8 flex items-start justify-center">
         <div class="w-full max-w-lg">

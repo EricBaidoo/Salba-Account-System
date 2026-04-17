@@ -6,7 +6,7 @@ include '../../includes/system_settings.php';
 include '../../includes/semester_bill_functions.php'; // Included for getting/saving bill settings
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -130,7 +130,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="bg-[#F8FAFC]">
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php include '../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8">
         <header class="app-header !border-b-4 !border-b-emerald-600">

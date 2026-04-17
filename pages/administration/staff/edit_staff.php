@@ -6,7 +6,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/staff_migration.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../../includes/login.php'); exit;
+    header('Location: ../../../login'); exit;
 }
 run_staff_migration($conn);
 
@@ -20,6 +20,10 @@ $s = $res->fetch_assoc();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die("Security Token Error. Please refresh the page and try again.");
+    }
     $staff_code             = trim($_POST['staff_code'] ?? '');
     $full_name              = trim($_POST['full_name'] ?? '');
     $gender                 = $_POST['gender'] ?? ($s['gender'] ?? 'Male');
@@ -142,7 +146,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8">
 
@@ -166,6 +170,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
             <!-- ── SECTION 1: Personal ─── -->
             <div class="card">

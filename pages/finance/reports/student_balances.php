@@ -1,7 +1,7 @@
 <?php 
 include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 include '../../../includes/db_connect.php';
@@ -116,7 +116,7 @@ $classes_rs = $conn->query("SELECT DISTINCT class FROM students ORDER BY class")
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

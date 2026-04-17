@@ -4,7 +4,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -218,15 +218,7 @@ for ($i = -2; $i <= 5; $i++) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php 
-    if ($role === 'supervisor') {
-        include '../../includes/sidebar_supervisor.php';
-    } elseif ($role === 'facilitator') {
-        include '../../includes/sidebar_teacher.php';
-    } else {
-        include '../../includes/sidebar_admin.php'; 
-    }
-    ?>
+    <?php include '../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen">
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-40">
@@ -445,7 +437,3 @@ for ($i = -2; $i <= 5; $i++) {
     </main>
 </body>
 </html>
-鼓鼓鼓鼓
-鼓鼓鼓
-鼓鼓
-鼓

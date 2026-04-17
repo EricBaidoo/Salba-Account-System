@@ -6,7 +6,7 @@ include '../../includes/system_settings.php';
 
 // Allow both Admins and Supervisors to view daily attendance
 if (!is_logged_in() || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'supervisor')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 

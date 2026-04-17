@@ -3,7 +3,7 @@ include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 if (($_SESSION['role'] ?? '') !== 'admin') {

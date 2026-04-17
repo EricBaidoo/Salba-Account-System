@@ -10,11 +10,11 @@ if ($user_role !== 'admin') {
     return; // Exit silent and early
 }
 
-if ($user_role === 'facilitator') {
-    include __DIR__ . '/sidebar_teacher.php';
-} elseif ($user_role === 'supervisor') {
-    include __DIR__ . '/sidebar_supervisor.php';
+// Only Admin keeps the sidebar.
+if ($user_role === 'admin') {
+    include __DIR__ . '/sidebar_admin_modern.php';
 } else {
-    include __DIR__ . '/sidebar_admin.php';
+    // Non-admins use their Hub dashboards
+    return;
 }
 ?>

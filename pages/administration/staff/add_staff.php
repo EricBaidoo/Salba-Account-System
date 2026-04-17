@@ -6,7 +6,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/staff_migration.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../../includes/login.php'); exit;
+    header('Location: ../../../login'); exit;
 }
 
 // Run migration to ensure tables exist
@@ -19,6 +19,11 @@ $success = '';
 $photo_path = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die("Security Token Error. Please refresh the page and try again.");
+    }
+    
     // Collect all fields
     $staff_code             = trim($_POST['staff_code'] ?? '');
     $full_name              = trim($_POST['full_name'] ?? '');
@@ -148,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8">
 
@@ -176,6 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
             <!-- ── SECTION 1: Personal Information ─────────────────── -->
             <div class="section-card overflow-hidden">

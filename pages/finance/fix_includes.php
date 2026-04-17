@@ -14,8 +14,8 @@ foreach ($iterator as $file) {
             $content = file_get_contents($path);
             $new_content = str_replace("include '../../includes/", "include '../../../includes/", $content);
             $new_content = str_replace("include_once '../../includes/", "include_once '../../../includes/", $new_content);
-            $new_content = str_replace("header('Location: ../pages/login.php');", "header('Location: ../../../includes/login.php');", $new_content);
-            $new_content = str_replace("header('Location: ../../includes/login.php');", "header('Location: ../../../includes/login.php');", $new_content);
+            $new_content = str_replace("header('Location: ../pages/login.php');", "header('Location: ../../../login');", $new_content);
+            $new_content = str_replace("header('Location: ../../login');", "header('Location: ../../../login');", $new_content);
             
             if ($content !== $new_content) {
                 file_put_contents($path, $new_content);

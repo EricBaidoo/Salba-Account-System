@@ -6,7 +6,7 @@ include '../../includes/system_settings.php';
 
 $allowed_roles = ['admin', 'facilitator', 'teacher', 'supervisor'];
 if (!is_logged_in() || !in_array($_SESSION['role'], $allowed_roles)) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 

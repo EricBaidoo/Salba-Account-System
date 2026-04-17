@@ -4,7 +4,7 @@ include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 
 if (!is_logged_in() || ($_SESSION['role'] !== 'supervisor' && $_SESSION['role'] !== 'admin')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -103,10 +103,10 @@ $reviewed_plans = $conn->query("
                                         <div class="text-sm font-bold text-gray-400 uppercase"><?= htmlspecialchars($p['class_name']) ?> | <?= htmlspecialchars($p['subject_name']) ?> (Week <?= $p['week_number'] ?>)</div>
                                         <h3 class="text-xl font-bold text-gray-900 leading-tight"><?= htmlspecialchars($p['topic']) ?></h3>
                                         <div class="flex items-center gap-3 mt-2">
-                                            <a href="../teacher/print_lesson_plan.php?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                            <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
                                                 <i class="fas fa-eye"></i> View Note
                                             </a>
-                                            <a href="../teacher/print_lesson_plan.php?id=<?= $p['id'] ?>" target="_blank" class="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 border-l border-gray-200 pl-3">
+                                            <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 border-l border-gray-200 pl-3">
                                                 <i class="fas fa-file-pdf"></i> Download PDF
                                             </a>
                                         </div>
@@ -206,7 +206,7 @@ $reviewed_plans = $conn->query("
                                     </td>
                                     <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate"><?= htmlspecialchars($rp['supervisor_comments']) ?></td>
                                     <td class="py-3 px-4 text-right">
-                                        <a href="../teacher/print_lesson_plan.php?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1 justify-end">
+                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1 justify-end">
                                             <i class="fas fa-file-pdf"></i> View / PDF
                                         </a>
                                     </td>

@@ -1,0 +1,10 @@
+# Restricted System Directory
+# Access to files in this directory is strictly prohibited for security reasons.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>

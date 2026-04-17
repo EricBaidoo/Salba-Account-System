@@ -5,7 +5,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();
@@ -57,7 +57,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900 min-h-screen">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
     
     <main class="ml-72 p-10">
         <!-- Breadcrumbs & Nav -->

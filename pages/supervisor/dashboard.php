@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || ($_SESSION['role'] !== 'supervisor' && $_SESSION['role'] !== 'admin')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -95,7 +95,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
                 <!-- Card: GPS Check-In -->
-                <a href="../teacher/check_in.php" class="relative group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-red-300 transition-all duration-500 overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/teacher/check_in" class="relative group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-red-300 transition-all duration-500 overflow-hidden">
                     <div class="flex flex-col items-center gap-4 relative z-10 text-center">
                         <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-location-dot"></i></div>
                         <div>
@@ -106,7 +106,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                 </a>
 
                 <!-- Card: Staff Presence -->
-                <a href="../administration/staff_attendance.php" class="relative group bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-300 transition-all duration-500 overflow-hidden bg-indigo-50/10">
+                <a href="<?= BASE_URL ?>pages/administration/staff_attendance" class="relative group bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-300 transition-all duration-500 overflow-hidden bg-indigo-50/10">
                     <div class="flex flex-col items-center gap-4 relative z-10 text-center">
                         <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-users-rectangle"></i></div>
                         <div>
@@ -117,7 +117,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                 </a>
 
                 <!-- Card: Student Attendance (RESTORED) -->
-                <a href="../academics/attendance.php" class="relative group bg-white rounded-[2rem] p-8 border border-blue-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-500 overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/academics/attendance" class="relative group bg-white rounded-[2rem] p-8 border border-blue-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-500 overflow-hidden">
                     <div class="flex flex-col items-center gap-4 relative z-10 text-center">
                         <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-clipboard-user"></i></div>
                         <div>
@@ -128,7 +128,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                 </a>
 
                 <!-- Card: Lesson Plan Approvals -->
-                <a href="lesson_plans.php" class="relative group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-500 overflow-hidden text-center">
+                <a href="<?= BASE_URL ?>pages/supervisor/lesson_plans" class="relative group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-500 overflow-hidden text-center">
                     <div class="flex flex-col items-center gap-4 relative z-10">
                         <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-file-circle-check"></i></div>
                         <div>
@@ -145,21 +145,21 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <a href="../academics/transcripts.php" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
+                <a href="<?= BASE_URL ?>pages/academics/transcripts" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-file-invoice"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Manage Reports</h3>
                     </div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Global transcript oversight and remarks.</p>
                 </a>
-                <a href="../academics/report.php" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
+                <a href="<?= BASE_URL ?>pages/academics/report" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-chart-pie"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Global Reports</h3>
                     </div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Institutional performance analytics.</p>
                 </a>
-                <a href="../administration/system_settings.php" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
+                <a href="<?= BASE_URL ?>pages/administration/system_settings" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-gray-50 text-gray-500 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-gears"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Academic Rules</h3>

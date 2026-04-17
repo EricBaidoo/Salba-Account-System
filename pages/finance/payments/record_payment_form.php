@@ -54,7 +54,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

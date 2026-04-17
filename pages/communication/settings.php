@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -66,7 +66,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="bg-[#F8FAFC]">
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php include '../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8">
         <header class="app-header !border-b-4 !border-b-indigo-500">

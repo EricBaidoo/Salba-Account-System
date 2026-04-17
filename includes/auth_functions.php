@@ -1,8 +1,42 @@
 <?php
-// Authentication functions for login system
+// 1. Session Security Hardening (ONLY if session hasn't started yet)
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1); // Prevent JS from reading cookies
+    ini_set('session.use_only_cookies', 1); // Prevent session ID in URL
+    ini_set('session.cookie_samesite', 'Lax'); // Basic CSRF protection for cookies
     session_start();
 }
+
+/**
+ * XSS Protection Shorthand - Escape HTML output
+ */
+if (!function_exists('h')) {
+    function h($text) {
+        return htmlspecialchars($text ?? '', ENT_QUOTES, 'UTF-8');
+    }
+}
+
+/**
+ * CSRF Protection - Generate Token
+ */
+if (!function_exists('csrf_token')) {
+    function csrf_token() {
+        if (!isset($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+}
+
+/**
+ * CSRF Protection - Verify Token
+ */
+if (!function_exists('verify_csrf')) {
+    function verify_csrf($token) {
+        return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+    }
+}
+
 include 'db_connect.php';
 
 if (!function_exists('login')) {
@@ -50,19 +84,7 @@ if (!function_exists('has_role')) {
 if (!function_exists('require_role')) {
     function require_role($roles) {
         if (!has_role($roles)) {
-            // Dynamic path calculation to reach the root index.php
-            // We look at the current script's depth relative to the root /ACCOUNTING/
-            $script_path = $_SERVER['SCRIPT_NAME'];
-            $parts = explode('/', trim($script_path, '/'));
-            // Find 'ACCOUNTING' (or find 'pages' and go up 1)
-            $pages_idx = array_search('pages', $parts);
-            if ($pages_idx !== false) {
-                $depth = count($parts) - $pages_idx;
-                $back = str_repeat('../', $depth);
-            } else {
-                $back = './';
-            }
-            header('Location: ' . $back . 'index.php?error=unauthorized_access');
+            header('Location: ' . BASE_URL . 'index?error=unauthorized_access');
             exit;
         }
     }

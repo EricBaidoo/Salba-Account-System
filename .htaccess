@@ -1,0 +1,35 @@
+# Disable Directory Browsing
+Options -Indexes
+
+# Prevent access to hidden files (starting with dot)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent access to SQL and Log files in root
+<FilesMatch "\.(sql|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ── LEGACY REDIRECTS (Safety) ─────────────────────────
+Redirect 301 /ACCOUNTING/includes/login /ACCOUNTING/login
+Redirect 301 /ACCOUNTING/includes/logout /ACCOUNTING/logout
+
+# ── CLEAN URLS (MOD_REWRITE) ───────────────────────────
+RewriteEngine On
+RewriteBase /ACCOUNTING/
+
+# 1. Force Redirect /pagename.php to /pagename (Aesthetics)
+# Skip if the request is an internal subrequest to avoid loops
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} \.php$
+RewriteRule ^(.*)\.php$ $1 [R=301,L]
+
+# 2. Internally map /pagename to /pagename.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.*)$ $1.php [L]
+

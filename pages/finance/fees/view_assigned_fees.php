@@ -1,7 +1,7 @@
 <?php
 include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 include '../../../includes/db_connect.php';
@@ -126,7 +126,7 @@ if (!empty($year_filter)) {
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header Section -->

@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -44,7 +44,7 @@ if ($r) $total_messages = $r->fetch_assoc()['c'] ?? 0;
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php include '../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-8 min-h-screen">
 

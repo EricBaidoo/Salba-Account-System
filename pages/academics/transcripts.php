@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -200,7 +200,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
     <?php 
     if ($_SESSION['role'] === 'admin') {
-        if (file_exists('../../includes/sidebar_admin.php')) include '../../includes/sidebar_admin.php';
+        if (file_exists('../../includes/sidebar.php')) include '../../includes/sidebar.php';
     } else {
         if (file_exists('../../includes/top_nav.php')) include '../../includes/top_nav.php';
     }

@@ -6,7 +6,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/staff_migration.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../../includes/login.php'); exit;
+    header('Location: ../../../login'); exit;
 }
 
 run_staff_migration($conn);
@@ -121,7 +121,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
 </head>
 <body class="text-slate-800 antialiased">
 
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 min-h-screen p-8 lg:p-10 max-w-[1600px] mx-auto">
 

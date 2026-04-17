@@ -3,7 +3,7 @@ include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 
-if (!is_logged_in()) { header('Location: ../../../includes/login.php'); exit; }
+if (!is_logged_in()) { header('Location: ../../../login'); exit; }
 
 $school_name          = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 $current_user         = $_SESSION['username'] ?? '';

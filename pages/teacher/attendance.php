@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 

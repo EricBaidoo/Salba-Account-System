@@ -6,7 +6,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../includes/login.php'); exit;
+    header('Location: ../../login'); exit;
 }
 
 $current_term = getCurrentSemester($conn);

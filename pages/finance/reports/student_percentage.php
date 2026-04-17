@@ -5,7 +5,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();
@@ -43,7 +43,7 @@ $arrears = max(0, $total_fees - $total_payments);
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

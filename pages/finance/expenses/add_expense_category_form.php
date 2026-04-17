@@ -1,7 +1,7 @@
 <?php
 include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();
@@ -41,7 +41,7 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

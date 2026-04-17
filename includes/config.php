@@ -13,6 +13,7 @@ if (
     define('DB_USER', 'root');
     define('DB_PASS', 'root');
     define('DB_NAME', 'Salba_acc');
+    define('BASE_URL', '/ACCOUNTING/');
 } else {
     
     // Hosted environment 
@@ -20,5 +21,6 @@ if (
     define('DB_USER', 'u420775839_smis_admin');
     define('DB_PASS', 'Eric0056@2024');
     define('DB_NAME', 'u420775839_smis');
+    define('BASE_URL', '/'); // Set to '/' if hosted on root domain
 }
 

@@ -35,7 +35,7 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header -->

@@ -1,0 +1,27 @@
+# SALBA Montessori System - Git Ignore
+# Protect sensitive files and development clutter
+
+# 1. Credentials (CRITICAL)
+includes/config.php
+includes/env.php
+
+# 2. Database Backups
+sql/*.sql
+*.sql
+
+# 3. Development Tools & Documentation
+docs/
+scratch/
+old pages/
+*.bat
+.system_generated/
+
+# 4. Logs and Temp
+*.log
+error_log
+.DS_Store
+Thumbs.db
+
+# 5. Vendor Dependencies
+vendor/
+node_modules/

@@ -4,7 +4,7 @@ include_once 'includes/db_connect.php';
 include_once 'includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: includes/login.php');
+    header('Location: login');
     exit;
 }
 
@@ -12,10 +12,10 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 $user_role = $_SESSION['role'] ?? 'staff';
 
 if ($user_role === 'facilitator') {
-    header('Location: pages/teacher/dashboard.php');
+    header('Location: pages/teacher/dashboard');
     exit;
 } elseif ($user_role === 'supervisor') {
-    header('Location: pages/supervisor/dashboard.php');
+    header('Location: pages/supervisor/dashboard');
     exit;
 }
 ?>
@@ -33,8 +33,8 @@ if ($user_role === 'facilitator') {
 
     <main class="ml-72 p-8">
         <div class="max-w-5xl">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-            <p class="text-lg text-gray-600 mb-8"><?php echo htmlspecialchars($school_name); ?> - Management System Dashboard</p>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Welcome back, <?= h($_SESSION['username'] ?? 'User') ?>!</h1>
+            <p class="text-lg text-gray-600 mb-8"><?= h($school_name) ?> - Management System Dashboard</p>
 
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Modules</h2>
             

@@ -5,7 +5,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/budget_functions.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 
@@ -125,7 +125,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header Section -->

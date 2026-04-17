@@ -4,7 +4,7 @@ include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 
 if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -432,10 +432,10 @@ if ($_SESSION['role'] === 'admin') {
                             </div>
                             
                             <div class="flex flex-col gap-2 w-full sm:w-auto">
-                                <a href="print_lesson_plan.php?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-full text-center px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                                <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-full text-center px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 transition flex items-center justify-center gap-2">
                                     <i class="fas fa-eye"></i> View Structured Note
                                 </a>
-                                <a href="print_lesson_plan.php?id=<?= $p['id'] ?>" target="_blank" class="w-full text-center px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                                <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-full text-center px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2">
                                     <i class="fas fa-file-pdf text-red-500"></i> Download PDF
                                 </a>
 

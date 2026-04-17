@@ -130,7 +130,7 @@ while ($row = $sum_result->fetch_assoc()) {
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header Section -->

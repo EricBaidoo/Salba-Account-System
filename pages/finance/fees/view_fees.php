@@ -3,7 +3,7 @@ include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();
@@ -56,7 +56,7 @@ $cy = getAcademicYear($conn);
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <?php include '../../../includes/sidebar_admin.php'; ?>
+    <?php include '../../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-10 min-h-screen">
         <!-- Header Section -->

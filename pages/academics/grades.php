@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'teacher')) {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -160,7 +160,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php include '../../includes/sidebar.php'; ?>
     <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // Only fallback if router fails ?>
 
     <main class="ml-72 min-h-screen bg-white">

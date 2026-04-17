@@ -6,7 +6,7 @@ include '../../includes/system_settings.php';
 
 // Access Control - Only Admins can manage users
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -15,6 +15,11 @@ $error = $_GET['error'] ?? '';
 
 // Handle Create/Update User
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF Protection
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die("Security Token Error. Please refresh the page and try again.");
+    }
+
     $action = $_POST['action'] ?? '';
     $username = trim($_POST['username'] ?? '');
     $role = $_POST['role'] ?? 'staff';
@@ -133,7 +138,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
 </head>
 <body class="min-h-screen text-slate-800">
 
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php include '../../includes/sidebar.php'; ?>
 
     <main class="ml-72 p-8 pt-6">
 
@@ -197,14 +202,14 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
         <?php if ($success): ?>
             <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 px-5 py-4 rounded-2xl mb-8 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
                 <i class="fas fa-circle-check text-emerald-500"></i>
-                <span class="text-sm font-bold tracking-tight"><?= htmlspecialchars($success) ?></span>
+                <span class="text-sm font-bold tracking-tight"><?= h($success) ?></span>
             </div>
         <?php endif; ?>
 
         <?php if ($error): ?>
             <div class="bg-rose-50 border border-rose-100 text-rose-800 px-5 py-4 rounded-2xl mb-8 flex items-center gap-3">
                 <i class="fas fa-circle-exclamation text-rose-500"></i>
-                <span class="text-sm font-bold tracking-tight"><?= htmlspecialchars($error) ?></span>
+                <span class="text-sm font-bold tracking-tight"><?= h($error) ?></span>
             </div>
         <?php endif; ?>
 
@@ -242,7 +247,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                                         <?= $initials ?>
                                     </div>
                                     <div>
-                                        <div class="text-sm font-black text-slate-900">@<?= htmlspecialchars($user['username']) ?></div>
+                                        <div class="text-sm font-black text-slate-900">@<?= h($user['username']) ?></div>
                                         <div class="text-[10px] font-bold text-slate-400 mt-0.5">UID: ACC-<?= str_pad($user['id'], 4, '0', STR_PAD_LEFT) ?></div>
                                     </div>
                                 </div>
@@ -321,6 +326,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 </button>
             </div>
             <form method="POST" class="p-8 space-y-6">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="create">
                 
                 <div class="space-y-4">
@@ -382,6 +388,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 </button>
             </div>
             <form method="POST" class="p-8 space-y-6">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="user_id" id="edit_user_id">
                 
@@ -438,6 +445,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
             <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-2">Terminating Access</h3>
             <p class="text-slate-500 text-sm font-medium mb-8">This will permanently delete the system account for <strong id="delete_username" class="text-slate-900"></strong>. Are you absolutely certain?</p>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="user_id" id="delete_user_id">
                 <div class="flex flex-col gap-3">

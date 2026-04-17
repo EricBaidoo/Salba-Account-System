@@ -6,7 +6,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/staff_migration.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../../includes/login.php'); exit;
+    header('Location: ../../../login'); exit;
 }
 run_staff_migration($conn);
 
@@ -123,7 +123,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
 <body class="text-slate-800 antialiased">
 
     <div class="print-hidden">
-        <?php include '../../../includes/sidebar_admin.php'; ?>
+        <?php include '../../../includes/sidebar.php'; ?>
     </div>
 
     <!-- Print Only Header -->

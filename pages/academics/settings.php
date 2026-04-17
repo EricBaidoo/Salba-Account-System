@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -215,7 +215,7 @@ if($dl_res) {
 
     <?php 
     if ($_SESSION['role'] === 'admin') {
-        if (file_exists('../../includes/sidebar_admin.php')) include '../../includes/sidebar_admin.php';
+        if (file_exists('../../includes/sidebar.php')) include '../../includes/sidebar.php';
     } else {
         if (file_exists('../../includes/top_nav.php')) include '../../includes/top_nav.php';
     }

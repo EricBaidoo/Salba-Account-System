@@ -5,7 +5,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../../includes/login.php');
+    header('Location: ../../../login');
     exit;
 }
 require_finance_access();

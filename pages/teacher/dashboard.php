@@ -5,7 +5,7 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in() || $_SESSION['role'] !== 'facilitator') {
-    header('Location: ../../includes/login.php');
+    header('Location: ../../login');
     exit;
 }
 
@@ -104,7 +104,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Card: Gradebook -->
-                <a href="grades.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-yellow-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/teacher/grades" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-yellow-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-star text-8xl text-yellow-500"></i>
                     </div>
@@ -116,7 +116,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </a>
 
                 <!-- Card: Attendance -->
-                <a href="../academics/attendance.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/academics/attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-clipboard-user text-8xl text-blue-500"></i>
                     </div>
@@ -128,7 +128,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </a>
 
                 <!-- Card: Lesson Plans -->
-                <a href="lesson_plans.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/teacher/lesson_plans" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-file-contract text-8xl text-emerald-500"></i>
                     </div>
@@ -140,7 +140,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </a>
 
                 <!-- Card: Transcripts -->
-                <a href="../academics/transcripts.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-purple-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/academics/transcripts" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-purple-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-scroll text-8xl text-purple-500"></i>
                     </div>
@@ -152,7 +152,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </a>
 
                 <!-- Card: Check-in -->
-                <a href="check_in.php" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-red-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/teacher/check_in" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-red-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-location-dot text-8xl text-red-500"></i>
                     </div>
