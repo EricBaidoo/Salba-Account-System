@@ -30,6 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($username) || empty($password)) {
             redirect('users', 'error', "Username and password are required.");
         } else {
+            // Strength Check
+            $strength = validate_password_strength($password);
+            if (!$strength['success']) {
+                redirect('users', 'error', $strength['message']);
+            }
+
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO users (username, password, role, is_active, staff_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param("sssii", $username, $hashed_password, $role, $is_active, $staff_id);
@@ -54,6 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $new_password = $_POST['new_password'] ?? '';
         
         if ($new_password) {
+            // Strength Check
+            $strength = validate_password_strength($new_password);
+            if (!$strength['success']) {
+                redirect('users', 'error', "Reset failed: " . $strength['message']);
+            }
+
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("UPDATE users SET username = ?, role = ?, is_active = ?, staff_id = ?, password = ? WHERE id = ?");
             $stmt->bind_param("ssiisi", $username, $role, $is_active, $staff_id, $hashed_password, $user_id);

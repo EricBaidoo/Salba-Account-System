@@ -19,8 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
 
     if ($new !== $confirm) {
         redirect('profile.php', 'error', 'New passwords do not match.');
-    } elseif (strlen($new) < 6) {
-        redirect('profile.php', 'error', 'Password must be at least 6 characters.');
     } else {
         $result = update_user_password($conn, $uid, $current, $new);
         if ($result['success']) {
@@ -160,6 +158,22 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                             <div>
                                 <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Confirm New Password</label>
                                 <input type="password" name="confirm_password" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-bold text-slate-900" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <!-- Password Rule Requirements -->
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex flex-wrap gap-x-8 gap-y-3">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> MIN. 8 CHARACTERS
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE UPPERCASE
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE NUMBER
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE SYMBOL (@, #, !, $)
                             </div>
                         </div>
                         <div class="flex justify-end pt-4">

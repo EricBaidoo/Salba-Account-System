@@ -175,11 +175,39 @@ if (!function_exists('get_user_profile_data')) {
 }
 
 /**
+ * PASSWORD STRENGTH VALIDATOR
+ * Enforces: 8+ chars, 1 Uppercase, 1 Number, 1 Special Char
+ */
+if (!function_exists('validate_password_strength')) {
+    function validate_password_strength($password) {
+        if (strlen($password) < 8) {
+            return ['success' => false, 'message' => 'Password must be at least 8 characters long.'];
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            return ['success' => false, 'message' => 'Password must contain at least one uppercase letter.'];
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            return ['success' => false, 'message' => 'Password must contain at least one number.'];
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+            return ['success' => false, 'message' => 'Password must contain at least one special character (e.g. @, #, !, $).'];
+        }
+        return ['success' => true];
+    }
+}
+
+/**
  * SECURE PASSWORD UPDATE
  */
 if (!function_exists('update_user_password')) {
     function update_user_password($conn, $uid, $current_password, $new_password) {
-        // Verify current password
+        // 1. Complexity Check
+        $strength = validate_password_strength($new_password);
+        if (!$strength['success']) {
+            return $strength;
+        }
+
+        // 2. Verify current password
         $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
         $stmt->bind_param("i", $uid);
         $stmt->execute();
@@ -189,7 +217,7 @@ if (!function_exists('update_user_password')) {
             return ['success' => false, 'message' => 'Current password verification failed.'];
         }
 
-        // Hash and update
+        // 3. Hash and update
         $hashed = password_hash($new_password, PASSWORD_DEFAULT);
         $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
         $upd->bind_param("si", $hashed, $uid);
