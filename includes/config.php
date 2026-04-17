@@ -14,9 +14,11 @@ if (
     define('DB_PASS', 'root');
     define('DB_NAME', 'Salba_acc');
 } else {
-    // Hosted environment (Hostinger)
+    
+    // Hosted environment 
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'u420775839_Salba_admin1');
+    define('DB_USER', 'u420775839_smis_admin');
     define('DB_PASS', 'Eric0056@2024');
-    define('DB_NAME', 'u420775839_Salba_acc1');
+    define('DB_NAME', 'u420775839_smis');
 }
+
