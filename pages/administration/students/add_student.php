@@ -21,14 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sssss", $first_name, $last_name, $class, $date_of_birth, $parent_contact);
         
         if ($stmt->execute()) {
+            $student_id = $conn->insert_id;
             $_SESSION['last_student_registered'] = [
-                'id' => $conn->insert_id,
+                'id' => $student_id,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
                 'class' => $class,
                 'date_of_birth' => $date_of_birth,
                 'parent_contact' => $parent_contact
             ];
+            
+            // AUDIT LOG
+            log_activity($conn, 'Admissions', "New student enrolled: $first_name $last_name (#$student_id)", null, $_SESSION['last_student_registered']);
+            
             redirect('add_student.php', 'success', "Student enrolled successfully.");
         } else {
             redirect('add_student.php', 'error', "Database error: " . $stmt->error);

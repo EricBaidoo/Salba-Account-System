@@ -132,4 +132,72 @@ if (!function_exists('redirect')) {
         exit;
     }
 }
+
+/**
+ * GLOBAL AUDIT LOGGING
+ * Logs user actions with optional state change tracking (old vs new)
+ */
+if (!function_exists('log_activity')) {
+    function log_activity($conn, $action, $description, $old = null, $new = null) {
+        $uid = $_SESSION['user_id'] ?? null;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'CLI';
+        
+        // Handle array/object payloads
+        $old_str = (is_array($old) || is_object($old)) ? json_encode($old) : $old;
+        $new_str = (is_array($new) || is_object($new)) ? json_encode($new) : $new;
+
+        $stmt = $conn->prepare("INSERT INTO system_audit_logs (user_id, action, description, old_values, new_values, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issssss", $uid, $action, $description, $old_str, $new_str, $ip, $ua);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
+/**
+ * PROFILE DATA RETRIEVAL
+ * Fetches combined user and staff profile data
+ */
+if (!function_exists('get_user_profile_data')) {
+    function get_user_profile_data($conn, $uid) {
+        $stmt = $conn->prepare("
+            SELECT u.username, u.role, u.is_active, u.created_at as account_created,
+                   sp.* 
+            FROM users u
+            LEFT JOIN staff_profiles sp ON u.id = sp.user_id
+            WHERE u.id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+}
+
+/**
+ * SECURE PASSWORD UPDATE
+ */
+if (!function_exists('update_user_password')) {
+    function update_user_password($conn, $uid, $current_password, $new_password) {
+        // Verify current password
+        $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        
+        if (!$res || !password_verify($current_password, $res['password'])) {
+            return ['success' => false, 'message' => 'Current password verification failed.'];
+        }
+
+        // Hash and update
+        $hashed = password_hash($new_password, PASSWORD_DEFAULT);
+        $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $upd->bind_param("si", $hashed, $uid);
+        if ($upd->execute()) {
+            log_activity($conn, 'Security', 'User updated their account password.');
+            return ['success' => true];
+        }
+        return ['success' => false, 'message' => 'Database error during password update.'];
+    }
+}
 ?>

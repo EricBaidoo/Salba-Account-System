@@ -51,15 +51,17 @@ $root_path = BASE_URL;
         <div class="h-8 w-px bg-slate-100 hidden sm:block"></div>
 
         <div class="flex items-center gap-3 md:gap-5">
-            <div class="text-right hidden sm:block">
-                <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Welcome Back</div>
-                <div class="text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($user_name) ?></div>
-            </div>
-            
-            <!-- User Profile Avatar/Icon Display on Mobile -->
-            <div class="sm:hidden w-9 h-9 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 shadow-sm">
-                <i class="fas fa-user-circle text-lg"></i>
-            </div>
+            <a href="<?= BASE_URL ?>pages/common/profile.php" class="flex items-center gap-3 md:gap-5 group/profile">
+                <div class="text-right hidden sm:block">
+                    <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">Welcome Back</div>
+                    <div class="text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($user_name) ?></div>
+                </div>
+                
+                <!-- User Profile Avatar/Icon Display -->
+                <div class="w-9 h-9 md:w-11 md:h-11 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 shadow-sm group-hover/profile:border-indigo-200 group-hover/profile:bg-indigo-50 group-hover/profile:text-indigo-500 transition-all">
+                    <i class="fas fa-user-circle text-lg md:text-xl"></i>
+                </div>
+            </a>
 
             <a href="<?= BASE_URL ?>logout" class="w-10 h-10 md:w-11 md:h-11 bg-red-50 text-red-500 rounded-xl md:rounded-[1rem] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-md shadow-red-100 group" title="Secure Logout">
                 <i class="fas fa-power-off text-sm md:text-lg group-hover:rotate-90 transition-transform"></i>

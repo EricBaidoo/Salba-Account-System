@@ -99,6 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($update_count > 0 && empty($error_message)) {
+            $new_settings = getAllSettings($conn);
+            log_activity($conn, 'System', "Updated system settings ($update_count fields modified).", $all_settings, $new_settings);
             $success_message = "System settings updated successfully. " . $success_message;
         } elseif ($update_count === 0 && empty($error_message)) {
             $error_message = "No changes were detected or saved.";
@@ -112,8 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($s_name) {
                 $stmt = $conn->prepare("INSERT IGNORE INTO academic_semester_dictionary (semester_name) VALUES (?)");
                 $stmt->bind_param("s", $s_name);
-                $stmt->execute();
-                $success_message .= "New semester '$s_name' added. ";
+                if ($stmt->execute()) {
+                    log_activity($conn, 'System', "Added new semester '$s_name' to dictionary.");
+                    $success_message .= "New semester '$s_name' added. ";
+                }
             }
         }
         if ($_POST['semester_action'] === 'delete_semester') {
@@ -139,6 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     if (getCurrentSemester($conn) === $old_name) setSystemSetting($conn, 'current_semester', $new_name, $updated_by);
                     $conn->commit();
+                    log_activity($conn, 'System', "Renamed semester '$old_name' to '$new_name' across all modules.");
                     $success_message .= "Semester renamed to '$new_name'.";
                 } catch (Exception $e) { $conn->rollback(); $error_message .= "Rename failed."; }
             }

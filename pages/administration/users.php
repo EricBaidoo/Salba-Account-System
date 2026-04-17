@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $upd->bind_param("ii", $user_id, $staff_id);
                     $upd->execute();
                 }
+                
+                log_activity($conn, 'Identity', "Created new system account: @$username ($role)", null, ['id' => $user_id, 'username' => $username, 'role' => $role, 'is_active' => $is_active]);
+                
                 redirect('users', 'success', "User created successfully.");
             } else {
                 redirect('users', 'error', "Failed to create user: " . $conn->error);
@@ -67,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upd->bind_param("ii", $user_id, $staff_id);
                 $upd->execute();
             }
+            
+            log_activity($conn, 'Identity', "Updated system account for @$username (#$user_id)", null, ['username' => $username, 'role' => $role, 'is_active' => $is_active]);
+            
             redirect('users', 'success', "User updated successfully.");
         } else {
             redirect('users', 'error', "Failed to update user: " . $conn->error);
@@ -81,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
             $stmt->bind_param("i", $user_id);
             if ($stmt->execute()) {
+                log_activity($conn, 'Identity', "Permanently deleted user account with ID #$user_id.");
                 redirect('users', 'success', "User deleted successfully.");
             } else {
                 redirect('users', 'error', "Failed to delete user.");

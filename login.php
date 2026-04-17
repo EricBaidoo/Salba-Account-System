@@ -33,13 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user_id']  = $id;
                     $_SESSION['username'] = $username;
                     $_SESSION['role']     = $role;
+                    
+                    // AUDIT LOG
+                    log_activity($conn, 'Auth', "User '$username' successfully logged in.");
+                    
                     header('Location: index');
                     exit;
                 } else {
                     $error = 'Invalid username or password.';
+                    log_activity($conn, 'Auth', "Failed login attempt for username '$username' (Invalid Password).");
                 }
             } else {
                 $error = 'Invalid username or password.';
+                log_activity($conn, 'Auth', "Failed login attempt for unknown username '$username'.");
             }
             $stmt->close();
         }
