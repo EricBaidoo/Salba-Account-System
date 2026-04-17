@@ -159,12 +159,12 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                     </div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Institutional performance analytics.</p>
                 </a>
-                <a href="../academics/settings.php" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
+                <a href="../administration/system_settings.php" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-gray-50 text-gray-500 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-gears"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Academic Rules</h3>
                     </div>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Grading scales and semester config.</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Grading scales and assessment logic.</p>
                 </a>
             </div>
         </div>

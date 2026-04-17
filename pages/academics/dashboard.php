@@ -51,8 +51,7 @@ if ($at) {
     $attendance_count = $at->get_result()->fetch_assoc()['c'] ?? 0;
     $at->close();
 }
-
-
+?>
 
 <!DOCTYPE html>
 <html lang="en">
