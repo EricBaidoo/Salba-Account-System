@@ -3,6 +3,8 @@
  * Database Connection — SALBA Montessori Management System
  */
 
+
+
 require_once __DIR__ . '/config.php';
 
 // Create connection
