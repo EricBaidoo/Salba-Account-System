@@ -380,16 +380,8 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                         </h3>
                         <div class="space-y-4">
                             <div>
-                                <div class="data-label">Bank Name</div>
-                                <div class="data-value"><?= htmlspecialchars($s['bank_name'] ?? '—') ?></div>
-                            </div>
-                            <div>
-                                <div class="data-label">Account Number</div>
-                                <div class="data-value font-mono font-bold tracking-wider text-sm"><?= htmlspecialchars($s['bank_account_no'] ?? '—') ?></div>
-                            </div>
-                            <div>
-                                <div class="data-label">Branch</div>
-                                <div class="data-value"><?= htmlspecialchars($s['bank_branch'] ?? '—') ?></div>
+                                <div class="data-label">Bank Account Details</div>
+                                <div class="data-value"><?= nl2br(htmlspecialchars($s['bank_details'] ?? '—')) ?></div>
                             </div>
                         </div>
                     </div>
@@ -401,12 +393,8 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                         </h3>
                         <div class="space-y-4">
                             <div>
-                                <div class="data-label">Contact Name</div>
-                                <div class="data-value font-bold text-rose-700"><?= htmlspecialchars($s['emergency_name'] ?? '—') ?></div>
-                            </div>
-                            <div>
-                                <div class="data-label">Phone Number</div>
-                                <div class="data-value font-bold"><?= htmlspecialchars($s['emergency_phone'] ?? '—') ?></div>
+                                <div class="data-label">Contact Name & Phone</div>
+                                <div class="data-value font-bold text-rose-700"><?= nl2br(htmlspecialchars($s['emergency_contact'] ?? '—')) ?></div>
                             </div>
                         </div>
                     </div>

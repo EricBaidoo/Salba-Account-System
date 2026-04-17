@@ -39,11 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $highest_qualification  = trim($_POST['highest_qualification'] ?? '');
     $entry_qualification    = trim($_POST['entry_qualification'] ?? '');
     $first_appointment_date = !empty($_POST['first_appointment_date']) ? $_POST['first_appointment_date'] : null;
-    $bank_name              = trim($_POST['bank_name'] ?? '');
-    $bank_account_no        = trim($_POST['bank_account_no'] ?? '');
-    $bank_branch            = trim($_POST['bank_branch'] ?? '');
-    $emergency_name         = trim($_POST['emergency_name'] ?? '');
-    $emergency_phone        = trim($_POST['emergency_phone'] ?? '');
+    $bank_details           = trim($_POST['bank_details'] ?? '');
+    $emergency_contact      = trim($_POST['emergency_contact'] ?? '');
     $guarantor1_name        = trim($_POST['guarantor1_name'] ?? '');
     $guarantor1_phone       = trim($_POST['guarantor1_phone'] ?? '');
     $guarantor1_address     = trim($_POST['guarantor1_address'] ?? '');
@@ -91,20 +88,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 full_name=?, date_of_birth=?, marital_status=?, nationality=?, religion=?, languages_spoken=?,
                 phone_number=?, ghana_card_no=?, ssnit_number=?, address=?, landmark=?, hometown=?,
                 job_title=?, department=?, highest_qualification=?, entry_qualification=?, first_appointment_date=?,
-                bank_name=?, bank_account_no=?, bank_branch=?,
-                emergency_name=?, emergency_phone=?,
+                bank_details=?, emergency_contact=?,
                 guarantor1_name=?, guarantor1_phone=?, guarantor1_address=?,
                 guarantor2_name=?, guarantor2_phone=?, guarantor2_address=?,
                 photo_path=?, staff_code=?, staff_type=?, gender=?, employment_status=?
             WHERE id=?
         ");
         $stmt->bind_param(
-            "sssssssssssssssssssssssssssssssssi",
+            "ssssssssssssssssssssssssssssssi",
             $full_name, $date_of_birth, $marital_status, $nationality, $religion, $languages_spoken,
             $phone_number, $ghana_card_no, $ssnit_number, $address, $landmark, $hometown,
             $job_title, $department, $highest_qualification, $entry_qualification, $first_appointment_date,
-            $bank_name, $bank_account_no, $bank_branch,
-            $emergency_name, $emergency_phone,
+            $bank_details, $emergency_contact,
             $guarantor1_name, $guarantor1_phone, $guarantor1_address,
             $guarantor2_name, $guarantor2_phone, $guarantor2_address,
             $photo_path, $staff_code, $staff_type, $gender, $employment_status, $id
@@ -288,7 +283,16 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div>
                         <label class="fl">Job Title / Role</label>
-                        <input type="text" name="job_title" class="fi" value="<?= $v('job_title') ?>">
+                        <select name="job_title" class="fi">
+                            <option value="">-- Select Role --</option>
+                            <?php foreach([
+                                'Headmaster / Headmistress', 'Administrator / Manager', 'Class Teacher', 
+                                'Assistant Teacher', 'Finance Officer / Accountant', 'Secretary / Front Desk', 
+                                'IT / System Admin', 'Security', 'Facility Support (Cleaner / Caretaker)', 'Driver'
+                            ] as $role): ?>
+                                <option value="<?= $role ?>" <?= $v('job_title') === $role ? 'selected' : '' ?>><?= $role ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div>
                         <label class="fl">Functional Areas <span class="text-red-500">*</span></label>
@@ -343,20 +347,12 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon bg-yellow-100"><i class="fas fa-university text-yellow-600"></i></div>
-                    <div><h2 class="font-bold text-gray-900">Bank Account Details</h2><p class="text-xs text-gray-400 font-medium">For salary payment purposes</p></div>
+                    <div><h2 class="font-bold text-gray-900">Bank Account Details</h2><p class="text-xs text-gray-400 font-medium">Bank Name, Account Number and Branch</p></div>
                 </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="p-6">
                     <div>
-                        <label class="fl">Bank Name</label>
-                        <input type="text" name="bank_name" class="fi" value="<?= $v('bank_name') ?>">
-                    </div>
-                    <div>
-                        <label class="fl">Account Number</label>
-                        <input type="text" name="bank_account_no" class="fi" value="<?= $v('bank_account_no') ?>">
-                    </div>
-                    <div>
-                        <label class="fl">Branch</label>
-                        <input type="text" name="bank_branch" class="fi" value="<?= $v('bank_branch') ?>">
+                        <label class="fl">Bank Details Summary</label>
+                        <textarea name="bank_details" rows="2" class="fi" placeholder="Bank Name, Account Number and Branch" style="resize:none;"><?= $v('bank_details') ?></textarea>
                     </div>
                 </div>
             </div>
@@ -365,16 +361,12 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon bg-red-100"><i class="fas fa-phone-alt text-red-600"></i></div>
-                    <div><h2 class="font-bold text-gray-900">Emergency Contact</h2><p class="text-xs text-gray-400 font-medium">Person to contact in emergency</p></div>
+                    <div><h2 class="font-bold text-gray-900">Emergency Contact</h2><p class="text-xs text-gray-400 font-medium">Name and Phone Number</p></div>
                 </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="p-6">
                     <div>
-                        <label class="fl">Full Name</label>
-                        <input type="text" name="emergency_name" class="fi" value="<?= $v('emergency_name') ?>">
-                    </div>
-                    <div>
-                        <label class="fl">Phone Number</label>
-                        <input type="tel" name="emergency_phone" class="fi" value="<?= $v('emergency_phone') ?>">
+                        <label class="fl">Contact Name & Phone</label>
+                        <textarea name="emergency_contact" rows="2" class="fi" placeholder="Primary emergency contact name and phone" style="resize:none;"><?= $v('emergency_contact') ?></textarea>
                     </div>
                 </div>
             </div>

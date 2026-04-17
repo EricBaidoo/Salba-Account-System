@@ -39,11 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $highest_qualification  = trim($_POST['highest_qualification'] ?? '');
     $entry_qualification    = trim($_POST['entry_qualification'] ?? '');
     $first_appointment_date = !empty($_POST['first_appointment_date']) ? $_POST['first_appointment_date'] : null;
-    $bank_name              = trim($_POST['bank_name'] ?? '');
-    $bank_account_no        = trim($_POST['bank_account_no'] ?? '');
-    $bank_branch            = trim($_POST['bank_branch'] ?? '');
-    $emergency_name         = trim($_POST['emergency_name'] ?? '');
-    $emergency_phone        = trim($_POST['emergency_phone'] ?? '');
+    $bank_details           = trim($_POST['bank_details'] ?? '');
+    $emergency_contact      = trim($_POST['emergency_contact'] ?? '');
     $guarantor1_name        = trim($_POST['guarantor1_name'] ?? '');
     $guarantor1_phone       = trim($_POST['guarantor1_phone'] ?? '');
     $guarantor1_address     = trim($_POST['guarantor1_address'] ?? '');
@@ -93,19 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (full_name, date_of_birth, marital_status, nationality, religion, languages_spoken,
              phone_number, ghana_card_no, ssnit_number, address, landmark, hometown,
              job_title, department, highest_qualification, entry_qualification, first_appointment_date,
-             bank_name, bank_account_no, bank_branch,
-             emergency_name, emergency_phone,
+             bank_details, emergency_contact,
              guarantor1_name, guarantor1_phone, guarantor1_address,
              guarantor2_name, guarantor2_phone, guarantor2_address, photo_path, staff_code, staff_type, gender)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ");
         $stmt->bind_param(
-            "ssssssssssssssssssssssssssssssss",
+            "sssssssssssssssssssssssssssss",
             $full_name, $date_of_birth, $marital_status, $nationality, $religion, $languages_spoken,
             $phone_number, $ghana_card_no, $ssnit_number, $address, $landmark, $hometown,
             $job_title, $department, $highest_qualification, $entry_qualification, $first_appointment_date,
-            $bank_name, $bank_account_no, $bank_branch,
-            $emergency_name, $emergency_phone,
+            $bank_details, $emergency_contact,
             $guarantor1_name, $guarantor1_phone, $guarantor1_address,
             $guarantor2_name, $guarantor2_phone, $guarantor2_address, $photo_path, $staff_code, $staff_type, $gender
         );
@@ -309,7 +304,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div>
                         <label class="field-label">Job Title / Role</label>
-                        <input type="text" name="job_title" class="field-input" placeholder="e.g. Class Teacher, Security" value="<?= htmlspecialchars($_POST['job_title'] ?? '') ?>">
+                        <select name="job_title" class="field-input">
+                            <option value="">-- Select Role --</option>
+                            <?php foreach([
+                                'Headmaster / Headmistress', 'Administrator / Manager', 'Class Teacher', 
+                                'Assistant Teacher', 'Finance Officer / Accountant', 'Secretary / Front Desk', 
+                                'IT / System Admin', 'Security', 'Facility Support (Cleaner / Caretaker)', 'Driver'
+                            ] as $role): ?>
+                                <option value="<?= $role ?>" <?= ($_POST['job_title'] ?? '') === $role ? 'selected' : '' ?>><?= $role ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div>
                         <label class="field-label">Functional Areas <span class="text-red-500">*</span></label>
@@ -356,21 +360,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <h2 class="font-bold text-gray-900 text-base">Bank Account Details</h2>
-                        <p class="text-xs text-gray-400 font-medium">For salary payment purposes</p>
+                        <p class="text-xs text-gray-400 font-medium">Bank Name, Account Number and Branch</p>
                     </div>
                 </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="p-6">
                     <div>
-                        <label class="field-label">Bank Name</label>
-                        <input type="text" name="bank_name" class="field-input" placeholder="e.g. GCB, Fidelity, MTN MoMo" value="<?= htmlspecialchars($_POST['bank_name'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label class="field-label">Account Number</label>
-                        <input type="text" name="bank_account_no" class="field-input" placeholder="Account number" value="<?= htmlspecialchars($_POST['bank_account_no'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label class="field-label">Branch</label>
-                        <input type="text" name="bank_branch" class="field-input" placeholder="Branch name / location" value="<?= htmlspecialchars($_POST['bank_branch'] ?? '') ?>">
+                        <label class="field-label">Bank Details Summary</label>
+                        <textarea name="bank_details" rows="2" class="field-input" placeholder="Bank Name, Account Number and Branch" style="resize:none;"><?= htmlspecialchars($_POST['bank_details'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
@@ -383,17 +379,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <h2 class="font-bold text-gray-900 text-base">Emergency Contact</h2>
-                        <p class="text-xs text-gray-400 font-medium">Person to contact in case of emergency</p>
+                        <p class="text-xs text-gray-400 font-medium">Name and Phone Number</p>
                     </div>
                 </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="p-6">
                     <div>
-                        <label class="field-label">Full Name</label>
-                        <input type="text" name="emergency_name" class="field-input" placeholder="Emergency contact name" value="<?= htmlspecialchars($_POST['emergency_name'] ?? '') ?>">
-                    </div>
-                    <div>
-                        <label class="field-label">Phone Number</label>
-                        <input type="tel" name="emergency_phone" class="field-input" placeholder="Emergency contact phone" value="<?= htmlspecialchars($_POST['emergency_phone'] ?? '') ?>">
+                        <label class="field-label">Contact Name & Phone</label>
+                        <textarea name="emergency_contact" rows="2" class="field-input" placeholder="Full emergency contact name and phone" style="resize:none;"><?= htmlspecialchars($_POST['emergency_contact'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
