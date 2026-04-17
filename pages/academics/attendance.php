@@ -206,33 +206,32 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $show_sidebar ? '' : 'w-full' ?> min-h-screen pb-20">
         <!-- Professional Header -->
-        <header class="glass-nav sticky top-0 z-50 px-10 py-5">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <header class="glass-nav sticky top-0 z-50 px-4 md:px-10 py-4 md:py-5">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">
                         <i class="fas fa-fingerprint"></i> Institutional Biometrics
                     </div>
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center flex-wrap gap-2 md:gap-4 mt-2">
                         <?php 
                         $dash_link = "../../index.php";
                         if ($_SESSION['role'] === 'facilitator') $dash_link = "../teacher/dashboard.php";
                         if ($_SESSION['role'] === 'supervisor') $dash_link = "../supervisor/dashboard.php";
                         ?>
-                        <a href="<?= $dash_link ?>" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Back to Dashboard">
+                        <a href="<?= $dash_link ?>" class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm flex-shrink-0" title="Back to Dashboard">
                             <i class="fas fa-house-chimney text-xs"></i>
                         </a>
-                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Attendance <span class="text-indigo-600">Hub</span></h1>
-                        <div class="h-6 w-px bg-slate-200"></div>
-                        <nav class="flex bg-slate-100 p-1 rounded-xl">
-                            <a href="?class=<?= $selected_class ?>&mode=daily" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all <?= $view_mode==='daily'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Daily Roll Call</a>
-                            <a href="?class=<?= $selected_class ?>&mode=history" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all <?= $view_mode==='history'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Semester Ledger</a>
+                        <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">Attendance <span class="text-indigo-600">Hub</span></h1>
+                        <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                        <nav class="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto mt-2 md:mt-0">
+                            <a href="?class=<?= $selected_class ?>&mode=daily" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all <?= $view_mode==='daily'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Daily Roll Call</a>
+                            <a href="?class=<?= $selected_class ?>&mode=history" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all <?= $view_mode==='history'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Semester Ledger</a>
                         </nav>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                <div class="flex items-center gap-6">
-                    <div class="text-right border-r border-slate-100 pr-6 mr-2 hidden md:block">
-                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-end gap-1">
+                <div class="flex w-full md:w-auto justify-between md:justify-end items-center gap-2 md:gap-4 border-t border-slate-100 md:border-none pt-4 md:pt-0 mt-2 md:mt-0">
+                    <div class="text-left md:text-right border-r border-slate-100 pr-4 mr-1 hidden md:block">
+                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-start md:justify-end gap-1">
                             <i class="fas fa-clock text-[8px]"></i> Session Timeline
                         </div>
                         <div class="text-[11px] font-bold text-slate-600 flex items-center gap-2">
@@ -409,12 +408,12 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                             </table>
                         </div>
                         
-                        <div class="flex justify-between items-center p-8 bg-slate-900 rounded-[2rem] shadow-xl border border-slate-800">
-                           <div class="flex gap-4">
-                               <button type="button" onclick="markAll('present')" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-700 transition-all border border-slate-700">Mark All Present</button>
-                               <button type="button" onclick="markAll('absent')" class="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-700 transition-all border border-slate-700">Mark All Absent</button>
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 p-6 md:p-8 bg-slate-900 rounded-[2rem] shadow-xl border border-slate-800">
+                           <div class="flex w-full md:w-auto gap-3 md:gap-4">
+                               <button type="button" onclick="markAll('present')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[10px] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Present</button>
+                               <button type="button" onclick="markAll('absent')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[10px] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Absent</button>
                            </div>
-                           <button type="submit" class="bg-indigo-600 text-white px-10 py-3 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-900/40 flex items-center gap-3">
+                           <button type="submit" class="w-full md:w-auto justify-center bg-indigo-600 text-white px-8 md:px-10 py-4 md:py-3 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-900/40 flex items-center gap-3">
                                <i class="fas fa-lock text-indigo-400"></i> Save Register
                            </button>
                         </div>

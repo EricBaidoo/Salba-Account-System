@@ -208,31 +208,31 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $_SESSION['role'] === 'admin' ? '' : 'w-full' ?> min-h-screen relative no-print transition-all duration-300">
         
-        <div class="flex justify-between items-center bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
             <div>
-                <h1 class="text-2xl font-extrabold text-gray-900"><i class="fas fa-file-pdf text-red-500 mr-2"></i> Official Transcripts</h1>
-                <p class="text-sm text-gray-700 mt-1 font-bold tracking-wider">MASTER PRINT SPLIT: <span class="bg-blue-100 text-blue-800 px-2 rounded">OA MAX <?= $global_oa_weight ?>%</span> <span class="mx-1">+</span> <span class="bg-red-100 text-red-800 px-2 rounded">EXAM MAX <?= $global_exam_weight ?>%</span></p>
+                <h1 class="text-xl md:text-2xl font-extrabold text-gray-900"><i class="fas fa-file-pdf text-red-500 mr-2"></i> Official Transcripts</h1>
+                <p class="text-[10px] md:text-sm text-gray-700 mt-1 font-bold tracking-wider leading-relaxed">MASTER PRINT SPLIT: <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded whitespace-nowrap">OA MAX <?= $global_oa_weight ?>%</span> <span class="mx-1">+</span> <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap">EXAM MAX <?= $global_exam_weight ?>%</span></p>
             </div>
             
-            <div class="flex items-center gap-3">
-                <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
+            <div class="flex items-center flex-wrap gap-2 md:gap-3 w-full md:w-auto">
+                <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>&view=html" target="_blank" class="flex-1 md:flex-none justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 md:px-5 rounded-lg shadow-sm transition flex items-center gap-2 text-sm md:text-base">
                     <i class="fas fa-eye"></i> View Results
                 </a>
 
                 <?php if($user_role === 'admin'): ?>
-                    <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-sm transition flex items-center gap-2">
+                    <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="flex-1 md:flex-none justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 md:px-5 rounded-lg shadow-sm transition flex items-center gap-2 text-sm md:text-base">
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
                 <?php else: ?>
-                    <span class="bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
-                        <i class="fas fa-lock text-[10px]"></i> Download PDF Restricted
+                    <span class="flex-1 md:flex-none justify-center bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2.5 rounded-lg text-[10px] md:text-sm flex items-center gap-2">
+                        <i class="fas fa-lock"></i> Restricted
                     </span>
                 <?php endif; ?>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex gap-4">
-            <form method="GET" class="flex gap-4 w-full">
+        <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex gap-4">
+            <form method="GET" class="flex flex-col md:flex-row gap-4 w-full">
                 <div class="flex-1">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Target Class</label>
                     <select name="class" class="w-full px-4 py-2 border rounded font-medium" onchange="this.form.submit()">
