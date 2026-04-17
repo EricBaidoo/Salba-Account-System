@@ -160,10 +160,15 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <?php include '../../includes/sidebar.php'; ?>
-    <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // Only fallback if router fails ?>
+    <?php 
+    if ($_SESSION['role'] === 'admin') {
+        include '../../includes/sidebar.php';
+    } else {
+        include '../../includes/top_nav.php';
+    }
+    ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen bg-white">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : 'w-full' ?> p-4 md:p-8 min-h-screen bg-white">
         <!-- Modern Header -->
         <div class="glass-header px-10 py-8 sticky top-0 z-40 bg-white/80">
             <div class="max-w-7xl mx-auto flex justify-between items-center">

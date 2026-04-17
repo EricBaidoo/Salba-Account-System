@@ -205,8 +205,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         if (file_exists('../../includes/top_nav.php')) include '../../includes/top_nav.php';
     }
     ?>
-
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $_SESSION['role'] === 'admin' ? '' : 'w-full' ?> min-h-screen relative no-print transition-all duration-300">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : 'w-full' ?> p-4 md:p-8 min-h-screen relative no-print transition-all duration-300">
         
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
             <div>

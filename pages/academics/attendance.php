@@ -203,8 +203,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
         include '../../includes/sidebar.php'; 
     }
     ?>
-
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $show_sidebar ? '' : 'w-full' ?> min-h-screen pb-20">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : 'w-full' ?> p-4 md:p-8 min-h-screen pb-20">
         <!-- Professional Header -->
         <header class="glass-nav sticky top-0 z-50 px-4 md:px-10 py-4 md:py-5">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

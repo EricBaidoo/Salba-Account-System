@@ -65,9 +65,15 @@ if ($at) {
 </head>
 <body class="bg-gray-50">
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php 
+    if ($_SESSION['role'] === 'admin') {
+        include '../../includes/sidebar.php';
+    } else {
+        include '../../includes/top_nav.php';
+    }
+    ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : 'w-full' ?> p-4 md:p-8 min-h-screen">
 
         <!-- Page Header -->
         <div class="mb-8">
