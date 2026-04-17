@@ -59,7 +59,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
 <body class="bg-[#F8FAFC] text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
     
-    <main class="lg:ml-72 p-10">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10">
         <!-- Breadcrumbs & Nav -->
         <nav class="flex items-center justify-between mb-12">
             <div class="flex items-center gap-4">

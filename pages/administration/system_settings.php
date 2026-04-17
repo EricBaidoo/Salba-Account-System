@@ -220,7 +220,7 @@ for ($i = -2; $i <= 5; $i++) {
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-40">
             <div class="flex items-center gap-3 mb-4">
                 <a href="dashboard.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">

@@ -204,7 +204,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
     }
     ?>
 
-    <main class="<?= $show_sidebar ? 'ml-72' : 'w-full' ?> min-h-screen pb-20">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $show_sidebar ? '' : 'w-full' ?> min-h-screen pb-20">
         <!-- Professional Header -->
         <header class="glass-nav sticky top-0 z-50 px-10 py-5">
             <div class="max-w-7xl mx-auto flex justify-between items-center">

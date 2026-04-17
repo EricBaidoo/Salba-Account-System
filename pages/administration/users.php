@@ -140,7 +140,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-4 md:p-8 pt-6">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 pt-6">
 
         <!-- Top Navigation / Search Area -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 sticky top-0 z-10 glass-header py-4 -mx-4 px-4 md:-mx-8 md:px-8">

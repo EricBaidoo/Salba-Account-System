@@ -58,7 +58,7 @@ $cy = getAcademicYear($conn);
 <body class="bg-[#F8FAFC] text-slate-900">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
         <!-- Header Section -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>

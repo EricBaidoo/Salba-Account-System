@@ -28,7 +28,7 @@ $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
 <body class="text-slate-900 leading-relaxed">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
         <!-- Header -->
         <header class="mb-12 flex justify-between items-end">
             <div>

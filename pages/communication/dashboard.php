@@ -46,7 +46,7 @@ if ($r) $total_messages = $r->fetch_assoc()['c'] ?? 0;
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-4 md:p-8 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 
         <!-- Page Header -->
         <div class="mb-8">

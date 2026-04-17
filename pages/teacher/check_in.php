@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="min-h-screen py-20 px-6">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen py-20 px-6">
         <div class="max-w-xl mx-auto">
             <!-- Header -->
             <div class="mb-12 text-center">

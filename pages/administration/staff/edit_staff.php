@@ -148,7 +148,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 min-h-screen p-8">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 
         <div class="flex items-center justify-between mb-8">
             <div>

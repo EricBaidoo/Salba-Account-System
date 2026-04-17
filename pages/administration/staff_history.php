@@ -83,7 +83,7 @@ if ($logs_res) {
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
         <nav class="mb-8 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <a href="dashboard.php" class="hover:text-indigo-700">Administration</a>
             <i class="fas fa-chevron-right text-[8px]"></i>

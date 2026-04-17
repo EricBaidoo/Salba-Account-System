@@ -43,7 +43,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="w-full">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 w-full">
         <!-- Profile Banner -->
         <div class="bg-indigo-700 px-4 md:px-8 py-12 md:py-20 text-white relative overflow-hidden">
             <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4"><i class="fas fa-eye text-[10rem] md:text-[15rem]"></i></div>

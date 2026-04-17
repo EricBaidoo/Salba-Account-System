@@ -83,7 +83,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
         <header class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
                 <div class="flex items-center gap-3 mb-2">

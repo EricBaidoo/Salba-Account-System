@@ -206,7 +206,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     }
     ?>
 
-    <main class="<?= $_SESSION['role'] === 'admin' ? 'ml-72' : 'w-full' ?> min-h-screen relative p-6 no-print transition-all duration-300">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $_SESSION['role'] === 'admin' ? '' : 'w-full' ?> min-h-screen relative no-print transition-all duration-300">
         
         <div class="flex justify-between items-center bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
             <div>

@@ -173,7 +173,7 @@ if ($map_res) {
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="lg:ml-72 min-h-screen relative">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen relative">
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30">
             <div class="flex items-center gap-3 mb-4">

@@ -39,7 +39,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="w-full">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 w-full">
         <!-- Profile Banner -->
         <div class="bg-indigo-600 px-4 md:px-8 py-10 md:py-16 text-white relative overflow-hidden">
             <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4">

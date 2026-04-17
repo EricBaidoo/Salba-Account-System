@@ -221,7 +221,7 @@ if($dl_res) {
     }
     ?>
 
-    <main class="<?= $_SESSION['role'] === 'admin' ? 'ml-72' : 'w-full' ?> min-h-screen relative p-8">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 <?= $_SESSION['role'] === 'admin' ? '' : 'w-full' ?> min-h-screen relative">
         <div class="flex items-center gap-2 mb-4">
             <a href="dashboard.php" class="text-gray-400 hover:text-indigo-600 transition-colors flex items-center gap-1 text-sm font-medium">
                 <i class="fas fa-arrow-left"></i> Back to Academics
