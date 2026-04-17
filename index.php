@@ -4,7 +4,7 @@ include_once 'includes/db_connect.php';
 include_once 'includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: login');
+    header('Location: ' . BASE_URL . 'login');
     exit;
 }
 
@@ -12,10 +12,13 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 $user_role = $_SESSION['role'] ?? 'staff';
 
 if ($user_role === 'facilitator') {
-    header('Location: pages/teacher/dashboard');
+    header('Location: ' . BASE_URL . 'pages/teacher/dashboard');
     exit;
 } elseif ($user_role === 'supervisor') {
-    header('Location: pages/supervisor/dashboard');
+    header('Location: ' . BASE_URL . 'pages/supervisor/dashboard');
+    exit;
+} elseif ($user_role === 'admin') {
+    header('Location: ' . BASE_URL . 'pages/administration/dashboard');
     exit;
 }
 ?>
