@@ -257,19 +257,20 @@ if (!function_exists('nav_active')) {
     </nav>
 
     <!-- Footer Profile -->
-    <div class="p-4 mt-auto">
-        <div class="user-pill">
+    <div class="p-5 mt-auto bg-slate-900/50 border-t border-slate-900">
+        <div class="user-pill group">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                        <i class="fas fa-user-shield text-xs"></i>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
+                        <i class="fas fa-user-shield text-base"></i>
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-[11px] font-black text-white truncate"><?= htmlspecialchars($user_name) ?></p>
-                        <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest"><?= htmlspecialchars($user_role) ?></p>
+                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5">Welcome</p>
+                        <p class="text-xs font-black text-white truncate"><?= htmlspecialchars($user_name) ?></p>
+                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest mt-0.5"><?= htmlspecialchars($user_role) ?></p>
                     </div>
                 </div>
-                <a href="<?= $root_path ?>logout" class="w-7 h-7 rounded-lg hover:bg-rose-500/20 hover:text-rose-500 flex items-center justify-center text-slate-500 transition-colors" title="Secure Logout">
+                <a href="<?= $root_path ?>logout" class="w-9 h-9 rounded-xl bg-slate-900 text-slate-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all border border-slate-800 shadow-sm" title="Secure Logout">
                     <i class="fas fa-power-off text-xs"></i>
                 </a>
             </div>
