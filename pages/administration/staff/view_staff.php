@@ -123,7 +123,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen p-8 lg:p-10 max-w-[1600px] mx-auto">
+    <main class="lg:ml-72 min-h-screen p-8 lg:p-10 max-w-[1600px] mx-auto">
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">

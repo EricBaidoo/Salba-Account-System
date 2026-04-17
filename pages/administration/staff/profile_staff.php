@@ -138,7 +138,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
         </div>
     </div>
 
-    <main class="ml-72 min-h-screen p-8 lg:p-10 max-w-[1400px] mx-auto print:ml-0 print:p-8">
+    <main class="lg:ml-72 min-h-screen p-8 lg:p-10 max-w-[1400px] mx-auto print:ml-0 print:p-8">
 
         <!-- Top Actions -->
         <div class="flex items-center justify-between mb-8 print-hidden">

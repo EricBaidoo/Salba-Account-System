@@ -132,7 +132,7 @@ while ($row = $sum_result->fetch_assoc()) {
 <body class="bg-[#F8FAFC] text-slate-900">
     <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
-    <main class="ml-72 p-10 min-h-screen">
+    <main class="lg:ml-72 p-10 min-h-screen">
         <!-- Header Section -->
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>

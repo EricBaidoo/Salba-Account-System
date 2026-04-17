@@ -85,7 +85,7 @@ if (empty($s['staff_code'])) {
 </head>
 <body class="bg-gray-50">
     <?php include '../../../includes/sidebar.php'; ?>
-    <main class="ml-72 min-h-screen p-8 flex items-start justify-center">
+    <main class="lg:ml-72 min-h-screen p-8 flex items-start justify-center">
         <div class="w-full max-w-lg">
             <a href="profile_staff.php?id=<?= $id ?>" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider flex items-center gap-1 mb-6 w-fit">
                 <i class="fas fa-arrow-left"></i> Back to Profile

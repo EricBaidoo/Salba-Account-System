@@ -90,7 +90,7 @@ $active_tab = $_GET['tab'] ?? 'inbox';
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen">
+    <main class="lg:ml-72 min-h-screen">
 
         <!-- Header -->
         <div class="clean-page-header">

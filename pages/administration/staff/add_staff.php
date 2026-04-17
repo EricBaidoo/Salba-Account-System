@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen p-8">
+    <main class="lg:ml-72 min-h-screen p-8">
 
         <!-- Page Header -->
         <div class="flex items-center justify-between mb-8">

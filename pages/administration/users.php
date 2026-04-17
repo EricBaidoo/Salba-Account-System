@@ -140,15 +140,15 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 p-8 pt-6">
+    <main class="lg:ml-72 p-4 md:p-8 pt-6">
 
         <!-- Top Navigation / Search Area -->
-        <div class="flex items-center justify-between mb-8 sticky top-0 z-10 glass-header py-4 -mx-8 px-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 sticky top-0 z-10 glass-header py-4 -mx-4 px-4 md:-mx-8 md:px-8">
             <div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">System Users</h1>
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Access Control Center</span>
+                    <span class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Access Control Center</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">

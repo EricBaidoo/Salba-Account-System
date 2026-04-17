@@ -32,7 +32,7 @@ while ($row = $classes_result->fetch_assoc()) {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen">
+    <main class="lg:ml-72 min-h-screen">
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6">
             <div class="flex items-center gap-3 mb-4">

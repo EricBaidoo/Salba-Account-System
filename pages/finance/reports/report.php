@@ -106,7 +106,7 @@ if ($report_type === 'budget' || $report_type === 'overview') {
 <body class="text-slate-900 leading-relaxed">
     <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
-    <main class="ml-72 p-10 min-h-screen">
+    <main class="lg:ml-72 p-10 min-h-screen">
         <!-- Header -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>

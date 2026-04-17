@@ -163,7 +163,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
     <?php include '../../includes/sidebar.php'; ?>
     <?php if ($_SESSION['role'] !== 'admin') include '../../includes/sidebar.php'; // Only fallback if router fails ?>
 
-    <main class="ml-72 min-h-screen bg-white">
+    <main class="lg:ml-72 min-h-screen bg-white">
         <!-- Modern Header -->
         <div class="glass-header px-10 py-8 sticky top-0 z-40 bg-white/80">
             <div class="max-w-7xl mx-auto flex justify-between items-center">

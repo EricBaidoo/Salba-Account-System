@@ -68,7 +68,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
 <body class="bg-[#F8FAFC]">
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen p-8">
+    <main class="lg:ml-72 min-h-screen p-8">
         <header class="app-header !border-b-4 !border-b-indigo-500">
             <div class="flex items-center gap-2 mb-4">
                 <a href="dashboard.php" class="text-gray-400 hover:text-indigo-600 transition-colors flex items-center gap-1 text-sm font-medium">

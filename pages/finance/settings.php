@@ -132,7 +132,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
 <body class="bg-[#F8FAFC]">
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen p-8">
+    <main class="lg:ml-72 min-h-screen p-8">
         <header class="app-header !border-b-4 !border-b-emerald-600">
             <div class="flex items-center gap-2 mb-4">
                 <a href="dashboard.php" class="text-gray-400 hover:text-emerald-600 transition-colors flex items-center gap-1 text-sm font-medium">
