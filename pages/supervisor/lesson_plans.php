@@ -80,7 +80,7 @@ $reviewed_plans = $conn->query("
 
     <main class=" min-h-screen relative p-8">
         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
-            <i class="fas fa-file-signature text-green-500"></i> Principal's / Headteacher's / Supervisor's Approvals
+            <i class="fas fa-file-signature text-green-500"></i> Supervisor's Approvals
         </h1>
 
         <?php if ($success): ?>
