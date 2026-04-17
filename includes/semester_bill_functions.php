@@ -676,3 +676,4 @@ function buildSemesterInvoiceHtml(array $context, array $options = [], $conn = n
 
     return $html;
 }
+}
