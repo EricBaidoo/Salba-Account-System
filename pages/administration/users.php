@@ -10,14 +10,13 @@ if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-$success = $_GET['success'] ?? '';
-$error = $_GET['error'] ?? '';
+// Messages are now handled globally by Flash system
 
 // Handle Create/Update User
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF Protection
     if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
-        die("Security Token Error. Please refresh the page and try again.");
+        redirect('users', 'error', "Security Token Error. Please refresh the page and try again.");
     }
 
     $action = $_POST['action'] ?? '';
@@ -29,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $password = $_POST['password'] ?? '';
         if (empty($username) || empty($password)) {
-            $error = "Username and password are required.";
+            redirect('users', 'error', "Username and password are required.");
         } else {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO users (username, password, role, is_active, staff_id) VALUES (?, ?, ?, ?, ?)");
@@ -42,10 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $upd->bind_param("ii", $user_id, $staff_id);
                     $upd->execute();
                 }
-                header("Location: users.php?success=User+created+successfully");
-                exit;
+                redirect('users', 'success', "User created successfully.");
             } else {
-                $error = "Failed to create user: " . $conn->error;
+                redirect('users', 'error', "Failed to create user: " . $conn->error);
             }
         }
     } elseif ($action === 'edit') {
@@ -69,25 +67,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $upd->bind_param("ii", $user_id, $staff_id);
                 $upd->execute();
             }
-            header("Location: users.php?success=User+updated+successfully");
-            exit;
+            redirect('users', 'success', "User updated successfully.");
         } else {
-            $error = "Failed to update user: " . $conn->error;
+            redirect('users', 'error', "Failed to update user: " . $conn->error);
         }
     } elseif ($action === 'delete') {
         $user_id = intval($_POST['user_id']);
         if ($user_id === $_SESSION['user_id']) {
-            $error = "You cannot delete your own account.";
+            redirect('users', 'error', "You cannot delete your own account.");
         } else {
             // Clear staff links first
             $conn->query("UPDATE staff_profiles SET user_id = NULL WHERE user_id = $user_id");
             $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
             $stmt->bind_param("i", $user_id);
             if ($stmt->execute()) {
-                header("Location: users.php?success=User+deleted+successfully");
-                exit;
+                redirect('users', 'success', "User deleted successfully.");
             } else {
-                $error = "Failed to delete user.";
+                redirect('users', 'error', "Failed to delete user.");
             }
         }
     }

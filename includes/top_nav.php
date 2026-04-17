@@ -67,3 +67,43 @@ $root_path = BASE_URL;
         </div>
     </div>
 </header>
+
+<?php
+// Global Flash Message Display Logic
+$flashes = get_flash();
+if (!empty($flashes)): ?>
+<div class="fixed top-24 right-4 md:right-10 z-[60] flex flex-col gap-3 pointer-events-none max-w-[90vw] md:max-w-md">
+    <?php foreach ($flashes as $f): 
+        $type = $f['type'] ?? 'info';
+        $colorClass = ($type === 'success') ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800';
+        $iconClass = ($type === 'success') ? 'fa-check-circle text-emerald-500' : 'fa-exclamation-circle text-rose-500';
+    ?>
+    <div class="pointer-events-auto flex items-center gap-4 px-6 py-4 rounded-2xl border <?= $colorClass ?> shadow-2xl animate-in fade-in slide-in-from-right-10 duration-500">
+        <div class="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center shadow-sm">
+            <i class="fas <?= $iconClass ?> text-xl"></i>
+        </div>
+        <div class="flex-1 pr-4">
+            <p class="text-[9px] font-black uppercase tracking-[0.2em] opacity-50 mb-0.5"><?= strtoupper($type) ?></p>
+            <p class="text-xs font-bold leading-tight"><?= htmlspecialchars($f['message']) ?></p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-black transition-colors p-2">
+            <i class="fas fa-times text-[10px]"></i>
+        </button>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+<script>
+    // System-wide Auto-dismiss Logic
+    setTimeout(() => {
+        const toasts = document.querySelectorAll('.animate-in');
+        toasts.forEach(t => {
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(20px)';
+            t.style.transition = 'all 0.5s ease';
+            setTimeout(() => t.remove(), 500);
+        });
+    }, 6000);
+</script>
+<?php endif; ?>
+

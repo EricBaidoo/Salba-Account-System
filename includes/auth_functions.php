@@ -101,4 +101,35 @@ if (!function_exists('require_finance_write')) {
         require_role(['admin', 'bursar']);
     }
 }
+
+/**
+ * FLASH MESSAGES & REDIRECTION (PRG Pattern)
+ */
+
+if (!function_exists('set_flash')) {
+    function set_flash($type, $message) {
+        if (!isset($_SESSION['flash_messages'])) {
+            $_SESSION['flash_messages'] = [];
+        }
+        $_SESSION['flash_messages'][] = ['type' => $type, 'message' => $message];
+    }
+}
+
+if (!function_exists('get_flash')) {
+    function get_flash() {
+        $messages = $_SESSION['flash_messages'] ?? [];
+        unset($_SESSION['flash_messages']);
+        return $messages;
+    }
+}
+
+if (!function_exists('redirect')) {
+    function redirect($url, $flashType = null, $flashMessage = null) {
+        if ($flashType && $flashMessage) {
+            set_flash($flashType, $flashMessage);
+        }
+        header("Location: $url");
+        exit;
+    }
+}
 ?>

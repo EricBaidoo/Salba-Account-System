@@ -8,8 +8,7 @@ if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role']
     exit;
 }
 
-$success = '';
-$error = '';
+// Messages are handled globally via Flash system
 $uid = $_SESSION['user_id'];
 
 // Safe Migration: Ensure lesson_plans has all modern columns (MySQL 5.7+ compatible)
@@ -62,15 +61,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_plan'])) {
         $row = $check->fetch_assoc();
         if ($row['status'] === 'pending') {
             if ($conn->query("DELETE FROM lesson_plans WHERE id = $plan_id")) {
-                $success = "Lesson plan deleted successfully.";
+                redirect('lesson_plans', 'success', "Lesson plan deleted successfully.");
             } else {
-                $error = "Failed to delete lesson plan.";
+                redirect('lesson_plans', 'error', "Failed to delete lesson plan.");
             }
         } else {
-            $error = "Cannot delete a plan that has already been reviewed (Approved/Rejected).";
+            redirect('lesson_plans', 'error', "Cannot delete a plan that has already been reviewed (Approved/Rejected).");
         }
     } else {
-        $error = "Unauthorized or plan not found.";
+        redirect('lesson_plans', 'error', "Unauthorized or plan not found.");
     }
 }
 
@@ -133,12 +132,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_plan'])) {
             $s_dur, $l_dur, $r_dur
         );
         if ($stmt->execute()) {
-            $success = "Lesson plan submitted successfully! Awaiting supervisor approval.";
+            redirect('lesson_plans', 'success', "Lesson plan submitted successfully! Awaiting supervisor approval.");
         } else {
-            $error = "Failed to submit lesson plan: " . $conn->error;
+            redirect('lesson_plans', 'error', "Failed to submit lesson plan: " . $conn->error);
         }
     } else {
-        $error = "Please fill out required fields (Class, Subject, Topic).";
+        redirect('lesson_plans', 'error', "Please fill out required fields (Class, Subject, Topic).");
     }
 }
 
@@ -183,12 +182,7 @@ if ($_SESSION['role'] === 'admin') {
             <i class="fas fa-file-contract text-green-500"></i> Lesson Planning
         </h1>
 
-        <?php if ($success): ?>
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm mb-6"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?></div>
-        <?php endif; ?>
-        <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm mb-6"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
+        <!-- Global Flash Messages handled by top_nav.php -->
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

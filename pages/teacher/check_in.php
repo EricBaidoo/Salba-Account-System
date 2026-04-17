@@ -46,9 +46,9 @@ function getDistanceMeters($lat1, $lon1, $lat2, $lon2) {
     return $earth_radius * $c;
 }
 
-$success = '';
-$error = '';
-$diagnostic_data = null;
+// Messages are handled globally
+$diagnostic_data = $_SESSION['last_diagnostic'] ?? null;
+unset($_SESSION['last_diagnostic']);
 $uid = $_SESSION['user_id'];
 
 // Check if already checked in today
@@ -64,12 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $u_acc = floatval($_POST['accuracy'] ?? 0);
         
         if ($u_lat == 0 && $u_lng == 0) {
-            $error = "Institutional Verification Failed: Could not acquire a valid geographic signature. Please ensure location services are enabled.";
+            redirect('check_in', 'error', "Institutional Verification Failed: Could not acquire a valid geographic signature.");
         } else {
             $dist = getDistanceMeters($school_lat, $school_lng, $u_lat, $u_lng);
             
-            // Log diagnostic info for the error display if needed
-            $diagnostic_data = [
+            $_SESSION['last_diagnostic'] = [
                 'detected' => "$u_lat, $u_lng",
                 'target' => "$school_lat, $school_lng",
                 'distance' => round($dist) . "m",
@@ -81,14 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $conn->prepare("INSERT INTO staff_attendance (user_id, check_in_time, latitude, longitude, accuracy, notes) VALUES (?, NOW(), ?, ?, ?, ?)");
                 $stmt->bind_param("iddds", $uid, $u_lat, $u_lng, $u_acc, $notes);
                 if ($stmt->execute()) {
-                    $success = "Institutional presence verified! (Accuracy: " . round($u_acc) . "m, Distance: " . round($dist) . "m)";
-                    if(isset($_POST['bypass'])) $success = "Administrative Presence Authenticated via Manual Override.";
-                    $already = true;
+                    $msg = isset($_POST['bypass']) ? "Administrative Presence Authenticated via Manual Override." : "Presence verified! Distance: " . round($dist) . "m";
+                    redirect('check_in', 'success', $msg);
                 } else {
-                    $error = "Database error logging institutional record.";
+                    redirect('check_in', 'error', "Database error logging institutional record.");
                 }
             } else {
-                $error = "Geofence Boundary Violation: You are currently outside the authorized campus hub.";
+                redirect('check_in', 'error', "Geofence Boundary Violation: You are currently outside the authorized campus hub.");
             }
         }
     }
@@ -118,27 +116,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <h1 class="text-4xl font-black text-slate-900 tracking-tighter lowercase">Presence <span class="text-indigo-600">Verification</span></h1>
             </div>
 
-            <!-- Success/Error Alerts -->
-            <?php if ($success): ?>
-                <div class="bg-indigo-600 text-white p-8 rounded-[3rem] shadow-2xl mb-8 flex items-center gap-6 border border-indigo-400">
-                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shrink-0"><i class="fas fa-check"></i></div>
-                    <div>
-                        <h4 class="text-lg font-black tracking-tight lowercase">Verification Success</h4>
-                        <p class="text-sm font-bold text-indigo-100 opacity-80"><?= htmlspecialchars($success) ?></p>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($error): ?>
-                <div class="bg-red-600 text-white p-8 rounded-[3rem] shadow-2xl mb-8 flex flex-col gap-6 border border-red-400">
+            <!-- Success/Error Alerts handled globally by top_nav.php -->
+            <?php if(isset($diagnostic_data)): ?>
+                <div class="bg-red-600 text-white p-8 rounded-[3rem] shadow-2xl mb-8 flex flex-col gap-6 border border-red-400 animate-in fade-in slide-in-from-top duration-500">
                     <div class="flex items-center gap-6">
                         <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shrink-0"><i class="fas fa-shield-slash"></i></div>
                         <div>
-                            <h4 class="text-lg font-black tracking-tight lowercase">Authentication Blocked</h4>
-                            <p class="text-sm font-bold text-red-100 opacity-80"><?= $error ?></p>
+                            <h4 class="text-lg font-black tracking-tight lowercase">Diagnostic Data</h4>
+                            <p class="text-xs font-bold text-red-100 opacity-80">Last verification attempt details:</p>
                         </div>
                     </div>
-                    <?php if($diagnostic_data): ?>
                     <div class="bg-black/20 rounded-3xl p-6 border border-white/10 font-mono text-[10px]">
                         <p class="text-white/40 uppercase tracking-widest mb-3 font-black">institutional diagnostic log</p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -147,8 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <div><span class="text-red-200">Distance:</span> <br> <?= $diagnostic_data['distance'] ?></div>
                             <div><span class="text-red-200">Accuracy:</span> <br> <?= $diagnostic_data['accuracy'] ?></div>
                         </div>
-                        <p class="mt-4 text-[9px] text-red-100 italic">* High distance with low accuracy (>1000m) suggests an IP-based location mismatch.</p>
-                        
                         <?php if($_SESSION['role'] === 'admin'): ?>
                             <div class="mt-6 pt-6 border-t border-white/10">
                                 <form method="POST">
@@ -161,11 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         <i class="fas fa-key mr-2"></i> Administrative Manual Override
                                     </button>
                                 </form>
-                                <p class="mt-3 text-[8px] text-white/30 text-center uppercase tracking-widest font-bold">This bypass will be flagged in the institutional log</p>
                             </div>
                         <?php endif; ?>
                     </div>
-                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 

@@ -17,8 +17,8 @@ if ($role !== 'admin' && $role !== 'supervisor' && $role !== 'facilitator') {
     exit;
 }
 
-$success_message = '';
-$error_message = '';
+// Page data fetching is moved BEFORE the POST check if needed, 
+// but actually most logic stays same.
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -169,6 +169,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->query("DELETE FROM academic_calendar WHERE id = $del_id");
         $success_message .= "Calendar event removed. ";
     }
+
+    // FINAL PRG REDIRECT
+    if ($error_message) {
+        redirect('system_settings', 'error', $error_message);
+    } else {
+        redirect('system_settings', 'success', $success_message ?: "Changes saved successfully.");
+    }
 }
 
 // Data fetching
@@ -226,18 +233,7 @@ for ($i = -2; $i <= 5; $i++) {
         </div>
 
         <div class="p-8 max-w-6xl mx-auto">
-            <?php if ($success_message): ?>
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-3 mb-6 shadow-sm animate-in slide-in-from-top duration-300">
-                    <i class="fas fa-check-circle text-emerald-500"></i>
-                    <span class="text-sm font-bold"><?= htmlspecialchars($success_message) ?></span>
-                </div>
-            <?php endif; ?>
-            <?php if ($error_message): ?>
-                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl flex items-center gap-3 mb-6 shadow-sm">
-                    <i class="fas fa-exclamation-circle text-rose-500"></i>
-                    <span class="text-sm font-bold"><?= htmlspecialchars($error_message) ?></span>
-                </div>
-            <?php endif; ?>
+            <!-- Global Flash Messages are now handled by top_nav.php -->
 
             <form method="POST" action="system_settings" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="save_settings">
