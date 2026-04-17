@@ -1,14 +1,14 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
-include '../../includes/system_settings.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
 if (!is_logged_in()) {
-    header('Location: ../pages/login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
 require_finance_access();
 // Load category id=>name map
-include_once '../../includes/fee_category_map.php';
+include_once '../../../includes/fee_category_map.php';
 
 // Get fees with their associated amounts for class-based and category fees
 $fees_query = "
