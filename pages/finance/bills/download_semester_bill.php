@@ -10,7 +10,7 @@ require_once '../../../includes/db_connect.php';
 require_once '../../../includes/auth_functions.php';
 require_once '../../../includes/system_settings.php';
 require_once '../../../includes/student_balance_functions.php';
-require_once '../../../includes/term_helpers.php';
+require_once '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
     ob_end_clean();
@@ -37,8 +37,8 @@ if (empty($semester)) {
 }
 
 // Get system settings
-$current_term = getCurrentSemester($conn);
-$default_academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
+$current_semester_val = getCurrentSemester($conn);
+$default_academic_year = getAcademicYear($conn);
 // Academic year override via GET
 $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'] !== ''
     ? $_GET['academic_year']
@@ -117,12 +117,12 @@ foreach ($students as &$student) {
     $fees_result = $fees_stmt->get_result();
     
     $student['fees'] = [];
-    $student['current_term_total'] = 0;
+    $student['current_semester_total'] = 0;
     $student['due_date'] = null;
     
     while ($fee = $fees_result->fetch_assoc()) {
         $student['fees'][] = $fee;
-        $student['current_term_total'] += $fee['amount'];
+        $student['current_semester_total'] += $fee['amount'];
         if (!$student['due_date'] && $fee['due_date']) {
             $student['due_date'] = $fee['due_date'];
         }
@@ -139,7 +139,7 @@ foreach ($students as &$student) {
     $paid_stmt->close();
     
     // Invoice total is the sum of current semester fees (including arrears fee row)
-    $student['total_bill'] = $student['current_term_total'];
+    $student['total_bill'] = $student['current_semester_total'];
     $student['balance_due'] = max(0, $student['total_bill'] - $student['total_paid']);
 }unset($student); // CRITICAL: Unset reference to prevent array corruption
 
@@ -204,7 +204,7 @@ foreach ($students as $student) {
                 </tr>
                 <tr>
                     <td>
-                        <span class="label">TERM:</span>
+                        <span class="label">SEMESTER:</span>
                         <span>' . strtoupper(htmlspecialchars($semester)) . '</span>
                     </td>
                     <td>
@@ -423,7 +423,7 @@ if (count($pdf_files) > 1) {
         exit;
     }
     
-    $zip_filename = 'Term_Invoices_' . str_replace(' ', '_', $semester);
+    $zip_filename = 'Semester_Invoices_' . str_replace(' ', '_', $semester);
     if ($class_filter !== 'all') {
         $zip_filename .= '_' . str_replace(' ', '_', $class_filter);
     }

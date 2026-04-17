@@ -2,7 +2,7 @@
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
-include '../../../includes/term_helpers.php';
+include '../../../includes/semester_helpers.php';
 include '../../../includes/budget_functions.php';
 
 if (!is_logged_in()) {
@@ -140,14 +140,14 @@ if ($existing) {
                         while ($cat = $categories->fetch_assoc()): 
                             $cat_amount = 0; $found = false;
                             foreach ($expense_items as $item) if ($item['category'] === $cat['name']) { $cat_amount = $item['amount']; $found = true; break; }
-                            if (!$found && $previous_term) $cat_amount = getTermCategorySpending($conn, $cat['name'], $previous_term, $previous_academic_year);
+                            if (!$found && $previous_term) $cat_amount = getSemesterCategorySpending($conn, $cat['name'], $previous_term, $previous_academic_year);
                         ?>
                         <div class="budget-card bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm">
                             <div class="flex justify-between items-start mb-6">
                                 <div>
                                     <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight"><?= htmlspecialchars($cat['name']) ?></h4>
                                     <?php if($previous_term): ?>
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Previous Audit: ₵<?= number_format(getTermCategorySpending($conn, $cat['name'], $previous_term, $previous_academic_year), 2) ?></p>
+                                        <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Previous Audit: ₵<?= number_format(getSemesterCategorySpending($conn, $cat['name'], $previous_term, $previous_academic_year), 2) ?></p>
                                     <?php endif; ?>
                                 </div>
                             </div>

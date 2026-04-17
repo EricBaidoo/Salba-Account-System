@@ -1,11 +1,11 @@
 <?php
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/system_settings.php';
-require_once __DIR__ . '/term_helpers.php';
+require_once __DIR__ . '/semester_helpers.php';
 require_once __DIR__ . '/student_balance_functions.php';
 
-if (!function_exists('getDefaultTermInvoiceSettings')) {
-function getDefaultTermInvoiceSettings() {
+if (!function_exists('getDefaultSemesterInvoiceSettings')) {
+function getDefaultSemesterInvoiceSettings() {
     return [
         'payment_plan' => [
             ['name' => 'First Installment', 'percent' => 50, 'due_date' => '12 Sept'],
@@ -95,15 +95,15 @@ function normalizeAcademicYearForKey($academic_year) {
 }
 }
 
-if (!function_exists('normalizeTermForKey')) {
-function normalizeTermForKey($semester) {
+if (!function_exists('normalizeSemesterForKey')) {
+function normalizeSemesterForKey($semester) {
     return trim((string)$semester);
 }
 }
 
-if (!function_exists('getTermInvoiceSettingsKey')) {
-function getTermInvoiceSettingsKey($semester, $academic_year) {
-    $normalized_term = normalizeTermForKey($semester);
+if (!function_exists('getSemesterInvoiceSettingsKey')) {
+function getSemesterInvoiceSettingsKey($semester, $academic_year) {
+    $normalized_term = normalizeSemesterForKey($semester);
     $normalized_year = normalizeAcademicYearForKey($academic_year);
     $term_slug = strtolower(preg_replace('/[^A-Za-z0-9]+/', '_', $normalized_term));
     $year_slug = preg_replace('/[^A-Za-z0-9]+/', '_', $normalized_year);
@@ -111,17 +111,17 @@ function getTermInvoiceSettingsKey($semester, $academic_year) {
 }
 }
 
-if (!function_exists('getTermInvoiceSettings')) {
-function getTermInvoiceSettings($conn, $semester, $academic_year) {
-    $defaults = getDefaultTermInvoiceSettings();
-    $normalized_term = normalizeTermForKey($semester);
+if (!function_exists('getSemesterInvoiceSettings')) {
+function getSemesterInvoiceSettings($conn, $semester, $academic_year) {
+    $defaults = getDefaultSemesterInvoiceSettings();
+    $normalized_term = normalizeSemesterForKey($semester);
     $normalized_year = normalizeAcademicYearForKey($academic_year);
 
     $candidate_keys = [
-        getTermInvoiceSettingsKey($normalized_term, $normalized_year),
-        getTermInvoiceSettingsKey($normalized_term, $academic_year),
-        getTermInvoiceSettingsKey($semester, $normalized_year),
-        getTermInvoiceSettingsKey($semester, $academic_year),
+        getSemesterInvoiceSettingsKey($normalized_term, $normalized_year),
+        getSemesterInvoiceSettingsKey($normalized_term, $academic_year),
+        getSemesterInvoiceSettingsKey($semester, $normalized_year),
+        getSemesterInvoiceSettingsKey($semester, $academic_year),
     ];
     $candidate_keys = array_values(array_unique($candidate_keys));
 
@@ -191,8 +191,8 @@ function getTermInvoiceSettings($conn, $semester, $academic_year) {
 }
 }
 
-if (!function_exists('resolveTermInvoiceContext')) {
-function resolveTermInvoiceContext($conn, array $criteria = []) {
+if (!function_exists('resolveSemesterInvoiceContext')) {
+function resolveSemesterInvoiceContext($conn, array $criteria = []) {
     $invoice_id = intval($criteria['invoice_id'] ?? 0);
     $student_id = intval($criteria['student_id'] ?? 0);
     $semester = trim((string)($criteria['semester'] ?? ''));
@@ -306,7 +306,7 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
         return null;
     }
 
-    $term_fees = getStudentTermFees($conn, $student_id, $semester, $academic_year);
+    $term_fees = getStudentSemesterFees($conn, $student_id, $semester, $academic_year);
     $payment_history = getStudentPaymentHistory($conn, $student_id, $semester, $academic_year);
 
     return [
@@ -322,8 +322,8 @@ function resolveTermInvoiceContext($conn, array $criteria = []) {
 }
 }
 
-if (!function_exists('buildTermInvoiceHtml')) {
-function buildTermInvoiceHtml(array $context, array $options = [], $conn = null) {
+if (!function_exists('buildSemesterInvoiceHtml')) {
+function buildSemesterInvoiceHtml(array $context, array $options = [], $conn = null) {
     $mode = $options['mode'] ?? 'web';
     $invoice = $context['invoice'];
     $student_balance = $context['student_balance'];
@@ -361,9 +361,9 @@ function buildTermInvoiceHtml(array $context, array $options = [], $conn = null)
     $installment_30 = $total_fees * 0.30;
     $installment_20 = $total_fees * 0.20;
     if ($conn) {
-        $invoice_settings = getTermInvoiceSettings($conn, $semester, $academic_year);
+        $invoice_settings = getSemesterInvoiceSettings($conn, $semester, $academic_year);
     } else {
-        $invoice_settings = getDefaultTermInvoiceSettings();
+        $invoice_settings = getDefaultSemesterInvoiceSettings();
     }
     $bank = $invoice_settings['payment_modes']['bank'];
     $momo = $invoice_settings['payment_modes']['momo'];

@@ -4,19 +4,20 @@ include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
 include '../../../includes/semester_bill_functions.php';
-require_once '../../../includes/term_helpers.php';
+require_once '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
-    header('Location: login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
+require_finance_access();
 
 // Get parameters
 $student_id = isset($_GET['student_id']) ? intval($_GET['student_id']) : 0;
 $semester = isset($_GET['semester']) ? trim($_GET['semester']) : '';
 $class_filter = isset($_GET['class']) ? trim($_GET['class']) : 'all';
 
-$current_term = getCurrentSemester($conn);
+$current_semester_val = getCurrentSemester($conn);
 $default_academic_year = getAcademicYear($conn);
 $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'] !== ''
     ? $_GET['academic_year']
@@ -24,12 +25,11 @@ $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'
 
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
 
-// Full term invoice settings from DB
-$invoice_settings = getTermInvoiceSettings($conn, $semester ?: $current_term, $selected_academic_year);
+// Full semester invoice settings from DB
+$invoice_settings = getSemesterInvoiceSettings($conn, $semester ?: $current_semester_val, $selected_academic_year);
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
 if (empty($semester)) {
-    // Show Selection form if no semester (already modernized in view_semester_bills.php but keeping this as fallback)
     header('Location: view_semester_bills.php');
     exit;
 }
@@ -88,7 +88,6 @@ foreach ($students as &$student) {
     <title>Semester Bills | Institutional Ledger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../../assets/css/style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
@@ -189,7 +188,7 @@ foreach ($students as &$student) {
                 </div>
                 <div>
                     <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Scope Context</h6>
-                    <p class="text-sm font-black text-slate-900 leading-none mb-1"><?= htmlspecialchars($semester) ?></p>
+                    <p class="text-sm font-black text-slate-900 leading-none mb-1 text-xs"><?= htmlspecialchars($semester) ?></p>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tight"><?= htmlspecialchars($display_academic_year) ?></p>
                 </div>
                 <div class="text-right">
@@ -271,22 +270,22 @@ foreach ($students as &$student) {
                     </h4>
                     <div class="space-y-4">
                         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['bank']['title']) ?></h5>
+                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['bank']['title'] ?? 'Bank Details') ?></h5>
                              <p class="text-[10px] font-black text-slate-800 leading-tight">
-                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc Name:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_name']) ?><br>
-                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc No:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_number']) ?><br>
-                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Bank:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['bank_name']) ?>
+                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc Name:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_name'] ?? '---') ?><br>
+                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc No:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_number'] ?? '---') ?><br>
+                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Bank:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['bank_name'] ?? '---') ?>
                              </p>
                         </div>
                         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['momo']['title']) ?></h5>
+                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['momo']['title'] ?? 'Mobile Money') ?></h5>
                              <p class="text-[10px] font-black text-slate-800 leading-tight">
-                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Number:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['number']) ?><br>
-                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Registered:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['name']) ?>
+                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Number:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['number'] ?? '---') ?><br>
+                                <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Registered:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['name'] ?? '---') ?>
                              </p>
                         </div>
                         <p class="text-[9px] font-bold text-indigo-600 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-                            <i class="fas fa-info-circle mr-2"></i> <?= htmlspecialchars($invoice_settings['payment_modes']['payment_reference']) ?>
+                            <i class="fas fa-info-circle mr-2"></i> <?= htmlspecialchars($invoice_settings['payment_modes']['payment_reference'] ?? 'Please use student ID as reference.') ?>
                         </p>
                     </div>
                  </div>
@@ -297,7 +296,7 @@ foreach ($students as &$student) {
                 <div class="flex-1">
                     <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Institutional Protocol & Notes</h4>
                     <ol class="text-[10px] text-slate-500 font-bold space-y-2 list-decimal list-inside pl-2">
-                        <?php foreach($invoice_settings['notes'] as $note): ?>
+                        <?php foreach(($invoice_settings['notes'] ?? []) as $note): ?>
                             <li><?= htmlspecialchars($note) ?></li>
                         <?php endforeach; ?>
                     </ol>

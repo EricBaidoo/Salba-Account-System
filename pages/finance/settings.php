@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         if (empty($payment_plan)) {
-            $payment_plan = getDefaultTermInvoiceSettings()['payment_plan'];
+            $payment_plan = getDefaultSemesterInvoiceSettings()['payment_plan'];
         }
 
         $bill_settings = [
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
 
         // Ensure key format exactly exactly matches what the backend uses 
-        $target_key = getTermInvoiceSettingsKey($active_semester, $active_year);
+        $target_key = getSemesterInvoiceSettingsKey($active_semester, $active_year);
         $encoded_json = json_encode($bill_settings);
         
         // Save to system settings DB
@@ -117,7 +117,7 @@ $late_fee_percentage = getSystemSetting($conn, 'late_fee_percentage', '5');
 $late_fee_grace_days = getSystemSetting($conn, 'late_fee_grace_days', '14');
 $alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'global');
 
-$active_bill_settings = getTermInvoiceSettings($conn, $active_semester, $active_year);
+$active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $active_year);
 ?>
 <!DOCTYPE html>
 <html lang="en">

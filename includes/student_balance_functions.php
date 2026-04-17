@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/db_connect.php';
-require_once __DIR__ . '/term_helpers.php';
+require_once __DIR__ . '/semester_helpers.php';
 require_once __DIR__ . '/system_settings.php';
 
 if (!function_exists('getStudentBalance')) {
@@ -17,7 +17,7 @@ function getStudentBalance($conn, $student_id, $semester = null, $academic_year 
         $fee_filter = "AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL)";
         $payment_subquery = "(SELECT COALESCE(SUM(amount), 0) FROM payments WHERE student_id = s.id AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL))";
         // Arrears = unpaid from the immediate previous semester/year only
-        [$prev_term, $prev_year] = getPreviousTermYear($semester, $academic_year);
+        [$prev_term, $prev_year] = getPreviousSemesterYear($semester, $academic_year);
         $arrears_subquery = "
             COALESCE((
                 SELECT SUM(sf2.amount - sf2.amount_paid)
@@ -79,7 +79,7 @@ function getStudentBalance($conn, $student_id, $semester = null, $academic_year 
     if ($balance) {
         if ($semester !== null) {
             // Override arrears with snapshot (payments recorded in previous semester/year)
-            $balance['arrears'] = getArrearsFromPreviousTerm($conn, $student_id, $semester, $academic_year);
+            $balance['arrears'] = getArrearsFromPreviousSemester($conn, $student_id, $semester, $academic_year);
         }
         // Arrears is kept separately; total_fees already includes current-semester assignments (including carry-forward when ensured)
         $balance['arrears'] = max(0, $balance['arrears']);
@@ -110,7 +110,7 @@ function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'ac
              WHERE student_id = s.id 
              AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL))";
         // Arrears = unpaid from the immediate previous semester/year only
-        [$prev_term, $prev_year] = getPreviousTermYear($semester, $academic_year);
+        [$prev_term, $prev_year] = getPreviousSemesterYear($semester, $academic_year);
         $arrears_subquery = "
             COALESCE((
                 SELECT SUM(sf2.amount - sf2.amount_paid)
@@ -208,7 +208,7 @@ function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'ac
     while ($row = $result->fetch_assoc()) {
         // Arrears separate; total_fees is current-semester only and should include carry-forward if ensured
         if ($semester !== null) {
-            $row['arrears'] = getArrearsFromPreviousTerm($conn, $row['student_id'], $semester, $academic_year);
+            $row['arrears'] = getArrearsFromPreviousSemester($conn, $row['student_id'], $semester, $academic_year);
         }
         $row['arrears'] = max(0, $row['arrears']);
         // Calculate net balance
@@ -328,8 +328,8 @@ function getStudentPaymentHistory($conn, $student_id, $semester = null, $academi
 /**
  * Get arrears amount for a specific semester (unpaid portion only)
  */
-if (!function_exists('getStudentTermArrears')) {
-function getStudentTermArrears($conn, $student_id, $semester, $academic_year = null) {
+if (!function_exists('getStudentSemesterArrears')) {
+function getStudentSemesterArrears($conn, $student_id, $semester, $academic_year = null) {
     if ($academic_year === null) {
         $academic_year = getAcademicYear($conn);
     }
@@ -355,8 +355,8 @@ function getStudentTermArrears($conn, $student_id, $semester, $academic_year = n
  * Snapshot arrears at end of a given semester/year based only on payments recorded in that same semester/year.
  * This prevents later-semester payments (when allocation is global) from altering the carry-forward amount.
  */
-if (!function_exists('getTermArrearsSnapshot')) {
-function getTermArrearsSnapshot($conn, $student_id, $semester, $academic_year) {
+if (!function_exists('getSemesterArrearsSnapshot')) {
+function getSemesterArrearsSnapshot($conn, $student_id, $semester, $academic_year) {
     // Total fees assigned in the semester/year
     $fees_sql = "SELECT COALESCE(SUM(amount), 0) AS total FROM student_fees WHERE student_id = ? AND semester = ? AND (academic_year = ? OR academic_year IS NULL) AND status != 'cancelled'";
     $fees_stmt = $conn->prepare($fees_sql);
@@ -382,11 +382,11 @@ function getTermArrearsSnapshot($conn, $student_id, $semester, $academic_year) {
 /**
  * Compute outstanding from all terms/years outside the selected scope
  */
-if (!function_exists('getArrearsFromPreviousTerm')) {
-function getArrearsFromPreviousTerm($conn, $student_id, $current_term, $academic_year) {
-    [$prev_term, $prev_year] = getPreviousTermYear($current_term, $academic_year);
+if (!function_exists('getArrearsFromPreviousSemester')) {
+function getArrearsFromPreviousSemester($conn, $student_id, $current_term, $academic_year) {
+    [$prev_term, $prev_year] = getPreviousSemesterYear($current_term, $academic_year);
     // Use snapshot based on payments within the previous semester/year only
-    return getTermArrearsSnapshot($conn, $student_id, $prev_term, $prev_year);
+    return getSemesterArrearsSnapshot($conn, $student_id, $prev_term, $prev_year);
 }
 }
 
@@ -443,7 +443,7 @@ function getArrearsFeeId($conn) {
  */
 if (!function_exists('ensureArrearsAssignment')) {
 function ensureArrearsAssignment($conn, $student_id, $current_term, $academic_year) {
-    $arrears = getArrearsFromPreviousTerm($conn, $student_id, $current_term, $academic_year);
+    $arrears = getArrearsFromPreviousSemester($conn, $student_id, $current_term, $academic_year);
     $fee_id = getArrearsFeeId($conn);
     if (!$fee_id) return false;
 
@@ -485,8 +485,8 @@ function ensureArrearsAssignment($conn, $student_id, $current_term, $academic_ye
 /**
  * Fetch all assigned fees for a student in the selected semester/year (pending or paid)
  */
-if (!function_exists('getStudentTermFees')) {
-function getStudentTermFees($conn, $student_id, $semester, $academic_year = null) {
+if (!function_exists('getStudentSemesterFees')) {
+function getStudentSemesterFees($conn, $student_id, $semester, $academic_year = null) {
     if ($academic_year === null) {
         $academic_year = getAcademicYear($conn);
     }

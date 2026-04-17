@@ -188,7 +188,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
             <div id="previewSection" class="preview-section mt-4">
                 <h6 class="mb-"><i class="fas fa-eye mr-2"></i>Billing Preview</h6>
                 <p class="mb-">
-                    <strong>Semester:</strong> <span id="previewTerm">-</span> | 
+                    <strong>Semester:</strong> <span id="previewSemester">-</span> | 
                     <strong>Due Date:</strong> <span id="previewDueDate">-</span> | 
                     <strong>Classes:</strong> <span id="previewClasses">-</span>
                 </p>
@@ -279,7 +279,7 @@ $total_students = $conn->query("SELECT COUNT(*) as count FROM students WHERE sta
                 previewSection.style.display = 'none';
             }
             
-            document.getElementById('previewTerm').textContent = termSelect.value || '-';
+            document.getElementById('previewSemester').textContent = termSelect.value || '-';
             document.getElementById('previewDueDate').textContent = dueDateInput.value || '-';
             document.getElementById('previewClasses').textContent = classFilter.value === 'all' ? 'All Classes' : classFilter.value;
         }

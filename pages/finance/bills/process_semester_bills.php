@@ -2,10 +2,13 @@
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
+include '../../../includes/semester_helpers.php';
+
 if (!is_logged_in()) {
-    header('Location: login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
+require_finance_access();
 
 // Helper function to calculate fee amount
 function calculateFeeAmount($conn, $fee_id, $student_class) {
@@ -53,7 +56,7 @@ function calculateFeeAmount($conn, $fee_id, $student_class) {
 $semester = $_POST['semester'] ?? '';
 $academic_year = trim($_POST['academic_year'] ?? '');
 if ($academic_year === '') {
-    $academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
+    $academic_year = getAcademicYear($conn);
 }
 $due_date = $_POST['due_date'] ?? '';
 $class_filter = $_POST['class_filter'] ?? 'all';
@@ -61,17 +64,6 @@ $selected_fees = $_POST['selected_fees'] ?? '';
 
 if (empty($semester) || empty($due_date) || empty($selected_fees)) {
     die('Missing required fields');
-}
-
-// Validate date format (must be YYYY-MM-DD)
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $due_date)) {
-    die('Invalid date format. Expected YYYY-MM-DD, got: ' . htmlspecialchars($due_date));
-}
-
-// Validate that it's a valid date
-$date_parts = explode('-', $due_date);
-if (!checkdate($date_parts[1], $date_parts[2], $date_parts[0])) {
-    die('Invalid date value: ' . htmlspecialchars($due_date));
 }
 
 $fee_ids = array_filter(array_map('intval', explode(',', $selected_fees)));
@@ -137,8 +129,8 @@ try {
     $insert_stmt->close();
     $conn->commit();
     
-    // Redirect to invoice generation
-    header("Location: view_semester_bills.php?semester=" . urlencode($semester) . "&class=" . urlencode($class_filter) . "&academic_year=" . urlencode($academic_year) . "&generated=1&count=$assigned_count&skipped=$skipped_count");
+    // Redirect back to billing hub with results
+    header("Location: view_semester_bills.php?generated=1&count=$assigned_count&skipped=$skipped_count");
     exit;
     
 } catch (Exception $e) {

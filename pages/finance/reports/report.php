@@ -7,7 +7,7 @@ if (!is_logged_in()) {
 require_finance_access();
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
-include '../../../includes/term_helpers.php';
+include '../../../includes/semester_helpers.php';
 include '../../../includes/budget_functions.php';
 
 // System defaults
@@ -156,9 +156,9 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                     </select>
                 </div>
                 <div>
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Term Context</label>
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester Context</label>
                     <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
-                        <option value="All">All Terms</option>
+                        <option value="All">All Semesters</option>
                         <?php foreach($available_terms as $t): ?>
                             <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>

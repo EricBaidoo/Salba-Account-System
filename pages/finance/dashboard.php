@@ -9,21 +9,27 @@ if (!is_logged_in()) {
 }
 require_finance_access();
 
-// Get finance statistics
-$total_fees = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
-$total_payments = $conn->query("SELECT SUM(amount) as total FROM payments")->fetch_assoc()['total'] ?? 0;
-$total_expenses = $conn->query("SELECT SUM(amount) as total FROM expenses")->fetch_assoc()['total'] ?? 0;
+// Get current session context
+$current_semester = getCurrentSemester($conn);
+$acad_year = getAcademicYear($conn);
+
+// Get finance statistics for CURRENT TERM ONLY
+$total_fees = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_semester' AND academic_year = '$acad_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
+$total_payments = $conn->query("SELECT SUM(amount) as total FROM payments WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
+$total_expenses = $conn->query("SELECT SUM(amount) as total FROM expenses WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
 $outstanding = $total_fees - $total_payments;
 
-// Count students with outstanding fees
+// Count students with outstanding fees in CURRENT TERM
 $pending_payments_result = $conn->query("
     SELECT COUNT(DISTINCT s.id) as cnt 
     FROM students s 
     INNER JOIN student_fees sf ON s.id = sf.student_id
     WHERE s.status = 'active' 
+    AND sf.semester = '$current_semester'
+    AND sf.academic_year = '$acad_year'
     AND sf.status != 'cancelled'
-    AND (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE student_id = s.id) < 
-        (SELECT COALESCE(SUM(amount), 0) FROM student_fees WHERE student_id = s.id AND status != 'cancelled')
+    AND (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.student_id = s.id AND p.semester = '$current_semester' AND p.academic_year = '$acad_year') < 
+        sf.amount
 ");
 $pending_students = $pending_payments_result ? ($pending_payments_result->fetch_assoc()['cnt'] ?? 0) : 0;
 
@@ -89,7 +95,7 @@ $net_position = $total_payments - $total_expenses;
                 <p class="text-indigo-100 text-xs font-black uppercase tracking-widest mb-1">Total Receivables</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_fees, 2) ?></h2>
                 <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-info-circle"></i> All Semester Assignments
+                    <i class="fas fa-info-circle"></i> Current Semester Context
                 </div>
             </div>
 
@@ -101,7 +107,7 @@ $net_position = $total_payments - $total_expenses;
                 <p class="text-emerald-100 text-xs font-black uppercase tracking-widest mb-1">Revenue Collected</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_payments, 2) ?></h2>
                 <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-check-circle"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collection Rate
+                    <i class="fas fa-check-circle"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collections
                 </div>
             </div>
 
@@ -110,10 +116,10 @@ $net_position = $total_payments - $total_expenses;
                 <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-exclamation-circle text-6xl"></i>
                 </div>
-                <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Debt Exposure</p>
+                <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Semester Exposure</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($outstanding, 2) ?></h2>
                 <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-users"></i> <?= $pending_students ?> Delinquent Students
+                    <i class="fas fa-users"></i> <?= $pending_students ?> Active Arrears
                 </div>
             </div>
 

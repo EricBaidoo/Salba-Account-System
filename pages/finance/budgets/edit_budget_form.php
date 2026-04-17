@@ -103,7 +103,7 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
                             <input type="date" name="start_date" id="start_date" value="<?= htmlspecialchars($budget['start_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Termination Date</label>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Semesterination Date</label>
                             <input type="date" name="end_date" id="end_date" value="<?= htmlspecialchars($budget['end_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                         </div>
                     </div>
@@ -141,7 +141,7 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
 
             if (amount <= 0) { alert('Institutional amount must exceed zero.'); return false; }
             if (threshold < 0 || threshold > 100) { alert('Alert threshold constraint must be 0-100.'); return false; }
-            if (sd >= ed) { alert('Termination date must follow activation date.'); return false; }
+            if (sd >= ed) { alert('Semesterination date must follow activation date.'); return false; }
             return true;
         }
     </script>

@@ -223,7 +223,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </div>
         </div>
 
-        <div class="doc-title">Terminal Progress Report</div>
+        <div class="doc-title">Semesterinal Progress Report</div>
 
         <!-- Student Bio -->
         <table class="box-table">

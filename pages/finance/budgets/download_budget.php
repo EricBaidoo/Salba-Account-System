@@ -43,8 +43,8 @@ while ($fee = $fees_result->fetch_assoc()) {
 }
 
 // Get actual income collected from payments
-require_once '../../../includes/term_helpers.php';
-$range = getTermDateRange($conn, $semester, $academic_year);
+require_once '../../../includes/semester_helpers.php';
+$range = getSemesterDateRange($conn, $semester, $academic_year);
 
 // Get expenses - either from saved budget or from previous semester actual spending
 if ($semester_budget) {
@@ -63,9 +63,9 @@ if ($semester_budget) {
 if (empty($expense_items)) {
     $expense_cats_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
     while ($cat = $expense_cats_result->fetch_assoc()) {
-        $prev_term = getPreviousTerm($semester);
+        $prev_term = getPreviousSemester($semester);
         $prev_year = ($prev_term === 'Third Semester') ? ($academic_year - 1) : $academic_year;
-        $amount = getTermCategorySpending($conn, $cat['id'], $prev_term, $prev_year);
+        $amount = getSemesterCategorySpending($conn, $cat['id'], $prev_term, $prev_year);
         
         if ($amount > 0) {
             $expense_items[] = ['category' => $cat['name'], 'amount' => $amount];

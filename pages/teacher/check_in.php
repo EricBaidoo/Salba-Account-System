@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <!-- Header -->
             <div class="mb-12 text-center">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-indigo-100 italic">
-                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></span> Institutional Terminal
+                    <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></span> Institutional Semesterinal
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tighter lowercase">Presence <span class="text-indigo-600">Verification</span></h1>
             </div>

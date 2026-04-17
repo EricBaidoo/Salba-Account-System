@@ -381,7 +381,7 @@ if($dl_res) {
                     </div>
                 </div>
 
-                <!-- Terminal Matrix -->
+                <!-- Semesterinal Matrix -->
                 <div class="bg-gray-900 rounded-xl shadow-sm border border-gray-800 overflow-hidden text-white">
                     <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
                         <h2 class="font-bold flex items-center gap-2"><i class="fas fa-file-pdf text-red-400"></i> Report Card Extractor Rules</h2>
@@ -389,7 +389,7 @@ if($dl_res) {
                     <form method="POST" class="p-6">
                         <input type="hidden" name="action" value="save_global_weights">
                         <p class="text-xs text-gray-400 mb-6 font-bold uppercase tracking-wider leading-relaxed">
-                            How should the 100-base rules defined above be mathematically extracted onto the Terminal Transcripts?
+                            How should the 100-base rules defined above be mathematically extracted onto the Semesterinal Transcripts?
                         </p>
                         
                         <div class="flex items-center justify-between gap-6">

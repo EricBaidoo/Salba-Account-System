@@ -95,7 +95,7 @@ $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                         <input type="date" name="start_date" id="start_date" required class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-black text-slate-700 transition-all">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Termination Date</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Semesterination Date</label>
                         <input type="date" name="end_date" id="end_date" required class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-black text-slate-700 transition-all">
                     </div>
                     <div>
@@ -145,7 +145,7 @@ $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
                 return false;
             }
             if (startDate >= endDate) {
-                alert('Termination must be post-effective date');
+                alert('Semesterination must be post-effective date');
                 return false;
             }
             return true;

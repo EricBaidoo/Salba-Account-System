@@ -182,7 +182,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                         <i class="fas fa-calendar-alt text-rose-500"></i> Semester
                     </label>
                     <select name="semester" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
-                        <option value="">All Terms</option>
+                        <option value="">All Semesters</option>
                          <?php foreach ($available_terms as $t): ?>
                             <option value="<?= htmlspecialchars($t) ?>" <?= ($selected_term === $t) ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>

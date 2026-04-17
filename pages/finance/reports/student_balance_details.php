@@ -7,7 +7,7 @@ if (!is_logged_in()) {
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
-require_once '../../../includes/term_helpers.php';
+require_once '../../../includes/semester_helpers.php';
 
 $student_id = intval($_GET['id'] ?? 0);
 $current_term = getCurrentSemester($conn);
@@ -28,7 +28,7 @@ if (!$student_balance) {
     exit;
 }
 
-$term_fees = getStudentTermFees($conn, $student_id, $selected_term, $selected_academic_year);
+$term_fees = getStudentSemesterFees($conn, $student_id, $selected_term, $selected_academic_year);
 $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, $selected_academic_year);
 ?>
 <!DOCTYPE html>

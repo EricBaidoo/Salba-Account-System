@@ -5,8 +5,8 @@
  */
 
 // Helper functions that are defined locally in this file
-if (!function_exists('reportApplyTermYearScope')) {
-    function reportApplyTermYearScope(array &$conditions, array &$params, string &$types, string $tableAlias, ?string $semester, ?string $academic_year): void {
+if (!function_exists('reportApplySemesterYearScope')) {
+    function reportApplySemesterYearScope(array &$conditions, array &$params, string &$types, string $tableAlias, ?string $semester, ?string $academic_year): void {
         if ($semester !== null && $semester !== '') {
             $conditions[] = $tableAlias . '.semester = ?';
             $params[] = $semester;
@@ -162,7 +162,7 @@ if (!function_exists('reportBuildCategoryData')) {
         $types = '';
 
         if (strpos($tableAlias, 'expense') === false) {
-            reportApplyTermYearScope($conditions, $params, $types, $table, $selected_term, $selected_year);
+            reportApplySemesterYearScope($conditions, $params, $types, $table, $selected_term, $selected_year);
         }
         reportApplyDateScope($conditions, $params, $types, $date_column, $date_from ?: null, $date_to ?: null);
 
@@ -200,7 +200,7 @@ if (!function_exists('reportBuildClassIncomeData')) {
         $conditions = [];
         $params = [];
         $types = '';
-        reportApplyTermYearScope($conditions, $params, $types, 'sf', $selected_term, $selected_year);
+        reportApplySemesterYearScope($conditions, $params, $types, 'sf', $selected_term, $selected_year);
         reportApplyDateScope($conditions, $params, $types, 'sf.assigned_date', $date_from ?: null, $date_to ?: null);
 
         if (!empty($conditions)) {

@@ -43,10 +43,10 @@ foreach ($filesToModify as $path) {
         }
     }
     
-    // Also capital Term Budget
-    $content = str_replace('Term Budget', 'Semester Budget', $content);
-    $content = str_replace('Term Invoice', 'Semester Bill', $content);
-    $content = str_replace('Term Bill', 'Semester Bill', $content);
+    // Also capital Semester Budget
+    $content = str_replace('Semester Budget', 'Semester Budget', $content);
+    $content = str_replace('Semester Invoice', 'Semester Bill', $content);
+    $content = str_replace('Semester Bill', 'Semester Bill', $content);
     
     if ($content !== $original) {
         file_put_contents($path, $content);

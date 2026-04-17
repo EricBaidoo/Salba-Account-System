@@ -66,8 +66,8 @@ while ($fee = $fees_result->fetch_assoc()) {
     $row['amount'] = (float)$conn->query($assigned_query)->fetch_assoc()['total'];
     
     // Actual = Payments Collected
-    require_once '../../../includes/term_helpers.php';
-    $range = getTermDateRange($conn, $current_term, $academic_year);
+    require_once '../../../includes/semester_helpers.php';
+    $range = getSemesterDateRange($conn, $current_term, $academic_year);
     $actual_result = $conn->query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE fee_id = {$fee['id']} AND payment_date BETWEEN '{$range['start']}' AND '{$range['end']}'");
     $row['actual'] = (float)$actual_result->fetch_assoc()['total'];
     
@@ -90,7 +90,7 @@ while ($category = $categories_result->fetch_assoc()) {
         if ($b_row = $res->fetch_assoc()) $row['amount'] = (float)$b_row['amount'];
     }
     
-    $row['actual'] = getTermCategorySpending($conn, $category['name'], $current_term, $academic_year);
+    $row['actual'] = getSemesterCategorySpending($conn, $category['name'], $current_term, $academic_year);
     $expense_items[] = $row;
 }
 
