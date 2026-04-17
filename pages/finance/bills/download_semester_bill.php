@@ -37,7 +37,7 @@ if (empty($semester)) {
 }
 
 // Get system settings
-$current_term = getSystemSetting($conn, 'current_term', 'First Semester');
+$current_term = getCurrentSemester($conn);
 $default_academic_year = getSystemSetting($conn, 'academic_year', date('Y') . '/' . (date('Y') + 1));
 // Academic year override via GET
 $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'] !== ''
@@ -256,7 +256,7 @@ foreach ($students as $student) {
         </table>
 
         <div class="payment-section">
-            <h3>PAYMENT PLAN</h3>
+            <h3>' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['payment_reference'] ?: 'PAYMENT PLAN')) . '</h3>
             <table class="payment-plan-table">
                 <thead>
                     <tr>
@@ -266,25 +266,19 @@ foreach ($students as $student) {
                         <th>DUE DATE</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody>';
+    
+    foreach ($active_bill_settings['payment_plan'] as $plan) {
+        $student_html .= '
                     <tr>
-                        <td>First Installment</td>
-                        <td class="text-center">50%</td>
-                        <td class="text-right">' . number_format($student['total_bill'] * 0.50, 2) . '</td>
-                        <td>15 Jan</td>
-                    </tr>
-                    <tr>
-                        <td>Second Installment</td>
-                        <td class="text-center">30%</td>
-                        <td class="text-right">' . number_format($student['total_bill'] * 0.30, 2) . '</td>
-                        <td>30 Jan</td>
-                    </tr>
-                    <tr>
-                        <td>Final Installment</td>
-                        <td class="text-center">20%</td>
-                        <td class="text-right">' . number_format($student['total_bill'] * 0.20, 2) . '</td>
-                        <td>16 Feb</td>
-                    </tr>
+                        <td>' . htmlspecialchars($plan['name']) . '</td>
+                        <td class="text-center">' . htmlspecialchars($plan['percent']) . '%</td>
+                        <td class="text-right">' . number_format($student['total_bill'] * ($plan['percent'] / 100), 2) . '</td>
+                        <td>' . htmlspecialchars($plan['due_date']) . '</td>
+                    </tr>';
+    }
+
+    $student_html .= '
                 </tbody>
             </table>
         </div>
@@ -293,30 +287,31 @@ foreach ($students as $student) {
             <h3>PAYMENT MODES</h3>
             <div class="payment-modes-grid">
                 <div class="payment-mode">
-                    <h4>BANK DEPOSIT/TRANSFER</h4>
-                    <p><strong>ACCOUNT NAME:</strong> SALBA MONTESSORI INTERNATIONAL SCHOOL</p>
-                    <p><strong>ACCOUNT NUMBER:</strong> 0010223853018</p>
-                    <p><strong>BANK NAME:</strong> OMNI BSIC - SPINTEX BRANCH</p>
+                    <h4>' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['bank']['title'])) . '</h4>
+                    <p><strong>ACCOUNT NAME:</strong> ' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['bank']['account_name'])) . '</p>
+                    <p><strong>ACCOUNT NUMBER:</strong> ' . htmlspecialchars($active_bill_settings['payment_modes']['bank']['account_number']) . '</p>
+                    <p><strong>BANK NAME:</strong> ' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['bank']['bank_name'])) . '</p>
                 </div>
                 <div class="payment-mode">
-                    <h4>MOBILE MONEY (MOMO)</h4>
-                    <p><strong>NUMBER:</strong> 0598872309</p>
-                    <p><strong>NAME:</strong> SALBA MONTESSORI INTERNATIONAL SCHOOL</p>
+                    <h4>' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['momo']['title'])) . '</h4>
+                    <p><strong>NUMBER:</strong> ' . htmlspecialchars($active_bill_settings['payment_modes']['momo']['number']) . '</p>
+                    <p><strong>NAME:</strong> ' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['momo']['name'])) . '</p>
                 </div>
             </div>
             <p class="payment-reference">
-                Please include the student\'s name and class as reference for all payments.
+                ' . htmlspecialchars($active_bill_settings['payment_modes']['payment_reference'] ?: 'Please include the student\'s name and class as reference for all payments.') . '
             </p>
         </div>
         
         <div class="payment-section">
             <h3>NOTE:</h3>
-            <ol class="footer-notes">
-                <li>All outstanding fees must be cleared before school reopens.</li>
-                <li>All fees must be paid before the end of the semester.</li>
-                <li>Please ensure all items are provided on time.</li>
-                <li>Feeding fee is strictly weekly, monthly, or termly (<strong>NO DAILY FEEDING FEE</strong>).</li>
-                <li>For any queries, contact the school administration.</li>
+            <ol class="footer-notes">';
+    
+    foreach ($active_bill_settings['notes'] as $note) {
+        $student_html .= '<li>' . htmlspecialchars($note) . '</li>';
+    }
+
+    $student_html .= '
             </ol>
         </div>
     </body>

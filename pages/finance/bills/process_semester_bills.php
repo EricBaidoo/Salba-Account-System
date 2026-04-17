@@ -1,7 +1,7 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
-include '../../includes/system_settings.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
 if (!is_logged_in()) {
     header('Location: login.php');
     exit;
@@ -138,7 +138,7 @@ try {
     $conn->commit();
     
     // Redirect to invoice generation
-    header("Location: term_invoice.php?semester=" . urlencode($semester) . "&class=" . urlencode($class_filter) . "&academic_year=" . urlencode($academic_year) . "&generated=1&count=$assigned_count&skipped=$skipped_count");
+    header("Location: view_semester_bills.php?semester=" . urlencode($semester) . "&class=" . urlencode($class_filter) . "&academic_year=" . urlencode($academic_year) . "&generated=1&count=$assigned_count&skipped=$skipped_count");
     exit;
     
 } catch (Exception $e) {

@@ -1,10 +1,8 @@
 <?php
-include '../../includes/auth_functions.php';
+include '../../../includes/auth_functions.php';
 require_finance_access();
-?>
-<?php
-include '../../includes/db_connect.php';
-include '../../includes/system_settings.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
 // Filters: semester + academic year
@@ -13,7 +11,7 @@ $current_year = getAcademicYear($conn);
 
 $selected_term = isset($_GET['semester']) ? trim($_GET['semester']) : $current_term;
 $selected_year = isset($_GET['year']) ? trim($_GET['year']) : $current_year;
-$available_terms = getAvailableSemesters();
+$available_terms = getAvailableSemesters($conn);
 
 // Academic year options from payments + ensure current
 $year_options = [];
@@ -51,83 +49,64 @@ if (!empty($params)) {
 }
 
 // Summary stats
-$total_payments = 0;
-$total_amount = 0;
-$payments = [];
+$total_payments_count = 0;
+$total_amount_collected = 0;
+$payments_list = [];
 while($row = $result->fetch_assoc()) {
-    $payments[] = $row;
-    $total_payments++;
-    $total_amount += $row['amount'];
+    $payments_list[] = $row;
+    $total_payments_count++;
+    $total_amount_collected += $row['amount'];
 }
 
-// Fetch summary by fee category with same filters
+// Fetch summary by fee category
 $category_summary = [];
+$add_where = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
 
-// Build WHERE clause for subqueries - properly handle empty WHERE
-$add_where_student = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
-$add_where_general = empty($where) ? ' WHERE ' : ($where_sql . ' AND ');
-
-// Replace w-full border-collapse aliases for student query
-$where_payments = str_replace('p.semester', 'payments.semester', $add_where_student);
-$where_payments = str_replace('p.academic_year', 'payments.academic_year', $where_payments);
-$where_payments = str_replace('s.status', 'students.status', $where_payments);
-
-// Student payments: get categories from payment_allocations
+// Student payment categories
+$where_payments = str_replace('p.', 'payments.', $where_sql);
 $student_summary_sql = "SELECT 
                     f.name AS category,
-                    'student' as payment_type,
+                    'student' as type,
                     SUM(pa.amount) as total
                 FROM payment_allocations pa
                 JOIN student_fees sf ON pa.student_fee_id = sf.id
                 JOIN fees f ON sf.fee_id = f.id
-                JOIN payments ON pa.payment_id = payments.id
-                LEFT JOIN students ON payments.student_id = students.id" .
-                $where_payments . "payments.payment_type = 'student'
+                JOIN payments ON pa.payment_id = payments.id " .
+                (empty($where_payments) ? ' WHERE ' : $where_payments . ' AND ') . "payments.payment_type = 'student'
                 GROUP BY f.id, f.name";
 
-// General payments with fee category
+// General payments
 $general_with_fee_sql = "SELECT 
-                    CONCAT(f.name, ' (General)') AS category,
-                    'general' as payment_type,
+                    f.name AS category,
+                    'general_with_fee' as type,
                     SUM(p.amount) as total
                 FROM payments p
-                JOIN fees f ON p.fee_id = f.id
-                LEFT JOIN students s ON p.student_id = s.id" .
-                $add_where_general . "p.payment_type = 'general' AND p.fee_id IS NOT NULL
+                JOIN fees f ON p.fee_id = f.id " .
+                $add_where . "p.payment_type = 'general'
                 GROUP BY f.id, f.name";
 
-// General payments without fee category
 $general_no_fee_sql = "SELECT 
-                    'General Payment (Unallocated)' AS category,
-                    'general' as payment_type,
+                    'Unallocated General' AS category,
+                    'general_no_fee' as type,
                     SUM(p.amount) as total
-                FROM payments p
-                LEFT JOIN students s ON p.student_id = s.id" .
-                $add_where_general . "p.payment_type = 'general' AND p.fee_id IS NULL";
+                FROM payments p " .
+                $add_where . "p.payment_type = 'general' AND p.fee_id IS NULL";
 
-// Combine all three
 $summary_sql = "($student_summary_sql) UNION ALL ($general_with_fee_sql) UNION ALL ($general_no_fee_sql) ORDER BY total DESC";
 
 if (!empty($params)) {
-    // Need to bind params 3 times (once for each subquery)
     $union_params = array_merge($params, $params, $params);
     $union_types = $types . $types . $types;
     $sum_stmt = $conn->prepare($summary_sql);
     if ($union_types) { $sum_stmt->bind_param($union_types, ...$union_params); }
     $sum_stmt->execute();
     $sum_result = $sum_stmt->get_result();
-    while ($row = $sum_result->fetch_assoc()) {
-        if ($row['total'] > 0) {  // Only include categories with payments
-            $category_summary[] = $row;
-        }
-    }
 } else {
     $sum_result = $conn->query($summary_sql);
-    while ($row = $sum_result->fetch_assoc()) {
-        if ($row['total'] > 0) {
-            $category_summary[] = $row;
-        }
-    }
+}
+
+while ($row = $sum_result->fetch_assoc()) {
+    if ($row['total'] > 0) $category_summary[] = $row;
 }
 ?>
 <!DOCTYPE html>
@@ -135,207 +114,242 @@ if (!empty($params)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment History - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-    
+    <title>Revenue Ledger | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .ledger-row:hover { background-color: rgba(248, 250, 252, 0.8); }
+        @media print {
+            .no-print { display: none !important; }
+            .ml-72 { margin-left: 0 !important; }
+            .p-10 { padding: 1.5rem !important; }
+        }
+    </style>
 </head>
-<body class="clean-page">
+<body class="bg-[#F8FAFC] text-slate-900">
+    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
 
-    <!-- Clean Page Header -->
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="../dashboard.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header Section -->
+        <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
+            <div>
+                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    Revenue Stream
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Payment <span class="text-emerald-600">Ledger</span></h1>
+                <p class="text-slate-500 mt-2 font-medium">Comprehensive historical record of all institutional revenue inflows.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
+                    <i class="fas fa-print mr-2"></i> Print Ledger
+                </button>
+                <a href="record_payment_form.php" class="bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all leading-none">
+                    <i class="fas fa-plus mr-2"></i> Record Payment
                 </a>
             </div>
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="clean-page-title"><i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Payment History</h1>
-                    <p class="clean-page-subtitle">
-                        All student payments, receipts, and details
-                        <span class="clean-badge clean-badge-primary ml-2"><i class="fas fa-calendar-alt mr-1"></i><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : $current_term); ?></span>
-                        <span class="clean-badge clean-badge-info ml-1"><i class="fas fa-graduation-cap mr-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $selected_year !== '' ? $selected_year : $current_year)); ?></span>
-                    </p>
-                </div>
-                <div class="flex gap-2 print:hidden">
-                    <a href="#" onclick="window.print()" class="px-3 py-2 rounded-clean-outline">
-                        <i class="fas fa-print"></i> PRINT
-                    </a>
-                    <a href="record_payment_form.php" class="px-3 py-2 rounded-clean-primary">
-                        <i class="fas fa-plus"></i> RECORD PAYMENT
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="w-full px-4 py-4">
-        <!-- Statistics Cards -->
-        <div class="clean-stats-grid print:hidden">
-            <div class="clean-stat-item">
-                <div class="clean-stat-value"><?php echo $total_payments; ?></div>
-                <div class="clean-stat-label">Total Payments</div>
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 no-print">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5">
+                    <i class="fas fa-receipt text-5xl"></i>
+                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Transaction Count</p>
+                <h4 class="text-3xl font-black text-slate-900 leading-none mb-1"><?= $total_payments_count ?></h4>
+                <p class="text-[9px] font-bold text-slate-400 tracking-tight">Across selected scope</p>
             </div>
-            <div class="clean-stat-item">
-                <div class="clean-stat-value">GHâ‚µ<?php echo number_format($total_amount, 2); ?></div>
-                <div class="clean-stat-label">Total Amount Paid</div>
+            <div class="bg-emerald-600 p-6 rounded-3xl shadow-lg shadow-emerald-500/20 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fas fa-money-bill-transfer text-5xl"></i>
+                </div>
+                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-1 text-opacity-80">Aggregate Inflow</p>
+                <h4 class="text-3xl font-black leading-none mb-1">GHS <?= number_format($total_amount_collected, 2) ?></h4>
+                <p class="text-[9px] font-bold text-emerald-100 text-opacity-60 tracking-tight">Gross Liquid Revenue</p>
             </div>
-            <div class="clean-stat-item">
-                <div class="clean-stat-value"><?php echo count($category_summary); ?></div>
-                <div class="clean-stat-label">Fee Categories</div>
-            </div>
-        </div>
-        
-        <!-- Category Summary Cards -->
-        <?php if (count($category_summary) > 0): ?>
-        <div class="row mb- print:hidden">
-            <?php foreach ($category_summary as $cat): 
-                $is_general = $cat['payment_type'] === 'general';
-                $card_class = $is_general ? 'border-primary' : '';
-                $icon_class = $is_general ? 'text-primary' : 'text-green-600';
-                $icon = $is_general ? 'fa-hand-holding-usd' : 'fa-money-bill-wave';
-            ?>
-                <div class="col-md-3 col-lg-2 mb-">
-                    <div class="clean-bg-white rounded shadow text-center <?php echo $card_class; ?>">
-                        <div class="p-2">
-                            <div class="mb-">
-                                <i class="fas <?php echo $icon; ?> <?php echo $icon_class; ?> payment-category-bg-white rounded shadow-icon"></i>
-                            </div>
-                            <div class="payment-category-bg-white rounded shadow-name mb-"><?php echo htmlspecialchars($cat['category']); ?></div>
-                            <div class="h6 <?php echo $icon_class; ?> mb-">GHâ‚µ<?php echo number_format($cat['total'], 2); ?></div>
-                            <small class="text-gray-600 payment-category-bg-white rounded shadow-label">Total</small>
+            <div class="bg-slate-900 p-6 rounded-3xl shadow-xl shadow-slate-900/10 text-white relative overflow-hidden md:col-span-2">
+                 <div class="absolute top-0 right-0 p-6 opacity-10">
+                    <i class="fas fa-chart-pie text-6xl text-slate-400"></i>
+                </div>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Revenue Distribution (Top 3)</p>
+                <div class="flex gap-8">
+                    <?php 
+                    $ct_limit = 0;
+                    foreach($category_summary as $cat): 
+                        if ($ct_limit++ >= 3) break;
+                        $p_rate = ($cat['total'] / ($total_amount_collected ?: 1)) * 100;
+                    ?>
+                    <div>
+                        <h5 class="text-xs font-black text-slate-300 uppercase tracking-tighter mb-1 truncate w-24" title="<?= htmlspecialchars($cat['category']) ?>"><?= htmlspecialchars($cat['category']) ?></h5>
+                        <p class="text-lg font-black text-emerald-400 leading-none mb-1">GHS <?= number_format($cat['total'], 0) ?></p>
+                        <div class="w-16 h-1 bg-slate-800 rounded-full">
+                            <div class="h-full bg-emerald-500" style="width: <?= $p_rate ?>%"></div>
                         </div>
                     </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
+            </div>
         </div>
-        <?php endif; ?>
-        
-        <!-- Filters -->
-        <div class="clean-filter-bar mb- print:hidden">
-            <form method="GET" action="">
-                <div class="flex flex-wrap gap-3 items-end">
-                    <div class="col-md-3">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-calendar-week mr-2"></i>Semester</label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="semester">
-                            <option value="">All Terms</option>
-                            <?php foreach ($available_terms as $t): ?>
-                                <option value="<?php echo htmlspecialchars($t); ?>" <?php echo ($selected_term === $t) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($t); ?>
-                                    <?php echo $t === $current_term ? ' (Current)' : ''; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-graduation-cap mr-2"></i>Academic Year</label>
-                        <select class="border border-gray-300 rounded px-3 py-2 bg-white" name="year">
-                            <option value="">All Years</option>
-                            <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
-                                <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($selected_year === $yr) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($label); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label class="block text-sm font-medium mb-"><i class="fas fa-search mr-2"></i>Search</label>
-                        <input type="text" class="clean-search-input" id="searchInput" placeholder="Search by student, receipt, or description...">
-                    </div>
-                    <div class="col-md-1">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full"><i class="fas fa-filter mr-2"></i>Filter</button>
+
+        <!-- Filter Panel -->
+        <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm mb-10 no-print">
+            <form method="GET" class="flex flex-wrap items-end gap-6" id="filterForm">
+                <div class="w-64">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-emerald-500"></i> Semester Context
+                    </label>
+                    <select name="semester" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
+                        <option value="">All Semesters</option>
+                        <?php foreach ($available_terms as $t): ?>
+                            <option value="<?= htmlspecialchars($t) ?>" <?= ($selected_term === $t) ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="w-64">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                         <i class="fas fa-graduation-cap text-emerald-500"></i> Academic Period
+                    </label>
+                    <select name="year" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
+                        <option value="">Global History</option>
+                        <?php foreach ($year_options as $yr): ?>
+                            <option value="<?= htmlspecialchars($yr) ?>" <?= ($selected_year === $yr) ? 'selected' : '' ?>><?= htmlspecialchars(formatAcademicYearDisplay($conn, $yr)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-search text-emerald-500"></i> Instant Search
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search by student, receipt, or channel..." 
+                               class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 transition-all pl-12">
+                        <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     </div>
                 </div>
             </form>
         </div>
-        
-        <!-- Print Header -->
-        <div class="print-header text-center">
-            <h3 class="mb-"><?php echo htmlspecialchars($school_name); ?></h3>
-            <div class="small text-gray-600">Payment History Report</div>
-            <div class="mt-1">Semester: <strong><?php echo htmlspecialchars($selected_term !== '' ? $selected_term : 'All Terms'); ?></strong> | Academic Year: <strong><?php echo htmlspecialchars($selected_year !== '' ? formatAcademicYearDisplay($conn, $selected_year) : 'All Years'); ?></strong></div>
-            <div class="small text-gray-600">Printed on <?php echo date('M j, Y'); ?></div>
-        </div>
-        <!-- Payment w-full border-collapse -->
-        <div class="clean-bg-white rounded shadow">
-            <div class="payment-w-full border-collapse-scroll">
-                <table class="clean-w-full border-collapse" id="paymentsw-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Student/Category</th>
-                            <th>Class</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Semester</th>
-                            <th>Year</th>
-                            <th>Receipt No.</th>
-                            <th>Description</th>
-                            <th class="print:hidden">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($payments as $row): ?>
-                        <tr>
-                            <td><span class="clean-badge clean-badge-primary">#<?php echo $row['id']; ?></span></td>
-                            <td>
-                                <?php if ($row['payment_type'] === 'general'): ?>
-                                    <span class="clean-badge clean-badge-warning">General</span>
-                                <?php else: ?>
-                                    <span class="clean-badge clean-badge-success">Student</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if ($row['payment_type'] === 'general'): ?>
-                                    <em class="text-gray-600"><?php echo !empty($row['fee_name']) ? htmlspecialchars($row['fee_name']) : 'General Payment'; ?></em>
-                                <?php else: ?>
-                                    <strong><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></strong>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if ($row['payment_type'] !== 'general'): ?>
-                                    <span class="clean-badge clean-badge-info"><?php echo htmlspecialchars($row['class']); ?></span>
-                                <?php else: ?>
-                                    <span class="text-gray-600">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><strong class="text-green-600">GHâ‚µ<?php echo number_format($row['amount'], 2); ?></strong></td>
-                            <td><?php echo date('M j, Y', strtotime($row['payment_date'])); ?></td>
-                            <td><?php echo htmlspecialchars($row['semester'] ?? ''); ?></td>
-                            <td><?php echo htmlspecialchars(!empty($row['academic_year']) ? formatAcademicYearDisplay($conn, $row['academic_year']) : ''); ?></td>
-                            <td><?php echo htmlspecialchars($row['receipt_no']); ?></td>
-                            <td><?php echo htmlspecialchars($row['description']); ?></td>
-                            <td class="print:hidden">
-                                <a href="receipt.php?payment_id=<?php echo $row['id']; ?>" class="px-3 py-2 rounded-clean-outline px-3 py-2 rounded-clean-sm" target="_blank" title="View/Print Receipt">
-                                    <i class="fas fa-receipt"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+
+        <!-- Print Exclusive Header -->
+        <div class="hidden print:block text-center mb-10">
+            <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tighter"><?= htmlspecialchars($school_name) ?></h2>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Revenue Audit Report</p>
+            <div class="flex justify-center gap-6 mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span>Semester: <?= htmlspecialchars($selected_term ?: 'All') ?></span>
+                <span>Year: <?= htmlspecialchars($selected_year ?: 'All') ?></span>
+                <span>Audit Date: <?= date('M j, Y H:i') ?></span>
             </div>
-            <?php if (empty($payments)): ?>
-                <div class="clean-empty-state">
-                    <div class="clean-empty-icon"><i class="fas fa-money-bill-wave"></i></div>
-                    <h4 class="clean-empty-title">No Payments Found</h4>
-                    <p class="clean-empty-text">No payment records available yet.</p>
-                </div>
-            <?php endif; ?>
         </div>
-    </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+        <!-- Ledger Table -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
+            <table class="w-full border-collapse" id="paymentLedger">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest w-16">Ref</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Classification</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity / Channel</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Value (GHS)</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Date</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Receipt #</th>
+                        <th class="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest no-print">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    <?php if (!empty($payments_list)): ?>
+                        <?php foreach($payments_list as $row): ?>
+                            <tr class="ledger-row transition-colors group">
+                                <td class="px-8 py-6">
+                                    <span class="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">#<?= $row['id'] ?></span>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <?php if ($row['payment_type'] === 'general'): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-100 bg-amber-50 text-amber-600 text-[9px] font-black uppercase tracking-widest">
+                                            General
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest">
+                                            Student Fee
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="flex flex-col">
+                                        <?php if ($row['payment_type'] === 'general'): ?>
+                                            <span class="font-black text-slate-700 italic"><?= !empty($row['fee_name']) ? htmlspecialchars($row['fee_name']) : 'Standalone Payment' ?></span>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Direct Deposit</span>
+                                        <?php else: ?>
+                                            <span class="font-black text-slate-900 tracking-tight"><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></span>
+                                            <span class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider"><?= htmlspecialchars($row['class']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <span class="text-base font-black text-slate-900 tracking-tighter"><?= number_format($row['amount'], 2) ?></span>
+                                </td>
+                                <td class="px-8 py-6 font-bold text-slate-600">
+                                    <div class="flex flex-col">
+                                        <span><?= date('M j, Y', strtotime($row['payment_date'])) ?></span>
+                                        <span class="text-[9px] text-slate-400 font-black tracking-widest uppercase">TS: <?= date('H:i', strtotime($row['payment_date'])) ?></span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 font-black text-indigo-600 tracking-widest uppercase text-xs">
+                                     <?= htmlspecialchars($row['receipt_no']) ?>
+                                </td>
+                                <td class="px-8 py-6 text-right no-print">
+                                    <a href="receipt.php?payment_id=<?= $row['id'] ?>" target="_blank" class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-100 bg-white text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                                        <i class="fas fa-receipt text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="px-8 py-20 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 text-3xl mb-4">
+                                        <i class="fas fa-money-bill-transfer"></i>
+                                    </div>
+                                    <p class="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">No collection data found for this period</p>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+         <!-- Footer Audit -->
+        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
+            <span>Fiscal Management System &middot; Consolidated Ledger &middot; v9.5.0</span>
+            <div class="flex gap-6">
+                <a href="../dashboard.php" class="hover:text-emerald-600">Overview</a>
+                <a href="../expenses/view_expenses.php" class="hover:text-emerald-600">Expenditure</a>
+            </div>
+        </footer>
+    </main>
+
     <script>
-        // Simple search filter
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const value = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#paymentsw-full border-collapse tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(value) ? '' : 'none';
+        // Efficient search filter
+        const searchInput = document.getElementById('searchInput');
+        const ledgerRows = document.querySelectorAll('#paymentLedger tbody tr');
+        
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase().trim();
+            ledgerRows.forEach(row => {
+                if (row.cells.length < 2) return; // Skip empty state row
+                const student = row.cells[2].textContent.toLowerCase();
+                const receipt = row.cells[5].textContent.toLowerCase();
+                const amount = row.cells[3].textContent.toLowerCase();
+                
+                if (student.includes(term) || receipt.includes(term) || amount.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
             });
         });
     </script>

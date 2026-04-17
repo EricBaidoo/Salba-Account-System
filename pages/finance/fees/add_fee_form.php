@@ -1,7 +1,10 @@
 <?php
-include '../../includes/auth_check.php';
+include '../../../includes/auth_check.php';
 require_finance_write();
-include '../../includes/db_connect.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/fee_categories.php';
+
 // Fetch all classes and their Levels for dynamic class-based amount fields
 $classes_result = $conn->query("SELECT name, Level FROM classes ORDER BY id ASC");
 $class_groups = [];
@@ -11,288 +14,215 @@ if ($classes_result) {
         $class_groups[$level][] = $row['name'];
     }
 }
-// Fetch dynamic fee categories
-include '../../includes/fee_categories.php';
 ?>
-    <div class="max-w-7xl mx-auto py-5">
-        <div class="flex flex-wrap justify-center">
-            <div class="col-lg-8">
-                <div class="bg-white rounded shadow shadow-lg border-0 rounded-4">
-                    <div class="bg-white rounded shadow-header bg-primary text-white text-center rounded-top-4">
-                        <h3 class="mb-">Add New Fee</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure New Fee | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .type-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 2px solid transparent; }
+        .type-card.active { border-color: #10b981; background-color: #f0fdf4; }
+        .type-card.active .icon-circle { background-color: #10b981; color: white; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 leading-relaxed">
+    <?php include '../../../includes/sidebar_admin.php'; ?>
+
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header -->
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    Asset Configuration
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Add New <span class="text-emerald-600">Fee Structure</span></h1>
+                <p class="text-slate-500 mt-2 font-medium">Define institutional revenue tranches and allocation rules.</p>
+            </div>
+            <div>
+                <a href="view_fees.php" class="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none inline-block">
+                    <i class="fas fa-arrow-left mr-2"></i> Cancel & Return
+                </a>
+            </div>
+        </header>
+
+        <form action="process_fee.php" method="POST" id="feeForm" class="max-w-4xl">
+            <!-- Part 1: Classification & Naming -->
+            <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-10">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                    01. Classification & Identity <span class="flex-1 h-[1px] bg-slate-100"></span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div onclick="selectType('fixed')" id="card-fixed" class="type-card bg-slate-50 p-6 rounded-3xl active">
+                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
+                            <i class="fas fa-money-bill-check text-xl"></i>
+                        </div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Fixed Amount</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">Same value for all students</p>
                     </div>
-                    <div class="bg-white rounded shadow-body p-4">
-                        <form action="add_fee.php" method="POST" id="feeForm">
-                            <div class="mb-">
-                                <label for="fee_type" class="block text-sm font-medium mb- fw-bold">Fee Type *</label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="fee_type" name="fee_type" required>
-                                    <option value="">Select fee type...</option>
-                                    <option value="fixed">Fixed Amount (same for all students)</option>
-                                    <option value="class_based">Class-Based (different per class)</option>
-                                    <option value="category">Category-Based (different per group)</option>
-                                </select>
-                            </div>
-                            <div class="mb-">
-                                <label for="fee_name" class="block text-sm font-medium mb- fw-bold">Fee Name *</label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="fee_name" name="fee_name" required onchange="handleCustomFee()">
-                                    <option value="">Select a fee type...</option>
-                                    <option value="Tuition Fee">Tuition Fee</option>
-                                    <option value="Development Levy">Development Levy</option>
-                                    <option value="Books Fee">Books Fee</option>
-                                    <option value="Uniform Fee">Uniform Fee</option>
-                                    <option value="Sports Fee">Sports Fee</option>
-                                    <option value="Examination Fee">Examination Fee</option>
-                                    <option value="Library Fee">Library Fee</option>
-                                    <option value="Computer Fee">Computer Fee</option>
-                                    <option value="Transport Fee">Transport Fee</option>
-                                    <option value="Feeding Fee">Feeding Fee</option>
-                                    <option value="custom">ðŸŽ¯ Custom Fee Name</option>
-                                </select>
-                            </div>
-                            <div class="mb-" id="customFeeGroup" class="hidden">
-                                <label for="custom_fee_name" class="block text-sm font-medium mb- fw-bold">Custom Fee Name *</label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded" id="custom_fee_name" name="custom_fee_name" placeholder="Enter your custom fee name">
-                            </div>
-                            <div class="mb-">
-                                <label for="description" class="block text-sm font-medium mb- fw-bold">Description</label>
-                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded" id="description" name="description" rows="2" placeholder="Optional: Describe this fee"></textarea>
-                            </div>
-                            <div class="mb- p-3 bg-light rounded-3 border">
-                                <h5 class="mb- text-primary"><i class="fas fa-money-bill-wave mr-2"></i>Fixed Amount (GHâ‚µ)</h5>
-                                <div class="input-group">
-                                    <span class="input-group-text">GHâ‚µ</span>
-                                    <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded" id="fixed_amount" name="fixed_amount" placeholder="0.00">
-                                </div>
-                            </div>
-                            <div class="mb- p-3 bg-light rounded-3 border">
-                                <h5 class="mb- text-primary"><i class="fas fa-layer-group mr-2"></i>Class-Based Amounts</h5>
-                                <?php foreach ($class_groups as $level => $classes): ?>
-                                    <div class="mb-"><strong><?php echo htmlspecialchars($level); ?></strong></div>
-                                    <div class="row g-2 mb-">
-                                        <?php foreach ($classes as $class): ?>
-                                            <div class="col-md-4">
-                                                <div class="input-group">
-                                                    <span class="input-group-text">GHâ‚µ</span>
-                                                    <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded" name="class_amounts[<?php echo htmlspecialchars($class); ?>]" placeholder="<?php echo htmlspecialchars($class); ?>">
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                            <div class="mb- p-3 bg-light rounded-3 border">
-                                <h5 class="mb- text-primary"><i class="fas fa-tags mr-2"></i>Category-Based Amounts</h5>
-                                <div class="flex flex-wrap gap-2">
-                                    <?php if (!empty($fee_categories)): ?>
-                                        <?php foreach ($fee_categories as $cat_id => $cat_name): ?>
-                                            <div class="col-md-4">
-                                                <div class="input-group">
-                                                    <span class="input-group-text">GHâ‚µ</span>
-                                                    <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded" name="category_amounts[<?php echo htmlspecialchars($cat_id); ?>]" placeholder="<?php echo htmlspecialchars($cat_name); ?>">
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <div class="col-12"><div class="p-4 bg-yellow-100 text-yellow-700 rounded border border-yellow-200">No fee categories found. <a href='manage_fee_categories.php'>Add categories</a>.</div></div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <div class="text-center mt-4">
-                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-lg px-5 py-2">
-                                    <i class="fas fa-plus mr-2"></i>Create Fee
-                                </button>
-                            </div>
-                        </form>
+                    <div onclick="selectType('class_based')" id="card-class_based" class="type-card bg-slate-50 p-6 rounded-3xl">
+                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
+                            <i class="fas fa-school text-xl"></i>
+                        </div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Class-Based</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">Varied by academic level</p>
+                    </div>
+                    <div onclick="selectType('category')" id="card-category" class="type-card bg-slate-50 p-6 rounded-3xl">
+                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
+                            <i class="fas fa-tags text-xl"></i>
+                        </div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Categorical</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">Assigned to specific groups</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-                        <div class="text-center mt-4">
-                            <button type="button" class="px-4 py-2 border border-gray-300 rounded mr-3" onclick="previousStep()">
-                                <i class="fas fa-arrow-left mr-2"></i>Back
-                            </button>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-lg">
-                                <i class="fas fa-plus mr-2"></i>Create Fee
-                            </button>
+                <input type="hidden" name="fee_type" id="fee_type_input" value="fixed">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Official Fee Name</label>
+                        <select name="fee_name" id="fee_name_select" onchange="handleCustomName()" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
+                            <option value="">Select template...</option>
+                            <option value="Tuition Fee">Tuition Fee</option>
+                            <option value="Development Levy">Development Levy</option>
+                            <option value="Books Fee">Books Fee</option>
+                            <option value="Feeding Fee">Feeding Fee</option>
+                            <option value="Transport Fee">Transport Fee</option>
+                            <option value="custom">-- Custom Identifier --</option>
+                        </select>
+                    </div>
+                    <div id="customNameGroup" class="hidden">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Custom Identifier</label>
+                        <input type="text" name="custom_fee_name" id="custom_fee_name" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 transition-all" placeholder="Enter custom name...">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Detailed Description (Optional)</label>
+                        <textarea name="description" rows="2" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-3xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 transition-all" placeholder="Explain the purpose of this fee..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Part 2: Monetary Configuration -->
+            <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-12">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                    02. Monetary Configuration <span class="flex-1 h-[1px] bg-slate-100"></span>
+                </h3>
+
+                <!-- Fixed Amount Context -->
+                <div id="section-fixed" class="amount-section">
+                    <div class="max-w-xs">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Global Fixed Amount (GHS)</label>
+                        <div class="relative">
+                            <input type="number" step="0.01" name="fixed_amount" class="w-full px-12 py-5 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xl font-black text-emerald-900 transition-all">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black">₵</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Hidden fee_type input -->
-                    <input type="hidden" name="fee_type" id="fee_type" value="">
-                </form>
+                <!-- Class-Based Context -->
+                <div id="section-class_based" class="amount-section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <p class="text-xs font-bold text-slate-500">Define unique amounts for specific academic levels.</p>
+                        <button type="button" onclick="applyTuitionPreset()" class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl transition-all hover:bg-emerald-100">Apply Standard Tuitions</button>
+                    </div>
+                    <div class="space-y-8">
+                        <?php foreach ($class_groups as $level => $classes): ?>
+                            <div>
+                                <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4"><?= htmlspecialchars($level) ?> Stream</h5>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <?php foreach ($classes as $class): ?>
+                                        <div class="relative">
+                                            <input type="number" step="0.01" name="class_amounts[<?= htmlspecialchars($class) ?>]" placeholder="<?= htmlspecialchars($class) ?>" class="w-full px-10 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-black text-slate-700">
+                                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xs">₵</span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Category Context -->
+                <div id="section-category" class="amount-section hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <?php foreach ($fee_categories as $cid => $cname): ?>
+                            <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <span class="flex-1 text-[10px] font-black text-slate-600 uppercase tracking-tight"><?= htmlspecialchars($cname) ?></span>
+                                <div class="relative w-32">
+                                    <input type="number" step="0.01" name="category_amounts[<?= $cid ?>]" class="w-full px-8 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-black text-slate-900">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-[10px]">₵</span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+
+            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex items-center justify-between shadow-2xl shadow-slate-900/20">
+                <div class="flex items-center gap-6">
+                    <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/20">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-black text-sm uppercase tracking-[0.1em]">Ready for Validation</h3>
+                        <p class="text-slate-400 text-xs font-medium">Fee configuration will be locked upon submission.</p>
+                    </div>
+                </div>
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase tracking-[0.2em] px-10 py-5 rounded-2xl shadow-xl transition-all h-fit active:scale-95 leading-none">
+                    Initialize Fee Structure
+                </button>
             </div>
-        </div>
+        </form>
 
-        <!-- Quick Links -->
-        <div class="text-center mt-4">
-            <a href="view_fees.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary mr-3">
-                <i class="fas fa-eye mr-2"></i>View All Fees
-            </a>
-            <a href="../dashboard.php" class="px-4 py-2 border border-gray-300 rounded">
-                <i class="fas fa-home mr-2"></i>Dashboard
-            </a>
-        </div>
-    </div>
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+            Institutional Asset Node &middot; Salba Oversight &middot; v9.5.0
+        </footer>
+    </main>
 
-        <script>
-    var currentStep = 1;
-    var selectedFeeType = null;
-
-        function selectFeeType(type) {
-            // Remove previous selections
-            document.querySelectorAll('.fee-type-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-                bg-white rounded shadow.classList.remove('selected');
-            });
+    <script>
+        function selectType(type) {
+            // Update UI
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('card-' + type).classList.add('active');
             
-            // Select current bg-white rounded shadow
-            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
-            selectedFeeType = type;
-            document.getElementById('fee_type').value = type;
-            document.getElementById('nextBtn1').disabled = false;
-        }
+            // Update Input
+            document.getElementById('fee_type_input').value = type;
 
-        function nextStep() {
-            if (currentStep < 3) {
-                // Hide current section
-                document.getElementById(`section${currentStep}`).classList.remove('active');
-                document.getElementById(`step${currentStep}`).classList.remove('active');
-                
-                currentStep++;
-                
-                // Show next section
-                document.getElementById(`section${currentStep}`).classList.add('active');
-                document.getElementById(`step${currentStep}`).classList.add('active');
-                
-                // Configure step 2 based on fee type
-                if (currentStep === 2) {
-                    configureStep2();
-                }
-                
-                // Configure step 3 based on fee type
-                if (currentStep === 3) {
-                    configureStep3();
-                }
-            }
-        }
-
-        function previousStep() {
-            if (currentStep > 1) {
-                // Hide current section
-                document.getElementById(`section${currentStep}`).classList.remove('active');
-                document.getElementById(`step${currentStep}`).classList.remove('active');
-                
-                currentStep--;
-                
-                // Show previous section
-                document.getElementById(`section${currentStep}`).classList.add('active');
-                document.getElementById(`step${currentStep}`).classList.add('active');
-            }
-        }
-
-        function configureStep2() {
-            if (selectedFeeType === 'fixed') {
-                document.getElementById('fixedAmountGroup').style.display = 'block';
-            } else {
-                document.getElementById('fixedAmountGroup').style.display = 'none';
-            }
-        }
-
-        function configureStep3() {
-            // Hide all amount sections
-            document.getElementById('classBasedAmounts').style.display = 'none';
-            document.getElementById('categoryBasedAmounts').style.display = 'none';
-            
             // Show relevant section
-            if (selectedFeeType === 'class_based') {
-                document.getElementById('classBasedAmounts').style.display = 'block';
-            } else if (selectedFeeType === 'category') {
-                document.getElementById('categoryBasedAmounts').style.display = 'block';
-            }
+            document.querySelectorAll('.amount-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + type).classList.remove('hidden');
         }
 
-        function handleCustomFee() {
-            const feeSelect = document.getElementById('fee_name');
-            const customGroup = document.getElementById('customFeeGroup');
-            
-            if (feeSelect.value === 'custom') {
-                customGroup.style.display = 'block';
-                document.getElementById('custom_fee_name').required = true;
+        function handleCustomName() {
+            const select = document.getElementById('fee_name_select');
+            const custom = document.getElementById('customNameGroup');
+            if (select.value === 'custom') {
+                custom.classList.remove('hidden');
             } else {
-                customGroup.style.display = 'none';
-                document.getElementById('custom_fee_name').required = false;
+                custom.classList.add('hidden');
             }
         }
 
         function applyTuitionPreset() {
-            // Early Years classes (GHâ‚µ700)
-            const earlyYearsClasses = ['Creche', 'Nursery 1', 'Nursery 2', 'KG 1', 'KG 2'];
-            earlyYearsClasses.forEach(className => {
-                const input = document.querySelector(`input[name="class_amounts[${className}]"]`);
-                if (input) input.value = '700';
-            });
-            // Primary classes (GHâ‚µ800)
-            const primaryClasses = ['Basic 1', 'Basic 2', 'Basic 3', 'Basic 4', 'Basic 5', 'Basic 6', 'Basic 7'];
-            primaryClasses.forEach(className => {
-                const input = document.querySelector(`input[name="class_amounts[${className}]"]`);
-                if (input) input.value = '800';
-            });
-        }
-
-        function applyCategoryPreset() {
-            // Apply tuition preset for category-based fees
-            // Set amounts based on actual level names from database
-            
-            // Early years categories (GHâ‚µ700)
-            const earlyYearsLevels = ['Nursery', 'KG', 'Creche', 'Early Years'];
-            earlyYearsLevels.forEach(level => {
-                const input = document.querySelector(`input[name="category_amounts[${level}]"]`);
-                if (input) input.value = '700';
-            });
-            
-            // Primary categories (GHâ‚µ800) 
-            const primaryLevels = ['Primary', 'Basic', 'Elementary'];
-            primaryLevels.forEach(level => {
-                const input = document.querySelector(`input[name="category_amounts[${level}]"]`);
-                if (input) input.value = '800';
-            });
-            
-            // Also try generic approach - set all visible category inputs
-            document.querySelectorAll('#categoryBasedAmounts input[name^="category_amounts"]').forEach(input => {
-                if (!input.value) { // Only set if empty
-                    const levelName = input.name.match(/category_amounts\[(.*?)\]/)[1].toLowerCase();
-                    if (levelName.includes('nursery') || levelName.includes('kg') || levelName.includes('creche')) {
-                        input.value = '700';
-                    } else if (levelName.includes('primary') || levelName.includes('basic') || levelName.includes('elementary')) {
-                        input.value = '800';
-                    }
+            // Early Years (700) vs Primary (800)
+            const inputs = document.querySelectorAll('input[name^="class_amounts"]');
+            inputs.forEach(input => {
+                const name = input.name.toLowerCase();
+                if(name.includes('creche') || name.includes('nursery') || name.includes('kg')) {
+                    input.value = "700";
+                } else if(name.includes('basic') || name.includes('grade')) {
+                    input.value = "800";
                 }
             });
         }
-
-        // Form validation before submission
-        document.getElementById('feeForm').addEventListener('submit', function(e) {
-            const feeName = document.getElementById('fee_name').value;
-            const customFeeName = document.getElementById('custom_fee_name').value;
-            
-            if (feeName === 'custom' && !customFeeName.trim()) {
-                e.preventDefault();
-                alert('Please enter a custom fee name.');
-                return false;
-            }
-            
-            if (selectedFeeType === 'fixed') {
-                const fixedAmount = document.getElementById('fixed_amount').value;
-                if (!fixedAmount || parseFloat(fixedAmount) <= 0) {
-                    e.preventDefault();
-                    alert('Please enter a valid fixed amount.');
-                    return false;
-                }
-            }
-        });
-
-        // PHP renders class-based amount fields server-side. No JS HTML overwrite needed.
     </script>
 </body>
 </html>

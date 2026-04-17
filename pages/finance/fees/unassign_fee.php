@@ -4,8 +4,8 @@
  * Handles the removal of fee assignments from students
  */
 
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
 
 // Check if user is logged in
 if (!is_logged_in()) {

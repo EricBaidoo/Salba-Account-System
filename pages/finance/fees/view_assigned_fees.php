@@ -1,10 +1,12 @@
-<?php include '../../includes/auth_functions.php';
+<?php
+include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../pages/login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
-include '../../includes/db_connect.php';
-include '../../includes/system_settings.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+
 // School branding for print header
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
@@ -38,9 +40,13 @@ if (!empty($class_filter)) {
 }
 
 if (!empty($status_filter)) {
-    $where_clauses[] = "v.status = ?";
-    $params[] = $status_filter;
-    $param_types .= 's';
+    if ($status_filter === 'overdue') {
+        $where_clauses[] = "v.payment_status = 'Overdue'";
+    } else {
+        $where_clauses[] = "v.status = ?";
+        $params[] = $status_filter;
+        $param_types .= 's';
+    }
 }
 
 if (!empty($search)) {
@@ -50,7 +56,6 @@ if (!empty($search)) {
     $param_types .= 'ss';
 }
 
-// Restrict by academic year if provided
 if (!empty($year_filter)) {
     $where_clauses[] = "sf.academic_year = ?";
     $params[] = $year_filter;
@@ -76,331 +81,279 @@ if (!empty($params)) {
 }
 
 // Get classes for filter dropdown
-$classes = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
+$classes_query = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
 
-// Get summary statistics
-    // Get summary statistics (respect academic year filter)
-    $stats_sql_base = "
-        SELECT 
-            COUNT(*) as total_assignments,
-            SUM(CASE WHEN v.status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-            SUM(CASE WHEN v.status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-            SUM(CASE WHEN v.payment_status = 'Overdue' THEN 1 ELSE 0 END) as overdue_count,
-            COALESCE(SUM(v.amount), 0) as total_amount,
-            COALESCE(SUM(CASE WHEN v.status = 'paid' THEN v.amount ELSE 0 END), 0) as paid_amount
-        FROM v_fee_assignments v
-        JOIN student_fees sf ON sf.id = v.assignment_id";
-    if (!empty($year_filter)) {
-        $st = $conn->prepare($stats_sql_base . " WHERE sf.academic_year = ?");
-        $st->bind_param('s', $year_filter);
-        $st->execute();
-        $stats = $st->get_result()->fetch_assoc();
-        $st->close();
-    } else {
-        $stats = $conn->query($stats_sql_base)->fetch_assoc();
-    }
+// Summary statistics
+$stats_sql_base = "
+    SELECT 
+        COUNT(*) as total_assignments,
+        SUM(CASE WHEN v.status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN v.status = 'paid' THEN 1 ELSE 0 END) as paid_count,
+        SUM(CASE WHEN v.payment_status = 'Overdue' THEN 1 ELSE 0 END) as overdue_count,
+        COALESCE(SUM(v.amount), 0) as total_amount,
+        COALESCE(SUM(CASE WHEN v.status = 'paid' THEN v.amount ELSE 0 END), 0) as paid_amount
+    FROM v_fee_assignments v
+    JOIN student_fees sf ON sf.id = v.assignment_id";
+
+if (!empty($year_filter)) {
+    $st = $conn->prepare($stats_sql_base . " WHERE sf.academic_year = ?");
+    $st->bind_param('s', $year_filter);
+    $st->execute();
+    $stats = $st->get_result()->fetch_assoc();
+    $st->close();
+} else {
+    $stats = $conn->query($stats_sql_base)->fetch_assoc();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assigned Fees - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Fee Assignments | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .table-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        @media print {
+            .no-print { display: none !important; }
+            .ml-72 { margin-left: 0 !important; }
+            .p-10 { padding: 1rem !important; }
+        }
+    </style>
 </head>
-<body class="clean-page">
+<body class="bg-[#F8FAFC] text-slate-900">
+    <div class="no-print"><?php include '../../../includes/sidebar_admin.php'; ?></div>
 
-    <!-- Clean Page Header -->
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="../dashboard.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header Section -->
+        <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
-                <h1 class="clean-page-title"><i class="fas fa-list-alt mr-2"></i>Fee Assignments</h1>
-                <p class="clean-page-subtitle">Track and manage all student fee assignments</p>
+                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    Audit & Ledger
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Fee <span class="text-indigo-600">Assignments</span></h1>
+                <p class="text-slate-500 mt-2 font-medium">Historical trace of all financial obligations assigned to students.</p>
             </div>
-        </div>
-    </div>
+            <div class="flex items-center gap-4">
+                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
+                    <i class="fas fa-print mr-2"></i> Print Report
+                </button>
+                <a href="assign_fee_form.php" class="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">
+                    <i class="fas fa-plus mr-2"></i> New Assignment
+                </a>
+            </div>
+        </header>
 
-    <div class="w-full px-4 py-4">
-        <!-- Summary Statistics -->
-        <div class="clean-stats-grid print:hidden">
-            <div class="clean-stat-item">
-                <div class="clean-stat-value"><?php echo $stats['total_assignments']; ?></div>
-                <div class="clean-stat-label">Total Assignments</div>
-            </div>
-            <div class="clean-stat-item">
-                <div class="clean-stat-value"><?php echo $stats['pending_count']; ?></div>
-                <div class="clean-stat-label">Pending Payments</div>
-            </div>
-            <div class="col-lg-3 md:col-span-6 mb-">
-                <div class="bg-white rounded shadow bg-danger text-white h-full">
-                    <div class="bg-white rounded shadow-body text-center">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-"></i>
-                        <h4 class="mb-"><?php echo $stats['overdue_count']; ?></h4>
-                        <small>Overdue</small>
-                    </div>
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-10 no-print">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Assigned</p>
+                <h4 class="text-2xl font-black text-slate-900 leading-none mb-2"><?= $stats['total_assignments'] ?></h4>
+                <div class="w-full h-1 bg-slate-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-slate-200" style="width: 100%"></div>
                 </div>
             </div>
-            <div class="col-lg-3 md:col-span-6 mb-">
-                <div class="bg-white rounded shadow bg-success text-white h-full">
-                    <div class="bg-white rounded shadow-body text-center">
-                        <i class="fas fa-check-circle fa-2x mb-"></i>
-                        <h4 class="mb-"><?php echo $stats['paid_count']; ?></h4>
-                        <small>Paid</small>
-                    </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Collected</p>
+                <h4 class="text-2xl font-black text-emerald-600 leading-none mb-2"><?= $stats['paid_count'] ?></h4>
+                <div class="w-full h-1 bg-emerald-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500" style="width: <?= ($stats['paid_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Financial Summary -->
-        <div class="row mb- print:hidden">
-            <div class="md:col-span-6 mb-">
-                <div class="bg-white rounded shadow bg-primary text-white">
-                    <div class="bg-white rounded shadow-body text-center">
-                        <i class="fas fa-money-bill-wave fa-2x mb-"></i>
-                        <h4 class="mb-">GHâ‚µ<?php echo number_format($stats['total_amount'] ?? 0, 2); ?></h4>
-                        <small>Total Amount Assigned</small>
-                    </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Overdue</p>
+                <h4 class="text-2xl font-black text-rose-600 leading-none mb-2"><?= $stats['overdue_count'] ?></h4>
+                <div class="w-full h-1 bg-rose-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-rose-500" style="width: <?= ($stats['overdue_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
-            <div class="md:col-span-6 mb-">
-                <div class="bg-white rounded shadow bg-success text-white">
-                    <div class="bg-white rounded shadow-body text-center">
-                        <i class="fas fa-credit-bg-white rounded shadow fa-2x mb-"></i>
-                        <h4 class="mb-">GHâ‚µ<?php echo number_format($stats['paid_amount'] ?? 0, 2); ?></h4>
-                        <small>Amount Collected</small>
-                    </div>
+             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending</p>
+                <h4 class="text-2xl font-black text-amber-600 leading-none mb-2"><?= $stats['pending_count'] ?></h4>
+                <div class="w-full h-1 bg-amber-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-amber-500" style="width: <?= ($stats['pending_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Filters and Actions -->
-        <div class="flex flex-wrap">
-            <div class="col-lg-8">
-                <div class="bg-white rounded shadow filter-bg-white rounded shadow">
-                    <div class="bg-white rounded shadow-body">
-                        <form method="GET" action="">
-                            <div class="flex flex-wrap items-end">
-                                <div class="col-md-3">
-                                    <label for="search" class="block text-sm font-medium mb-">
-                                        <i class="fas fa-search mr-2"></i>Search
-                                    </label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded" id="search" name="search" 
-                                           value="<?php echo htmlspecialchars($search); ?>" 
-                                           placeholder="Student or fee name...">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="class" class="block text-sm font-medium mb-">
-                                        <i class="fas fa-layer-group mr-2"></i>Class
-                                    </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="class" name="class">
-                                        <option value="">All Classes</option>
-                                        <?php while($class = $classes->fetch_assoc()): ?>
-                                            <option value="<?php echo $class['class']; ?>" 
-                                                    <?php echo ($class_filter === $class['class']) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($class['class']); ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="year" class="block text-sm font-medium mb-">
-                                        <i class="fas fa-graduation-cap mr-2"></i>Academic Year
-                                    </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="year" name="year">
-                                        <option value="">All Years</option>
-                                        <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
-                                            <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($year_filter === $yr) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($label); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <label for="status" class="block text-sm font-medium mb-">
-                                        <i class="fas fa-flag mr-2"></i>Status
-                                    </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white" id="status" name="status">
-                                        <option value="">All Status</option>
-                                        <option value="pending" <?php echo ($status_filter === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                        <option value="paid" <?php echo ($status_filter === 'paid') ? 'selected' : ''; ?>>Paid</option>
-                                        <option value="overdue" <?php echo ($status_filter === 'overdue') ? 'selected' : ''; ?>>Overdue</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-1">
-                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full">
-                                        <i class="fas fa-filter mr-2"></i>Filter
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+            <!-- Financial Sums -->
+            <div class="bg-slate-900 p-6 rounded-3xl shadow-lg border border-slate-800 lg:col-span-1 xl:col-span-2 flex flex-col justify-center">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Revenue Performance</p>
+                        <h4 class="text-xl font-black text-white">GHS <?= number_format($stats['paid_amount'], 2) ?> <span class="text-xs font-bold text-slate-500 tracking-tight">/ GHS <?= number_format($stats['total_amount'], 2) ?></span></h4>
+                    </div>
+                    <div class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                        <?= number_format(($stats['paid_amount'] / ($stats['total_amount'] ?: 1)) * 100, 1) ?>%
                     </div>
                 </div>
-            </div>
-            <div class="lg:col-span-4">
-                <div class="d-grid gap-2 print:hidden">
-                    <a href="assign_fee_form.php" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                        <i class="fas fa-plus mr-2"></i>Assign New Fee
-                    </a>
-                    <a href="#" onclick="window.print()" class="px-4 py-2 border border-gray-300 rounded">
-                        <i class="fas fa-print mr-2"></i>Print Report
-                    </a>
+                <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 transition-all duration-1000" style="width: <?= ($stats['paid_amount'] / ($stats['total_amount'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Print Header -->
-        <div class="print-header text-center">
-            <h3 class="mb-"><?php echo htmlspecialchars($school_name); ?></h3>
-            <div class="small text-gray-600">Fee Assignments Report</div>
-            <div class="mt-1">
-                Class: <strong><?php echo $class_filter !== '' ? htmlspecialchars($class_filter) : 'All Classes'; ?></strong>
-                | Status: <strong><?php echo $status_filter !== '' ? htmlspecialchars(ucfirst($status_filter)) : 'All Status'; ?></strong>
-                | Academic Year: <strong><?php echo $year_filter !== '' ? htmlspecialchars(formatAcademicYearDisplay($conn, $year_filter)) : 'All Years'; ?></strong>
-            </div>
-            <div class="small text-gray-600">Printed on <?php echo date('M j, Y'); ?></div>
+        <!-- Filter Panel -->
+        <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm mb-10 no-print">
+            <form method="GET" class="flex flex-wrap items-end gap-6">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-search text-indigo-500"></i> Search Ledger
+                    </label>
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Student name or fee..." 
+                           class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 transition-all">
+                </div>
+                <div class="w-48">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-school text-indigo-500"></i> Class
+                    </label>
+                    <select name="class" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
+                        <option value="">All Tiers</option>
+                        <?php while($class = $classes_query->fetch_assoc()): ?>
+                            <option value="<?= $class['class'] ?>" <?= ($class_filter === $class['class']) ? 'selected' : '' ?>><?= htmlspecialchars($class['class']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="w-48">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                         <i class="fas fa-graduation-cap text-indigo-500"></i> Academic Year
+                    </label>
+                    <select name="year" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
+                        <option value="">All Periods</option>
+                        <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
+                            <option value="<?= htmlspecialchars($yr) ?>" <?= ($year_filter === $yr) ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="w-48">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fas fa-filter text-indigo-500"></i> Status
+                    </label>
+                    <select name="status" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
+                        <option value="">All Status</option>
+                         <option value="pending" <?= ($status_filter === 'pending') ? 'selected' : '' ?>>Pending</option>
+                        <option value="paid" <?= ($status_filter === 'paid') ? 'selected' : '' ?>>Settled</option>
+                        <option value="overdue" <?= ($status_filter === 'overdue') ? 'selected' : '' ?>>Overdue</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                    <i class="fas fa-sliders"></i>
+                </button>
+            </form>
         </div>
 
-        <!-- Assignments w-full border-collapse -->
-        <div class="bg-white rounded shadow">
-            <div class="bg-white rounded shadow-header">
-                <h5 class="mb-"><i class="fas fa-w-full border-collapse mr-2"></i>Fee Assignments</h5>
-            </div>
-            <div class="bg-white rounded shadow-body p-0">
-                <div class="clean-w-full border-collapse-scroll">
-                    <table class="w-full border-collapse w-full border-collapse-hover mb-">
-                        <thead class="w-full border-collapse-dark">\n                            <tr>\n                                <th>Student</th>\n                                <th>Class</th>\n                                <th>Fee</th>\n                                <th>Type</th>\n                                <th>Amount</th>\n                                <th>Due Date</th>\n                                <th>Semester</th>\n                                <th>Year</th>\n                                <th>Status</th>\n                                <th>Actions</th>\n                            </tr>\n                        </thead>
-                        <tbody>
-                            <?php if($result && $result->num_rows > 0): ?>
-                                <?php while($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td>
-                                        <strong><?php echo htmlspecialchars($row['student_name']); ?></strong>
-                                    </td>
-                                    <td>
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700"><?php echo htmlspecialchars($row['student_class']); ?></span>
-                                    </td>
-                                    <td>
-                                        <?php echo htmlspecialchars($row['fee_name']); ?>
-                                        <?php if (!empty($row['notes'])): ?>
-                                            <i class="fas fa-sticky-note text-gray-600 ml-1" title="Has notes"></i>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <small class="text-gray-600"><?php echo ucfirst(str_replace('_', ' ', $row['fee_type'])); ?></small>
-                                    </td>
-                                    <td>
-                                        <strong>GHâ‚µ<?php echo number_format($row['amount'] ?? 0, 2); ?></strong>
-                                    </td>
-                                    <td>
-                                        <?php echo date('M j, Y', strtotime($row['due_date'])); ?>
-                                        <?php if ($row['days_to_due'] < 0): ?>
-                                            <small class="text-red-600 block"><?php echo abs($row['days_to_due']); ?> days overdue</small>
-                                        <?php elseif ($row['days_to_due'] <= 7): ?>
-                                            <small class="text-yellow-600 block">Due in <?php echo $row['days_to_due']; ?> days</small>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php echo !empty($row['semester']) ? htmlspecialchars($row['semester']) : '<small class="text-gray-600">N/A</small>'; ?>
-                                    </td>
-                                    <td>
-                                        <?php echo !empty($row['academic_year']) ? htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) : '<small class="text-gray-600">N/A</small>'; ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        $status_class = '';
-                                        switch($row['payment_status']) {
-                                            case 'Overdue': $status_class = 'overdue text-white'; break;
-                                            case 'Due Soon': $status_class = 'due-soon text-white'; break;
-                                            case 'Pending': $status_class = 'pending'; break;
-                                            case 'Paid': $status_class = 'paid text-white'; break;
-                                            default: $status_class = 'bg-secondary text-white';
-                                        }
-                                        ?>
-                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold status-badge <?php echo $status_class; ?>">
-                                            <?php echo $row['payment_status']; ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="px-3 py-2 rounded-group px-3 py-2 rounded-group-sm" role="group">
-                                            <?php if($row['status'] !== 'paid'): ?>
-                                                <a href="record_payment_form.php?assignment_id=<?php echo $row['assignment_id']; ?>&semester=<?php echo urlencode($row['semester']); ?>&academic_year=<?php echo urlencode($row['academic_year'] ?? ''); ?>" 
-                                                   class="px-3 py-2 rounded px-3 py-2 rounded-outline-success" title="Record Payment">
-                                                    <i class="fas fa-credit-bg-white rounded shadow"></i>
-                                                </a>
-                                            <?php endif; ?>
-                                            <button class="px-3 py-2 rounded px-3 py-2 rounded-outline-info" title="View Details" 
-                                                    onclick="viewDetails(<?php echo $row['assignment_id']; ?>)">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="px-3 py-2 rounded px-3 py-2 rounded-outline-danger" title="Cancel Assignment" 
-                                                    onclick="cancelAssignment(<?php echo $row['assignment_id']; ?>)">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+        <!-- Ledger Table -->
+        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden table-container">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Student & Class</th>
+                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Fee Description</th>
+                        <th class="px-8 py-6 text-left text-[10px) font-black text-slate-400 uppercase tracking-widest">Value (GHS)</th>
+                        <th class="px-8 py-6 text-left text-[10px) font-black text-slate-400 uppercase tracking-widest">Maturity / Period</th>
+                        <th class="px-8 py-6 text-center text-[10px) font-black text-slate-400 uppercase tracking-widest">Audit Status</th>
+                        <th class="px-8 py-6 text-right text-[10px) font-black text-slate-400 uppercase tracking-widest no-print">Ops</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <?php if($result && $result->num_rows > 0): ?>
+                        <?php while($row = $result->fetch_assoc()): ?>
+                            <tr class="hover:bg-slate-50/80 transition-colors group">
+                                <td class="px-8 py-6">
+                                    <div class="flex flex-col">
+                                        <span class="font-black text-slate-900 text-sm tracking-tight"><?= htmlspecialchars($row['student_name']) ?></span>
+                                        <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider"><?= htmlspecialchars($row['student_class']) ?></span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-sm font-medium text-slate-600">
+                                    <?= htmlspecialchars($row['fee_name']) ?>
+                                    <?php if (!empty($row['notes'])): ?>
+                                        <div class="mt-1 text-[10px] text-slate-400 italic font-medium flex items-center gap-1">
+                                            <i class="fas fa-sticky-note"></i> Notes attached
                                         </div>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="9" class="text-center py-4">
-                                        <i class="fas fa-inbox fa-3x text-gray-600 mb-"></i>
-                                        <p class="text-gray-600">No fee assignments found</p>
-                                        <a href="assign_fee_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                            <i class="fas fa-plus mr-2"></i>Assign First Fee
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <span class="font-black text-slate-900 text-sm tracking-tighter"><?= number_format($row['amount'], 2) ?></span>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-slate-700 leading-none mb-1"><?= date('M j, Y', strtotime($row['due_date'])) ?></span>
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest"><?= htmlspecialchars($row['semester']) ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) ?></span>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-center">
+                                    <?php
+                                        $label = ''; $color = ''; $icon = '';
+                                        switch($row['payment_status']) {
+                                            case 'Overdue': $label = 'Critical'; $color = 'bg-rose-50 text-rose-600 border-rose-100'; $icon = 'fa-clock'; break;
+                                            case 'Due Soon': $label = 'Expiring'; $color = 'bg-amber-50 text-amber-600 border-amber-100'; $icon = 'fa-hourglass-start'; break;
+                                            case 'Pending': $label = 'Scheduled'; $color = 'bg-slate-50 text-slate-500 border-slate-100'; $icon = 'fa-calendar'; break;
+                                            case 'Paid': $label = 'Cleared'; $color = 'bg-emerald-50 text-emerald-600 border-emerald-100'; $icon = 'fa-check-double'; break;
+                                            default: $label = 'Unknown'; $color = 'bg-slate-100 text-slate-400'; $icon = 'fa-question';
+                                        }
+                                    ?>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest <?= $color ?>">
+                                        <i class="fas <?= $icon ?>"></i> <?= $label ?>
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 text-right no-print">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <?php if($row['status'] !== 'paid'): ?>
+                                            <a href="../payments/record_payment_form.php?assignment_id=<?= $row['assignment_id'] ?>&semester=<?= urlencode($row['semester']) ?>&academic_year=<?= urlencode($row['academic_year'] ?? '') ?>" 
+                                               class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Record Settlement">
+                                                <i class="fas fa-credit-card text-xs"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                        <button onclick="viewDetails(<?= $row['assignment_id'] ?>)" class="w-9 h-9 bg-white text-slate-400 border border-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </button>
+                                        <button onclick="cancelAssignment(<?= $row['assignment_id'] ?>)" class="w-9 h-9 bg-white text-slate-300 border border-slate-50 rounded-xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="px-8 py-20 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 text-3xl mb-4">
+                                        <i class="fas fa-inbox"></i>
+                                    </div>
+                                    <p class="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">No active assignments detected for this scope</p>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
 
-        <!-- Quick Links -->
-        <div class="text-center mt-4">
-            <div class="px-3 py-2 rounded-group" role="group">
-                <a href="../dashboard.php" class="px-4 py-2 border border-gray-300 rounded">
-                    <i class="fas fa-home mr-2"></i>Dashboard
-                </a>
-                <a href="../../administration/students/view_students.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary">
-                    <i class="fas fa-users mr-2"></i>Students
-                </a>
-                <a href="view_fees.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-success">
-                    <i class="fas fa-money-bill-wave mr-2"></i>Fees
-                </a>
-                <a href="../payments/view_payments.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-info">
-                    <i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Payments
-                </a>
+        <!-- Footer Audit -->
+        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
+            <span>Institutional Ledger &middot; Status Report &middot; <?= date('Y-m-d H:i:s') ?></span>
+            <div class="flex gap-6">
+                <a href="../dashboard.php">Finance Home</a>
+                <a href="../bills/view_semester_bills.php">Invoicing Center</a>
             </div>
-        </div>
-    </div>
+        </footer>
+    </main>
 
-        <script>
+    <script>
         function viewDetails(assignmentId) {
-            // TODO: Implement view details modal or page
-            alert('View details for assignment #' + assignmentId);
+            alert('Opening Audit Trail for Assignment ID: ' + assignmentId);
         }
 
         function cancelAssignment(assignmentId) {
-            if (confirm('Are you sure you want to cancel this fee assignment?')) {
-                // TODO: Implement cancellation
-                alert('Cancel assignment #' + assignmentId);
+            if (confirm('CAUTION: Are you sure you want to VOID this fee assignment? This action will be logged and may impact historical student balance reports.')) {
+                window.location.href = 'cancel_assignment.php?id=' + assignmentId;
             }
         }
-
-        // Auto-refresh every 30 seconds for real-time updates
-        setTimeout(function() {
-            location.reload();
-        }, 30000);
     </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
 header('Content-Type: application/json');
 if (!is_logged_in()) {
     http_response_code(401);

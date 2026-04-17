@@ -1,9 +1,9 @@
 <?php
 require_once '../vendor/autoload.php';
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
-include '../../includes/system_settings.php';
-include '../../includes/budget_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/budget_functions.php';
 
 if (!is_logged_in()) {
     header('Location: login.php');
@@ -14,13 +14,13 @@ $semester = $_GET['semester'] ?? getCurrentSemester($conn);
 $academic_year = $_GET['academic_year'] ?? getAcademicYear($conn);
 
 // Get semester budget
-$budget_query = "SELECT * FROM term_budgets WHERE semester = ? AND academic_year = ?";
+$budget_query = "SELECT * FROM semester_budgets WHERE semester = ? AND academic_year = ?";
 $budget_stmt = $conn->prepare($budget_query);
 $budget_stmt->bind_param('ss', $semester, $academic_year);
 $budget_stmt->execute();
-$term_budget = $budget_stmt->get_result()->fetch_assoc();
+$semester_budget = $budget_stmt->get_result()->fetch_assoc();
 
-// Get budget items - ALWAYS show current assignments (same as term_budget.php view)
+// Get budget items - ALWAYS show current assignments (same as semester_budget.php view)
 $income_items = [];
 $expense_items = [];
 
@@ -43,14 +43,14 @@ while ($fee = $fees_result->fetch_assoc()) {
 }
 
 // Get actual income collected from payments
-require_once '../../includes/term_helpers.php';
+require_once '../../../includes/term_helpers.php';
 $range = getTermDateRange($conn, $semester, $academic_year);
 
 // Get expenses - either from saved budget or from previous semester actual spending
-if ($term_budget) {
-    $items_query = "SELECT * FROM term_budget_items WHERE term_budget_id = ? AND type = 'expense' ORDER BY category ASC";
+if ($semester_budget) {
+    $items_query = "SELECT * FROM semester_budget_items WHERE semester_budget_id = ? AND type = 'expense' ORDER BY category ASC";
     $items_stmt = $conn->prepare($items_query);
-    $items_stmt->bind_param('i', $term_budget['id']);
+    $items_stmt->bind_param('i', $semester_budget['id']);
     $items_stmt->execute();
     $items_result = $items_stmt->get_result();
     
@@ -128,13 +128,13 @@ $html = '
 <h2>' . htmlspecialchars($semester) . ' &bull; ' . htmlspecialchars($academic_year) . '</h2>
 ';
 
-if ($term_budget) {
-    $status_class = ($term_budget['status'] === 'locked') ? 'status-locked' : 'status-draft';
-    $status_text = strtoupper($term_budget['status']);
+if ($semester_budget) {
+    $status_class = ($semester_budget['status'] === 'locked') ? 'status-locked' : 'status-draft';
+    $status_text = strtoupper($semester_budget['status']);
     $html .= '<p style="text-align: center; margin: 0 0 20px 0;"><span class="status-badge ' . $status_class . '">' . $status_text . '</span></p>';
     
-    if ($term_budget['status'] === 'locked') {
-        $html .= '<p style="text-align: center; font-size: 9pt; color: #7f8c8d; margin: -15px 0 20px 0;">Locked by ' . htmlspecialchars($term_budget['locked_by']) . ' on ' . date('d M Y H:i', strtotime($term_budget['locked_at'])) . '</p>';
+    if ($semester_budget['status'] === 'locked') {
+        $html .= '<p style="text-align: center; font-size: 9pt; color: #7f8c8d; margin: -15px 0 20px 0;">Locked by ' . htmlspecialchars($semester_budget['locked_by']) . ' on ' . date('d M Y H:i', strtotime($semester_budget['locked_at'])) . '</p>';
     }
 }
 

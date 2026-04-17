@@ -1,7 +1,7 @@
 <?php
 // Admin page to manage fee categories
-include '../../includes/auth_check.php';
-include '../../includes/db_connect.php';
+include '../../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
 
 // Handle add/edit/delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -1,6 +1,6 @@
 <?php
-include '../../includes/auth_check.php';
-include '../../includes/db_connect.php';
+include '../../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
 
 $success = false;
 $error = '';

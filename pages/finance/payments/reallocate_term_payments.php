@@ -1,8 +1,8 @@
 <?php
-include '../../includes/auth_check.php';
-include '../../includes/db_connect.php';
-include '../../includes/system_settings.php';
-include '../../includes/student_balance_functions.php';
+include '../../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/student_balance_functions.php';
 
 $student_id = intval($_GET['student_id'] ?? 0);
 $semester = trim($_GET['semester'] ?? '');

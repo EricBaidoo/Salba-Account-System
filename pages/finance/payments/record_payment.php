@@ -1,9 +1,9 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_check.php';
 require_finance_write();
-include '../../includes/system_settings.php';
-include '../../includes/student_balance_functions.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/student_balance_functions.php';
 
 // Ensure receipt numbers are unique; generate when missing
 function ensureUniqueReceiptNo(mysqli $conn, string $receipt_no): string {

@@ -1,6 +1,6 @@
 <?php
 // Redirect to new semester budget page
-header('Location: term_budget.php');
+header('Location: semester_budget.php');
 exit;
 ?>
 <html lang="en">

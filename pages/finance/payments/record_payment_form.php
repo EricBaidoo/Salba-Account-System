@@ -1,597 +1,334 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_check.php';
-include '../../includes/system_settings.php';
-include '../../includes/student_balance_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_check.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/student_balance_functions.php';
 
-// Get current semester and academic year
+// Get semester and year
 $current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
-$available_terms = getAvailableSemesters();
+$available_terms = getAvailableSemesters($conn);
 
-// Build Academic Year options from data + system default
+// Build Academic Year options
 $year_options = [];
-$yrs1 = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
-if ($yrs1) {
-    while ($yr = $yrs1->fetch_assoc()) {
-        if (!empty($yr['academic_year'])) { $year_options[] = $yr['academic_year']; }
+$yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
+if ($yrs_rs) {
+    while ($yr = $yrs_rs->fetch_assoc()) {
+        if (!empty($yr['academic_year'])) $year_options[] = $yr['academic_year'];
     }
-    $yrs1->close();
 }
-$yrs2 = $conn->query("SELECT DISTINCT academic_year FROM payments WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
-if ($yrs2) {
-    while ($yr = $yrs2->fetch_assoc()) {
-        if (!empty($yr['academic_year']) && !in_array($yr['academic_year'], $year_options, true)) { $year_options[] = $yr['academic_year']; }
-    }
-    $yrs2->close();
-}
-if (!in_array($academic_year, $year_options, true)) { array_unshift($year_options, $academic_year); }
+if (!in_array($academic_year, $year_options, true)) array_unshift($year_options, $academic_year);
 
-// Get URL parameters for pre-filling
+// Parameters for pre-filling
 $pre_student_id = intval($_GET['student_id'] ?? 0);
-$pre_fee_id = intval($_GET['fee_id'] ?? 0);
 $pre_amount = floatval($_GET['amount'] ?? 0);
-$pre_term = isset($_GET['semester']) ? trim($_GET['semester']) : '';
-$pre_academic_year = isset($_GET['academic_year']) ? trim($_GET['academic_year']) : '';
-$selected_term = $pre_term !== '' ? $pre_term : $current_term;
-$selected_academic_year = $pre_academic_year !== '' ? $pre_academic_year : $academic_year;
+$selected_term = isset($_GET['semester']) ? trim($_GET['semester']) : $current_term;
+$selected_academic_year = isset($_GET['academic_year']) ? trim($_GET['academic_year']) : $academic_year;
 
-// Fetch students with their current balances
-$students_query = "
-    SELECT 
-        s.id, 
-        s.first_name, 
-        s.last_name, 
-        s.class,
-        s.status,
-        COALESCE(SUM(CASE WHEN sf.status = 'pending' THEN sf.amount ELSE 0 END), 0) as outstanding_fees
-    FROM students s
-    LEFT JOIN student_fees sf ON s.id = sf.student_id
-    WHERE s.status = 'active'
-    GROUP BY s.id, s.first_name, s.last_name, s.class, s.status
-    ORDER BY s.first_name, s.last_name
-";
-$students = $conn->query($students_query);
+// Fetch active students
+$students_rs = $conn->query("SELECT id, first_name, last_name, class FROM students WHERE status = 'active' ORDER BY class, first_name, last_name");
 
-// Fetch all fee categories for general payments
-$fees_result = $conn->query("SELECT id, name FROM fees ORDER BY name");
+// Fetch fee options
+$fees_rs = $conn->query("SELECT id, name FROM fees ORDER BY name");
 $fee_options = [];
-while ($row = $fees_result->fetch_assoc()) {
-    $fee_options[] = $row;
-}
-
-// If pre-filled with student, get their details
-$selected_student = null;
-if ($pre_student_id > 0) {
-    $selected_student = getStudentBalance($conn, $pre_student_id);
-    $outstanding_fees = getStudentOutstandingFees($conn, $pre_student_id);
-}
+while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Record Payment - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Record Remittance | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="stylesheet" href="../../../assets/css/style.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .mode-card { cursor: pointer; border: 2px solid #f1f5f9; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mode-card.active { border-color: #10b981; background-color: #f0fdf4; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.1); }
+        .mode-card.active .icon-box { background-color: #10b981; color: white; }
+        .fee-item { cursor: pointer; transition: all 0.2s; border: 1px solid #f1f5f9; }
+        .fee-item:hover { border-color: #10b981; transform: translateX(4px); }
+        .fee-item.selected { border-color: #10b981; background-color: #f0fdf4; }
+    </style>
 </head>
-<body class="clean-page">
+<body class="text-slate-900 leading-relaxed">
+    <?php include '../../../includes/sidebar_admin.php'; ?>
 
-    <!-- Clean Page Header -->
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="view_payments.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Payments
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header -->
+        <header class="mb-12 flex justify-between items-end">
+            <div>
+                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    Remittance Intake
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Record <span class="text-indigo-600">Payment</span></h1>
+                <p class="text-slate-500 mt-2 font-medium">Verify credentials and process financial entries into the institutional ledger.</p>
+            </div>
+            <div class="flex gap-4">
+                <a href="view_payments.php" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
+                    <i class="fas fa-history mr-2"></i> Audit History
                 </a>
             </div>
-            <div class="flex justify-between items-center flex-wrap">
-                <div class="mb- mb-md-0">
-                    <h1 class="clean-page-title"><i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Record Payment</h1>
-                    <p class="clean-page-subtitle">
-                        Process student fee payments with automatic balance tracking
-                        <span class="clean-badge clean-badge-primary ml-2"><i class="fas fa-calendar-alt mr-1"></i><?php echo htmlspecialchars($selected_term); ?></span>
-                        <span class="clean-badge clean-badge-info ml-1"><i class="fas fa-graduation-cap mr-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $selected_academic_year)); ?></span>
-                    </p>
-                </div>
-                <div>
-                    <a href="../reports/student_balances.php" class="px-3 py-2 rounded-clean-outline mr-2">
-                        <i class="fas fa-balance-scale"></i> BALANCES
-                    </a>
-                    <a href="view_payments.php" class="px-3 py-2 rounded-clean-success">
-                        <i class="fas fa-history"></i> HISTORY
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="w-full px-4 py-4">
-        <form action="record_payment.php" method="POST" id="paymentForm" novalidate>
-            <div class="flex flex-wrap">
-                <div class="lg:col-span-6 mb-">
-                    <div class="bg-white rounded shadow border-0 shadow-lg">
-                        <div class="bg-white rounded shadow-header bg-gradient text-white">
-                            <h5 class="mb-">
-                                <i class="fas fa-user mr-2"></i>Payment Type
-                            </h5>
+        <form action="record_payment.php" method="POST" id="paymentForm">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                
+                <!-- Left: Intake Context -->
+                <div class="lg:col-span-12 xl:col-span-7 space-y-10">
+                    
+                    <!-- Type Selection -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                        <div onclick="setMode('student')" id="mode-student" class="mode-card bg-white p-6 rounded-[2rem] active flex items-center gap-6">
+                            <div class="icon-box w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Student Bill</h4>
+                                <p class="text-[10px] text-slate-400 font-bold italic">Fees & Arrears settlement</p>
+                            </div>
+                            <input type="radio" name="payment_mode" value="student" id="radio-student" class="hidden" checked>
                         </div>
-                        <div class="bg-white rounded shadow-body">
-                            <div class="mb-">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="payment_mode" id="mode_student" value="student" checked>
-                                    <label class="form-check-label" for="mode_student">Student Payment</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="payment_mode" id="mode_general" value="general">
-                                    <label class="form-check-label" for="mode_general">General Payment (Not tied to student)</label>
-                                </div>
+                        <div onclick="setMode('general')" id="mode-general" class="mode-card bg-white p-6 rounded-[2rem] flex items-center gap-6">
+                            <div class="icon-box w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                                <i class="fas fa-vault"></i>
                             </div>
-                            
-                            <!-- Student Payment Section -->
-                            <div id="studentPaymentSection">
-                                <label for="student_id" class="block text-sm font-medium mb- fw-semibold">
-                                    <i class="fas fa-search mr-2"></i>Student
-                                </label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="student_id" name="student_id">
-                                    <option value="">Choose a student...</option>
-                                    <?php foreach($students as $student): ?>
-                                        <option value="<?php echo $student['id']; ?>" 
-                                                data-balance="<?php echo $student['outstanding_fees']; ?>"
-                                                data-class="<?php echo htmlspecialchars($student['class']); ?>"
-                                                <?php echo ($pre_student_id == $student['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?> 
-                                            (<?php echo htmlspecialchars($student['class']); ?>)
-                                            <?php if ($student['outstanding_fees'] > 0): ?>
-                                                - Owes: GHâ‚µ<?php echo number_format($student['outstanding_fees'] ?? 0, 2); ?>
-                                            <?php endif; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <!-- Student Balance Display (Redesigned) -->
-                                <div id="studentBalanceInfo" class="hidden animate-fade-in">
-                                    <div class="student-balance-bg-white rounded shadow p-3 mb-">
-                                        <h6 class="mb-">
-                                            <i class="fas fa-info-circle mr-2"></i>Student Fee Summary
-                                        </h6>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <div class="fw-bold text-primary" id="totalFees">GHâ‚µ0.00</div>
-                                                <small class="text-gray-600">Total Fees</small>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="fw-bold text-green-600" id="totalPaid">GHâ‚µ0.00</div>
-                                                <small class="text-gray-600">Total Payment</small>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="fw-bold text-red-600" id="outstandingAmount">GHâ‚µ0.00</div>
-                                                <small class="text-gray-600">Outstanding</small>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-12 text-center">
-                                                <span class="badge bg-warning text-dark fs-6" id="outstandingNotice">Outstanding Payment: GHâ‚µ<span id="outstandingNoticeValue">0.00</span></span>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-12 text-center">
-                                                <span class="fw-bold text-green-600" id="afterPaymentAmountLabel">After Payment: </span>
-                                                <span class="fw-bold" id="afterPaymentAmount">GHâ‚µ0.00</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Outstanding Fees -->
-                                <div id="outstandingFeesSection" class="hidden animate-fade-in">
-                                    <h6 class="mb-">
-                                        <i class="fas fa-list mr-2"></i>Outstanding Fees (Click to auto-fill amount)
-                                    </h6>
-                                    <div id="outstandingFeesList">
-                                        <!-- Populated by JavaScript -->
-                                    </div>
-                                </div>
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">General Entry</h4>
+                                <p class="text-[10px] text-slate-400 font-bold italic">Miscellaneous school income</p>
                             </div>
-                            
-                            <!-- General Payment Section -->
-                            <div id="generalPaymentSection" class="hidden">
-                                <div class="p-4 bg-blue-100 text-blue-700 rounded border border-blue-200">
-                                    <i class="fas fa-info-circle mr-2"></i>
-                                    <strong>General Payment:</strong> Use this for miscellaneous payments not tied to any student or specific fee category (e.g., donations, other income).
-                                </div>
-                                <label for="fee_id" class="block text-sm font-medium mb- fw-semibold">
-                                    <i class="fas fa-list mr-2"></i>Fee Category (Optional)
-                                </label>
-                                <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="fee_id" name="fee_id">
-                                    <option value="">None - General Payment</option>
-                                    <?php foreach($fee_options as $fee): ?>
-                                        <option value="<?php echo $fee['id']; ?>" <?php echo ($pre_fee_id == $fee['id']) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($fee['name']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small class="text-gray-600">You can optionally link this payment to a fee category for reporting purposes.</small>
-                            </div>
+                            <input type="radio" name="payment_mode" value="general" id="radio-general" class="hidden">
                         </div>
                     </div>
-                </div>
-                <!-- Payment Details -->
-                <div class="lg:col-span-6 mb-">
-                    <div class="bg-white rounded shadow border-0 shadow-lg">
-                        <div class="bg-white rounded shadow-header bg-gradient text-white">
-                            <h5 class="mb-">
-                                <i class="fas fa-money-bill-wave mr-2"></i>Payment Details
-                            </h5>
+
+                    <!-- Target Selection -->
+                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden h-fit">
+                        <div id="student-selector">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">01. Entity Verification</h3>
+                            <div class="relative">
+                                <select name="student_id" id="student_id" class="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 appearance-none text-sm">
+                                    <option value="">Search Student Repository...</option>
+                                    <?php while($s = $students_rs->fetch_assoc()): ?>
+                                        <option value="<?= $s['id'] ?>" <?= $s['id'] == $pre_student_id ? 'selected' : '' ?> data-class="<?= htmlspecialchars($s['class']) ?>">
+                                            <?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?> (<?= htmlspecialchars($s['class']) ?>)
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
                         </div>
-                        <div class="bg-white rounded shadow-body">
-                            <div class="flex flex-wrap">
-                                <div class="md:col-span-6 mb-">
-                                    <label for="semester" class="block text-sm font-medium mb- fw-semibold">
-                                        <i class="fas fa-calendar-alt mr-2"></i>Semester *
-                                    </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="semester" name="semester" required>
-                                        <?php foreach ($available_terms as $semester): ?>
-                                            <option value="<?php echo htmlspecialchars($semester); ?>" 
-                                                    <?php echo $semester === $selected_term ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($semester); ?>
-                                                <?php echo $semester === $current_term ? ' (Current)' : ''; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <small class="text-gray-600">Academic Year: <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $selected_academic_year)); ?></small>
+
+                        <div id="general-selector" class="hidden">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">01. Income Classification</h3>
+                            <select name="fee_id" class="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 appearance-none text-sm">
+                                <option value="">None - Direct General Payment</option>
+                                <?php foreach($fee_options as $f): ?>
+                                    <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Real-time Balance Matrix -->
+                        <div id="balance-matrix" class="mt-8 hidden animate-fade-in">
+                             <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50">
+                                    <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Due</p>
+                                    <p class="text-xl font-black text-indigo-900" id="matrix-total">₵0.00</p>
                                 </div>
-                                <div class="md:col-span-6 mb-">
-                                    <label for="amount" class="block text-sm font-medium mb- fw-semibold">
-                                        <i class="fas fa-dollar-sign mr-2"></i>Amount (GHâ‚µ) *
-                                    </label>
-                                    <input type="number" step="0.01" min="0.01" class="w-full px-3 py-2 border border-gray-300 rounded w-full px-3 py-2 border border-gray-300 rounded-lg" 
-                                           id="amount" name="amount" value="<?php echo $pre_amount > 0 ? number_format($pre_amount, 2, '.', '') : ''; ?>" required>
-                                    <!-- Quick Amount Suggestions -->
-                                    <div id="amountSuggestions" class="mt-2 hidden">
-                                        <small class="text-gray-600 block mb-">Quick amounts:</small>
-                                        <div class="flex flex-wrap gap-1" id="suggestionButtons">
-                                            <!-- Populated by JavaScript -->
-                                        </div>
+                                <div class="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100/50">
+                                    <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Settled</p>
+                                    <p class="text-xl font-black text-emerald-900" id="matrix-paid">₵0.00</p>
+                                </div>
+                                <div class="bg-rose-50/50 p-6 rounded-3xl border border-rose-100/50">
+                                    <p class="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Exposure</p>
+                                    <p class="text-xl font-black text-rose-900" id="matrix-exposure">₵0.00</p>
+                                </div>
+                             </div>
+
+                             <div class="mt-8 flex items-center justify-between p-4 bg-slate-900 rounded-2xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-emerald-400 text-xs">
+                                        <i class="fas fa-chart-line"></i>
                                     </div>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Projected Exposure Post-Payment</p>
                                 </div>
-                                <div class="md:col-span-6 mb-">
-                                    <label for="academic_year" class="block text-sm font-medium mb- fw-semibold">
-                                        <i class="fas fa-graduation-cap mr-2"></i>Academic Year *
-                                    </label>
-                                    <select class="border border-gray-300 rounded px-3 py-2 bg-white border border-gray-300 rounded px-3 py-2 bg-white-lg" id="academic_year" name="academic_year" required>
-                                        <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
-                                            <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($yr === $selected_academic_year) ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($label); ?>
-                                            </option>
+                                <p class="text-sm font-black text-emerald-400" id="matrix-projected">₵0.00</p>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Outstanding Tranches -->
+                    <div id="tranches-section" class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm hidden">
+                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">02. Pending Tranche Allocation</h3>
+                         <div id="tranches-list" class="space-y-3">
+                            <!-- Populated by JS -->
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Right: Fiscal Parameters -->
+                <div class="lg:col-span-12 xl:col-span-5 space-y-10">
+                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">03. Fiscal Attributes</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic">Remittance Value (GHS)</label>
+                                <div class="relative">
+                                    <input type="number" step="0.01" name="amount" id="amount-input" required class="w-full px-12 py-5 bg-slate-900 border border-slate-800 rounded-2xl font-black text-2xl text-emerald-400 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all leading-none">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 font-black text-emerald-900">₵</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester</label>
+                                    <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                        <?php foreach($available_terms as $t): ?>
+                                            <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <small class="text-gray-600">Used to scope this payment and for reports.</small>
                                 </div>
-                                <div class="md:col-span-6 mb-">
-                                    <label for="payment_date" class="block text-sm font-medium mb- fw-semibold">
-                                        <i class="fas fa-calendar mr-2"></i>Payment Date *
-                                    </label>
-                                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded w-full px-3 py-2 border border-gray-300 rounded-lg" id="payment_date" 
-                                           name="payment_date" value="<?php echo date('Y-m-d'); ?>" required>
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Maturity Year</label>
+                                    <select name="academic_year" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                        <?php foreach($year_options as $y): ?>
+                                            <option value="<?= htmlspecialchars($y) ?>" <?= $y === $selected_academic_year ? 'selected' : '' ?>><?= formatAcademicYearDisplay($conn, $y) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="mb-">
-                                <label for="receipt_no" class="block text-sm font-medium mb- fw-semibold">
-                                    <i class="fas fa-receipt mr-2"></i>Receipt Number
-                                </label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded" id="receipt_no" name="receipt_no" 
-                                       placeholder="Optional receipt number">
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Intake Date</label>
+                                    <input type="date" name="payment_date" value="<?= date('Y-m-d') ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Audit Token / Receipt No</label>
+                                    <input type="text" name="receipt_no" placeholder="Optional..." class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
                             </div>
-                            <div class="mb-">
-                                <label for="description" class="block text-sm font-medium mb- fw-semibold">
-                                    <i class="fas fa-comment mr-2"></i>Description/Notes
-                                </label>
-                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded" id="description" name="description" rows="3" 
-                                          placeholder="Optional payment notes or description"></textarea>
-                            </div>
-                            <!-- Submit Button -->
-                            <div class="d-grid">
-                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-lg" id="submitBtn">
-                                    <i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Record Payment
-                                </button>
+
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Remittance Narrative</label>
+                                <textarea name="description" rows="3" placeholder="Explain the purpose of this entry..." class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                             </div>
                         </div>
+
+                        <button type="submit" class="w-full mt-10 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-[0.25em] py-5 rounded-2xl shadow-xl shadow-emerald-900/10 transition-all active:scale-95 flex items-center justify-center gap-3">
+                            <i class="fas fa-shield-check text-base"></i> Sync to Repository
+                        </button>
                     </div>
                 </div>
             </div>
         </form>
-    </div>
 
-    <!-- Quick Actions -->
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mt-4 mb-">
-            <div class="px-3 py-2 rounded-group" role="group">
-                <a href="../dashboard.php" class="px-4 py-2 border border-gray-300 rounded">
-                    <i class="fas fa-home mr-2"></i>Dashboard
-                </a>
-                <a href="../reports/student_balances.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary">
-                    <i class="fas fa-balance-scale mr-2"></i>Student Balances
-                </a>
-                <a href="view_payments.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-success">
-                    <i class="fas fa-history mr-2"></i>Payment History
-                </a>
-            </div>
-        </div>
-    </div>
-        <script>
-        // Payment mode toggle logic - SIMPLIFIED
-        const modeStudent = document.getElementById('mode_student');
-        const modeGeneral = document.getElementById('mode_general');
-        const studentSection = document.getElementById('studentPaymentSection');
-        const generalSection = document.getElementById('generalPaymentSection');
-        const studentIdInput = document.getElementById('student_id');
-        const feeIdInput = document.getElementById('fee_id');
-        const paymentForm = document.getElementById('paymentForm');
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+            Institutional Remittance Node &middot; Salba Montessori &middot; v9.5.0
+        </footer>
+    </main>
 
-        function togglePaymentMode() {
-            if (modeStudent.checked) {
-                studentSection.style.display = 'block';
-                generalSection.style.display = 'none';
-            } else {
-                studentSection.style.display = 'none';
-                generalSection.style.display = 'block';
-            }
-        }
-        
-        modeStudent.addEventListener('change', togglePaymentMode);
-        modeGeneral.addEventListener('change', togglePaymentMode);
-        togglePaymentMode(); // Initialize on page load
+    <script>
+        let currentMode = 'student';
+        let studentBalance = 0;
 
-        // Custom form validation
-        paymentForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default submission
-            
-            let isValid = true;
-            let errorMessage = '';
-            
-            // Check payment mode and validate accordingly
-            const paymentMode = modeStudent.checked ? 'student' : 'general';
-            
-            if (paymentMode === 'student') {
-                const studentId = studentIdInput.value;
-                if (!studentId || studentId === '') {
-                    isValid = false;
-                    errorMessage = 'Please select a student';
-                    studentIdInput.classList.add('is-invalid');
-                } else {
-                    studentIdInput.classList.remove('is-invalid');
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('mode-' + mode).classList.add('active');
+            document.getElementById('radio-' + mode).checked = true;
+
+            const studentWrap = document.getElementById('student-selector');
+            const generalWrap = document.getElementById('general-selector');
+            const balanceMatrix = document.getElementById('balance-matrix');
+            const tranches = document.getElementById('tranches-section');
+
+            if (mode === 'student') {
+                studentWrap.classList.remove('hidden');
+                generalWrap.classList.add('hidden');
+                if (document.getElementById('student_id').value) {
+                    balanceMatrix.classList.remove('hidden');
+                    tranches.classList.remove('hidden');
                 }
             } else {
-                // General payment doesn't require fee_id - it's optional
-                feeIdInput.classList.remove('is-invalid');
+                studentWrap.classList.add('hidden');
+                generalWrap.classList.remove('hidden');
+                balanceMatrix.classList.add('hidden');
+                tranches.classList.add('hidden');
             }
-            
-            // Validate amount
-            const amountInput = document.getElementById('amount');
-            const amount = parseFloat(amountInput.value);
-            if (!amountInput.value || isNaN(amount) || amount <= 0) {
-                isValid = false;
-                errorMessage = errorMessage || 'Please enter a valid payment amount';
-                amountInput.classList.add('is-invalid');
+        }
+
+        document.getElementById('student_id').addEventListener('change', function() {
+            const sid = this.value;
+            if (sid) {
+                fetch(`../../includes/get_student_balance_ajax.php?student_id=${sid}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        updateMatrix(data);
+                    });
             } else {
-                amountInput.classList.remove('is-invalid');
+                document.getElementById('balance-matrix').classList.add('hidden');
+                document.getElementById('tranches-section').classList.add('hidden');
             }
-            
-            // Validate semester
-            const termInput = document.getElementById('semester');
-            if (!termInput.value) {
-                isValid = false;
-                errorMessage = errorMessage || 'Please select a semester';
-                termInput.classList.add('is-invalid');
-            } else {
-                termInput.classList.remove('is-invalid');
-            }
-            
-            // Validate payment date
-            const dateInput = document.getElementById('payment_date');
-            if (!dateInput.value) {
-                isValid = false;
-                errorMessage = errorMessage || 'Please select a payment date';
-                dateInput.classList.add('is-invalid');
-            } else {
-                dateInput.classList.remove('is-invalid');
-            }
-            
-            if (!isValid) {
-                alert(errorMessage);
-                return false;
-            }
-            
-            // If valid, submit the form
-            this.submit();
         });
 
-        // Student payment JS (existing logic)
-        let selectedStudentId = <?php echo $pre_student_id; ?>;
-        let studentBalances = {};
-        let outstandingFees = {};
-        <?php if ($pre_student_id > 0 && $selected_student): ?>
-            selectedStudentId = <?php echo $pre_student_id; ?>;
-            studentBalances[<?php echo $pre_student_id; ?>] = {
-                outstanding_fees: <?php echo $selected_student['outstanding_fees']; ?>,
-                total_payments: <?php echo $selected_student['total_payments']; ?>,
-                net_balance: <?php echo $selected_student['net_balance']; ?>
-            };
-            outstandingFees[<?php echo $pre_student_id; ?>] = <?php echo json_encode($outstanding_fees); ?>;
-            updateStudentInfo(<?php echo $pre_student_id; ?>);
-        <?php endif; ?>
-        
-        if (studentIdInput) {
-            studentIdInput.addEventListener('change', function() {
-                const studentId = this.value;
-                if (studentId) {
-                    selectedStudentId = studentId;
-                    loadStudentBalance(studentId);
-                } else {
-                    hideStudentInfo();
-                }
-            });
-        }
-        
-        document.getElementById('amount').addEventListener('input', function() {
-            updateAfterPaymentAmount();
-        });
-        function loadStudentBalance(studentId) {
-            if (studentBalances[studentId]) {
-                updateStudentInfo(studentId);
-                return;
-            }
-            fetch(`../../includes/get_student_balance_ajax.php?student_id=${studentId}`)
-                .then(response => response.json())
-                .then(data => {
-                    studentBalances[studentId] = data.balance;
-                    outstandingFees[studentId] = data.fees;
-                    updateStudentInfo(studentId);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    const option = document.querySelector(`option[value="${studentId}"]`);
-                    if (option) {
-                        const balance = parseFloat(option.dataset.balance) || 0;
-                        studentBalances[studentId] = {
-                            outstanding_fees: balance,
-                            total_payments: 0,
-                            net_balance: balance
-                        };
-                        outstandingFees[studentId] = [];
-                        updateStudentInfo(studentId);
-                    }
-                });
-        }
-        function updateStudentInfo(studentId) {
-            const balance = studentBalances[studentId];
-            const fees = outstandingFees[studentId];
-            if (!balance) return;
-            document.getElementById('totalFees').textContent = `GHâ‚µ${(balance.total_fees).toFixed(2)}`;
-            document.getElementById('totalPaid').textContent = `GHâ‚µ${balance.total_payments.toFixed(2)}`;
-            document.getElementById('outstandingAmount').textContent = `GHâ‚µ${balance.outstanding_fees.toFixed(2)}`;
-            document.getElementById('outstandingNoticeValue').textContent = balance.outstanding_fees.toFixed(2);
-            document.getElementById('studentBalanceInfo').classList.remove('hidden');
-            if (balance.outstanding_fees > 0) {
-                document.getElementById('outstandingNotice').style.display = '';
-            } else {
-                document.getElementById('outstandingNotice').style.display = 'none';
-            }
-            const feesList = document.getElementById('outstandingFeesList');
-            feesList.innerHTML = '';
-            if (fees && fees.length > 0) {
-                fees.forEach(fee => {
-                    const feebg-white rounded shadow = document.createElement('div');
-                    feebg-white rounded shadow.className = 'bg-white rounded shadow outstanding-fee-bg-white rounded shadow mb-';
-                    feebg-white rounded shadow.innerHTML = `
-                        <div class="bg-white rounded shadow-body p-3">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h6 class="mb-">${fee.fee_name}</h6>
-                                    <small class="text-gray-600">Due: ${formatDate(fee.due_date)}</small>
-                                </div>
-                                <div class="text-right">
-                                    <div class="fw-bold">GHâ‚µ${parseFloat(fee.amount).toFixed(2)}</div>
-                                    <span class="badge ${getStatusBadgeClass(fee.payment_status)}">${fee.payment_status}</span>
-                                </div>
+        function updateMatrix(data) {
+            studentBalance = data.balance.outstanding_fees;
+            document.getElementById('matrix-total').textContent = '₵' + data.balance.total_fees.toFixed(2);
+            document.getElementById('matrix-paid').textContent = '₵' + data.balance.total_payments.toFixed(2);
+            document.getElementById('matrix-exposure').textContent = '₵' + studentBalance.toFixed(2);
+            document.getElementById('balance-matrix').classList.remove('hidden');
+
+            const list = document.getElementById('tranches-list');
+            list.innerHTML = '';
+            if (data.fees && data.fees.length > 0) {
+                data.fees.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'fee-item bg-white p-4 rounded-2xl flex items-center justify-between group';
+                    row.onclick = () => {
+                        document.getElementById('amount-input').value = parseFloat(f.amount).toFixed(2);
+                        document.querySelectorAll('.fee-item').forEach(i => i.classList.remove('selected'));
+                        row.classList.add('selected');
+                        calcProjected();
+                    };
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-800 uppercase leading-none mb-1">${f.fee_name}</p>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">${f.due_date}</p>
                             </div>
                         </div>
+                        <p class="text-xs font-black text-slate-900 leading-none">₵${parseFloat(f.amount).toFixed(2)}</p>
                     `;
-                    feebg-white rounded shadow.addEventListener('click', function() {
-                        document.querySelectorAll('.outstanding-fee-bg-white rounded shadow').forEach(bg-white rounded shadow => 
-                            bg-white rounded shadow.classList.remove('selected'));
-                        this.classList.add('selected');
-                        document.getElementById('amount').value = parseFloat(fee.amount).toFixed(2);
-                        updateAfterPaymentAmount();
-                        const description = document.getElementById('description');
-                        if (!description.value) {
-                            description.value = `Payment for ${fee.fee_name}`;
-                        }
-                    });
-                    feesList.appendChild(feebg-white rounded shadow);
+                    list.appendChild(row);
                 });
-                document.getElementById('outstandingFeesSection').classList.remove('hidden');
-                createAmountSuggestions(fees, balance.outstanding_fees);
+                document.getElementById('tranches-section').classList.remove('hidden');
             } else {
-                document.getElementById('outstandingFeesSection').classList.add('hidden');
-                if (balance.outstanding_fees > 0) {
-                    createAmountSuggestions([], balance.outstanding_fees);
-                } else {
-                    document.getElementById('amountSuggestions').classList.add('hidden');
-                }
+                document.getElementById('tranches-section').classList.add('hidden');
             }
-            updateAfterPaymentAmount();
+            calcProjected();
         }
-        function createAmountSuggestions(fees, totalOutstanding) {
-            const suggestionsmax-w-7xl mx-auto = document.getElementById('suggestionButtons');
-            const amountSuggestions = document.getElementById('amountSuggestions');
-            suggestionsmax-w-7xl mx-auto.innerHTML = '';
-            if (fees.length > 0) {
-                const uniqueAmounts = [...new Set(fees.map(fee => parseFloat(fee.amount)))].sort((a, b) => a - b);
-                uniqueAmounts.forEach(amount => {
-                    const px-3 py-2 rounded = document.createElement('button');
-                    px-3 py-2 rounded.type = 'button';
-                    px-3 py-2 rounded.className = 'px-3 py-2 rounded px-3 py-2 rounded-outline-primary px-3 py-2 rounded-sm amount-suggestion';
-                    px-3 py-2 rounded.textContent = `GHâ‚µ${amount.toFixed(2)}`;
-                    px-3 py-2 rounded.addEventListener('click', function() {
-                        document.getElementById('amount').value = amount.toFixed(2);
-                        updateAfterPaymentAmount();
-                    });
-                    suggestionsmax-w-7xl mx-auto.appendChild(px-3 py-2 rounded);
-                });
-            }
-            if (totalOutstanding > 0) {
-                const px-3 py-2 rounded = document.createElement('button');
-                px-3 py-2 rounded.type = 'button';
-                px-3 py-2 rounded.className = 'px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 px-3 py-2 rounded-sm amount-suggestion';
-                px-3 py-2 rounded.textContent = `Pay All (GHâ‚µ${totalOutstanding.toFixed(2)})`;
-                px-3 py-2 rounded.addEventListener('click', function() {
-                    document.getElementById('amount').value = totalOutstanding.toFixed(2);
-                    updateAfterPaymentAmount();
-                });
-                suggestionsmax-w-7xl mx-auto.appendChild(px-3 py-2 rounded);
-            }
-            if (totalOutstanding > 0) {
-                amountSuggestions.classList.remove('hidden');
-            }
+
+        document.getElementById('amount-input').addEventListener('input', calcProjected);
+
+        function calcProjected() {
+            const paid = parseFloat(document.getElementById('amount-input').value) || 0;
+            const projected = Math.max(0, studentBalance - paid);
+            document.getElementById('matrix-projected').textContent = '₵' + projected.toFixed(2);
         }
-        function updateAfterPaymentAmount() {
-            if (!selectedStudentId || !studentBalances[selectedStudentId]) return;
-            const paymentAmount = parseFloat(document.getElementById('amount').value) || 0;
-            const currentBalance = studentBalances[selectedStudentId].outstanding_fees;
-            const afterPayment = Math.max(0, currentBalance - paymentAmount);
-            document.getElementById('afterPaymentAmount').textContent = `GHâ‚µ${afterPayment.toFixed(2)}`;
-            const afterPaymentElement = document.getElementById('afterPaymentAmount');
-            if (afterPayment === 0) {
-                afterPaymentElement.className = 'fw-bold text-green-600';
-            } else if (afterPayment < currentBalance) {
-                afterPaymentElement.className = 'fw-bold text-yellow-600';
-            } else {
-                afterPaymentElement.className = 'fw-bold text-red-600';
-            }
-        }
-        function hideStudentInfo() {
-            document.getElementById('studentBalanceInfo').classList.add('hidden');
-            document.getElementById('outstandingFeesSection').classList.add('hidden');
-            document.getElementById('amountSuggestions').classList.add('hidden');
-            selectedStudentId = null;
-        }
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', { 
-                day: 'numeric', 
-                month: 'short', 
-                year: 'numeric' 
-            });
-        }
-        function getStatusBadgeClass(status) {
-            switch(status) {
-                case 'Overdue': return 'bg-danger';
-                case 'Due Soon': return 'bg-warning';
-                default: return 'bg-secondary';
-            }
-        }
+
+        <?php if ($pre_student_id): ?>
+            setMode('student');
+            document.getElementById('student_id').dispatchEvent(new Event('change'));
+            <?php if ($pre_amount): ?>
+                document.getElementById('amount-input').value = "<?= number_format($pre_amount, 2, '.', '') ?>";
+            <?php endif; ?>
+        <?php endif; ?>
     </script>
 </body>
 </html>

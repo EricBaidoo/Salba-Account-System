@@ -1,7 +1,7 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
-include '../../includes/budget_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
+include '../../../includes/budget_functions.php';
 
 if (!is_logged_in()) {
     header('Location: login.php');

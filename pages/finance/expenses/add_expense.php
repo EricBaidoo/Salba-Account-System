@@ -1,12 +1,12 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../pages/login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
 
-include '../../includes/system_settings.php';
+include '../../../includes/system_settings.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category_id = intval($_POST['category_id']);

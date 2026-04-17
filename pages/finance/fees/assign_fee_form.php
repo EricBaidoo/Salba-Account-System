@@ -1,962 +1,387 @@
-<?php include '../../includes/auth_check.php';
-include '../../includes/db_connect.php';
-include '../../includes/system_settings.php';
+<?php 
+include '../../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
 
-// Get current semester and academic year from system settings
+// Get semester and year
 $current_term = getCurrentSemester($conn);
 $academic_year = getAcademicYear($conn);
 $available_terms = getAvailableSemesters($conn);
 
-// Build Academic Year options: distinct values from data + current system year
+// Build Academic Year options
 $year_options = [];
 $yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
 if ($yrs_rs) {
     while ($yr = $yrs_rs->fetch_assoc()) {
-        if (!empty($yr['academic_year'])) {
-            $year_options[] = $yr['academic_year'];
-        }
+        if (!empty($yr['academic_year'])) $year_options[] = $yr['academic_year'];
     }
-    $yrs_rs->close();
 }
-if (!in_array($academic_year, $year_options, true)) {
-    array_unshift($year_options, $academic_year);
+if (!in_array($academic_year, $year_options, true)) array_unshift($year_options, $academic_year);
+
+// Fetch students
+$students_rs = $conn->query("SELECT id, first_name, last_name, class FROM students WHERE status='active' ORDER BY class, first_name, last_name");
+$structured_students = [];
+while($s = $students_rs->fetch_assoc()) {
+    $structured_students[$s['class']][] = $s;
 }
 
-// Fetch students with their classes
-$students = $conn->query("SELECT id, first_name, last_name, class FROM students ORDER BY class, first_name, last_name");
+// Fetch fees
+$fees_query = "SELECT f.id, f.name, f.amount, f.fee_type, f.description FROM fees f ORDER BY f.name";
+$fees_rs = $conn->query($fees_query);
+$fees = [];
+while($f = $fees_rs->fetch_assoc()) $fees[] = $f;
 
-// Fetch fees with their types and amounts
-$fees_query = "
-    SELECT f.id, f.name, f.amount, f.fee_type, f.description,
-           GROUP_CONCAT(
-               CASE 
-                   WHEN fa.class_name IS NOT NULL THEN CONCAT(fa.class_name, ':GHâ‚µ', FORMAT(fa.amount, 2))
-                   WHEN fa.category IS NOT NULL THEN CONCAT(
-                       CASE fa.category 
-                           WHEN 'early_years' THEN 'Early Years'
-                           WHEN 'primary' THEN 'Primary School'
-                       END, ':GHâ‚µ', FORMAT(fa.amount, 2)
-                   )
-               END
-               ORDER BY fa.amount
-               SEPARATOR ' | '
-           ) as amount_details
-    FROM fees f
-    LEFT JOIN fee_amounts fa ON f.id = fa.fee_id
-    GROUP BY f.id, f.name, f.amount, f.fee_type, f.description
-    ORDER BY f.name";
-$fees = $conn->query($fees_query);
-
-// Fetch all classes from the classes w-full border-collapse for dropdowns
-$classes_result = $conn->query("SELECT name FROM classes ORDER BY id ASC");
-$class_options = [];
-while ($row = $classes_result->fetch_assoc()) {
-    $class_options[] = $row['name'];
-}
+// Fetch classes
+$classes_rs = $conn->query("SELECT name FROM classes ORDER BY id ASC");
+$classes = [];
+while($c = $classes_rs->fetch_assoc()) $classes[] = $c['name'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fee Assignment - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Fee Assignment Center | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="stylesheet" href="../../../assets/css/style.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .mode-card { cursor: pointer; border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mode-card.active { border-color: #10b981; background-color: #f0fdf4; }
+        .mode-card.active i { color: #10b981; }
+        .item-card { cursor: pointer; border: 1px solid #f1f5f9; transition: all 0.2s; }
+        .item-card.active { border-color: #10b981; background-color: #f0fdf4; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1); }
+        .item-card.active .check-indicator { background: #10b981; color: white; opacity: 1; }
+        .check-indicator { opacity: 0; transition: opacity 0.2s; }
+        .sticky-summary { position: sticky; bottom: 2rem; z-index: 40; }
+    </style>
 </head>
-<body class="clean-page">
+<body class="text-slate-900 leading-relaxed">
+    <?php include '../../../includes/sidebar_admin.php'; ?>
 
-    <!-- Clean Page Header -->
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="view_fees.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Fees
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header -->
+        <header class="mb-12 flex justify-between items-end">
+            <div>
+                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    Fee Allocation Node
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Assignment <span class="text-emerald-600">Control Hub</span></h1>
+                <p class="text-slate-500 mt-2 font-medium italic">Execute bulk or individual fee assignments with institutional precision.</p>
+            </div>
+            <div class="flex gap-4">
+                <a href="view_assigned_fees.php" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
+                    <i class="fas fa-list mr-2"></i> Audit History
                 </a>
             </div>
-            <div class="text-center">
-                <h1 class="clean-page-title"><i class="fas fa-user-tag mr-2"></i>Fee Assignment Center</h1>
-                <p class="clean-page-subtitle">
-                    <span class="clean-badge clean-badge-primary mr-2">
-                        <i class="fas fa-calendar-alt mr-1"></i><?php echo htmlspecialchars($current_term); ?>
-                    </span>
-                    <span class="clean-badge clean-badge-info">
-                        <i class="fas fa-graduation-cap mr-1"></i><?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?>
-                    </span>
-                </p>
-                <div class="mt-3">
-                    <a href="view_assigned_fees.php" class="px-3 py-2 rounded-clean-outline mr-2">
-                        <i class="fas fa-list"></i> VIEW ASSIGNMENTS
-                    </a>
-                    <a href="../reports/student_balances.php" class="px-3 py-2 rounded-clean-success">
-                        <i class="fas fa-balance-scale"></i> STUDENT BALANCES
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="w-full px-4 py-4">
+        <form action="assign_fee.php" method="POST" id="assignForm">
+            <!-- Hidden Inputs -->
+            <input type="hidden" name="assignment_type" id="assignment_type_input" value="individual">
+            <input type="hidden" name="selectedStudentId" id="selectedStudentId">
+            <input type="hidden" name="selectedStudentIds" id="selectedStudentIds">
+            <input type="hidden" name="selectedFees" id="selectedFeesInput">
 
-        <!-- Assignment Type Selection -->
-        <div class="row justify-center mb-">
-            <div class="col-12">
-                <div class="clean-bg-white rounded shadow">
-                    <div class="clean-bg-white rounded shadow-header">
-                        <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-clipboard-list mr-2"></i>Assignment Type</h5>
-                        <p class="clean-bg-white rounded shadow-subtitle">Choose how you want to assign the fees</p>
+            <!-- Mode Selection -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div onclick="setMode('individual')" id="mode-individual" class="mode-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6 active">
+                    <div class="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <div class="clean-bg-white rounded shadow-body">
-                        <div class="flex flex-wrap gap-3">
-                            <div class="lg:col-span-4 md:col-span-6">
-                                <div class="assignment-type-bg-white rounded shadow clean-select-bg-white rounded shadow" data-type="individual">
-                                    <div class="text-center p-4">
-                                        <div class="clean-icon-circle clean-icon-primary mb-">
-                                            <i class="fas fa-user fa-lg"></i>
-                                        </div>
-                                        <h6 class="mb- fw-bold">Single Student</h6>
-                                        <p class="text-gray-600 mb- small">Assign fees to one specific student</p>
-                                        <div class="mt-3">
-                                            <span class="clean-badge clean-badge-primary">Individual</span>
-                                        </div>
+                    <div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Individual</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">Targeted single student</p>
+                    </div>
+                </div>
+                <div onclick="setMode('multi-student')" id="mode-multi-student" class="mode-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6">
+                    <div class="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                        <i class="fas fa-users-rectangle"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Multi-Select</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">Custom student selection</p>
+                    </div>
+                </div>
+                <div onclick="setMode('class')" id="mode-class" class="mode-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6">
+                    <div class="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                        <i class="fas fa-school"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Class Bulk</h4>
+                        <p class="text-[10px] text-slate-400 font-bold">All students in a level</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <!-- Left: Target Hub -->
+                <div class="lg:col-span-7 space-y-10">
+                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Select Billing Target</h3>
+                            <div id="target-search-wrap" class="relative w-64">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                                <input type="text" id="targetSearch" placeholder="Search entity..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <!-- Class Selection Dropdown (Only for Class Mode) -->
+                        <div id="class-mode-select" class="hidden mb-8 p-8 bg-emerald-50 rounded-3xl border border-emerald-100">
+                             <label class="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3 block">Target Academic Level</label>
+                             <select name="classSelect" id="classSelect" class="w-full px-6 py-4 bg-white border border-emerald-100 rounded-2xl font-black text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
+                                <option value="">Select Class...</option>
+                                <?php foreach($classes as $c): ?>
+                                    <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
+                                <?php endforeach; ?>
+                             </select>
+                        </div>
+
+                        <div id="student-grid" class="max-h-[500px] overflow-y-auto space-y-8 pr-2 custom-scrollbar">
+                             <?php foreach($structured_students as $class => $list): ?>
+                                <div class="student-group" data-group="<?= htmlspecialchars($class) ?>">
+                                    <h5 class="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] mb-4 flex items-center gap-2">
+                                        <?= htmlspecialchars($class) ?> <span class="h-px bg-slate-50 flex-1"></span>
+                                    </h5>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <?php foreach($list as $s): 
+                                            $fullname = $s['first_name'].' '.$s['last_name'];
+                                        ?>
+                                            <div onclick="toggleStudentSelection(<?= $s['id'] ?>, '<?= addslashes($fullname) ?>')" 
+                                                 id="student-<?= $s['id'] ?>" 
+                                                 class="item-card bg-white p-4 rounded-2xl flex items-center justify-between group"
+                                                 data-name="<?= strtolower($fullname) ?>">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 font-black text-xs group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                                                        <?= substr($s['first_name'], 0, 1) ?>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-[11px] font-black text-slate-800 uppercase leading-none mb-1"><?= htmlspecialchars($fullname) ?></p>
+                                                        <p class="text-[9px] font-bold text-slate-400">UID: SMS-<?= str_pad($s['id'], 3, '0', STR_PAD_LEFT) ?></p>
+                                                    </div>
+                                                </div>
+                                                <div class="check-indicator w-6 h-6 rounded-full flex items-center justify-center text-[10px]">
+                                                    <i class="fas fa-check"></i>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="lg:col-span-4 md:col-span-6">
-                                <div class="assignment-type-bg-white rounded shadow clean-select-bg-white rounded shadow" data-type="multi-student">
-                                    <div class="text-center p-4">
-                                        <div class="clean-icon-circle clean-icon-warning mb-">
-                                            <i class="fas fa-user-friends fa-lg"></i>
-                                        </div>
-                                        <h6 class="mb- fw-bold">Multiple Students</h6>
-                                        <p class="text-gray-600 mb- small">Select and assign fees to multiple students</p>
-                                        <div class="mt-3">
-                                            <span class="clean-badge clean-badge-warning">Multi-Select</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="lg:col-span-4 md:col-span-6">
-                                <div class="assignment-type-bg-white rounded shadow clean-select-bg-white rounded shadow" data-type="class">
-                                    <div class="text-center p-4">
-                                        <div class="clean-icon-circle clean-icon-success mb-">
-                                            <i class="fas fa-users fa-lg"></i>
-                                        </div>
-                                        <h6 class="mb- fw-bold">Entire Class</h6>
-                                        <p class="text-gray-600 mb- small">Assign fees to all students in a class</p>
-                                        <div class="mt-3">
-                                            <span class="clean-badge clean-badge-success">Bulk Assignment</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                             <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <form action="assign_fee.php" method="POST" id="assignFeeForm" onsubmit="return handleSubmit(event)">
-            <input type="hidden" name="assignment_type" id="assignmentType" value="individual">
-            <input type="hidden" name="selectedFeesInput" id="selectedFeesInput">
-            
-            
-            <div class="flex flex-wrap gap-4" id="assignmentContent">
-                <!-- Selection Panel -->
-                <div class="lg:col-span-6 mb-">
-                    <div class="clean-bg-white rounded shadow">
-                        <div class="clean-bg-white rounded shadow-header">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h5 class="clean-bg-white rounded shadow-title mb-" id="selectionTitle"><i class="fas fa-users mr-2"></i>Select Student</h5>
-                                    <span class="clean-badge clean-badge-primary" id="selectionBadge">Individual Mode</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="clean-bg-white rounded shadow-body">
-                            <!-- Individual Student Selection -->
-                            <div id="individualSelection">
-                                <div class="clean-search-box mb-">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" class="clean-search-input" id="studentSearch" placeholder="Search students by name or class...">
-                                </div>
-
-                            <!-- Students List -->
-                            <div class="student-list" class="max-h-96 overflow-auto">
-                                <?php 
-                                $students->data_seek(0); // Reset result pointer
-                                $current_class = '';
-                                while($student = $students->fetch_assoc()): 
-                                    if ($current_class !== $student['class']):
-                                        if ($current_class !== '') echo '</div>';
-                                        $current_class = $student['class'];
-                                        echo '<div class="clean-section-label mt-3 mb-"><i class="fas fa-layer-group mr-2"></i>' . htmlspecialchars($current_class) . '</div>';
-                                        echo '<div class="class-group">';
-                                    endif;
-                                ?>
-                                    <div class="clean-student-bg-white rounded shadow mb-" data-student-id="<?php echo $student['id']; ?>" data-student-class="<?php echo htmlspecialchars($student['class']); ?>" data-student-name="<?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?>">
-                                        <div class="clean-selection-checkbox hidden">
+                <!-- Right: Fee Selection -->
+                <div class="lg:col-span-5 space-y-10">
+                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Select Billing Entries</h3>
+                        <div class="space-y-3">
+                            <?php foreach($fees as $f): ?>
+                                <div onclick="toggleFeeSelection(<?= $f['id'] ?>, '<?= addslashes($f['name']) ?>')" 
+                                     id="fee-<?= $f['id'] ?>" 
+                                     class="item-card bg-white p-5 rounded-2xl flex items-center justify-between group transition-all">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 text-lg group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
+                                            <i class="fas fa-money-bill-transfer"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-[11px] font-black text-slate-900 uppercase leading-none mb-1"><?= htmlspecialchars($f['name']) ?></h4>
+                                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"><?= ucfirst(str_replace('_', ' ', $f['fee_type'])) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex items-center gap-4">
+                                        <?php if($f['fee_type']=='fixed'): ?>
+                                            <span class="text-xs font-black text-slate-900">₵<?= number_format($f['amount'], 2) ?></span>
+                                        <?php else: ?>
+                                            <span class="text-[9px] font-black text-amber-500 uppercase tracking-tighter bg-amber-50 px-2 py-1 rounded">Varies</span>
+                                        <?php endif; ?>
+                                        <div class="check-indicator w-6 h-6 rounded-full flex items-center justify-center text-[10px]">
                                             <i class="fas fa-check"></i>
                                         </div>
-                                        <div class="p-3">
-                                            <div class="flex justify-between items-center">
-                                                <div>
-                                                    <strong><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></strong>
-                                                </div>
-                                                <span class="clean-badge clean-badge-info"><?php echo htmlspecialchars($student['class']); ?></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endwhile; ?>
-                                <?php if ($current_class !== '') echo '</div>'; ?>
-                            </div>
-
-                                <input type="hidden" name="selectedStudentId" id="selectedStudentId">
-                                <input type="hidden" name="selectedStudentIds" id="selectedStudentIds">
-                                <div id="selectedStudentDisplay" class="clean-info-box clean-info-success hidden mt-3">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-user-check fa-2x mr-3"></i>
-                                        <div>
-                                            <div class="clean-info-label">Selected Student</div>
-                                            <div class="clean-info-value" id="selectedStudentName"></div>
-                                        </div>
                                     </div>
                                 </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
 
-                                <!-- Multi-Student Selection Display -->
-                                <div id="selectedStudentsDisplay" class="clean-info-box clean-info-warning hidden mt-3">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-user-friends fa-2x mr-3"></i>
-                                            <div>
-                                                <div class="clean-info-label">Selected Students</div>
-                                                <span class="clean-badge clean-badge-warning" id="studentCounter">0 Selected</span>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="px-3 py-2 rounded-clean-outline px-3 py-2 rounded-clean-sm" id="clearStudents">
-                                            <i class="fas fa-times mr-1"></i>Clear All
-                                        </button>
-                                    </div>
-                                    <div class="selected-students-list mt-3" id="selectedStudentsList">
-                                        <!-- Populated by JavaScript -->
-                                    </div>
-                                </div>
+                    <!-- Meta -->
+                    <div class="bg-indigo-900 rounded-[2.5rem] p-10 border border-indigo-800 text-white shadow-xl shadow-indigo-900/20">
+                         <h4 class="text-[10px] font-black text-indigo-300 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                             <i class="fas fa-calendar-alt"></i> Temporal Context
+                         </h4>
+                         <div class="space-y-6">
+                            <div>
+                                <label class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2 block">Maturity/Due Date</label>
+                                <input type="date" name="due_date" required class="w-full bg-indigo-950 border border-indigo-800 rounded-2xl px-5 py-4 text-xs font-bold outline-none focus:border-indigo-400 transition-all">
                             </div>
-                            
-                            <!-- Class Selection -->
-                            <div id="classSelection" class="hidden">
-                                <div class="mb-">
-                                    <label for="classSelect" class="clean-block text-sm font-medium mb-">
-                                        <i class="fas fa-layer-group mr-2"></i>Select Class
-                                    </label>
-                                    <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="classSelect" name="classSelect">
-                                        <option value="">Choose a class...</option>
-                                        <?php foreach ($class_options as $class_name): ?>
-                                            <?php if ($class_name === 'KG 1') { ?>
-                                                <option value="KG 1">KG 1</option>
-                                            <?php } elseif ($class_name === 'KG 2') { ?>
-                                                <option value="KG 2">KG 2</option>
-                                            <?php } else { ?>
-                                                <option value="<?php echo htmlspecialchars($class_name); ?>"><?php echo htmlspecialchars($class_name); ?></option>
-                                            <?php } ?>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2 block">Semester</label>
+                                    <select name="semester" class="w-full bg-indigo-950 border border-indigo-800 rounded-2xl px-5 py-4 text-xs font-bold outline-none focus:border-indigo-400 appearance-none">
+                                        <?php foreach($available_terms as $t): ?>
+                                            <option value="<?= htmlspecialchars($t) ?>" <?= $t === $current_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div id="selectedClassDisplay" class="clean-info-box clean-info-success hidden mt-3">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-users fa-2x mr-3"></i>
-                                        <div>
-                                            <div class="clean-info-label">Selected Class</div>
-                                            <div class="clean-info-value" id="selectedClassName"></div>
-                                            <small class="text-gray-600">
-                                                <i class="fas fa-info-circle mr-1"></i>
-                                                Fees will be assigned to <span class="fw-bold" id="studentCount">0</span> students
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fee Selection -->
-                <div class="lg:col-span-6 mb-">
-                    <div class="clean-bg-white rounded shadow">
-                        <div class="clean-bg-white rounded shadow-header">
-                            <div class="flex items-center justify-between">
                                 <div>
-                                    <h5 class="clean-bg-white rounded shadow-title mb-"><i class="fas fa-money-bill-wave mr-2"></i>Select Fees</h5>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="clean-badge clean-badge-info" id="feeCounter">0 Selected</span>
-                                    <button type="button" class="px-3 py-2 rounded-clean-outline px-3 py-2 rounded-clean-sm" id="clearFees">
-                                        <i class="fas fa-times mr-1"></i>Clear All
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="clean-bg-white rounded shadow-body">
-                        
-                        <!-- Multi-Select Instructions -->
-                        <div class="clean-alert clean-alert-info mb-">
-                            <i class="fas fa-info-circle"></i>
-                            <span><strong>Multi-Selection:</strong> Click on multiple fees to assign them together. Selected fees will be highlighted.</span>
-                        </div>
-                        
-                        <!-- Fee List -->
-                        <div class="fee-list" class="max-h-96 overflow-auto">
-                                <?php 
-                                $fees->data_seek(0); // Reset result pointer
-                                while($fee = $fees->fetch_assoc()): 
-                                ?>
-                                    <div class="clean-fee-bg-white rounded shadow mb-" data-fee-id="<?php echo $fee['id']; ?>" data-fee-type="<?php echo $fee['fee_type']; ?>" data-fee-name="<?php echo htmlspecialchars($fee['name']); ?>">
-                                        <div class="clean-selection-checkbox">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                        <div class="p-4">
-                                            <div class="flex justify-between items-start mb-">
-                                                <h6 class="mb-"><?php echo htmlspecialchars($fee['name']); ?></h6>
-                                                <span class="clean-badge clean-badge-secondary"><?php echo ucfirst(str_replace('_', ' ', $fee['fee_type'])); ?></span>
-                                            </div>
-                                            
-                                            <?php if ($fee['fee_type'] === 'fixed'): ?>
-                                                <div class="fee-amount-display">
-                                                    GHâ‚µ<?php echo number_format($fee['amount'], 2); ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="fee-amount-display">
-                                                    <small>Amount varies by <?php echo ($fee['fee_type'] === 'class_based') ? 'class' : 'category'; ?></small>
-                                                </div>
-                                                <?php if ($fee['amount_details']): ?>
-                                                    <small class="text-gray-600 block mt-1">
-                                                        <?php echo htmlspecialchars(str_replace(' | ', ', ', $fee['amount_details'])); ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            <?php endif; ?>
-
-                                            <?php if (!empty($fee['description'])): ?>
-                                                <small class="text-gray-600 block mt-2">
-                                                    <i class="fas fa-info-circle mr-1"></i>
-                                                    <?php echo htmlspecialchars($fee['description']); ?>
-                                                </small>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                <?php endwhile; ?>
-                            </div>
-
-                            <!-- Selected Fees Summary -->
-                            <div id="selectedFeesDisplay" class="hidden mt-4">
-                                <div class="clean-summary-box">
-                                    <h6 class="mb-">
-                                        <i class="fas fa-clipboard-check mr-2"></i>
-                                        Selected Fees Summary
-                                    </h6>
-                                    <div id="selectedFeesList" class="flex flex-wrap gap-2">
-                                        <!-- Populated by JavaScript -->
-                                    </div>
-                                    <div class="mt-3 p-3 bg-light rounded">
-                                        <div class="row text-center">
-                                            <div class="col-6">
-                                                <div class="clean-stat-value text-primary" id="totalFeesCount">0</div>
-                                                <small class="text-gray-600">Total Fees</small>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="clean-stat-value text-green-600" id="estimatedTotal">GHâ‚µ0.00</div>
-                                                <small class="text-gray-600">Estimated Total</small>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <label class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2 block">Year</label>
+                                    <select name="academic_year" class="w-full bg-indigo-950 border border-indigo-800 rounded-2xl px-5 py-4 text-xs font-bold outline-none focus:border-indigo-400 appearance-none">
+                                        <?php foreach($year_options as $y): ?>
+                                            <option value="<?= htmlspecialchars($y) ?>" <?= $y === $academic_year ? 'selected' : '' ?>><?= formatAcademicYearDisplay($conn, $y) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
+                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Assignment Details -->
-            <div class="row justify-center mt-4">
-                <div class="col-lg-10">
-                    <div class="clean-bg-white rounded shadow" id="assignmentDetails">
-                        <div class="clean-bg-white rounded shadow-header">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h5 class="clean-bg-white rounded shadow-title mb-"><i class="fas fa-calendar-alt mr-2"></i>Assignment Details</h5>
-                                </div>
-                                <span class="clean-badge clean-badge-primary" id="assignmentSummary">Complete form to assign fees</span>
-                            </div>
-                        </div>
-                        <div class="clean-bg-white rounded shadow-body">
-                            <div class="flex flex-wrap gap-3">
-                                <div class="md:col-span-6">
-                                    <label for="due_date" class="clean-block text-sm font-medium mb-">
-                                        <i class="fas fa-calendar mr-2"></i>Due Date *
-                                    </label>
-                                    <input type="date" class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="due_date" name="due_date" required>
-                                </div>
-                                <div class="md:col-span-6">
-                                    <label for="semester" class="clean-block text-sm font-medium mb-">
-                                        <i class="fas fa-calendar-week mr-2"></i>Academic Semester *
-                                    </label>
-                                    <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="semester" name="semester" required>
-                                        <option value="">Select Semester...</option>
-                                            <?php foreach ($available_terms as $semester): ?>
-                                                <option value="<?php echo htmlspecialchars($semester); ?>" 
-                                                    <?php echo $semester === $current_term ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($semester); ?>
-                                                    <?php echo $semester === $current_term ? ' (Current)' : ''; ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <small class="text-gray-600 block mt-1">
-                                            <i class="fas fa-info-circle mr-1"></i>Current: <?php echo htmlspecialchars($current_term); ?> | Year: <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?>
-                                        </small>
-                                    </div>
-                                    <div class="md:col-span-6">
-                                        <label for="academic_year" class="clean-block text-sm font-medium mb-">
-                                            <i class="fas fa-calendar-alt mr-2"></i>Academic Year *
-                                        </label>
-                                        <select class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="academic_year" name="academic_year" required>
-                                            <?php foreach ($year_options as $yr): $label = formatAcademicYearDisplay($conn, $yr); ?>
-                                                <option value="<?php echo htmlspecialchars($yr); ?>" <?php echo ($yr === $academic_year) ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($label); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <label for="notes" class="clean-block text-sm font-medium mb-">
-                                    <i class="fas fa-sticky-note mr-2"></i>Notes
-                                </label>
-                                <textarea class="clean-w-full px-3 py-2 border border-gray-300 rounded" id="notes" name="notes" rows="3" placeholder="Optional notes about this fee assignment"></textarea>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="mt-4">
-                                <div class="flex flex-col flex-md-row gap-3 justify-center items-center">
-                                    <button type="reset" class="px-3 py-2 rounded-clean-outline" onclick="resetForm()">
-                                        <i class="fas fa-undo mr-2"></i>Reset Form
-                                    </button>
-                                    <button type="submit" class="px-3 py-2 rounded-clean-success px-3 py-2 rounded-lg" id="submitBtn" disabled>
-                                        <i class="fas fa-check-circle mr-2"></i>
-                                        <span id="submitBtnText">Assign Selected Fees</span>
-                                    </button>
-                                </div>
-                                
-                                <!-- Form Status Indicator -->
-                                <div class="text-center mt-3">
-                                    <small class="text-gray-600" id="formStatus">
-                                        <i class="fas fa-info-circle mr-1"></i>
-                                        Complete all required fields to enable assignment
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Sticky Summary Anchor -->
+            <div class="sticky-summary mt-10">
+                 <div class="bg-slate-900 rounded-3xl p-6 flex flex-wrap items-center justify-between gap-6 shadow-2xl border border-slate-700">
+                    <div class="flex items-center gap-10">
+                         <div>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Impact Radius</p>
+                            <p class="text-base font-black text-white leading-none" id="summary-targets">0 Targets</p>
+                         </div>
+                         <div>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Billing Tranches</p>
+                            <p class="text-base font-black text-white leading-none" id="summary-fees">0 Entries</p>
+                         </div>
+                         <div>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Maturity Status</p>
+                            <p class="text-base font-black text-emerald-400 leading-none">Ready for Sync</p>
+                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="text-center mt-4 mb-">
-                <a href="view_assigned_fees.php" class="px-3 py-2 rounded-clean-outline mr-3">
-                    <i class="fas fa-eye mr-2"></i>View Assigned Fees
-                </a>
-                <a href="../dashboard.php" class="px-3 py-2 rounded-clean-secondary">
-                    <i class="fas fa-home mr-2"></i>Back to Dashboard
-                </a>
+                    <div class="flex gap-4">
+                        <button type="reset" class="px-8 py-4 bg-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:text-white transition-all">Flush Draft</button>
+                        <button type="submit" id="submitBtn" disabled class="px-10 py-4 bg-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl text-white shadow-xl shadow-emerald-900/20 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all">Execute Assignment</button>
+                    </div>
+                 </div>
             </div>
         </form>
-    </div>
 
-        <script>
-        let selectedStudent = null;
-        let selectedStudentId = null; // Consistent variable naming
-        let selectedStudents = new Set(); // Multi-student selection
-        let selectedFees = new Set(); // Multi-fee selection
-        let assignmentType = 'individual';
-        let selectedClass = null;
-        let feeData = {}; // Store fee information
-        
-        // Assignment type selection
-        document.querySelectorAll('.assignment-type-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-            bg-white rounded shadow.addEventListener('click', function() {
-                document.querySelectorAll('.assignment-type-bg-white rounded shadow').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                
-                assignmentType = this.dataset.type;
-                document.getElementById('assignmentType').value = assignmentType;
-                
-                if (assignmentType === 'individual') {
-                    document.getElementById('selectionTitle').innerHTML = '<i class="fas fa-users mr-2"></i>Select Student';
-                    document.getElementById('selectionBadge').textContent = 'Individual Mode';
-                    document.getElementById('selectionBadge').className = 'clean-badge clean-badge-primary';
-                    document.getElementById('individualSelection').classList.remove('hidden');
-                    document.getElementById('classSelection').classList.add('hidden');
-                    document.getElementById('submitBtnText').textContent = 'Assign to Student';
-                    // Hide checkboxes, show single selection
-                    document.querySelectorAll('.clean-student-bg-white rounded shadow .clean-selection-checkbox').forEach(cb => cb.classList.add('hidden'));
-                } else if (assignmentType === 'multi-student') {
-                    document.getElementById('selectionTitle').innerHTML = '<i class="fas fa-users mr-2"></i>Select Students';
-                    document.getElementById('selectionBadge').textContent = 'Multi-Student Mode';
-                    document.getElementById('selectionBadge').className = 'clean-badge clean-badge-warning';
-                    document.getElementById('individualSelection').classList.remove('hidden');
-                    document.getElementById('classSelection').classList.add('hidden');
-                    document.getElementById('submitBtnText').textContent = 'Assign to Selected Students';
-                    // Show checkboxes for multi-selection
-                    document.querySelectorAll('.clean-student-bg-white rounded shadow .clean-selection-checkbox').forEach(cb => cb.classList.remove('hidden'));
-                } else {
-                    document.getElementById('selectionTitle').innerHTML = '<i class="fas fa-layer-group mr-2"></i>Select Class';
-                    document.getElementById('selectionBadge').textContent = 'Class Mode';
-                    document.getElementById('selectionBadge').className = 'clean-badge clean-badge-success';
-                    document.getElementById('individualSelection').classList.add('hidden');
-                    document.getElementById('classSelection').classList.remove('hidden');
-                    document.getElementById('submitBtnText').textContent = 'Assign to Class';
-                    // Hide checkboxes
-                    document.querySelectorAll('.clean-student-bg-white rounded shadow .clean-selection-checkbox').forEach(cb => cb.classList.add('hidden'));
-                }
-                
-                resetSelections();
-                updateAssignmentSummary();
-                checkFormComplete();
-            });
-        });
-        
-        // Set default assignment type
-        document.querySelector('[data-type="individual"]').classList.add('selected');
-        
-        // Multi-fee selection
-        document.querySelectorAll('.clean-fee-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-            const feeId = bg-white rounded shadow.dataset.feeId;
-            const feeName = bg-white rounded shadow.dataset.feeName;
-            const feeType = bg-white rounded shadow.dataset.feeType;
-            
-            // Store fee data
-            feeData[feeId] = {
-                id: feeId,
-                name: feeName,
-                type: feeType
-            };
-            
-            bg-white rounded shadow.addEventListener('click', function() {
-                toggleFeeSelection(feeId);
-            });
-        });
-        
-        // Clear all fees button
-        document.getElementById('clearFees').addEventListener('click', function() {
-            clearAllFees();
-        });
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+            Institutional Asset Allocation Node &middot; Salba Montessori &middot; v9.5.0
+        </footer>
+    </main>
 
-        // Clear all students button
-        document.getElementById('clearStudents').addEventListener('click', function() {
-            clearAllStudents();
-        });
-        
-        function toggleFeeSelection(feeId) {
-            const bg-white rounded shadow = document.querySelector(`.clean-fee-bg-white rounded shadow[data-fee-id="${feeId}"]`);
-            
-            if (selectedFees.has(feeId)) {
-                // Remove fee
-                selectedFees.delete(feeId);
-                bg-white rounded shadow.classList.remove('selected');
-            } else {
-                // Add fee
-                selectedFees.add(feeId);
-                bg-white rounded shadow.classList.add('selected');
-            }
-            
-            updateFeeCounter();
-            updateSelectedFeesDisplay();
-            updateSelectedFeesInput();
-            checkFormComplete();
-        }
-        
-        function clearAllFees() {
-            selectedFees.clear();
-            document.querySelectorAll('.clean-fee-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-                bg-white rounded shadow.classList.remove('selected');
-            });
-            updateFeeCounter();
-            updateSelectedFeesDisplay();
-            updateSelectedFeesInput();
-            checkFormComplete();
-        }
-        
-        function updateFeeCounter() {
-            const count = selectedFees.size;
-            const counter = document.getElementById('feeCounter');
-            counter.textContent = `${count} Selected`;
-            
-            if (count === 0) {
-                counter.className = 'selection-counter';
-            } else if (count === 1) {
-                counter.className = 'selection-counter';
-                counter.style.background = 'linear-gradient(135deg, #17a2b8, #138496)';
-            } else {
-                counter.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-            }
-        }
-        
-        function updateSelectedFeesDisplay() {
-            const display = document.getElementById('selectedFeesDisplay');
-            const list = document.getElementById('selectedFeesList');
-            const totalCount = document.getElementById('totalFeesCount');
-            
-            if (selectedFees.size === 0) {
-                display.classList.add('hidden');
-                return;
-            }
-            
-            display.classList.remove('hidden');
-            list.innerHTML = '';
-            
-            selectedFees.forEach(feeId => {
-                const fee = feeData[feeId];
-                const feeItem = document.createElement('div');
-                feeItem.className = 'md:col-span-6 lg:col-span-4';
-                feeItem.innerHTML = `
-                    <div class="bg-white rounded shadow border-success bg-light">
-                        <div class="bg-white rounded shadow-body p-2">
-                            <div class="flex justify-between items-center">
-                                <small class="fw-bold">${fee.name}</small>
-                                <button type="button" class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-outline-danger" onclick="toggleFeeSelection('${feeId}')">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <small class="text-gray-600">${fee.type.replace('_', ' ').toUpperCase()}</small>
-                        </div>
-                    </div>
-                `;
-                list.appendChild(feeItem);
-            });
-            
-            totalCount.textContent = selectedFees.size;
-        }
-        
-        function updateSelectedFeesInput() {
-            const input = document.getElementById('selectedFeesInput');
-            input.value = Array.from(selectedFees).join(',');
-        }
+    <script>
+        let currentMode = 'individual';
+        let selectedFees = new Set();
+        let selectedStudents = new Set();
+        let selectedClass = '';
 
-        // Multi-student selection functions
-        function toggleStudentSelection(studentId) {
-            const studentbg-white rounded shadow = document.querySelector(`.clean-student-bg-white rounded shadow[data-student-id="${studentId}"]`);
-            
-            if (selectedStudents.has(studentId)) {
-                // Deselect student
-                selectedStudents.delete(studentId);
-                studentbg-white rounded shadow.classList.remove('selected');
-            } else {
-                // Select student
-                selectedStudents.add(studentId);
-                studentbg-white rounded shadow.classList.add('selected');
-            }
-            
-            updateStudentCounter();
-            updateSelectedStudentsDisplay();
-            updateSelectedStudentsInput();
-        }
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('mode-' + mode).classList.add('active');
+            document.getElementById('assignment_type_input').value = mode;
 
-        function clearAllStudents() {
+            // Reset Subsidiarity
             selectedStudents.clear();
-            document.querySelectorAll('.clean-student-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-                bg-white rounded shadow.classList.remove('selected');
-            });
-            updateStudentCounter();
-            updateSelectedStudentsDisplay();
-            updateSelectedStudentsInput();
-        }
-
-        function updateStudentCounter() {
-            const counter = document.getElementById('studentCounter');
-            const count = selectedStudents.size;
-            counter.textContent = `${count} Student${count !== 1 ? 's' : ''} Selected`;
-            
-            // Show/hide the display area
-            if (count > 0) {
-                document.getElementById('selectedStudentsDisplay').classList.remove('hidden');
-                document.getElementById('selectedStudentDisplay').classList.add('hidden');
-            } else {
-                document.getElementById('selectedStudentsDisplay').classList.add('hidden');
-            }
-        }
-
-        function updateSelectedStudentsDisplay() {
-            const max-w-7xl mx-auto = document.getElementById('selectedStudentsList');
-            max-w-7xl mx-auto.innerHTML = '';
-            
-            selectedStudents.forEach(studentId => {
-                const studentbg-white rounded shadow = document.querySelector(`.clean-student-bg-white rounded shadow[data-student-id="${studentId}"]`);
-                const studentName = studentbg-white rounded shadow.dataset.studentName;
-                const studentClass = studentbg-white rounded shadow.dataset.studentClass;
-                
-                const item = document.createElement('div');
-                item.className = 'selected-student-item';
-                item.innerHTML = `
-                    <div>
-                        <strong>${studentName}</strong>
-                        <small class="text-gray-600 block">${studentClass}</small>
-                    </div>
-                    <button type="button" class="px-3 py-2 rounded px-3 py-2 rounded-sm px-3 py-2 rounded-outline-danger" onclick="toggleStudentSelection('${studentId}')">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                max-w-7xl mx-auto.appendChild(item);
-            });
-        }
-
-        function updateSelectedStudentsInput() {
-            const input = document.getElementById('selectedStudentIds');
-            input.value = Array.from(selectedStudents).join(',');
-        }
-        
-        // Update fee amounts based on selected student's class
-        function updateFeeAmounts() {
-            // This function can be used to update fee displays based on student selection
-            // For now, fees are displayed with their base amounts or class-specific info
-            updateAssignmentSummary();
-        }
-
-        function updateAssignmentSummary() {
-            const summary = document.getElementById('assignmentSummary');
-            let studentCount = 0;
-            
-            if (assignmentType === 'individual') {
-                studentCount = selectedStudent ? 1 : 0;
-            } else if (assignmentType === 'multi-student') {
-                studentCount = selectedStudents.size;
-            } else if (assignmentType === 'class') {
-                studentCount = selectedClass ? parseInt(document.getElementById('studentCount')?.textContent) || 0 : 0;
-            }
-            
-            const feeCount = selectedFees.size;
-            
-            if (feeCount > 0 && studentCount > 0) {
-                const totalAssignments = studentCount * feeCount;
-                summary.textContent = `${totalAssignments} Assignment${totalAssignments !== 1 ? 's' : ''} Ready`;
-                summary.className = 'badge bg-success text-white';
-            } else if (feeCount > 0) {
-                summary.textContent = `${feeCount} Fee${feeCount !== 1 ? 's' : ''} Selected - Choose Target`;
-                summary.className = 'badge bg-info text-white';
-            } else if (studentCount > 0) {
-                summary.textContent = `${studentCount} Student${studentCount !== 1 ? 's' : ''} Selected - Choose Fees`;
-                summary.className = 'badge bg-warning text-dark';
-            } else {
-                summary.textContent = 'Select Target & Fees';
-                summary.className = 'badge bg-secondary text-white';
-            }
-            
-            // Ensure assignment details are visible
-            const assignmentDetails = document.getElementById('assignmentDetails');
-            if (assignmentDetails) {
-                assignmentDetails.style.display = 'block';
-            }
-        }
-        
-        // Class selection
-        document.getElementById('classSelect').addEventListener('change', function() {
-            const className = this.value;
-            if (className) {
-                selectedClass = className;
-                
-                // Get student count for this class
-                fetch(`../../includes/get_class_student_count.php?class=${encodeURIComponent(className)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('selectedClassName').textContent = className;
-                        document.getElementById('studentCount').textContent = data.count;
-                        document.getElementById('selectedClassDisplay').classList.remove('hidden');
-                        checkFormComplete();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        document.getElementById('selectedClassName').textContent = className;
-                        document.getElementById('studentCount').textContent = '0';
-                        document.getElementById('selectedClassDisplay').classList.remove('hidden');
-                        checkFormComplete();
-                    });
-            } else {
-                selectedClass = null;
-                document.getElementById('selectedClassDisplay').classList.add('hidden');
-                checkFormComplete();
-            }
-        });
-
-        // Student selection
-        document.querySelectorAll('.clean-student-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-            bg-white rounded shadow.addEventListener('click', function() {
-                if (assignmentType === 'individual') {
-                    // Single student selection with toggle
-                    const isAlreadySelected = this.classList.contains('selected');
-                    
-                    // Clear all selections first
-                    document.querySelectorAll('.clean-student-bg-white rounded shadow').forEach(c => c.classList.remove('selected'));
-                    
-                    if (!isAlreadySelected) {
-                        // Select this student if it wasn't already selected
-                        this.classList.add('selected');
-                        selectedStudent = {
-                            id: this.dataset.studentId,
-                            name: this.dataset.studentName,
-                            class: this.dataset.studentClass
-                        };
-                        selectedStudentId = selectedStudent.id;
-                        
-                        // Update form
-                        document.getElementById('selectedStudentId').value = selectedStudentId;
-                        document.getElementById('selectedStudentName').textContent = selectedStudent.name + ' (' + selectedStudent.class + ')';
-                        document.getElementById('selectedStudentDisplay').classList.remove('hidden');
-                    } else {
-                        // Deselect - clear the student
-                        selectedStudent = null;
-                        selectedStudentId = null;
-                        document.getElementById('selectedStudentId').value = '';
-                        document.getElementById('selectedStudentDisplay').classList.add('hidden');
-                    }
-                    
-                    document.getElementById('selectedStudentsDisplay').classList.add('hidden');
-                    
-                } else if (assignmentType === 'multi-student') {
-                    // Multi-student selection
-                    toggleStudentSelection(this.dataset.studentId);
-                }
-                
-                checkFormComplete();
-                updateAssignmentSummary();
-            });
-        });
-
-        // Student search
-        document.getElementById('studentSearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            document.querySelectorAll('.clean-student-bg-white rounded shadow').forEach(bg-white rounded shadow => {
-                const studentName = bg-white rounded shadow.dataset.studentName.toLowerCase();
-                const studentClass = bg-white rounded shadow.dataset.studentClass.toLowerCase();
-                
-                if (studentName.includes(searchTerm) || studentClass.includes(searchTerm)) {
-                    bg-white rounded shadow.style.display = 'block';
-                } else {
-                    bg-white rounded shadow.style.display = 'none';
-                }
-            });
-        });
-
-        function resetSelections() {
-            selectedStudent = null;
-            selectedStudentId = null;
-            selectedStudents.clear();
-            selectedFees.clear();
-            selectedClass = null;
-            
-            document.querySelectorAll('.clean-student-bg-white rounded shadow').forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('.clean-fee-bg-white rounded shadow').forEach(c => c.classList.remove('selected'));
-            document.getElementById('selectedStudentDisplay').classList.add('hidden');
-            document.getElementById('selectedStudentsDisplay').classList.add('hidden');
-            document.getElementById('selectedFeesDisplay').classList.add('hidden');
-            document.getElementById('selectedClassDisplay').classList.add('hidden');
+            selectedClass = '';
             document.getElementById('classSelect').value = '';
-            document.getElementById('selectedStudentId').value = '';
-            document.getElementById('selectedFeesInput').value = '';
-            
-            updateFeeCounter();
-            updateSelectedFeesDisplay();
+            document.querySelectorAll('.item-card').forEach(c => c.classList.remove('active'));
+
+            // Toggle visibility
+            const classSelectWrap = document.getElementById('class-mode-select');
+            const studentGrid = document.getElementById('student-grid');
+            const searchWrap = document.getElementById('target-search-wrap');
+
+            if (mode === 'class') {
+                classSelectWrap.classList.remove('hidden');
+                studentGrid.classList.add('hidden');
+                searchWrap.classList.add('hidden');
+            } else {
+                classSelectWrap.classList.add('hidden');
+                studentGrid.classList.remove('hidden');
+                searchWrap.classList.remove('hidden');
+            }
+            syncState();
         }
 
-        // Reset form
-        function resetForm() {
-            resetSelections();
-            document.getElementById('due_date').value = '';
-            document.getElementById('semester').value = '';
-            document.getElementById('notes').value = '';
-            updateAssignmentSummary();
-            checkFormComplete();
+        function toggleFeeSelection(id, name) {
+            const card = document.getElementById('fee-' + id);
+            if (selectedFees.has(id)) {
+                selectedFees.delete(id);
+                card.classList.remove('active');
+            } else {
+                selectedFees.add(id);
+                card.classList.add('active');
+            }
+            syncState();
         }
 
-        // Check if form is complete and can be submitted
-        function checkFormComplete() {
-            const currentAssignmentType = document.getElementById('assignmentType')?.value || assignmentType;
-            const hasStudent = currentAssignmentType === 'individual' && selectedStudentId;
-            const hasMultiStudents = currentAssignmentType === 'multi-student' && selectedStudents.size > 0;
-            const hasClass = currentAssignmentType === 'class' && document.getElementById('classSelect')?.value;
-            const hasFees = selectedFees.size > 0;
-            const hasDueDate = document.getElementById('due_date')?.value;
+        function toggleStudentSelection(id, name) {
+            const card = document.getElementById('student-' + id);
             
-            const isComplete = (hasStudent || hasMultiStudents || hasClass) && hasFees && hasDueDate;
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const floatingBtn = document.getElementById('floatingSubmitBtn');
-            const floatingCounter = document.getElementById('floatingCounter');
-            const formStatus = document.getElementById('formStatus');
-            const assignmentSummary = document.getElementById('assignmentSummary');
-            
-            // Update main submit button
-            if (submitBtn) {
-                submitBtn.disabled = !isComplete;
-                submitBtn.classList.toggle('px-3 py-2 rounded-success', isComplete);
-                submitBtn.classList.toggle('px-3 py-2 rounded-secondary', !isComplete);
-                
-                if (isComplete) {
-                    submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i><span>Assign ' + selectedFees.size + ' Fee(s) Now</span>';
-                    formStatus.innerHTML = '<i class="fas fa-check-circle mr-1 text-green-600"></i><span class="text-green-600">Ready to assign fees!</span>';
-                    assignmentSummary.textContent = 'Ready to Assign ' + selectedFees.size + ' Fee(s)';
-                    assignmentSummary.className = 'clean-badge clean-badge-success';
+            if (currentMode === 'individual') {
+                selectedStudents.clear();
+                document.querySelectorAll('.student-group .item-card').forEach(c => c.classList.remove('active'));
+                selectedStudents.add(id);
+                card.classList.add('active');
+            } else if (currentMode === 'multi-student') {
+                if (selectedStudents.has(id)) {
+                    selectedStudents.delete(id);
+                    card.classList.remove('active');
                 } else {
-                    submitBtn.innerHTML = '<i class="fas fa-times-circle mr-2"></i><span>Complete Form First</span>';
-                    formStatus.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Complete all required fields to enable assignment';
-                    assignmentSummary.textContent = 'Incomplete Form';
-                    assignmentSummary.className = 'clean-badge clean-badge-secondary';
+                    selectedStudents.add(id);
+                    card.classList.add('active');
                 }
             }
-            
-            return isComplete;
+            syncState();
         }
 
-        // Handle form submission
-        function handleSubmit(event) {
-            if (!checkFormComplete()) {
-                event.preventDefault();
-                alert('Please complete all required fields and select at least one fee.');
-                return false;
-            }
+        document.getElementById('classSelect').addEventListener('change', function() {
+            selectedClass = this.value;
+            syncState();
+        });
+
+        function syncState() {
+            // Update counts
+            const feeCount = selectedFees.size;
+            let targetCount = 0;
             
-            // Show loading state
-            const submitBtn = event.target.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Assigning Fees...';
-                submitBtn.disabled = true;
+            if (currentMode === 'class') {
+                targetCount = selectedClass ? 1 : 0;
+                document.getElementById('summary-targets').textContent = selectedClass ? selectedClass : '0 Targets';
+            } else {
+                targetCount = selectedStudents.size;
+                document.getElementById('summary-targets').textContent = targetCount + ' Targets';
             }
-            
-            return true;
+
+            document.getElementById('summary-fees').textContent = feeCount + ' Entries';
+
+            // Inputs
+            document.getElementById('selectedFeesInput').value = Array.from(selectedFees).join(',');
+            document.getElementById('selectedStudentIds').value = Array.from(selectedStudents).join(',');
+            if (currentMode === 'individual') {
+                document.getElementById('selectedStudentId').value = Array.from(selectedStudents)[0] || '';
+            }
+
+            // Button status
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = !(feeCount > 0 && targetCount > 0);
         }
 
-        // Initialize form
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add event listeners
-            document.getElementById('due_date').addEventListener('change', checkFormComplete);
-            document.getElementById('semester').addEventListener('change', checkFormComplete);
-            document.getElementById('classSelect').addEventListener('change', function() {
-                updateAssignmentSummary();
-                checkFormComplete();
+        // Search logic
+        document.getElementById('targetSearch').addEventListener('input', function(e) {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.student-group').forEach(group => {
+                let hasMatch = false;
+                group.querySelectorAll('.item-card').forEach(card => {
+                    const match = card.dataset.name.includes(q);
+                    card.style.display = match ? 'flex' : 'none';
+                    if (match) hasMatch = true;
+                });
+                group.style.display = hasMatch ? 'block' : 'none';
             });
-            
-            // Set default due date (30 days from now)
-            const defaultDate = new Date();
-            defaultDate.setDate(defaultDate.getDate() + 30);
-            document.getElementById('due_date').value = defaultDate.toISOString().split('T')[0];
-            
-            // Initialize form display
-            const assignmentDetails = document.getElementById('assignmentDetails');
-            if (assignmentDetails) {
-                assignmentDetails.style.display = 'block';
-            }
-            
-            // Initial form checks
-            updateAssignmentSummary();
-            checkFormComplete();
         });
     </script>
 </body>

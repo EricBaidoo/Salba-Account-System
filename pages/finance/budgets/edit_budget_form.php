@@ -1,168 +1,149 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_functions.php';
-include '../../includes/system_settings.php';
-include '../../includes/budget_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/budget_functions.php';
 
 if (!is_logged_in()) {
     header('Location: login.php');
     exit;
 }
+require_finance_access();
 
-$id = $_GET['id'] ?? null;
-if (!$id) {
-    header('Location: budgets.php');
-    exit;
-}
+$id = intval($_GET['id'] ?? 0);
+if (!$id) { header('Location: budgets.php'); exit; }
 
 $budget = getBudgetById($conn, $id);
-if (!$budget) {
-    header('Location: budgets.php');
-    exit;
-}
+if (!$budget) { header('Location: budgets.php'); exit; }
 
-// Fetch expense categories
 $categories = $conn->query("SELECT id, name FROM expense_categories ORDER BY name ASC");
+$cat_list = [];
+while($c = $categories->fetch_assoc()) $cat_list[] = $c;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Budget - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Revise Fiscal Projection | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="stylesheet" href="../../../assets/css/style.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
 </head>
-<body class="clean-page">
+<body class="text-slate-900 leading-relaxed">
+    <?php include '../../../includes/sidebar_admin.php'; ?>
 
-    <!-- Clean Page Header -->
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="budgets.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Budgets
-                </a>
-            </div>
+    <main class="ml-72 p-10 min-h-screen">
+        <!-- Header -->
+        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-                <h1 class="clean-page-title"><i class="fas fa-edit mr-2"></i>Edit Budget</h1>
-                <p class="clean-page-subtitle">Update budget details for <?php echo htmlspecialchars($budget['category']); ?> - <?php echo htmlspecialchars($budget['semester']); ?></p>
+                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
+                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    Fiscal Node
+                </div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">Adjust <span class="text-indigo-600">Projection</span></h1>
+                <p class="text-slate-500 mt-2 font-medium">Calibrating institutional spending thresholds for <?= htmlspecialchars($budget['semester']) ?>.</p>
             </div>
-        </div>
-    </div>
+            <a href="budgets.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+                <i class="fas fa-arrow-left mr-2"></i> Return to Projections
+            </a>
+        </header>
 
-    <div class="w-full px-4 py-4">
-        <div class="flex flex-wrap justify-center">
-            <div class="lg:col-span-6">
-                <div class="clean-bg-white rounded shadow">
-                    <div class="clean-bg-white rounded shadow-header">
-                        <h5 class="clean-bg-white rounded shadow-title"><i class="fas fa-file-alt mr-2"></i>Budget Details</h5>
+        <div class="max-w-3xl">
+            <form action="process_budget.php" method="POST" onsubmit="return validateForm()" class="space-y-10">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($budget['id']) ?>">
+
+                <!-- Parameters Hub -->
+                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
+                        <i class="fas fa-calculator text-8xl text-indigo-600"></i>
                     </div>
-                    <div class="clean-bg-white rounded shadow-body">
-                        <form action="process_budget.php" method="POST" onsubmit="return validateForm()">
-                            <input type="hidden" name="action" value="update">
-                            <input type="hidden" name="id" value="<?php echo htmlspecialchars($budget['id']); ?>">
-                            
-                            <!-- Category Selection -->
-                            <div class="mb-">
-                                <label for="category" class="block text-sm font-medium mb- required">Budget Category</label>
-                                <select class="w-full px-3 py-2 border border-gray-300 rounded" id="category" name="category" required>
-                                    <option value="">-- Select Category --</option>
-                                    <?php 
-                                    $categories->data_seek(0);
-                                    while ($cat = $categories->fetch_assoc()): 
-                                    ?>
-                                        <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
-                                            <?php echo $cat['name'] === $budget['category'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($cat['name']); ?>
-                                        </option>
-                                    <?php endwhile; ?>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Allocation Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="space-y-8">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Fiscal Category</label>
+                                <select name="category" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 appearance-none transition-all">
+                                    <option value="">-- Classification --</option>
+                                    <?php foreach ($cat_list as $cat): ?>
+                                        <option value="<?= htmlspecialchars($cat['name']) ?>" <?= $cat['name'] === $budget['category'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
-
-                            <!-- Description -->
-                            <div class="mb-">
-                                <label for="description" class="block text-sm font-medium mb-">Description</label>
-                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded" id="description" name="description" rows="3"><?php echo htmlspecialchars($budget['description'] ?? ''); ?></textarea>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Projected Amount (GHS)</label>
+                                <input type="number" step="0.01" name="amount" id="amount" value="<?= htmlspecialchars($budget['amount']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                             </div>
-
-                            <!-- Budgeted Amount -->
-                            <div class="mb-">
-                                <label for="amount" class="block text-sm font-medium mb- required">Budgeted Amount (GHâ‚µ)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">GHâ‚µ</span>
-                                    <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded" id="amount" name="amount" 
-                                           value="<?php echo htmlspecialchars($budget['amount']); ?>" required>
+                        </div>
+                        <div class="space-y-8">
+                             <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Constraint Narrative / Notes</label>
+                                <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all leading-loose"><?= htmlspecialchars($budget['description'] ?? '') ?></textarea>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Risk Alert Threshold (%)</label>
+                                <div class="relative">
+                                    <input type="number" step="1" name="alert_threshold" id="alert_threshold" value="<?= htmlspecialchars($budget['alert_threshold'] ?? 80) ?>" min="0" max="100" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase">Percent</span>
                                 </div>
                             </div>
-
-                            <!-- Budget Period -->
-                            <div class="flex flex-wrap">
-                                <div class="md:col-span-6 mb-">
-                                    <label for="start_date" class="block text-sm font-medium mb- required">Start Date</label>
-                                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded" id="start_date" name="start_date" 
-                                           value="<?php echo htmlspecialchars($budget['start_date']); ?>" required>
-                                </div>
-                                <div class="md:col-span-6 mb-">
-                                    <label for="end_date" class="block text-sm font-medium mb- required">End Date</label>
-                                    <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded" id="end_date" name="end_date" 
-                                           value="<?php echo htmlspecialchars($budget['end_date']); ?>" required>
-                                </div>
-                            </div>
-
-                            <!-- Alert Threshold -->
-                            <div class="mb-">
-                                <label for="alert_threshold" class="block text-sm font-medium mb-">Alert Threshold (%)</label>
-                                <div class="input-group">
-                                    <input type="number" step="1" class="w-full px-3 py-2 border border-gray-300 rounded" id="alert_threshold" name="alert_threshold" 
-                                           value="<?php echo htmlspecialchars($budget['alert_threshold'] ?? 80); ?>" min="0" max="100">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                            </div>
-
-                            <!-- Form Actions -->
-                            <div class="flex gap-2 mt-4">
-                                <button type="submit" class="px-3 py-2 rounded-clean-primary flex-grow-1">
-                                    <i class="fas fa-save mr-2"></i>Update Budget
-                                </button>
-                                <a href="budgets.php" class="px-3 py-2 rounded-clean-outline flex-grow-1">
-                                    <i class="fas fa-times mr-2"></i>Cancel
-                                </a>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-        <script>
+                    <!-- Date Scope -->
+                    <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-slate-50">
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Activation Date</label>
+                            <input type="date" name="start_date" id="start_date" value="<?= htmlspecialchars($budget['start_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Termination Date</label>
+                            <input type="date" name="end_date" id="end_date" value="<?= htmlspecialchars($budget['end_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Action Bar -->
+                <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800 shadow-2xl flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex items-center gap-5">
+                        <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-600/20">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-[0.2em] text-indigo-400">Projection Sync Authorized</h4>
+                            <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional fiscal constraints.</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 leading-none h-fit">
+                        Sync Fiscal Node
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+            Salba Montessori &middot; Institutional Planning Hub &middot; v9.5.0
+        </footer>
+    </main>
+
+    <script>
         function validateForm() {
             const amount = parseFloat(document.getElementById('amount').value);
             const threshold = parseInt(document.getElementById('alert_threshold').value);
+            const sd = new Date(document.getElementById('start_date').value);
+            const ed = new Date(document.getElementById('end_date').value);
 
-            if (amount <= 0) {
-                alert('Budgeted amount must be greater than 0');
-                return false;
-            }
-
-            if (threshold < 0 || threshold > 100) {
-                alert('Alert threshold must be between 0 and 100');
-                return false;
-            }
-
-            const startDate = new Date(document.getElementById('start_date').value);
-            const endDate = new Date(document.getElementById('end_date').value);
-            
-            if (startDate >= endDate) {
-                alert('End date must be after start date');
-                return false;
-            }
-
+            if (amount <= 0) { alert('Institutional amount must exceed zero.'); return false; }
+            if (threshold < 0 || threshold > 100) { alert('Alert threshold constraint must be 0-100.'); return false; }
+            if (sd >= ed) { alert('Termination date must follow activation date.'); return false; }
             return true;
         }
     </script>
-
 </body>
 </html>
-

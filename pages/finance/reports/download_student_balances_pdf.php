@@ -1,12 +1,12 @@
 <?php 
-include '../../includes/auth_functions.php';
+include '../../../includes/auth_functions.php';
 if (!is_logged_in()) {
-    header('Location: ../pages/login.php');
+    header('Location: ../../../includes/login.php');
     exit;
 }
-include '../../includes/db_connect.php';
-include '../../includes/system_settings.php';
-include '../../includes/student_balance_functions.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/student_balance_functions.php';
 
 // Get current semester and academic year from system settings
 $current_term = getCurrentSemester($conn);

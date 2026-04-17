@@ -96,7 +96,10 @@ function getAllSettings($conn) {
  * @return array List of semesters
  */
 if (!function_exists('getAvailableSemesters')) {
-function getAvailableSemesters($conn) {
+function getAvailableSemesters($conn = null) {
+    if (!$conn) {
+        return ['First Semester', 'Second Semester', 'Third Semester'];
+    }
     $semesters = [];
     $res = $conn->query("SELECT semester_name FROM academic_semester_dictionary WHERE is_active = 1 ORDER BY display_order ASC");
     if($res) {
@@ -105,14 +108,6 @@ function getAvailableSemesters($conn) {
     // Fallback if dictionary empty
     if (empty($semesters)) return ['First Semester', 'Second Semester', 'Third Semester'];
     return $semesters;
-}
-}
-
-// Deprecated aliases removed - use canonical versions
-if (!function_exists('getAvailableSemesters')) {
-function getAvailableSemesters() { 
-    // This is hard to maintain without $conn, so we'll just return standard ones if no conn available
-    return ['First Semester', 'Second Semester', 'Third Semester'];
 }
 }
 

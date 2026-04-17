@@ -1,6 +1,6 @@
 <?php
-include '../../includes/db_connect.php';
-include '../../includes/auth_check.php';
+include '../../../includes/db_connect.php';
+include '../../../includes/auth_check.php';
 $fee_id = isset($_GET['fee_id']) ? intval($_GET['fee_id']) : 0;
 if (!$fee_id) { die('Invalid fee ID.'); }
 $fee = $conn->query("SELECT * FROM fees WHERE id = $fee_id")->fetch_assoc();
@@ -17,7 +17,7 @@ while ($row = $res->fetch_assoc()) {
 $classes = [];
 $class_res = $conn->query("SELECT name FROM classes ORDER BY id ASC");
 while ($row = $class_res->fetch_assoc()) { $classes[] = $row['name']; }
-include '../../includes/fee_categories.php';
+include '../../../includes/fee_categories.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
