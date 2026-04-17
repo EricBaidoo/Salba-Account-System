@@ -99,7 +99,7 @@ $active_tab = $_GET['tab'] ?? 'inbox';
                     <i class="fas fa-arrow-left"></i> Back to Communication
                 </a>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h1 class="clean-page-title"><i class="fas fa-message mr-2 text-blue-500"></i>Messages</h1>
                     <p class="clean-page-subtitle">Internal messaging between staff members</p>
@@ -187,7 +187,7 @@ $active_tab = $_GET['tab'] ?? 'inbox';
                         <?php echo strtoupper(substr($active_tab === 'inbox' ? $msg['sender'] : $msg['recipient'], 0, 1)); ?>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 gap-2">
                             <span class="text-sm font-semibold text-gray-800">
                                 <?php echo $active_tab === 'inbox'
                                     ? 'From: ' . htmlspecialchars($msg['sender'])

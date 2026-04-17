@@ -332,7 +332,7 @@ if(empty($classes_list)) {
                             <label class="block text-sm font-semibold text-gray-700">Target Classes <span class="text-red-500">*</span></label>
                             <button type="button" onclick="toggleAllClasses()" class="text-[10px] text-purple-600 font-bold uppercase hover:underline">Select/Deselect All</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-100" id="classes_container">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-100" id="classes_container">
                             <?php foreach ($classes_list as $cl): ?>
                                 <label class="flex items-center gap-2 p-1.5 hover:bg-white rounded cursor-pointer transition-colors border border-transparent hover:border-gray-100">
                                     <input type="checkbox" name="classes[]" value="<?php echo htmlspecialchars($cl); ?>" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500 class-checkbox">
@@ -344,7 +344,7 @@ if(empty($classes_list)) {
                     
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
                         <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-purple-50 hover:border-purple-200 transition-all group role-checkbox-container" data-role="class">
                                 <input type="checkbox" name="is_class_teacher" id="is_class_teacher" class="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                                 <div>

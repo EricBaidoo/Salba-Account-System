@@ -76,7 +76,7 @@ while ($row = $classes_result->fetch_assoc()) {
             <!-- Single Student Form -->
             <div id="singleSection" class="block">
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden max-w-3xl">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <h5 class="font-bold text-gray-800 flex items-center gap-2">
                             <i class="fas fa-user-edit text-blue-500"></i> New Student Details
                         </h5>
@@ -137,7 +137,7 @@ while ($row = $classes_result->fetch_assoc()) {
                             </div>
                         </div>
 
-                        <div class="pt-6 border-t border-gray-100 flex items-center justify-between">
+                        <div class="pt-6 border-t border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <p class="text-xs text-gray-500">
                                 <i class="fas fa-asterisk text-red-500 mr-1"></i> Required fields
                             </p>
@@ -177,7 +177,7 @@ while ($row = $classes_result->fetch_assoc()) {
                                 </div>
                                 
                                 <div id="fileInfo" class="mt-4 hidden animate-fade-in">
-                                    <div class="p-4 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between">
+                                    <div class="p-4 bg-green-50 border border-green-200 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
                                                 <i class="fas fa-file-csv text-xl"></i>

@@ -137,7 +137,7 @@ if ($classes_result) {
                         <?php foreach ($class_groups as $level => $classes): ?>
                             <div>
                                 <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4"><?= htmlspecialchars($level) ?> Stream</h5>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4">
                                     <?php foreach ($classes as $class): ?>
                                         <div class="relative">
                                             <input type="number" step="0.01" name="class_amounts[<?= htmlspecialchars($class) ?>]" placeholder="<?= htmlspecialchars($class) ?>" class="w-full px-10 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-black text-slate-700">
@@ -166,7 +166,7 @@ if ($classes_result) {
                 </div>
             </section>
 
-            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex items-center justify-between shadow-2xl shadow-slate-900/20">
+            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl shadow-slate-900/20">
                 <div class="flex items-center gap-6">
                     <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/20">
                         <i class="fas fa-check-double"></i>

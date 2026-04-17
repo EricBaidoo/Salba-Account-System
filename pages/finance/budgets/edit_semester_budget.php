@@ -88,7 +88,7 @@ if ($existing) {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <!-- Section: Revenue Nodes -->
                 <section class="space-y-10">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
                             <i class="fas fa-coins text-emerald-500"></i> Revenue Infrastructure
                         </h3>
@@ -127,7 +127,7 @@ if ($existing) {
 
                 <!-- Section: Expenditure Targets -->
                 <section class="space-y-10">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
                             <i class="fas fa-receipt text-rose-500"></i> Expenditure Matrix
                         </h3>
@@ -163,7 +163,7 @@ if ($existing) {
             </div>
 
             <!-- Sticky Intelligence Bar -->
-            <div class="fixed bottom-10 left-80 right-10 sticky-summary rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-900/40 z-40 flex items-center justify-between pointer-events-auto">
+            <div class="fixed bottom-10 left-80 right-10 sticky-summary rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-900/40 z-40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pointer-events-auto">
                 <div class="flex items-center gap-10">
                     <div>
                         <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Expected Revenue</p>

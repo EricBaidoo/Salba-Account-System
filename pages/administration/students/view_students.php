@@ -131,7 +131,7 @@ while ($row = $class_result->fetch_assoc()) {
             <?php endif; ?>
 
             <!-- Stats -->
-            <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 w-full">
                     <div class="text-2xl font-bold text-gray-900"><?php echo $total_students; ?></div>
                     <div class="text-xs font-semibold text-gray-400 uppercase mt-1">Total Active</div>

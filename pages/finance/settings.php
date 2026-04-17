@@ -205,7 +205,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                                     <span class="text-xs font-black text-slate-700 uppercase tracking-widest">Enable Late Payment Penalty</span>
                                 </label>
                                 
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Penalty %</label>
                                         <input type="number" name="late_fee_percentage" value="<?= $late_fee_percentage ?>" 
@@ -323,7 +323,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                     </div>
                 </div>
 
-                <div class="bg-emerald-900 rounded-2xl p-8 flex items-center justify-between shadow-xl shadow-emerald-900/10 border border-emerald-800">
+                <div class="bg-emerald-900 rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl shadow-emerald-900/10 border border-emerald-800">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white text-xl">
                             <i class="fas fa-shield-halved"></i>

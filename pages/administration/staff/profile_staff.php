@@ -141,7 +141,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[1400px] mx-auto print:ml-0 print:">
 
         <!-- Top Actions -->
-        <div class="flex items-center justify-between mb-8 print-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 print-hidden">
             <a href="view_staff.php" class="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-4 py-2 rounded-xl transition-colors">
                 <i class="fas fa-arrow-left"></i> Back to Directory
             </a>

@@ -105,7 +105,7 @@ $cat_result = $conn->query("SELECT id, name FROM expense_categories ORDER BY nam
             </section>
 
             <!-- Finalize -->
-            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex items-center justify-between shadow-2xl shadow-slate-900/20">
+            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl shadow-slate-900/20">
                 <div class="flex items-center gap-6">
                     <div class="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-rose-500/20">
                         <i class="fas fa-file-invoice-dollar"></i>

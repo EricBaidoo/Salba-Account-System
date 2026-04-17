@@ -329,7 +329,7 @@ if($dl_res) {
                                 </div>
                             </div>
                             
-                            <div class="flex items-center justify-between mt-4 bg-gray-50 p-3 rounded border border-gray-200">
+                            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mt-4 bg-gray-50 p-3 rounded border border-gray-200">
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="checkbox" name="is_exam" id="is_exam_chk" class="rounded border-gray-400 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer">
                                     <span class="text-xs font-bold text-gray-600 uppercase group-hover:text-red-600 transition">Flag as Exam</span>
@@ -392,7 +392,7 @@ if($dl_res) {
                             How should the 100-base rules defined above be mathematically extracted onto the Semesterinal Transcripts?
                         </p>
                         
-                        <div class="flex items-center justify-between gap-6">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 gap-6">
                             <div class="flex-1">
                                 <label class="block text-xs font-bold text-gray-300 uppercase mb-2 text-center">OA Pull</label>
                                 <div class="relative">

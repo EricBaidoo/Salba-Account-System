@@ -86,7 +86,7 @@ if ($r) {
                     <i class="fas fa-arrow-left"></i> Back to Communication
                 </a>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h1 class="clean-page-title"><i class="fas fa-bullhorn mr-2 text-orange-500"></i>Announcements</h1>
                     <p class="clean-page-subtitle">Post and manage school-wide announcements</p>

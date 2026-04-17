@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <?php if($diagnostic_data): ?>
                     <div class="bg-black/20 rounded-3xl p-6 border border-white/10 font-mono text-[10px]">
                         <p class="text-white/40 uppercase tracking-widest mb-3 font-black">institutional diagnostic log</p>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><span class="text-red-200">Detected:</span> <br> <?= $diagnostic_data['detected'] ?></div>
                             <div><span class="text-red-200">Target:</span> <br> <?= $diagnostic_data['target'] ?></div>
                             <div><span class="text-red-200">Distance:</span> <br> <?= $diagnostic_data['distance'] ?></div>

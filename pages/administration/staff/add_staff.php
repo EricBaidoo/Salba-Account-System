@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 
         <!-- Page Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
                 <a href="view_staff.php" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider flex items-center gap-1 mb-2">
                     <i class="fas fa-arrow-left"></i> Back to Staff Directory
@@ -452,7 +452,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <!-- Submit Bar -->
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center justify-between sticky bottom-4">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sticky bottom-4">
                 <p class="text-sm text-gray-400 font-medium">
                     <i class="fas fa-lock text-gray-300 mr-1"></i> System login access is granted <strong class="text-gray-600">separately</strong> after saving this profile.
                 </p>

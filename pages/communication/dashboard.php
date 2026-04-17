@@ -63,7 +63,7 @@ if ($r) $total_messages = $r->fetch_assoc()['c'] ?? 0;
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                 <div class="text-3xl font-bold text-orange-500"><?php echo $total_announcements; ?></div>
                 <div class="text-xs font-semibold text-gray-400 uppercase mt-1">Announcements</div>

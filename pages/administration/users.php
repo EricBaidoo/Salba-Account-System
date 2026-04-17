@@ -215,7 +215,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
 
         <!-- Content Area -->
         <div class="user-table-container overflow-hidden">
-            <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+            <div class="p-6 border-b border-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <h2 class="font-extrabold text-slate-800">Account Directory</h2>
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -300,7 +300,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 </table>
             </div>
             
-            <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex items-center justify-between">
+            <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing all registered system users</p>
                 <div class="flex gap-2">
                      <!-- Pagination would go here -->
@@ -316,7 +316,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <div id="createModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-blur" onclick="closeModal('createModal')"></div>
         <div class="bg-white w-full max-w-[480px] rounded-[32px] shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
-            <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-black text-slate-900 tracking-tight">New Credentials</h3>
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Grant Internal System Access</p>
@@ -330,7 +330,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 <input type="hidden" name="action" value="create">
                 
                 <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Username</label>
                             <input type="text" name="username" placeholder="e.g. JohnD" required class="form-input">
@@ -378,7 +378,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <div id="editModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-blur" onclick="closeModal('editModal')"></div>
         <div class="bg-white w-full max-w-[480px] rounded-[32px] shadow-2xl relative overflow-hidden">
-            <div class="p-8 border-b border-indigo-50 bg-indigo-50/30 flex items-center justify-between">
+            <div class="p-8 border-b border-indigo-50 bg-indigo-50/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-black text-indigo-900 tracking-tight">Security Override</h3>
                     <p class="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Manage Account Level: <span id="e_user_display" class="text-indigo-600 font-black"></span></p>
@@ -393,7 +393,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 <input type="hidden" name="user_id" id="edit_user_id">
                 
                 <div class="space-y-5">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Username</label>
                             <input type="text" name="username" id="edit_username" required class="form-input">

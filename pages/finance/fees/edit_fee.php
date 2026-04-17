@@ -162,7 +162,7 @@ include '../../../includes/fee_categories.php';
 
                     <div id="classAmountsDiv" class="fee-section hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                         <?php foreach($classes as $class): ?>
-                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex items-center justify-between group">
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
                                 <span class="text-xs font-black text-slate-500 uppercase tracking-widest"><?= $class ?></span>
                                 <div class="flex items-center gap-3">
                                     <span class="text-[10px] font-black text-slate-300">GHS</span>
@@ -174,7 +174,7 @@ include '../../../includes/fee_categories.php';
 
                     <div id="categoryAmountsDiv" class="fee-section hidden grid grid-cols-1 md:grid-cols-2 gap-6">
                         <?php foreach($fee_categories as $catId=>$catLabel): ?>
-                            <div class="bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100/50 flex items-center justify-between group">
+                            <div class="bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
                                 <span class="text-xs font-black text-indigo-600 uppercase tracking-widest"><?= htmlspecialchars($catLabel) ?></span>
                                 <div class="flex items-center gap-3">
                                     <span class="text-[10px] font-black text-indigo-300">GHS</span>

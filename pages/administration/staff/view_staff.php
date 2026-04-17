@@ -126,7 +126,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[1600px] mx-auto">
 
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
@@ -148,7 +148,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
         </div>
 
         <!-- Metric Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
             <div class="stat-card p-5 border-t-4 border-t-indigo-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>

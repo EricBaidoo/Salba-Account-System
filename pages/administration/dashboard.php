@@ -147,7 +147,7 @@ if ($sub_res) {
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             <i class="fas fa-user-graduate"></i> Students Overview
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                 <div class="text-3xl font-bold text-blue-600"><?php echo number_format($active_students); ?></div>
                 <div class="text-xs font-semibold text-gray-400 uppercase mt-1">Active Students</div>
@@ -189,7 +189,7 @@ if ($sub_res) {
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             <i class="fas fa-users"></i> Staff & System Users
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                 <div class="text-3xl font-bold text-gray-800"><?php echo $total_users; ?></div>
                 <div class="text-xs font-semibold text-gray-400 uppercase mt-1">Total Users</div>
@@ -242,7 +242,7 @@ if ($sub_res) {
                             </td>
                             
                             <td class="px-6 py-4">
-                                <div class="flex items-center justify-between text-xs mb-1">
+                                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs mb-1">
                                     <span class="font-medium text-gray-700"><?php echo $att_marked; ?> of <?php echo $att_total; ?> Present</span>
                                     <span class="font-bold <?php echo str_replace('bg-','text-',$att_color); ?>"><?php echo $att_pct; ?>%</span>
                                 </div>

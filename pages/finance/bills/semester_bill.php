@@ -180,7 +180,7 @@ foreach ($students as &$student) {
             </div>
 
             <!-- Student Snapshot -->
-            <div class="grid grid-cols-3 gap-8 mb-12 bg-slate-50 p-8 rounded-3xl border border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 bg-slate-50 p-8 rounded-3xl border border-slate-100">
                 <div>
                     <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Entity Description</h6>
                     <p class="text-sm font-black text-slate-900 uppercase leading-none mb-1"><?= htmlspecialchars($student['first_name'] . ' ' . $student['last_name']) ?></p>
@@ -233,7 +233,7 @@ foreach ($students as &$student) {
                 </tfoot>
             </table>
 
-            <div class="grid grid-cols-2 gap-12 mt-12 pb-12 border-b border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12 pb-12 border-b border-slate-100">
                  <!-- Payment Plan -->
                  <div>
                     <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">

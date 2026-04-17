@@ -79,7 +79,7 @@ $total_students = array_sum(array_column($classes_data, 'count'));
         <div class="p-8 max-w-7xl">
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-2">
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex items-center justify-between border-l-4 border-l-purple-500">
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-purple-500">
                     <div>
                         <div class="text-3xl font-bold text-gray-900 mb-1"><?= $total_classes ?></div>
                         <div class="text-xs uppercase font-bold text-gray-400 tracking-wider">Active Classes</div>
@@ -88,7 +88,7 @@ $total_students = array_sum(array_column($classes_data, 'count'));
                         <i class="fas fa-chalkboard"></i>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex items-center justify-between border-l-4 border-l-blue-500">
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-blue-500">
                     <div>
                         <div class="text-3xl font-bold text-gray-900 mb-1"><?= $total_students ?></div>
                         <div class="text-xs uppercase font-bold text-gray-400 tracking-wider">Total Enrolled Students</div>

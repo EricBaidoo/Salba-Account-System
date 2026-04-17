@@ -132,7 +132,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
 
                         <!-- Real-time Balance Matrix -->
                         <div id="balance-matrix" class="mt-8 hidden animate-fade-in">
-                             <div class="grid grid-cols-3 gap-4">
+                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50">
                                     <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Due</p>
                                     <p class="text-xl font-black text-indigo-900" id="matrix-total">₵0.00</p>
@@ -147,7 +147,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                                 </div>
                              </div>
 
-                             <div class="mt-8 flex items-center justify-between p-4 bg-slate-900 rounded-2xl">
+                             <div class="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-slate-900 rounded-2xl">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-emerald-400 text-xs">
                                         <i class="fas fa-chart-line"></i>
@@ -181,7 +181,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester</label>
                                     <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
@@ -200,7 +200,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Intake Date</label>
                                     <input type="date" name="payment_date" value="<?= date('Y-m-d') ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500">

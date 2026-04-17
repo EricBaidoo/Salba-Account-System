@@ -118,7 +118,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
             </div>
 
             <!-- Student Snapshot -->
-            <div class="grid grid-cols-2 gap-8 mb-12 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                 <div>
                     <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Remitter Details</h6>
                     <p class="text-sm font-black text-slate-900 leading-none mb-1"><?= htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']) ?></p>

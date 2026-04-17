@@ -65,21 +65,21 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
             <!-- Stats Summary -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                         <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pending Approvals</div>
                         <i class="fas fa-file-signature text-emerald-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $pending_plans ?></div>
                 </div>
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                         <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Classes</div>
                         <i class="fas fa-school text-blue-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $active_classes ?></div>
                 </div>
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                         <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</div>
                         <i class="fas fa-users-viewfinder text-purple-500 opacity-40"></i>
                     </div>

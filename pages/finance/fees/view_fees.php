@@ -192,7 +192,7 @@ $cy = getAcademicYear($conn);
                                 <div class="flex-1"></div>
                             <?php endif; ?>
 
-                            <div class="flex items-center justify-between border-t border-slate-100 pt-6 mt-auto">
+                            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-t border-slate-100 pt-6 mt-auto">
                                 <div class="flex gap-2">
                                     <a href="edit_fee.php?fee_id=<?= $row['id'] ?>" class="w-10 h-10 bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white rounded-xl flex items-center justify-center transition-all duration-300">
                                         <i class="fas fa-pen text-xs"></i>

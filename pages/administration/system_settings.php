@@ -410,7 +410,7 @@ for ($i = -2; $i <= 5; $i++) {
                                 <div class="text-center py-8 text-gray-600 italic text-xs">No school closures scheduled.</div>
                             <?php else: ?>
                                 <?php foreach($calendar_events as $ev): ?>
-                                    <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-800 group">
+                                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-3 bg-gray-800/50 rounded-lg border border-gray-800 group">
                                         <div class="flex items-center gap-4">
                                             <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex flex-col items-center justify-center border border-indigo-500/20">
                                                 <span class="text-[9px] font-black text-indigo-400 uppercase"><?= date('M', strtotime($ev['event_date'])) ?></span>

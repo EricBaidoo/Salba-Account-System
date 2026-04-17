@@ -90,7 +90,7 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
                         $i = 1;
                         while($row = $categories->fetch_assoc()): 
                     ?>
-                        <div class="taxonomy-card bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex items-center justify-between group">
+                        <div class="taxonomy-card bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
                             <div class="flex items-center gap-5">
                                 <div class="w-12 h-12 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center text-xs group-hover:bg-rose-50 group-hover:text-rose-400 transition-all">
                                     <i class="fas fa-folder-tree"></i>

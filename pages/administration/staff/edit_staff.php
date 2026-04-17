@@ -150,7 +150,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
                 <a href="profile_staff.php?id=<?= $id ?>" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider flex items-center gap-1 mb-2 w-fit">
                     <i class="fas fa-arrow-left"></i> Back to Profile
@@ -403,7 +403,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
             </div>
 
             <!-- Submit Bar -->
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center justify-between sticky bottom-4">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sticky bottom-4">
                 <p class="text-sm text-gray-400 font-medium"><i class="fas fa-info-circle text-gray-300 mr-1"></i> Changes are saved immediately to the HR database.</p>
                 <div class="flex gap-3">
                     <a href="profile_staff.php?id=<?= $id ?>" class="px-6 py-2.5 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition text-sm">Cancel</a>

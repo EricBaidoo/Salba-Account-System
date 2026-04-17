@@ -126,7 +126,7 @@ $reviewed_plans = $conn->query("
                                         </summary>
                                         <div class="px-4 pb-4 space-y-4">
                                             <!-- Logistics -->
-                                            <div class="grid grid-cols-2 gap-3 text-[11px]">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Week Ending</span> <?= date('d M, Y', strtotime($p['week_ending'] ?? '')) ?></div>
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Day</span> <?= htmlspecialchars($p['day_of_week'] ?? '-') ?></div>
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Duration</span> <?= htmlspecialchars($p['duration'] ?? '-') ?></div>

@@ -115,7 +115,7 @@ $arrears = max(0, $total_fees - $total_payments);
                                 <span class="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover/bar:opacity-100 transition-opacity">Nexus Confirmed</span>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest px-2">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[10px] font-black uppercase tracking-widest px-2">
                             <span class="text-indigo-600">Cleared Flow</span>
                             <span class="text-slate-300">Absolute Neutral</span>
                             <span class="text-rose-500">Arrears Liability</span>
@@ -159,7 +159,7 @@ $arrears = max(0, $total_fees - $total_payments);
                         <?php $payments = getStudentPaymentHistory($conn, $student_id); ?>
                         <?php if (!empty($payments)): ?>
                             <?php foreach ($payments as $p): ?>
-                                <div class="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-between hover:bg-slate-900 hover:text-white transition-all duration-300 group">
+                                <div class="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-900 hover:text-white transition-all duration-300 group">
                                     <div>
                                         <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 group-hover:text-indigo-300"><?= date('M j, Y', strtotime($p['payment_date'])) ?></p>
                                         <h5 class="text-sm font-black italic">₵<?= number_format($p['amount'], 2) ?></h5>

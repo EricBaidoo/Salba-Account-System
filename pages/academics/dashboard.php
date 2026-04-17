@@ -84,7 +84,7 @@ if ($at) {
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
             <?php
             $stats = [
                 ['value' => $total_students,    'label' => 'Active Students', 'color' => 'text-blue-600'],

@@ -140,7 +140,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                                 <input type="text" name="smtp_host" value="<?= htmlspecialchars($smtp_host) ?>" placeholder="smtp.gmail.com"
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Port</label>
                                     <input type="text" name="smtp_port" value="<?= htmlspecialchars($smtp_port) ?>" 
@@ -201,7 +201,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                     </div>
                 </div>
 
-                <div class="bg-indigo-950 rounded-2xl p-8 flex items-center justify-between shadow-2xl">
+                <div class="bg-indigo-950 rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl">
                     <div class="flex items-center gap-6">
                         <div class="w-14 h-14 bg-indigo-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-500/20">
                             <i class="fas fa-signal"></i>

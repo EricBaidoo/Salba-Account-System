@@ -63,7 +63,7 @@ if (isset($_GET['id'])) {
             <?php else: ?>
                 <div class="max-w-3xl">
                     <!-- Current Overview -->
-                    <div class="bg-white rounded-t-xl border border-gray-100 shadow-sm p-6 border-b-0 flex items-center justify-between">
+                    <div class="bg-white rounded-t-xl border border-gray-100 shadow-sm p-6 border-b-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-xl font-bold text-gray-900">
                                 <?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?>
@@ -155,7 +155,7 @@ if (isset($_GET['id'])) {
                                 </div>
                             </div>
 
-                            <div class="pt-6 border-t border-gray-100 flex items-center justify-between">
+                            <div class="pt-6 border-t border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                 <p class="text-xs text-gray-500">
                                     <i class="fas fa-asterisk text-red-500 mr-1"></i> Required fields
                                 </p>

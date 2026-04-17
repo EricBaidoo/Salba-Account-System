@@ -157,7 +157,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
 
                     <!-- Fee Selection Area -->
                     <div>
-                        <div class="flex items-center justify-between mb-6">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
                                 Available Fee Categories <span class="w-12 h-[1px] bg-slate-200"></span>
                             </h3>
