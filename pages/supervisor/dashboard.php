@@ -45,23 +45,23 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
 
     <main class="w-full">
         <!-- Profile Banner -->
-        <div class="bg-indigo-700 px-8 py-20 text-white relative overflow-hidden">
-            <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4"><i class="fas fa-eye text-[15rem]"></i></div>
-            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-10 relative z-10 text-center md:text-left">
-                <div class="w-40 h-40 rounded-[2.5rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-2xl">
+        <div class="bg-indigo-700 px-4 md:px-8 py-12 md:py-20 text-white relative overflow-hidden">
+            <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4"><i class="fas fa-eye text-[10rem] md:text-[15rem]"></i></div>
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10 text-center md:text-left">
+                <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl md:rounded-[2.5rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-2xl">
                     <?php if($photo): ?><img src="../../<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover">
-                    <?php else: ?><i class="fas fa-user-shield text-6xl"></i><?php endif; ?>
+                    <?php else: ?><i class="fas fa-user-shield text-4xl md:text-6xl"></i><?php endif; ?>
                 </div>
                 <div>
-                    <h1 class="text-6xl font-black tracking-tight leading-tight">Welcome Back, <?= htmlspecialchars($display_name) ?>!</h1>
+                    <h1 class="text-3xl md:text-6xl font-black tracking-tight leading-tight">Welcome Back, <br class="sm:hidden"><?= htmlspecialchars($display_name) ?>!</h1>
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                        <span class="bg-white/20 px-5 py-2 rounded-full text-sm font-bold tracking-widest backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
+                        <span class="bg-white/20 px-5 py-2 rounded-full text-[10px] md:text-sm font-bold tracking-widest backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto p-10 -mt-10">
+        <div class="max-w-6xl mx-auto p-4 md:p-10 -mt-6 md:-mt-10">
             <!-- Stats Summary -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">

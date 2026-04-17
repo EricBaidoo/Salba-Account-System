@@ -43,6 +43,7 @@ if (!function_exists('nav_active')) {
         font-family: 'Inter', sans-serif;
         scrollbar-width: thin;
         scrollbar-color: #1e293b transparent;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #sidebar-modern::-webkit-scrollbar {
@@ -127,12 +128,20 @@ if (!function_exists('nav_active')) {
         border-color: var(--sidebar-accent);
         background: #1e293b;
     }
+
+    /* Mobile Backdrop */
+    #sidebar-backdrop {
+        transition: opacity 0.3s ease;
+    }
 </style>
 
-<aside id="sidebar-modern" class="fixed left-0 top-0 bottom-0 w-72 bg-slate-950 z-50 flex flex-col border-r border-slate-900">
+<!-- Mobile Backdrop Overly -->
+<div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden opacity-0 lg:hidden" onclick="toggleSidebar()"></div>
 
-    <!-- Branding -->
-    <div class="px-6 py-8">
+<aside id="sidebar-modern" class="fixed left-0 top-0 bottom-0 w-72 bg-slate-950 z-50 flex flex-col border-r border-slate-900 transform -translate-x-full lg:translate-x-0">
+
+    <!-- Branding & Close Button -->
+    <div class="px-6 py-8 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 ring-4 ring-indigo-500/10">
                 <i class="fas fa-graduation-cap"></i>
@@ -142,6 +151,10 @@ if (!function_exists('nav_active')) {
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Management Hub</p>
             </div>
         </div>
+        <!-- Mobile Close -->
+        <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-white transition-colors">
+            <i class="fas fa-times text-xl"></i>
+        </button>
     </div>
 
     <!-- Scrollable Nav -->
@@ -247,8 +260,8 @@ if (!function_exists('nav_active')) {
                         <i class="fas fa-user-shield text-xs"></i>
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-[11px] font-black text-white truncate"><?= h($user_name) ?></p>
-                        <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest"><?= h($user_role) ?></p>
+                        <p class="text-[11px] font-black text-white truncate"><?= htmlspecialchars($user_name) ?></p>
+                        <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest"><?= htmlspecialchars($user_role) ?></p>
                     </div>
                 </div>
                 <a href="<?= $root_path ?>logout" class="w-7 h-7 rounded-lg hover:bg-rose-500/20 hover:text-rose-500 flex items-center justify-center text-slate-500 transition-colors" title="Secure Logout">
@@ -259,3 +272,22 @@ if (!function_exists('nav_active')) {
     </div>
 
 </aside>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar-modern');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    
+    if (sidebar.classList.contains('-translate-x-full')) {
+        // Open
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+    } else {
+        // Close
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.remove('opacity-100');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+    }
+}
+</script>

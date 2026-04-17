@@ -41,30 +41,30 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
 
     <main class="w-full">
         <!-- Profile Banner -->
-        <div class="bg-indigo-600 px-8 py-16 text-white relative overflow-hidden">
+        <div class="bg-indigo-600 px-4 md:px-8 py-10 md:py-16 text-white relative overflow-hidden">
             <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4">
-                <i class="fas fa-graduation-cap text-[15rem]"></i>
+                <i class="fas fa-graduation-cap text-[10rem] md:text-[15rem]"></i>
             </div>
-            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 relative z-10 text-center md:text-left">
-                <div class="w-32 h-32 rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-2xl">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10 text-center md:text-left">
+                <div class="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-2xl">
                     <?php if($photo): ?>
                         <img src="../../<?= htmlspecialchars($photo) ?>" class="w-full h-full object-cover">
                     <?php else: ?>
-                        <i class="fas fa-user-tie text-5xl"></i>
+                        <i class="fas fa-user-tie text-3xl md:text-5xl"></i>
                     <?php endif; ?>
                 </div>
                 <div>
-                    <h1 class="text-5xl font-black tracking-tight leading-tight">Welcome Back, <br class="md:hidden"><?= htmlspecialchars($display_name) ?>!</h1>
-                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
-                        <span class="bg-white/20 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
+                    <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">Welcome Back, <br class="sm:hidden"><?= htmlspecialchars($display_name) ?>!</h1>
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 mt-4">
+                        <span class="bg-white/20 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
                         <div class="h-6 w-px bg-white/20 hidden md:block"></div>
-                        <span class="text-indigo-100 font-medium flex items-center gap-2"><i class="fas fa-calendar-check opacity-60"></i> <?= $current_term ?> · <?= $current_year ?></span>
+                        <span class="text-indigo-100 text-[10px] md:text-sm font-medium flex items-center gap-2"><i class="fas fa-calendar-check opacity-60"></i> <?= $current_term ?> · <?= $current_year ?></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="max-w-6xl mx-auto p-8 -mt-8">
+        <div class="max-w-6xl mx-auto p-4 md:p-8 -mt-6 md:-mt-8">
             <!-- Stats Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">

@@ -34,14 +34,14 @@ if ($user_role === 'facilitator') {
 <body class="bg-gray-50">
     <?php include 'includes/sidebar.php'; ?>
 
-    <main class="ml-72 p-8">
-        <div class="max-w-5xl">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Welcome back, <?= h($_SESSION['username'] ?? 'User') ?>!</h1>
-            <p class="text-lg text-gray-600 mb-8"><?= h($school_name) ?> - Management System Dashboard</p>
+    <main class="lg:ml-72 p-4 md:p-8 min-h-screen">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Welcome back, <?= htmlspecialchars($_SESSION['username'] ?? 'User') ?>!</h1>
+            <p class="text-base md:text-lg text-gray-600 mb-8"><?= htmlspecialchars($school_name) ?> - System Dashboard</p>
 
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Modules</h2>
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6">Available Modules</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <?php if ($user_role === 'admin'): ?>
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow hover:border-blue-300">
                     <div class="flex items-center mb-4">

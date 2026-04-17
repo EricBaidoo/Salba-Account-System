@@ -127,7 +127,7 @@ if ($sub_res) {
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 p-8 min-h-screen">
+    <main class="lg:ml-72 p-4 md:p-8 min-h-screen">
 
         <!-- Page Header -->
         <div class="mb-8">

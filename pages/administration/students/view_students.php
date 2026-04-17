@@ -77,42 +77,42 @@ while ($row = $class_result->fetch_assoc()) {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="ml-72 min-h-screen">
+    <main class="lg:ml-72 p-0 md:p-0 min-h-screen">
         <!-- Header Section -->
-        <div class="bg-white border-b border-gray-100 px-8 py-6">
+        <div class="bg-white border-b border-gray-100 px-4 md:px-8 py-6">
             <div class="flex justify-between items-center mb-6">
                 <a href="../dashboard.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> <span class="hidden xs:inline">Back to Dashboard</span>
                 </a>
             </div>
-            <div class="flex justify-between items-end">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
                         <i class="fas fa-user-graduate text-blue-600"></i> Students Directory
                     </h1>
                     <p class="text-gray-500 mt-2 text-sm">
                         Manage and view all enrolled students.
                         <?php $ct = getCurrentSemester($conn); $cy = getAcademicYear($conn); ?>
-                        <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-md ml-3">
+                        <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-md mt-1 md:mt-0 md:ml-3">
                             <i class="fas fa-calendar-alt"></i> <?php echo htmlspecialchars($ct); ?>
                         </span>
-                        <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-md ml-1">
+                        <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-md mt-1 md:mt-0 md:ml-1">
                             <i class="fas fa-graduation-cap"></i> <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $cy)); ?>
                         </span>
                     </p>
                 </div>
-                <div class="flex gap-3">
-                    <button type="button" onclick="exportToCSV()" class="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium flex items-center gap-2">
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button type="button" onclick="exportToCSV()" class="flex-1 md:flex-none px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium flex items-center justify-center gap-2">
                         <i class="fas fa-download"></i> Export
                     </button>
-                    <a href="add_student_form.php" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-sm">
-                        <i class="fas fa-plus"></i> Add Student
+                    <a href="add_student_form.php" class="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fas fa-plus"></i> Add <span class="hidden sm:inline">Student</span>
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="p-8">
+        <div class="p-4 md:p-8">
             <!-- Messages -->
             <?php if (isset($_SESSION['success_message'])): ?>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-3 mb-6 shadow-sm">
