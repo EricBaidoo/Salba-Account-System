@@ -39,7 +39,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 w-full">
+    <main class="admin-main-content p-4 md:p-8 w-full min-h-screen">
         <!-- Profile Banner -->
         <div class="bg-indigo-600 px-4 md:px-8 py-10 md:py-16 text-white relative overflow-hidden">
             <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4">
@@ -104,7 +104,7 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Card: Gradebook -->
-                <a href="<?= BASE_URL ?>pages/teacher/grades" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-yellow-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/academics/grades" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-yellow-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-star text-8xl text-yellow-500"></i>
                     </div>

@@ -78,7 +78,7 @@ $reviewed_plans = $conn->query("
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen relative">
+    <main class="admin-main-content p-4 md:p-8 min-h-screen relative">
         <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
             <i class="fas fa-file-signature text-green-500"></i> Supervisor's Approvals
         </h1>
