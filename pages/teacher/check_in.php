@@ -9,7 +9,7 @@ if (!is_logged_in() || ($_SESSION['role'] !== 'facilitator' && $_SESSION['role']
     exit;
 }
 
-// Institutional Geofence Calibration (Pulled from System Settings)
+// Institutional Geography (Managed in Admin Settings)
 $school_lat = floatval(getSystemSetting($conn, 'attendance_lat', '5.5786875'));
 $school_lng = floatval(getSystemSetting($conn, 'attendance_lng', '-0.2911875'));
 $allowed_radius_meters = intval(getSystemSetting($conn, 'attendance_radius', '300'));
@@ -34,7 +34,7 @@ $already = $conn->query("SELECT id FROM staff_attendance WHERE user_id = $uid AN
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'geocheckin') {
     if ($already) {
-        redirect('check_in', 'error', "You have already clocked in for today.");
+        redirect('check_in', 'error', "You have already recorded your attendance for today.");
     } else {
         $u_lat = floatval($_POST['lat']);
         $u_lng = floatval($_POST['lng']);
@@ -48,31 +48,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ];
 
         if ($u_lat == 0 && $u_lng == 0) {
-            redirect('check_in', 'error', "Institutional Verification Failed: Could not acquire a valid geographic signature.");
+            redirect('check_in', 'error', "Campus Location Error: Please ensure location services are enabled on your device.");
         } else {
             $dist = getDistanceMeters($school_lat, $school_lng, $u_lat, $u_lng);
             $diag['distance'] = round($dist) . "m";
             $_SESSION['last_diagnostic'] = $diag;
 
             if ($dist <= $allowed_radius_meters || $_SESSION['role'] === 'admin') {
-                $notes = isset($_POST['bypass']) ? "Administrative Manual Override (Geofence Bypass)" : "";
+                $notes = isset($_POST['bypass']) ? "Supervisor Manual Attendance Record" : "";
                 $stmt = $conn->prepare("INSERT INTO staff_attendance (user_id, check_in_time, latitude, longitude, accuracy, notes) VALUES (?, NOW(), ?, ?, ?, ?)");
                 $stmt->bind_param("iddds", $uid, $u_lat, $u_lng, $u_acc, $notes);
                 if ($stmt->execute()) {
-                    $msg = isset($_POST['bypass']) ? "Administrative Presence Authenticated via Manual Override." : "Presence verified! Distance: " . round($dist) . "m";
+                    $msg = isset($_POST['bypass']) ? "Manual attendance record successfully authenticated." : "Campus presence verified. Welcome to school!";
                     
                     // AUDIT LOG
-                    log_activity($conn, 'Attendance', "Staff check-in verified. User: " . $_SESSION['username'] . " (Distance: " . round($dist) . "m, Accuracy: " . round($u_acc) . "m)", null, $diag);
+                    log_activity($conn, 'Attendance', "Staff check-in recorded. User: " . $_SESSION['username'] . " (Distance: " . round($dist) . "m)", null, $diag);
                     
                     redirect('check_in', 'success', $msg);
                 } else {
-                    redirect('check_in', 'error', "Database error logging institutional record.");
+                    redirect('check_in', 'error', "An error occurred while saving your attendance record.");
                 }
             } else {
                 // SECURITY AUDIT LOG for violation
                 log_activity($conn, 'Security Alert', "Geofence Violation: Staff attempted check-in from " . round($dist) . "m away.", null, $diag);
                 
-                redirect('check_in', 'error', "Geofence Boundary Violation: You are currently outside the authorized campus hub.");
+                redirect('check_in', 'error', "Location Verification Failed: You appear to be outside the campus boundaries.");
             }
         }
     }
@@ -83,160 +83,198 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personnel Verification | Institutional Hub</title>
+    <title>Staff Attendance Hub | Salba Montessori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
+        body {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            color: #f8fafc;
+        }
+        .security-card {
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .pulse-ring {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             position: relative;
+            overflow: hidden;
         }
-        .pulse-ring::before {
+        .security-card::before {
             content: '';
             position: absolute;
-            inset: -15px;
-            border: 2px solid currentColor;
-            border-radius: inherit;
-            opacity: 0;
-            animation: pulse-out 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #38bdf8, transparent);
         }
-        @keyframes pulse-out {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.3); opacity: 0; }
+        .identity-lens {
+            width: 120px;
+            height: 120px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto 2.5rem;
         }
-        .biometric-gradient {
-            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+        .identity-lens::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            border-radius: 50%;
+            animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
+        .hud-stat {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+        }
+        .hud-active { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
     </style>
 </head>
-<body class="bg-[#f1f5f9] text-slate-900 min-h-screen">
+<body class="min-h-screen font-sans overflow-x-hidden">
 
-    <?php include '../../includes/top_nav.php'; ?>
-
-    <main class="max-w-4xl mx-auto px-4 py-20">
-        <div class="flex flex-col items-center mb-16 text-center">
-            <span class="px-5 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-6 shadow-xl shadow-slate-900/10">
-                Institutional Hub Presence
-            </span>
-            <h1 class="text-5xl font-black tracking-tighter text-slate-900 leading-tight">Digital Identity <br><span class="text-indigo-600">Verification Center</span></h1>
+    <!-- Minimalist Security Header -->
+    <header class="w-full bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-6 md:px-12 py-5 fixed top-0 z-50 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="<?= BASE_URL ?>index" class="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </a>
+            <div class="hidden sm:block">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] block leading-none mb-1 text-left">Internal Navigation</span>
+                <span class="text-xs font-bold text-slate-300">Staff Portal Hub</span>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            
-            <!-- Left: Authentication Core -->
-            <div class="lg:col-span-7">
-                <div class="glass-panel p-12 rounded-[4rem] shadow-2xl relative overflow-hidden group">
-                    <div class="absolute inset-0 biometric-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    
-                    <div class="relative z-10 text-center">
-                        <div class="mb-12">
-                            <?php if($already): ?>
-                                <div class="w-40 h-40 bg-emerald-50 text-emerald-600 rounded-[3.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner border-8 border-white pulse-ring">
-                                    <i class="fas fa-check-double text-6xl"></i>
-                                </div>
-                                <h2 class="text-2xl font-black tracking-tight text-slate-900 mb-2">Presence Verified</h2>
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Your session is active for today</p>
-                            <?php else: ?>
-                                <div id="authVisual" class="w-40 h-40 bg-indigo-50 text-indigo-700 rounded-[3.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner border-8 border-white transition-all duration-700">
-                                    <i class="fas fa-fingerprint text-6xl"></i>
-                                </div>
-                                <h2 class="text-2xl font-black tracking-tight text-slate-900 mb-2">Awaiting Signature</h2>
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Synchronize your GPS heartbeat</p>
-                                
-                                <div class="mt-12">
-                                    <div id="unsupported-msg" class="hidden mb-6 p-6 bg-rose-50 text-rose-700 rounded-3xl border border-rose-100 text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                                        <i class="fas fa-shield-slash text-2xl mb-2"></i><br>
-                                        Encryption failure: Geolocation requires HTTPS access.
-                                    </div>
-
-                                    <form id="checkInForm" method="POST">
-                                        <input type="hidden" name="action" value="geocheckin">
-                                        <input type="hidden" name="lat" id="lat" value="0">
-                                        <input type="hidden" name="lng" id="lng" value="0">
-                                        <input type="hidden" name="accuracy" id="accuracy" value="0">
-                                        
-                                        <button type="button" onclick="initiateAuthentication()" id="authBtn" class="w-full bg-slate-900 text-white font-black text-xl py-6 rounded-[2.5rem] hover:bg-indigo-600 hover:scale-[1.02] active:scale-95 transition-all duration-500 shadow-2xl flex items-center justify-center gap-4">
-                                            <i class="fas fa-satellite-dish"></i> Start Authentication
-                                        </button>
-                                    </form>
-                                    
-                                    <div id="status-msg" class="mt-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] hidden">
-                                        <i class="fas fa-circle-notch fa-spin text-indigo-600 mr-2"></i> <span id="status-text">calibrating signal...</span>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+        <div class="flex items-center gap-4">
+            <a href="<?= BASE_URL ?>pages/common/profile.php" class="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group">
+                <div class="text-right hidden xs:block">
+                    <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Authenticated as</p>
+                    <p class="text-[11px] font-bold text-white leading-none"><?= htmlspecialchars($_SESSION['username']) ?></p>
                 </div>
-                
-                <p class="mt-10 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Institutional boundary: <?= $allowed_radius_meters ?> meters</p>
+                <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 border border-sky-500/20 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-user-shield text-sm"></i>
+                </div>
+            </a>
+            
+            <a href="<?= BASE_URL ?>logout" class="w-10 h-10 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg shadow-rose-900/10" title="Secure Logout">
+                <i class="fas fa-power-off text-sm"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="min-h-screen flex items-center justify-center p-6 pt-24">
+        
+        <div class="security-card p-12 md:p-14 rounded-[3rem]">
+            
+            <div class="mb-10 text-center">
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Institutional Management</p>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Personnel Presence Verification</h1>
             </div>
 
-            <!-- Right: Diagnostics & Map Link -->
-            <div class="lg:col-span-5 space-y-8">
-                
-                <?php if($diagnostic_data): ?>
-                    <div class="glass-panel p-8 rounded-[3rem] border-rose-200 border shadow-xl bg-rose-50/30">
-                        <div class="flex items-center gap-4 mb-6">
-                            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
-                                <i class="fas fa-triangle-exclamation"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black text-slate-900 uppercase tracking-tight leading-none">Access Refused</h3>
-                                <p class="text-[9px] text-rose-600 font-bold uppercase tracking-widest mt-1">Institutional Breach</p>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div class="p-4 bg-white/50 rounded-2xl border border-rose-100">
-                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Target vs Detected</p>
-                                <p class="text-[11px] font-bold text-slate-700"><?= $diagnostic_data['distance'] ?> offset from campus hub</p>
-                            </div>
-                            <div class="p-4 bg-white/50 rounded-2xl border border-rose-100">
-                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Signal Precision</p>
-                                <p class="text-[11px] font-bold text-slate-700">±<?= $diagnostic_data['accuracy'] ?> vertical drift</p>
-                            </div>
-                        </div>
-
-                        <?php if($_SESSION['role'] === 'admin'): ?>
-                            <div class="mt-8">
-                                <form method="POST">
-                                    <input type="hidden" name="action" value="geocheckin">
-                                    <input type="hidden" name="lat" value="<?= $school_lat ?>">
-                                    <input type="hidden" name="lng" value="<?= $school_lng ?>">
-                                    <input type="hidden" name="accuracy" value="0">
-                                    <input type="hidden" name="bypass" value="1">
-                                    <button type="submit" class="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl">
-                                        <i class="fas fa-key mr-2"></i> Administrative Bypass
-                                    </button>
-                                </form>
-                            </div>
-                        <?php endif; ?>
+            <div class="relative z-10 text-center">
+                <?php if($already): ?>
+                    <!-- Verification Successful -->
+                    <div class="identity-lens border-emerald-500/30 bg-emerald-500/10 mb-8">
+                        <i class="fas fa-check text-4xl text-emerald-400"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-white mb-2">Authentication Successful</h2>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-10">Attendance Logged: <?= date('H:i:s') ?><br>System integrity verified.</p>
+                    
+                    <div class="pt-8 border-t border-slate-700/50">
+                        <a href="<?= BASE_URL ?>index" class="text-sky-400 font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Return to Terminal</a>
                     </div>
                 <?php else: ?>
-                    <div class="glass-panel p-10 rounded-[3rem] shadow-sm">
-                        <div class="flex items-center gap-4 mb-8">
-                            <i class="fas fa-shield-halved text-emerald-500 text-2xl"></i>
-                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest leading-none">System integrity</h3>
+                    <!-- Awaiting Authentication -->
+                    <div class="identity-lens mb-10">
+                        <i class="fas fa-fingerprint text-5xl text-sky-400"></i>
+                    </div>
+                    
+                    <div class="space-y-1 mb-10">
+                        <h2 class="text-lg font-bold text-white">Security Check Ready</h2>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Authorized Perimeter: <?= $allowed_radius_meters ?>M</p>
+                    </div>
+
+                    <!-- Tactical HUD -->
+                    <div class="grid grid-cols-3 gap-2 mb-10 p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                        <div class="text-center">
+                            <p class="hud-stat mb-1">GPS</p>
+                            <p class="hud-stat hud-active">LOCK</p>
                         </div>
-                        <p class="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-wider">Verification parameters are centrally managed by institutional administration. Ensure you have enabled high-precision GPS on your terminal before authentication.</p>
+                        <div class="text-center border-x border-slate-700/50">
+                            <p class="hud-stat mb-1">SIGNAL</p>
+                            <p class="hud-stat hud-active">STABLE</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="hud-stat mb-1">ENC</p>
+                            <p class="hud-stat hud-active">AES</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-12">
+                        <form id="checkInForm" method="POST">
+                            <input type="hidden" name="action" value="geocheckin">
+                            <input type="hidden" name="lat" id="lat" value="0">
+                            <input type="hidden" name="lng" id="lng" value="0">
+                            <input type="hidden" name="accuracy" id="accuracy" value="0">
+                            
+                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-sky-500 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:bg-sky-400 transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] flex items-center justify-center gap-3">
+                                Authenticate & Verify
+                            </button>
+                        </form>
                         
-                        <div class="mt-10 p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Hub Status</span>
-                            </div>
-                            <p class="text-[10px] font-bold text-slate-400 leading-relaxed italic">Signal strength: verified<br>Clock drift: stabilized<br>Identity: secured</p>
+                        <div id="status-msg" class="mt-8 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] hidden">
+                            <i class="fas fa-satellite fa-spin mr-2 text-sky-400"></i> <span id="status-text">calibrating perimeter sensors...</span>
                         </div>
                     </div>
                 <?php endif; ?>
             </div>
         </div>
+
+        <!-- Diagnostic Feedback (Perimeter Variance) -->
+        <?php if($diagnostic_data): ?>
+            <div class="mt-8 bg-rose-500/5 p-8 rounded-[2rem] border border-rose-500/20">
+                <div class="flex items-center gap-4 mb-6 text-rose-400">
+                    <i class="fas fa-shield-halved text-xl"></i>
+                    <h3 class="text-[10px] font-black uppercase tracking-widest">Perimeter Breach Detected</h3>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Variance</p>
+                        <p class="text-xs font-bold text-white"><?= $diagnostic_data['distance'] ?></p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Confidence</p>
+                        <p class="text-xs font-bold text-white">±<?= $diagnostic_data['accuracy'] ?></p>
+                    </div>
+                </div>
+
+                <?php if($_SESSION['role'] === 'admin'): ?>
+                    <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
+                        <form method="POST">
+                            <input type="hidden" name="action" value="geocheckin">
+                            <input type="hidden" name="lat" value="<?= $school_lat ?>">
+                            <input type="hidden" name="lng" value="<?= $school_lng ?>">
+                            <input type="hidden" name="accuracy" value="0">
+                            <input type="hidden" name="bypass" value="1">
+                            <button type="submit" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-sky-400 transition-colors">
+                                Admin Manual Override
+                            </button>
+                        </form>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <p class="mt-12 text-center text-[8px] font-bold text-slate-600 uppercase tracking-[0.4em]">Integrated Security Audit Layer Active</p>
     </main>
 
     <script>
@@ -245,23 +283,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             document.getElementById('authBtn').classList.add('opacity-30', 'pointer-events-none');
         }
 
-        function initiateAuthentication() {
+        function initiateCheckIn() {
             const btn = document.getElementById('authBtn');
             const visual = document.getElementById('authVisual');
             const status = document.getElementById('status-msg');
             const statusText = document.getElementById('status-text');
             
             btn.classList.add('opacity-50', 'pointer-events-none');
-            visual.classList.add('pulse-ring', 'bg-indigo-600', 'text-white');
+            visual.classList.remove('pulse-soft');
+            visual.classList.add('bg-indigo-600', 'text-white');
+            visual.querySelector('img').classList.remove('opacity-50', 'grayscale');
+            visual.querySelector('img').classList.add('brightness-200');
             status.classList.remove('hidden');
             
             if ("geolocation" in navigator) {
-                statusText.innerText = "Analyzing geographic signature...";
+                statusText.innerText = "Verifying campus location...";
                 
                 navigator.geolocation.getCurrentPosition(
                     handleSuccess,
                     function(err) {
-                        statusText.innerText = "Fallback: Attempting standard verification...";
+                        statusText.innerText = "Signal low, retrying verification...";
                         navigator.geolocation.getCurrentPosition(
                             handleSuccess,
                             handleFailure,
@@ -271,7 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
                 );
             } else {
-                handleFailure({message: "Institutional geolocator unavailable."});
+                handleFailure({message: "Your device does not support location verification."});
             }
         }
 
@@ -283,7 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         function handleFailure(error) {
-            alert("Verification Failed: " + (error.code === 1 ? "Permission denied" : error.message));
+            alert("Verification Failed: " + (error.code === 1 ? "Location permission denied." : "Could not verify location. Please try again."));
             location.reload();
         }
     </script>
