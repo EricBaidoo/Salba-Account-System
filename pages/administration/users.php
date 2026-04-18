@@ -11,6 +11,7 @@ if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
 }
 
 // Messages are now handled globally by Flash system
+$flash_messages = get_flash();
 
 // Handle Create/Update User
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -214,19 +215,15 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
         </div>
 
         <!-- Feedback Messages -->
-        <?php if ($success): ?>
-            <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 px-5 py-4 rounded-2xl mb-8 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-                <i class="fas fa-circle-check text-emerald-500"></i>
-                <span class="text-sm font-bold tracking-tight"><?= h($success) ?></span>
+        <?php foreach ($flash_messages as $flash): 
+            $bgColor = ($flash['type'] === 'success') ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800';
+            $icon = ($flash['type'] === 'success') ? 'fas fa-circle-check text-emerald-500' : 'fas fa-circle-exclamation text-rose-500';
+        ?>
+            <div class="<?= $bgColor ?> border px-5 py-4 rounded-2xl mb-8 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                <i class="<?= $icon ?>"></i>
+                <span class="text-sm font-bold tracking-tight"><?= htmlspecialchars($flash['message']) ?></span>
             </div>
-        <?php endif; ?>
-
-        <?php if ($error): ?>
-            <div class="bg-rose-50 border border-rose-100 text-rose-800 px-5 py-4 rounded-2xl mb-8 flex items-center gap-3">
-                <i class="fas fa-circle-exclamation text-rose-500"></i>
-                <span class="text-sm font-bold tracking-tight"><?= h($error) ?></span>
-            </div>
-        <?php endif; ?>
+        <?php endforeach; ?>
 
         <!-- Content Area -->
         <div class="user-table-container overflow-hidden">

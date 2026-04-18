@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // School Identity
-        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date'];
+        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'attendance_lat', 'attendance_lng', 'attendance_radius'];
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 if (setSystemSetting($conn, $field, $_POST[$field], $updated_by)) $update_count++;
@@ -191,6 +191,9 @@ $available_semesters = getAvailableSemesters($conn);
 $year_format = getSystemSetting($conn, 'academic_year_format', 'full');
 $early_limit = getSystemSetting($conn, 'attendance_early_limit', '06:30');
 $ontime_limit = getSystemSetting($conn, 'attendance_ontime_limit', '07:00');
+$att_lat = getSystemSetting($conn, 'attendance_lat', '5.5786875');
+$att_lng = getSystemSetting($conn, 'attendance_lng', '-0.2911875');
+$att_radius = getSystemSetting($conn, 'attendance_radius', '300');
 $weeks_per_semester = intval(getSystemSetting($conn, 'weeks_per_term', 12));
 
 $semester_dictionary = [];
@@ -260,6 +263,34 @@ for ($i = -2; $i <= 5; $i++) {
                                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">On-Time Limit</label>
                                     <input type="time" name="attendance_ontime_limit" value="<?= htmlspecialchars($ontime_limit) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none">
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Geolocation Card -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
+                                <h5 class="font-black text-gray-800 flex items-center gap-2 text-xs uppercase tracking-widest">
+                                    <i class="fas fa-map-location-dot text-rose-500"></i> Geolocation Hub (Attendance)
+                                </h5>
+                            </div>
+                            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Latitude</label>
+                                    <input type="text" name="attendance_lat" value="<?= htmlspecialchars($att_lat) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="5.5786875">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Longitude</label>
+                                    <input type="text" name="attendance_lng" value="<?= htmlspecialchars($att_lng) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="-0.2911875">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Radius (Meters)</label>
+                                    <input type="number" name="attendance_radius" value="<?= htmlspecialchars($att_radius) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="300">
+                                </div>
+                            </div>
+                            <div class="px-6 py-3 bg-rose-50 border-t border-rose-100">
+                                <p class="text-[9px] font-bold text-rose-700 uppercase leading-relaxed">
+                                    <i class="fas fa-info-circle mr-1"></i> Staff must be within this radius of the coordinates to verify their presence.
+                                </p>
                             </div>
                         </div>
 

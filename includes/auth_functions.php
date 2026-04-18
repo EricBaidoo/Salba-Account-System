@@ -139,18 +139,26 @@ if (!function_exists('redirect')) {
  */
 if (!function_exists('log_activity')) {
     function log_activity($conn, $action, $description, $old = null, $new = null) {
-        $uid = $_SESSION['user_id'] ?? null;
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
-        $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'CLI';
-        
-        // Handle array/object payloads
-        $old_str = (is_array($old) || is_object($old)) ? json_encode($old) : $old;
-        $new_str = (is_array($new) || is_object($new)) ? json_encode($new) : $new;
+        // Prevent crashes if the audit table doesn't exist yet
+        try {
+            $uid = $_SESSION['user_id'] ?? null;
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'CLI';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'CLI';
+            
+            // Handle array/object payloads
+            $old_str = (is_array($old) || is_object($old)) ? json_encode($old) : $old;
+            $new_str = (is_array($new) || is_object($new)) ? json_encode($new) : $new;
 
-        $stmt = $conn->prepare("INSERT INTO system_audit_logs (user_id, action, description, old_values, new_values, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issssss", $uid, $action, $description, $old_str, $new_str, $ip, $ua);
-        $stmt->execute();
-        $stmt->close();
+            $stmt = $conn->prepare("INSERT INTO system_audit_logs (user_id, action, description, old_values, new_values, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param("issssss", $uid, $action, $description, $old_str, $new_str, $ip, $ua);
+                $stmt->execute();
+                $stmt->close();
+            }
+        } catch (Exception $e) {
+            // Log to PHP error log instead of crashing the site
+            error_log("Audit Log Error: " . $e->getMessage());
+        }
     }
 }
 

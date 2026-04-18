@@ -10,6 +10,7 @@ if (!is_logged_in()) {
 
 $uid = $_SESSION['user_id'];
 $profile = get_user_profile_data($conn, $uid);
+$flash_messages = get_flash();
 
 // Handle Password Reset
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
@@ -67,6 +68,17 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     <?php include '../../includes/top_nav.php'; ?>
 
     <div class="max-w-6xl mx-auto px-4 py-12">
+        <!-- Feedback Messages -->
+        <?php foreach ($flash_messages as $flash): 
+            $bgColor = ($flash['type'] === 'success') ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800';
+            $icon = ($flash['type'] === 'success') ? 'fas fa-circle-check text-emerald-500' : 'fas fa-circle-exclamation text-rose-500';
+        ?>
+            <div class="<?= $bgColor ?> border px-5 py-4 rounded-2xl mb-8 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                <i class="<?= $icon ?>"></i>
+                <span class="text-sm font-bold tracking-tight"><?= htmlspecialchars($flash['message']) ?></span>
+            </div>
+        <?php endforeach; ?>
+
         <div class="flex flex-col lg:flex-row gap-8">
             
             <!-- Left Side: Profile Overview -->

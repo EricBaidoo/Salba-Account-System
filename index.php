@@ -17,10 +17,8 @@ if ($user_role === 'facilitator') {
 } elseif ($user_role === 'supervisor') {
     header('Location: ' . BASE_URL . 'pages/supervisor/dashboard');
     exit;
-} elseif ($user_role === 'admin') {
-    header('Location: ' . BASE_URL . 'pages/administration/dashboard');
-    exit;
 }
+// Admin can now stay on the Module Hub (index.php)
 ?>
 <!DOCTYPE html>
 <html lang="en">
