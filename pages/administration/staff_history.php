@@ -17,6 +17,16 @@ if (!$user_id) {
     exit;
 }
 
+// Deletion Handler (Admin Protocol)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_attendance') {
+    $log_id = intval($_POST['log_id']);
+    $conn->query("DELETE FROM staff_attendance WHERE id = $log_id");
+    log_activity($conn, 'Security Audit', "Personnel history record #$log_id purged from ledger.", $_SESSION['user_id']);
+    $_SESSION['success'] = "Resource purged successfully.";
+    header("Location: staff_history.php?user_id=$user_id");
+    exit;
+}
+
 // Fetch Dynamic Punctuality Rules
 $early_limit_val = getSystemSetting($conn, 'attendance_early_limit', '06:30');
 $ontime_limit_val = getSystemSetting($conn, 'attendance_ontime_limit', '07:00');
@@ -95,40 +105,51 @@ if ($logs_res) {
 
         <header class="mb-14 flex flex-col md:flex-row justify-between items-center gap-10">
             <div class="flex items-center gap-10">
-                <div class="w-32 h-32 rounded-[2.5rem] bg-slate-800 border-4 border-white/5 shadow-2xl overflow-hidden flex-shrink-0 group relative">
-                    <?php if($staff['photo_path']): ?><img src="../../<?= htmlspecialchars($staff['photo_path']) ?>" class="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500">
-                    <?php else: ?><div class="w-full h-full flex items-center justify-center text-4xl text-slate-700"><i class="fas fa-user-shield"></i></div><?php endif; ?>
-                    <div class="absolute inset-0 border border-white/5 pointer-events-none rounded-[2.5rem]"></div>
+                <div class="w-32 h-32 rounded-[2.5rem] bg-white border-4 border-slate-200 shadow-sm overflow-hidden flex-shrink-0 group relative">
+                    <?php if($staff['photo_path']): ?><img src="../../<?= htmlspecialchars($staff['photo_path']) ?>" class="w-full h-full object-cover">
+                    <?php else: ?><div class="w-full h-full flex items-center justify-center text-4xl text-slate-300"><i class="fas fa-user-shield"></i></div><?php endif; ?>
+                    <div class="absolute inset-0 border border-slate-200 pointer-events-none rounded-[2.5rem]"></div>
                 </div>
                 <div class="text-center md:text-left">
-                    <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tighter leading-tight mb-2"><?= htmlspecialchars($staff['full_name'] ?: $staff['username']) ?></h1>
+                    <h1 class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tighter leading-tight mb-2 uppercase"><?= htmlspecialchars($staff['full_name'] ?: $staff['username']) ?></h1>
                     <div class="flex items-center gap-3 justify-center md:justify-start">
-                        <span class="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] border border-sky-500/20">Authorized Faculty</span>
+                        <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] border border-indigo-100">Authorized Faculty</span>
                         <p class="text-slate-500 text-sm font-bold tracking-tight uppercase tracking-widest"><?= htmlspecialchars($staff['job_title'] ?: 'Academic Personnel') ?></p>
                     </div>
                 </div>
             </div>
             
-            <button onclick="window.print()" class="bg-slate-800 text-white text-[10px] font-black uppercase tracking-[0.3em] px-8 py-5 rounded-2xl border border-white/5 hover:bg-sky-500 hover:border-sky-400 transition-all flex items-center gap-3 shadow-2xl">
-                <i class="fas fa-print"></i> Personnel Audit Log
-            </button>
+            <div class="flex flex-col items-center md:items-end gap-6">
+                <?php if(isset($_SESSION['success'])): ?>
+                    <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                        <i class="fas fa-check-circle mr-2"></i> <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <button onclick="window.print()" class="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.3em] px-8 py-5 rounded-2xl border border-indigo-500 hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-sm">
+                    <i class="fas fa-print"></i> Personnel Audit Log
+                </button>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div class="security-card p-10 relative overflow-hidden group">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Total Manifest Records</p>
-                <div class="text-6xl font-black text-white tracking-tight group-hover:text-sky-400 transition-colors"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-slate-600">ID</span></div>
-                <div class="absolute bottom-0 left-0 h-1 bg-sky-500/20 w-full"></div>
+            <div class="security-card card-vivid-indigo p-10 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
+                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Verification Volume</p>
+                <div class="text-6xl font-black text-white tracking-tight"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-indigo-200">ID</span></div>
+                <div class="absolute bottom-0 left-0 h-1 bg-white/20 w-full"></div>
             </div>
-            <div class="security-card p-10">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Institutional Punctuality</p>
+            <div class="security-card card-vivid-emerald p-10 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">Institutional Punctuality</p>
                 <?php $rate = $stats['total_present'] > 0 ? round(($stats['on_time_total'] / $stats['total_present']) * 100) : 0; ?>
-                <div class="text-6xl font-black text-emerald-500 tracking-tighter stat-glow"><?= $rate ?><span class="text-3xl text-emerald-200">%</span></div>
+                <div class="text-6xl font-black text-white tracking-tighter"><?= $rate ?><span class="text-3xl text-emerald-200">%</span></div>
             </div>
-            <div class="security-card p-10">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Location Compliance</p>
+            <div class="security-card card-vivid-sky p-10 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-sky-100 uppercase tracking-[0.2em] mb-4">Location Precision</p>
                 <?php $comp_rate = $stats['total_present'] > 0 ? round(($stats['compliant'] / $stats['total_present']) * 100) : 0; ?>
-                <div class="text-6xl font-black text-sky-400 tracking-tighter stat-glow"><?= $comp_rate ?><span class="text-3xl text-sky-200">%</span></div>
+                <div class="text-6xl font-black text-white tracking-tighter"><?= $comp_rate ?><span class="text-3xl text-sky-200">%</span></div>
             </div>
         </div>
 
@@ -147,28 +168,42 @@ if ($logs_res) {
                                 <th class="px-12 py-4 text-left">Timing Audit</th>
                                 <th class="px-12 py-4 text-left">Compliance Hub</th>
                                 <th class="px-12 py-4 text-center">Reference Node</th>
+                                <th class="px-12 py-4 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($history as $log): ?>
                                 <tr>
-                                    <td>
-                                        <div class="font-bold text-white tracking-tight text-lg mb-1 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
-                                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?> UTC IDENTIFIED</div>
+                                    <td class="px-12 py-6">
+                                        <div class="font-bold text-slate-900 tracking-tight text-lg mb-1 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
+                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?> UTC IDENTIFIED</div>
                                     </td>
-                                    <td>
-                                        <span class="security-status-badge <?= $log['p_status'] === 'Late' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' ?>"><?= $log['p_status'] ?></span>
+                                    <td class="px-12 py-6">
+                                        <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $log['p_status'] === 'Late' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' ?>">
+                                            <i class="fas <?= $log['p_status'] === 'Late' ? 'fa-clock' : 'fa-circle-check' ?>"></i> <?= $log['p_status'] ?>
+                                        </span>
                                     </td>
-                                    <td>
-                                        <div class="flex flex-col gap-1.5">
-                                            <span class="security-status-badge <?= $log['geofence_status'] === 'Violation' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-sky-500/10 text-sky-400 border border-sky-500/20' ?>"><?= $log['geofence_status'] ?></span>
-                                            <div class="text-[9px] text-slate-600 font-bold"><?= $log['distance_m'] ?>m from center</div>
+                                    <td class="px-12 py-6">
+                                        <div class="flex flex-col gap-2">
+                                            <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $log['geofence_status'] === 'Violation' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600' ?>">
+                                                <i class="fas <?= $log['geofence_status'] === 'Violation' ? 'fa-triangle-exclamation' : 'fa-hand-shield' ?>"></i> <?= $log['geofence_status'] ?>
+                                            </span>
+                                            <div class="text-[9px] text-slate-400 font-black uppercase italic px-2"><?= $log['distance_m'] ?>m from center</div>
                                         </div>
                                     </td>
-                                    <td class="text-center">
-                                        <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-800 border border-white/5 text-slate-500 hover:text-white hover:bg-sky-500 transition-all shadow-lg">
+                                    <td class="px-12 py-6 text-center">
+                                        <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-white hover:bg-indigo-600 transition-all">
                                             <i class="fas fa-satellite"></i>
                                         </a>
+                                    </td>
+                                    <td class="text-right">
+                                        <form method="POST" onsubmit="return confirm('CRITICAL: Purge this historical record?')" class="inline">
+                                            <input type="hidden" name="action" value="delete_attendance">
+                                            <input type="hidden" name="log_id" value="<?= $log['id'] ?>">
+                                            <button type="submit" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="Purge Record">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

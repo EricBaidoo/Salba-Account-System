@@ -134,11 +134,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <div class="relative z-10 text-center">
                 <?php if($already): ?>
                     <!-- Verification Successful -->
-                    <div class="identity-lens border-emerald-500/30 bg-emerald-500/10 mb-8">
-                        <i class="fas fa-check text-4xl text-emerald-400"></i>
+                    <div class="identity-lens pill-emerald mb-8 scale-110 !border-white/20">
+                        <i class="fas fa-check text-5xl text-white drop-shadow-md"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-white mb-2">Authentication Successful</h2>
-                    <p class="text-xs text-slate-400 leading-relaxed mb-10">Attendance Logged: <?= date('H:i:s') ?><br>System integrity verified.</p>
+                    <h2 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Access Verified</h2>
+                    <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-widest leading-relaxed mb-10 bg-emerald-950/40 py-2 rounded-lg">Manifest Captured: <?= date('H:i:s') ?></p>
                     
                     <div class="pt-8 border-t border-slate-700/50">
                         <a href="<?= BASE_URL ?>index" class="text-sky-400 font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Return to Terminal</a>
@@ -154,19 +154,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Authorized Perimeter: <?= $allowed_radius_meters ?>M</p>
                     </div>
 
-                    <!-- Tactical HUD -->
-                    <div class="grid grid-cols-3 gap-1 sm:gap-2 mb-10 p-3 sm:p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                        <div class="text-center">
-                            <p class="hud-stat mb-1">GPS</p>
-                            <p class="hud-stat hud-active">LOCK</p>
+                    <!-- High-Visibility HUD -->
+                    <div class="grid grid-cols-3 gap-2 mb-10">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">GPS</p>
+                            <span class="status-pill-solid pill-emerald !text-[8px] !py-1 !px-3">LOCK</span>
                         </div>
-                        <div class="text-center border-x border-slate-700/50">
-                            <p class="hud-stat mb-1">SIGNAL</p>
-                            <p class="hud-stat hud-active">STABLE</p>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">SIGNAL</p>
+                            <span class="status-pill-solid pill-sky !text-[8px] !py-1 !px-3">ACTIVE</span>
                         </div>
-                        <div class="text-center">
-                            <p class="hud-stat mb-1">ENC</p>
-                            <p class="hud-stat hud-active">AES</p>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">AUTH</p>
+                            <span class="status-pill-solid pill-indigo !text-[8px] !py-1 !px-3">AES-256</span>
                         </div>
                     </div>
 
@@ -177,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <input type="hidden" name="lng" id="lng" value="0">
                             <input type="hidden" name="accuracy" id="accuracy" value="0">
                             
-                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-sky-500 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:bg-sky-400 transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] flex items-center justify-center gap-3">
+                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(99,102,241,0.3)] flex items-center justify-center gap-3">
                                 Authenticate & Verify
                             </button>
                         </form>
