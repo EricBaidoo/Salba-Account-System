@@ -102,8 +102,8 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
         <header class="mb-14 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
             <div>
                 <div class="flex items-center gap-3 mb-3">
-                    <span class="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] border border-sky-500/20">Security Oversight</span>
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><?= date('l, F jS', strtotime($selected_date)) ?></span>
+                    <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100">Attendance Monitoring</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><?= date('l, F jS', strtotime($selected_date)) ?></span>
                 </div>
                 
                 <?php if(isset($_SESSION['success'])): ?>
@@ -117,7 +117,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                         <i class="fas fa-exclamation-triangle mr-2"></i> <?= $_SESSION['error']; unset($_SESSION['error']); ?>
                     </div>
                 <?php endif; ?>
-                <h1 class="text-4xl sm:text-5xl font-black tracking-tighter text-slate-900 leading-tight">Personnel <br><span class="text-indigo-600">Attendance Manifest</span></h1>
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tighter text-slate-900 leading-tight">Staff <br><span class="text-indigo-600">Attendance Hub</span></h1>
             </div>
  
             <div class="bg-white p-2.5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
@@ -132,7 +132,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             <div class="security-card card-vivid-indigo p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
-                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Institutional Presence</p>
+                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Staff Present</p>
                 <div class="flex items-end gap-3">
                     <span class="text-6xl font-black text-white"><?= $stats['present'] ?></span>
                     <span class="text-xl font-bold text-indigo-200 mb-1">/ <?= $total_staff ?></span>
@@ -144,23 +144,23 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
             
             <div class="security-card card-vivid-emerald p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">Verified On-Time</p>
+                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">On-Time Attendance</p>
                 <span class="text-6xl font-black text-white leading-none"><?= $stats['on_time'] + $stats['early'] ?></span>
-                <p class="text-[8px] font-black text-emerald-100 uppercase tracking-widest mt-4">Punctuality Verified</p>
+                <p class="text-[8px] font-black text-emerald-100 uppercase tracking-widest mt-4">Verified Punctuality</p>
             </div>
  
             <div class="security-card card-vivid-rose p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-rose-100 uppercase tracking-[0.2em] mb-4">Perimeter Variance</p>
+                <p class="text-[10px] font-black text-rose-100 uppercase tracking-[0.2em] mb-4">Location Status</p>
                 <span class="text-6xl font-black text-white"><?= $stats['geofence_violations'] ?></span>
-                <p class="text-[8px] font-black text-rose-100 uppercase tracking-widest mt-4">Breach Detections</p>
+                <p class="text-[8px] font-black text-rose-100 uppercase tracking-widest mt-4">Outside Boundary</p>
             </div>
  
             <div class="security-card card-vivid-orange p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-orange-100 uppercase tracking-[0.2em] mb-4">Late Identifications</p>
+                <p class="text-[10px] font-black text-orange-100 uppercase tracking-[0.2em] mb-4">Late Arrivals</p>
                 <span class="text-6xl font-black text-white"><?= $stats['late'] ?></span>
-                <p class="text-[8px] font-black text-orange-100 uppercase tracking-widest mt-4">Policy Discrepancy</p>
+                <p class="text-[8px] font-black text-orange-100 uppercase tracking-widest mt-4">School Policy Note</p>
             </div>
         </div>
 
@@ -168,21 +168,21 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
         <div class="overflow-x-auto">
             <div class="min-w-full">
                 <div class="px-6 py-4 flex justify-between items-center mb-4">
-                    <h3 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Integrated Audit Manifest</h3>
-                    <div class="flex items-center gap-2 text-[9px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/5 px-4 py-2 rounded-full border border-emerald-500/10">
-                        <i class="fas fa-lock text-[8px]"></i> End-to-End Encryption Active
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Daily Attendance Log</h3>
+                    <div class="flex items-center gap-2 text-[9px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                        <i class="fas fa-check-double text-[8px]"></i> System Sync Active
                     </div>
                 </div>
                 
                 <div class="security-manifest-wrapper">
                     <table class="security-manifest-table">
-                        <thead class="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                        <thead class="text-[9px] font-black uppercase tracking-widest text-slate-400">
                             <tr>
-                                <th class="px-12 py-4 text-left">Identity</th>
-                                <th class="px-12 py-4 text-left">Timestamp</th>
-                                <th class="px-12 py-4 text-left">Verification Node</th>
-                                <th class="px-12 py-4 text-center">HUD</th>
-                                <th class="px-12 py-4 text-right">Audit</th>
+                                <th class="px-12 py-4 text-left">Staff Member</th>
+                                <th class="px-12 py-4 text-left">Time Logged</th>
+                                <th class="px-12 py-4 text-left">Location Status</th>
+                                <th class="px-12 py-4 text-center">Map</th>
+                                <th class="px-12 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

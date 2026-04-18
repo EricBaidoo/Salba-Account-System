@@ -84,7 +84,7 @@ if ($logs_res) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($staff['full_name'] ?: $staff['username']) ?> History | Personnel Audit</title>
+    <title><?= htmlspecialchars($staff['full_name'] ?: $staff['username']) ?> | Staff Attendance History</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
@@ -95,12 +95,12 @@ if ($logs_res) {
     <?php include '../../includes/sidebar.php'; ?>
 
     <main class="admin-main-content lg:ml-72 p-6 md:p-12 min-h-screen">
-        <nav class="mb-10 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <a href="dashboard.php" class="hover:text-sky-400 transition-colors">Administration</a>
-            <i class="fas fa-chevron-right text-[7px] text-slate-700"></i>
-            <a href="staff_attendance.php" class="hover:text-sky-400 transition-colors">Security Oversight</a>
-            <i class="fas fa-chevron-right text-[7px] text-slate-700"></i>
-            <span class="text-sky-500 italic">Personnel Audit</span>
+        <nav class="mb-10 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <a href="dashboard.php" class="hover:text-indigo-600 transition-colors">Dashboard</a>
+            <i class="fas fa-chevron-right text-[7px] text-slate-300"></i>
+            <a href="staff_attendance.php" class="hover:text-indigo-600 transition-colors">Attendance Hub</a>
+            <i class="fas fa-chevron-right text-[7px] text-slate-300"></i>
+            <span class="text-indigo-500 italic">Attendance History</span>
         </nav>
 
         <header class="mb-14 flex flex-col md:flex-row justify-between items-center gap-10">
@@ -127,7 +127,7 @@ if ($logs_res) {
                 <?php endif; ?>
                 
                 <button onclick="window.print()" class="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.3em] px-8 py-5 rounded-2xl border border-indigo-500 hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-sm">
-                    <i class="fas fa-print"></i> Personnel Audit Log
+                    <i class="fas fa-print"></i> Download Attendance Report
                 </button>
             </div>
         </header>
@@ -135,19 +135,19 @@ if ($logs_res) {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div class="security-card card-vivid-indigo p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
-                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Verification Volume</p>
-                <div class="text-6xl font-black text-white tracking-tight"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-indigo-200">ID</span></div>
+                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Total Days Present</p>
+                <div class="text-6xl font-black text-white tracking-tight"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-indigo-200">DAYS</span></div>
                 <div class="absolute bottom-0 left-0 h-1 bg-white/20 w-full"></div>
             </div>
             <div class="security-card card-vivid-emerald p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">Institutional Punctuality</p>
+                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">Punctuality Rate</p>
                 <?php $rate = $stats['total_present'] > 0 ? round(($stats['on_time_total'] / $stats['total_present']) * 100) : 0; ?>
                 <div class="text-6xl font-black text-white tracking-tighter"><?= $rate ?><span class="text-3xl text-emerald-200">%</span></div>
             </div>
             <div class="security-card card-vivid-sky p-10 relative overflow-hidden group">
                 <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-sky-100 uppercase tracking-[0.2em] mb-4">Location Precision</p>
+                <p class="text-[10px] font-black text-sky-100 uppercase tracking-[0.2em] mb-4">Location Compliance</p>
                 <?php $comp_rate = $stats['total_present'] > 0 ? round(($stats['compliant'] / $stats['total_present']) * 100) : 0; ?>
                 <div class="text-6xl font-black text-white tracking-tighter"><?= $comp_rate ?><span class="text-3xl text-sky-200">%</span></div>
             </div>
@@ -156,19 +156,19 @@ if ($logs_res) {
         <div class="overflow-x-auto">
             <div class="min-w-full">
                 <div class="px-6 py-4 flex justify-between items-center mb-4">
-                    <h3 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Administrative Transaction Ledger</h3>
-                    <div class="text-[8px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">Displaying last 50 audit entries</div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Personal Attendance Log</h3>
+                    <div class="text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Displaying last 50 entries</div>
                 </div>
 
                 <div class="security-manifest-wrapper">
                     <table class="security-manifest-table security-manifest-table-lg">
                         <thead>
-                            <tr class="text-[9px] font-black uppercase tracking-widest text-slate-600">
-                                <th class="px-12 py-4 text-left">Date & Global Time</th>
-                                <th class="px-12 py-4 text-left">Timing Audit</th>
-                                <th class="px-12 py-4 text-left">Compliance Hub</th>
-                                <th class="px-12 py-4 text-center">Reference Node</th>
-                                <th class="px-12 py-4 text-right">Action</th>
+                            <tr class="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                                <th class="px-12 py-4 text-left">Date & Time</th>
+                                <th class="px-12 py-4 text-left">Punctuality</th>
+                                <th class="px-12 py-4 text-left">Location Check</th>
+                                <th class="px-12 py-4 text-center">Map</th>
+                                <th class="px-12 py-4 text-right">Delete</th>
                             </tr>
                         </thead>
                         <tbody>

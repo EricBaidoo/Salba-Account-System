@@ -127,8 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <div class="security-card security-card-ribbon p-6 sm:p-12 md:p-14 rounded-[2.5rem] sm:rounded-[3rem]">
                 
                 <div class="mb-10 text-center px-2">
-                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Institutional Management</p>
-                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">Personnel Presence Verification</h1>
+                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Institutional Management</p>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-800 leading-tight uppercase">Staff Clock-in Portal</h1>
                 </div>
 
             <div class="relative z-10 text-center">
@@ -137,8 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="identity-lens pill-emerald mb-8 scale-110 !border-white/20">
                         <i class="fas fa-check text-5xl text-white drop-shadow-md"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-white mb-2 uppercase tracking-tight">Access Verified</h2>
-                    <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-widest leading-relaxed mb-10 bg-emerald-950/40 py-2 rounded-lg">Manifest Captured: <?= date('H:i:s') ?></p>
+                    <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">Clock-in Successful</h2>
+                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-relaxed mb-10 bg-emerald-50 py-2 rounded-lg border border-emerald-100">Attendance Logged: <?= date('H:i:s') ?></p>
                     
                     <div class="pt-8 border-t border-slate-700/50">
                         <a href="<?= BASE_URL ?>index" class="text-sky-400 font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Return to Terminal</a>
@@ -150,8 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                     
                     <div class="space-y-1 mb-10">
-                        <h2 class="text-lg font-bold text-white">Security Check Ready</h2>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Authorized Perimeter: <?= $allowed_radius_meters ?>M</p>
+                        <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Ready to Clock In</h2>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Authorized Area: <?= $allowed_radius_meters ?>M Radius</p>
                     </div>
 
                     <!-- High-Visibility HUD -->
@@ -177,13 +177,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <input type="hidden" name="lng" id="lng" value="0">
                             <input type="hidden" name="accuracy" id="accuracy" value="0">
                             
-                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(99,102,241,0.3)] flex items-center justify-center gap-3">
-                                Authenticate & Verify
+                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3">
+                                <i class="fas fa-clock"></i> Record My Attendance
                             </button>
                         </form>
                         
-                        <div id="status-msg" class="mt-8 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] hidden">
-                            <i class="fas fa-satellite fa-spin mr-2 text-sky-400"></i> <span id="status-text">calibrating perimeter sensors...</span>
+                        <div id="status-msg" class="mt-8 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hidden">
+                            <i class="fas fa-satellite-dish fa-spin mr-2 text-indigo-500"></i> <span id="status-text">verifying location status...</span>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
         <?php endif; ?>
 
-        <p class="mt-12 text-center text-[7px] sm:text-[8px] font-bold text-slate-600 uppercase tracking-[0.2em] sm:tracking-[0.4em] px-4">Integrated Security Audit Layer Active</p>
+        <p class="mt-12 text-center text-[7px] sm:text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em] sm:tracking-[0.4em] px-4">Standard School Attendance Protocol Active</p>
     </main>
 
     <script>
