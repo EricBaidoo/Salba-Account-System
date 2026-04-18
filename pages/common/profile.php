@@ -29,6 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_password'])) {
     }
 }
 
+// Handle Photo Upload
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_photo'])) {
+    $result = upload_user_photo($conn, $uid, $_FILES['profile_photo']);
+    if ($result['success']) {
+        redirect('profile.php', 'success', 'Profile picture updated successfully.');
+    } else {
+        redirect('profile.php', 'error', $result['message']);
+    }
+}
+
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 ?>
 <!DOCTYPE html>
@@ -64,15 +74,24 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                 <div class="glass-card rounded-3xl overflow-hidden sticky top-32">
                     <div class="profile-gradient h-32 relative">
                         <div class="absolute -bottom-12 left-1/2 -translate-x-1/2">
-                            <div class="w-24 h-24 rounded-2xl bg-white p-1 shadow-xl">
-                                <?php if (!empty($profile['photo_path']) && file_exists('../../' . $profile['photo_path'])): ?>
-                                    <img src="../../<?= htmlspecialchars($profile['photo_path']) ?>" alt="Avatar" class="w-full h-full object-cover rounded-xl">
-                                <?php else: ?>
-                                    <div class="w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                                        <i class="fas fa-user text-3xl"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                            <form id="photoForm" action="" method="POST" enctype="multipart/form-data" class="relative group/avatar">
+                                <div class="w-24 h-24 rounded-2xl bg-white p-1 shadow-xl overflow-hidden relative border border-white">
+                                    <?php if (!empty($profile['photo_path']) && file_exists('../../' . $profile['photo_path'])): ?>
+                                        <img src="../../<?= htmlspecialchars($profile['photo_path']) ?>" alt="Avatar" class="w-full h-full object-cover rounded-xl">
+                                    <?php else: ?>
+                                        <div class="w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                                            <i class="fas fa-user text-3xl"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Upload Overlay -->
+                                    <label for="photoInput" class="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white">
+                                        <i class="fas fa-camera text-xl mb-1"></i>
+                                        <span class="text-[8px] font-black uppercase tracking-widest">Update</span>
+                                        <input type="file" name="profile_photo" id="photoInput" class="hidden" accept="image/*" onchange="this.form.submit()">
+                                    </label>
+                                </div>
+                            </form>
                         </div>
                     </div>
                     

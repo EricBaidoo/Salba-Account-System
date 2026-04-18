@@ -228,4 +228,60 @@ if (!function_exists('update_user_password')) {
         return ['success' => false, 'message' => 'Database error during password update.'];
     }
 }
+
+/**
+ * SECURE PHOTO UPLOAD
+ * Handles uploading, validation, and cleanup of profile pictures
+ */
+if (!function_exists('upload_user_photo')) {
+    function upload_user_photo($conn, $uid, $file) {
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        $max_size = 2 * 1024 * 1024; // 2MB
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return ['success' => false, 'message' => 'Upload error code: ' . $file['error']];
+        }
+
+        if ($file['size'] > $max_size) {
+            return ['success' => false, 'message' => 'File too large. Max size is 2MB.'];
+        }
+
+        if (!in_array($file['type'], $allowed)) {
+            return ['success' => false, 'message' => 'Invalid file type. Only JPG, PNG, and WEBP allowed.'];
+        }
+
+        // Setup Directory
+        $upload_dir = __DIR__ . '/../assets/img/staff/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        // Generate filename
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = "staff_{$uid}_" . time() . "." . $ext;
+        $target_path = $upload_dir . $filename;
+        $db_path = "assets/img/staff/" . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $target_path)) {
+            // Cleanup old photo
+            $res = $conn->query("SELECT photo_path FROM staff_profiles WHERE user_id = $uid");
+            if ($row = $res->fetch_assoc()) {
+                $old_path = __DIR__ . '/../' . $row['photo_path'];
+                if (!empty($row['photo_path']) && file_exists($old_path)) {
+                    @unlink($old_path);
+                }
+            }
+
+            // Update Database
+            $stmt = $conn->prepare("UPDATE staff_profiles SET photo_path = ? WHERE user_id = ?");
+            $stmt->bind_param("si", $db_path, $uid);
+            if ($stmt->execute()) {
+                log_activity($conn, 'Profile', 'User updated their profile picture.');
+                return ['success' => true, 'path' => $db_path];
+            }
+        }
+
+        return ['success' => false, 'message' => 'Failed to move uploaded file. Check server permissions.'];
+    }
+}
 ?>
