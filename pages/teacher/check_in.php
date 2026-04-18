@@ -190,12 +190,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
         </div>
 
-        <!-- Diagnostic Feedback (Perimeter Variance) -->
-        <?php if($diagnostic_data): ?>
-            <div class="mt-8 bg-rose-500/5 p-8 rounded-[2rem] border border-rose-500/20">
-                <div class="flex items-center gap-4 mb-6 text-rose-400">
-                    <i class="fas fa-shield-halved text-xl"></i>
-                    <h3 class="text-[10px] font-black uppercase tracking-widest">Perimeter Breach Detected</h3>
+        <!-- Diagnostic Feedback (Perimeter Audit) -->
+        <?php if($diagnostic_data): 
+            $dist_val = intval($diagnostic_data['distance']);
+            $is_breach = $dist_val > $allowed_radius_meters;
+            $theme_color = $is_breach ? 'rose' : 'sky';
+            $audit_icon = $is_breach ? 'fa-shield-halved' : 'fa-circle-check';
+            $audit_title = $is_breach ? 'Perimeter Breach Detected' : 'Verification Precision Audit';
+        ?>
+            <div class="mt-8 bg-<?= $theme_color ?>-500/5 p-8 rounded-[2rem] border border-<?= $theme_color ?>-500/20">
+                <div class="flex items-center gap-4 mb-6 text-<?= $theme_color ?>-400">
+                    <i class="fas <?= $audit_icon ?> text-xl"></i>
+                    <h3 class="text-[10px] font-black uppercase tracking-widest"><?= $audit_title ?></h3>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
