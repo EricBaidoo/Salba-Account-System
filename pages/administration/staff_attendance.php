@@ -52,7 +52,7 @@ if ($logs_res) {
     while ($row = $logs_res->fetch_assoc()) {
         $dist = getDistanceMeters($school_lat, $school_lng, $row['latitude'], $row['longitude']);
         $row['distance_m'] = round($dist);
-        $row['geofence_status'] = ($dist <= $allowed_radius) ? 'Verified' : 'Outside Bounds';
+        $row['geofence_status'] = ($dist <= $allowed_radius) ? 'Verified' : 'Perimeter Variance';
         
         $check_time = date('H:i:s', strtotime($row['check_in_time']));
         if ($check_time < $early_limit) { $row['punctuality'] = 'Early'; $stats['early']++; }
@@ -61,7 +61,7 @@ if ($logs_res) {
         
         $attendance[] = $row;
         $stats['present']++;
-        if ($row['geofence_status'] === 'Outside Bounds') $stats['geofence_violations']++;
+        if ($row['geofence_status'] === 'Perimeter Variance') $stats['geofence_violations']++;
     }
 }
 
@@ -74,145 +74,138 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Attendance Dashboard | Salba Montessori</title>
+    <title>Personnel Security Oversight | Salba Montessori</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <style>
-        .academic-card {
-            background: white;
-            border-radius: 2rem;
-            border: 1px solid #f1f5f9;
-            transition: all 0.3s ease;
-        }
-        .academic-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
-        .status-badge {
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 12px;
-            border-radius: 99px;
-        }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-[#f8fafc] text-slate-800">
+<body class="font-sans bg-security">
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-12 min-h-screen">
-        <header class="mb-16 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+    <main class="admin-main-content lg:ml-72 p-6 md:p-12 min-h-screen">
+        <header class="mb-14 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
             <div>
                 <div class="flex items-center gap-3 mb-3">
-                    <span class="px-3 py-1 bg-white text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-100 italic">Institutional Oversight</span>
-                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest"><?= date('l, F jS', strtotime($selected_date)) ?></span>
+                    <span class="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] border border-sky-500/20">Security Oversight</span>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><?= date('l, F jS', strtotime($selected_date)) ?></span>
                 </div>
-                <h1 class="text-5xl font-black tracking-tighter text-slate-900 leading-tight">Staff Attendance <br><span class="text-indigo-600">Daily Dashboard</span></h1>
+                <h1 class="text-4xl sm:text-5xl font-black tracking-tighter text-white leading-tight">Personnel <br><span class="text-sky-500">Attendance Manifest</span></h1>
             </div>
 
-            <div class="bg-white p-3 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
+            <div class="bg-slate-800/80 p-2.5 rounded-2xl border border-white/5 flex items-center gap-4 shadow-xl">
                 <form method="GET" class="flex items-center gap-3">
-                    <i class="fas fa-calendar-day text-indigo-300 ml-3"></i>
-                    <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500">
+                    <i class="fas fa-calendar-day text-slate-500 ml-3"></i>
+                    <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="bg-slate-900 border-none rounded-xl px-4 py-2 text-sm font-bold text-white focus:ring-1 focus:ring-sky-500 transition-all">
                 </form>
             </div>
         </header>
 
-        <!-- Monitoring stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            <div class="academic-card p-10">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Daily Presence</p>
+        <!-- Oversight HUD -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div class="security-card p-10 relative overflow-hidden group">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Institutional Manifest</p>
                 <div class="flex items-end gap-3">
-                    <span class="text-5xl font-black text-slate-900"><?= $stats['present'] ?></span>
-                    <span class="text-xl font-bold text-slate-300 mb-1">/ <?= $total_staff ?></span>
+                    <span class="text-5xl font-black text-white group-hover:text-sky-400 transition-colors"><?= $stats['present'] ?></span>
+                    <span class="text-xl font-bold text-slate-600 mb-1">/ <?= $total_staff ?></span>
+                </div>
+                <div class="absolute bottom-0 left-0 h-1 bg-sky-500/20 w-full">
+                    <div class="h-full bg-sky-400" style="width: <?= ($total_staff > 0) ? ($stats['present']/$total_staff)*100 : 0 ?>%"></div>
                 </div>
             </div>
             
-            <div class="academic-card p-10">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">On-Time Performance</p>
-                <span class="text-5xl font-black text-emerald-600 leading-none"><?= $stats['on_time'] + $stats['early'] ?></span>
+            <div class="security-card p-10">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Timing Accuracy</p>
+                <span class="text-5xl font-black text-emerald-500 leading-none stat-glow"><?= $stats['on_time'] + $stats['early'] ?></span>
+                <p class="text-[8px] font-black text-emerald-500/60 uppercase tracking-widest mt-4">Verified Punctuality</p>
             </div>
 
-            <div class="academic-card p-10">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Location Accuracy</p>
-                <span class="text-5xl font-black text-indigo-600 leading-none"><?= count($attendance) - $stats['geofence_violations'] ?></span>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-4">Within Campus Boundaries</p>
+            <div class="security-card p-10">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Perimeter Variance</p>
+                <span class="text-5xl font-black <?= $stats['geofence_violations'] > 0 ? 'text-rose-500' : 'text-slate-500' ?> leading-none stat-glow"><?= $stats['geofence_violations'] ?></span>
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-4">Outside Authorized Hub</p>
             </div>
 
-            <div class="academic-card p-10">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Late Arrivals</p>
-                <span class="text-5xl font-black text-orange-600 leading-none"><?= $stats['late'] ?></span>
+            <div class="security-card p-10">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Late Arrivals</p>
+                <span class="text-5xl font-black text-orange-500 leading-none stat-glow"><?= $stats['late'] ?></span>
             </div>
         </div>
 
-        <!-- Attendance List -->
-        <div class="bg-white rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-            <div class="px-10 py-8 border-b border-slate-50 flex justify-between items-center">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Daily Presence Record</h3>
-                <span class="text-[10px] font-bold text-slate-300 flex items-center gap-2"><i class="fas fa-location-dot"></i> Distance verification enabled</span>
+        <!-- Audit Manifest -->
+        <div class="overflow-x-auto">
+            <div class="min-w-full">
+                <div class="px-6 py-4 flex justify-between items-center mb-4">
+                    <h3 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Integrated Audit Manifest</h3>
+                    <div class="flex items-center gap-2 text-[9px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/5 px-4 py-2 rounded-full border border-emerald-500/10">
+                        <i class="fas fa-lock text-[8px]"></i> End-to-End Encryption Active
+                    </div>
+                </div>
+                
+                <div class="security-manifest-wrapper">
+                    <table class="security-manifest-table">
+                        <thead class="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                            <tr>
+                                <th class="px-12 py-4 text-left">Identity</th>
+                                <th class="px-12 py-4 text-left">Timestamp</th>
+                                <th class="px-12 py-4 text-left">Verification Node</th>
+                                <th class="px-12 py-4 text-center">HUD</th>
+                                <th class="px-12 py-4 text-right">Audit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if(empty($attendance)): ?>
+                                <tr><td colspan="5" class="py-24 text-center text-slate-600 font-black uppercase text-[10px] tracking-[0.5em] italic">No personnel identified for this cycle</td></tr>
+                            <?php endif; ?>
+                            <?php foreach ($attendance as $log): ?>
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-5">
+                                            <div class="w-12 h-12 bg-slate-800 rounded-xl overflow-hidden border border-white/5 shadow-inner shrink-0">
+                                                <?php if($log['photo_path']): ?><img src="../../<?= htmlspecialchars($log['photo_path']) ?>" class="w-full h-full object-cover grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all">
+                                                <?php else: ?><div class="w-full h-full flex items-center justify-center text-slate-600"><i class="fas fa-user-shield text-xl"></i></div><?php endif; ?>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-white text-base tracking-tight leading-none mb-1"><?= htmlspecialchars($log['full_name'] ?: $log['username']) ?></div>
+                                                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest"><?= htmlspecialchars($log['job_title'] ?: 'Authorized Staff') ?></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="font-bold text-white leading-none mb-2"><?= date('H:i A', strtotime($log['check_in_time'])) ?></div>
+                                        <span class="security-status-badge <?= $log['punctuality'] === 'Late' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' ?>">
+                                            <?= $log['punctuality'] ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="flex flex-col gap-1.5">
+                                            <span class="security-status-badge <?= $log['geofence_status'] === 'Perimeter Variance' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-sky-500/10 text-sky-400 border border-sky-500/20' ?>">
+                                                <?= $log['geofence_status'] ?>
+                                            </span>
+                                            <span class="text-[9px] font-bold text-slate-600 italic"><?= $log['distance_m'] ?>m from hub center</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-800 border border-white/5 text-slate-500 hover:text-white hover:bg-sky-500 transition-all shadow-lg">
+                                            <i class="fas fa-map-pin"></i>
+                                        </a>
+                                    </td>
+                                    <td class="text-right">
+                                        <?php if($_SESSION['role'] === 'admin'): ?>
+                                            <a href="staff_history.php?user_id=<?= $log['user_id'] ?>" class="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-sky-500 hover:text-white transition-all">
+                                                <i class="fas fa-folder-open"></i> Full History
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">Restricted</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <table class="w-full">
-                <thead class="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    <tr>
-                        <th class="px-10 py-6 text-left">Staff Member</th>
-                        <th class="px-10 py-6 text-left">Time of Entry</th>
-                        <th class="px-10 py-6 text-left">Campus Location</th>
-                        <th class="px-10 py-6 text-center">Map View</th>
-                        <th class="px-10 py-6 text-right">Records</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    <?php if(empty($attendance)): ?>
-                        <tr><td colspan="5" class="py-20 text-center text-slate-300 font-bold uppercase text-xs tracking-widest italic">No attendance records found for this date</td></tr>
-                    <?php endif; ?>
-                    <?php foreach ($attendance as $log): ?>
-                        <tr class="hover:bg-slate-50/30 transition-colors">
-                            <td class="px-10 py-8">
-                                <div class="flex items-center gap-5">
-                                    <div class="w-14 h-14 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
-                                        <?php if($log['photo_path']): ?><img src="../../<?= htmlspecialchars($log['photo_path']) ?>" class="w-full h-full object-cover">
-                                        <?php else: ?><div class="w-full h-full flex items-center justify-center text-slate-200"><i class="fas fa-user-circle text-2xl"></i></div><?php endif; ?>
-                                    </div>
-                                    <div>
-                                        <div class="font-black text-slate-900 text-lg tracking-tight leading-none mb-1"><?= htmlspecialchars($log['full_name'] ?: $log['username']) ?></div>
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"><?= htmlspecialchars($log['job_title'] ?: 'Staff Member') ?></p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-10 py-8">
-                                <div class="font-black text-slate-900 leading-none mb-2"><?= date('h:i A', strtotime($log['check_in_time'])) ?></div>
-                                <span class="status-badge <?= $log['punctuality'] === 'Late' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600' ?>">
-                                    <?= $log['punctuality'] ?>
-                                </span>
-                            </td>
-                            <td class="px-10 py-8">
-                                <div class="flex flex-col gap-1.5">
-                                    <span class="status-badge <?= $log['geofence_status'] === 'Outside Bounds' ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600' ?>">
-                                        <?= $log['geofence_status'] ?>
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 italic"><?= $log['distance_m'] ?>m from campus center</span>
-                                </div>
-                            </td>
-                            <td class="px-10 py-8 text-center">
-                                <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-12 h-12 inline-flex items-center justify-center rounded-2xl bg-white border border-slate-100 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
-                                    <i class="fas fa-map-pin"></i>
-                                </a>
-                            </td>
-                            <td class="px-10 py-8 text-right">
-                                <?php if($_SESSION['role'] === 'admin'): ?>
-                                    <a href="staff_history.php?user_id=<?= $log['user_id'] ?>" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm">
-                                        <i class="fas fa-folder-open"></i> Full History
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest italic">Restricted</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
         </div>
     </main>
 </body>

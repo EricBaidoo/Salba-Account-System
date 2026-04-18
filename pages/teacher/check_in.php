@@ -87,59 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <style>
-        body {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 40px 40px;
-            color: #f8fafc;
-        }
-        .security-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-        .security-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, #38bdf8, transparent);
-        }
-        .identity-lens {
-            width: 120px;
-            height: 120px;
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            margin: 0 auto 2.5rem;
-        }
-        .identity-lens::after {
-            content: '';
-            position: absolute;
-            inset: -8px;
-            border: 1px solid rgba(56, 189, 248, 0.1);
-            border-radius: 50%;
-            animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        .hud-stat {
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 0.1em;
-            color: #94a3b8;
-        }
-        .hud-active { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="min-h-screen font-sans overflow-x-hidden">
+<body class="min-h-screen font-sans overflow-x-hidden bg-security">
 
     <!-- Minimalist Security Header -->
     <header class="w-full bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-6 md:px-12 py-5 fixed top-0 z-50 flex items-center justify-between">
@@ -170,14 +120,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
     </header>
 
-    <main class="min-h-screen flex items-center justify-center p-6 pt-24">
+    <main class="min-h-screen flex items-center justify-center p-3 sm:p-6 pt-24 pb-12">
         
-        <div class="security-card p-12 md:p-14 rounded-[3rem]">
+        <div class="w-full max-w-md">
             
-            <div class="mb-10 text-center">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Institutional Management</p>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Personnel Presence Verification</h1>
-            </div>
+            <div class="security-card security-card-ribbon p-6 sm:p-12 md:p-14 rounded-[2.5rem] sm:rounded-[3rem]">
+                
+                <div class="mb-10 text-center px-2">
+                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2">Institutional Management</p>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">Personnel Presence Verification</h1>
+                </div>
 
             <div class="relative z-10 text-center">
                 <?php if($already): ?>
@@ -193,8 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 <?php else: ?>
                     <!-- Awaiting Authentication -->
-                    <div class="identity-lens mb-10">
-                        <i class="fas fa-fingerprint text-5xl text-sky-400"></i>
+                    <div id="authVisual" class="identity-lens mb-10">
+                        <i class="fas fa-fingerprint text-5xl text-sky-400 transition-all"></i>
                     </div>
                     
                     <div class="space-y-1 mb-10">
@@ -203,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
 
                     <!-- Tactical HUD -->
-                    <div class="grid grid-cols-3 gap-2 mb-10 p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                    <div class="grid grid-cols-3 gap-1 sm:gap-2 mb-10 p-3 sm:p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
                         <div class="text-center">
                             <p class="hud-stat mb-1">GPS</p>
                             <p class="hud-stat hud-active">LOCK</p>
@@ -274,12 +226,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
         <?php endif; ?>
 
-        <p class="mt-12 text-center text-[8px] font-bold text-slate-600 uppercase tracking-[0.4em]">Integrated Security Audit Layer Active</p>
+        <p class="mt-12 text-center text-[7px] sm:text-[8px] font-bold text-slate-600 uppercase tracking-[0.2em] sm:tracking-[0.4em] px-4">Integrated Security Audit Layer Active</p>
     </main>
 
     <script>
         if (!window.isSecureContext) {
-            document.getElementById('unsupported-msg').classList.remove('hidden');
             document.getElementById('authBtn').classList.add('opacity-30', 'pointer-events-none');
         }
 
@@ -290,10 +241,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             const statusText = document.getElementById('status-text');
             
             btn.classList.add('opacity-50', 'pointer-events-none');
-            visual.classList.remove('pulse-soft');
-            visual.classList.add('bg-indigo-600', 'text-white');
-            visual.querySelector('img').classList.remove('opacity-50', 'grayscale');
-            visual.querySelector('img').classList.add('brightness-200');
+            visual.classList.add('border-indigo-500', 'bg-indigo-500/10');
+            visual.querySelector('i').classList.replace('text-sky-400', 'text-indigo-400');
             status.classList.remove('hidden');
             
             if ("geolocation" in navigator) {
