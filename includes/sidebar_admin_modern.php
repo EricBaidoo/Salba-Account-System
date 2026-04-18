@@ -186,6 +186,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-sliders"></i>
             <span>Registry Settings</span>
         </a>
+        <a href="<?= nav_link($base_path, 'administration/audit_logs') ?>" class="nav-item <?= nav_active('audit_logs', $current_page) ?>">
+            <i class="fas fa-fingerprint"></i>
+            <span>System Audit Trail</span>
+        </a>
 
         <!-- PERSONNEL HUB -->
         <div class="nav-group-label">Personnel</div>
@@ -205,6 +209,10 @@ if (!function_exists('nav_active')) {
         <a href="<?= nav_link($base_path, 'administration/students/add_student_form') ?>" class="nav-item <?= nav_active('add_student_form', $current_page) ?>">
             <i class="fas fa-user-plus"></i>
             <span>New Enrollment</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'administration/staff_attendance') ?>" class="nav-item <?= nav_active('staff_attendance', $current_page) ?>">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Attendance Hub</span>
         </a>
 
         <!-- ACADEMIC CENTER -->
@@ -245,6 +253,10 @@ if (!function_exists('nav_active')) {
         <a href="<?= nav_link($base_path, 'finance/expenses/view_expenses') ?>" class="nav-item <?= nav_active('view_expenses', $current_page) ?>">
             <i class="fas fa-receipt"></i>
             <span>Expense Tracker</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/reports/student_balances') ?>" class="nav-item <?= nav_active('student_balances', $current_page) ?>">
+            <i class="fas fa-chart-pie"></i>
+            <span>Outstanding Balances</span>
         </a>
 
         <!-- COMMUNICATION -->
