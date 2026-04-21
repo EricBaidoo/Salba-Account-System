@@ -104,9 +104,9 @@ if ($report_type === 'budget' || $report_type === 'overview') {
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar_admin_modern.php'; ?></div>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
         <!-- Header -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
@@ -156,9 +156,9 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                     </select>
                 </div>
                 <div>
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester Context</label>
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Trimester Context</label>
                     <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
-                        <option value="All">All Semesters</option>
+                        <option value="All">All Trimesters</option>
                         <?php foreach($available_terms as $t): ?>
                             <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>
@@ -241,7 +241,7 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 <?php if(!empty($budget_comparison)): ?>
                 <div class="lg:col-span-12 bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800">
                     <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-10 flex items-center gap-4">
-                        <i class="fas fa-chart-line text-emerald-500"></i> Semester Performance Benchmarks
+                        <i class="fas fa-chart-line text-emerald-500"></i> Trimester Performance Benchmarks
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                         <?php foreach($budget_comparison as $term => $data): 

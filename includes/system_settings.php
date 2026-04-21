@@ -98,7 +98,7 @@ function getAllSettings($conn) {
 if (!function_exists('getAvailableSemesters')) {
 function getAvailableSemesters($conn = null) {
     if (!$conn) {
-        return ['First Semester', 'Second Semester', 'Third Semester'];
+        return ['First Semester', 'Second Semester', 'Trimester'];
     }
     $semesters = [];
     $res = $conn->query("SELECT semester_name FROM academic_semester_dictionary WHERE is_active = 1 ORDER BY display_order ASC");
@@ -106,7 +106,7 @@ function getAvailableSemesters($conn = null) {
         while($row = $res->fetch_assoc()) $semesters[] = $row['semester_name'];
     }
     // Fallback if dictionary empty
-    if (empty($semesters)) return ['First Semester', 'Second Semester', 'Third Semester'];
+    if (empty($semesters)) return ['First Semester', 'Second Semester', 'Trimester'];
     return $semesters;
 }
 }

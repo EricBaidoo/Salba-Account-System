@@ -347,6 +347,20 @@ for ($i = -2; $i <= 5; $i++) {
                                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Name</label>
                                     <input type="text" name="school_name" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_name', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Address & Location</label>
+                                        <textarea name="school_address" rows="2" placeholder="e.g. No 4 Crown Flower Street" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"><?= htmlspecialchars(getSystemSetting($conn, 'school_address', '')) ?></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Primary Phone</label>
+                                        <input type="text" name="school_phone" placeholder="e.g. 0598872309" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_phone', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Official Email</label>
+                                        <input type="email" name="school_email" placeholder="e.g. sms@edu.gh" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_email', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    </div>
+                                </div>
                                 <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-emerald-600 transition-all active:scale-[0.98]">
                                     Commit All Changes
                                 </button>
@@ -357,7 +371,37 @@ for ($i = -2; $i <= 5; $i++) {
             </form>
 
             <!-- Bottom Sections -->
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-12">
+                
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl p-8 text-white">
+                    <h2 class="text-xl font-black mb-6 flex items-center gap-3 tracking-tighter">
+                        <i class="fas fa-book text-emerald-500"></i> Semester Nomenclature
+                    </h2>
+                    <form method="POST" class="flex items-center gap-4 mb-6">
+                        <input type="hidden" name="semester_action" value="add_semester">
+                        <input type="text" name="new_semester_name" placeholder="E.g. Summer School" required class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-3 text-xs font-bold text-white outline-none">
+                        <button type="submit" class="bg-emerald-600 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all"><i class="fas fa-plus"></i></button>
+                    </form>
+                    <div class="space-y-4">
+                        <?php foreach($semester_dictionary as $sem): ?>
+                            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
+                                <form method="POST" class="flex items-center gap-3">
+                                    <input type="hidden" name="semester_action" value="rename_semester">
+                                    <input type="hidden" name="semester_id" value="<?= $sem['id'] ?>">
+                                    <input type="hidden" name="old_name" value="<?= htmlspecialchars($sem['semester_name']) ?>">
+                                    <input type="text" name="new_name" value="<?= htmlspecialchars($sem['semester_name']) ?>" class="flex-1 bg-transparent border-b border-transparent focus:border-emerald-500 font-bold text-sm outline-none px-1 py-0.5 transition-colors">
+                                    <button type="submit" title="Rename" class="text-slate-400 hover:text-emerald-500 transition-colors"><i class="fas fa-save"></i></button>
+                                </form>
+                                <form method="POST" class="mt-2 text-right">
+                                    <input type="hidden" name="semester_action" value="delete_semester">
+                                    <input type="hidden" name="delete_id" value="<?= $sem['id'] ?>">
+                                    <button type="submit" onclick="return confirm('Warning: Deleting a semester may break historical records mapped to it. Proceed?')" class="text-[9px] font-black uppercase text-rose-500 hover:text-rose-400">Delete</button>
+                                </form>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
                     <h2 class="text-xl font-black text-gray-900 mb-6 flex items-center gap-3 tracking-tighter">
                         <i class="fas fa-calendar-alt text-indigo-500"></i> Semester Duration

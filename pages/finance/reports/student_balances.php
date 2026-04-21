@@ -116,9 +116,9 @@ $classes_rs = $conn->query("SELECT DISTINCT class FROM students ORDER BY class")
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar_admin_modern.php'; ?></div>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
         <!-- Header -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
@@ -129,8 +129,11 @@ $classes_rs = $conn->query("SELECT DISTINCT class FROM students ORDER BY class")
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Student <span class="text-emerald-600">Balances</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Institutional debt exposure and revenue maturity overview.</p>
             </div>
-            <div class="no-print flex gap-4">
-                 <a href="../payments/record_payment_form.php" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-800 transition-all leading-none">
+            <div class="no-print flex flex-col md:flex-row gap-4">
+                 <a href="download_student_balances.php?class=<?= urlencode($class_filter) ?>&status=<?= urlencode($status_filter) ?>&owing=<?= urlencode($owing_filter) ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all leading-none border border-indigo-100 text-center">
+                    <i class="fas fa-file-csv mr-2"></i> Extract CSV
+                </a>
+                 <a href="../payments/record_payment_form.php" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-800 transition-all leading-none text-center">
                     <i class="fas fa-plus mr-2"></i> Record Remittance
                 </a>
             </div>
@@ -245,7 +248,7 @@ $classes_rs = $conn->query("SELECT DISTINCT class FROM students ORDER BY class")
                             <th class="px-10 py-6">Student Identifying Name</th>
                             <th class="px-6 py-6">Grade Level</th>
                             <th class="px-6 py-6 font-black text-slate-900">Settled (₵)</th>
-                            <th class="px-6 py-6 font-black text-rose-600">Outstanding (₵)</th>
+                            <th class="px-6 py-6 font-black text-rose-600">Arrears (₵)</th>
                             <th class="px-6 py-6 min-w-[150px]">Fulfillment Status</th>
                             <th class="px-10 py-6 text-right no-print">Actions</th>
                         </tr>

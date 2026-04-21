@@ -90,7 +90,7 @@ if ($logs_res) {
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="font-sans bg-security">
+<body class="bg-slate-50 text-slate-800 font-sans">
 
     <?php include '../../includes/sidebar.php'; ?>
 
@@ -133,23 +133,23 @@ if ($logs_res) {
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div class="security-card card-vivid-indigo p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
-                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Total Days Present</p>
-                <div class="text-6xl font-black text-white tracking-tight"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-indigo-200">DAYS</span></div>
-                <div class="absolute bottom-0 left-0 h-1 bg-white/20 w-full"></div>
+            <div class="bg-white rounded-2xl border border-indigo-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-50 rounded-full blur-3xl group-hover:bg-indigo-100 transition-all"></div>
+                <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Total Days Present</p>
+                <div class="text-6xl font-black text-slate-900 tracking-tight"><?= $stats['total_present'] ?> <span class="text-xl font-bold text-slate-400">DAYS</span></div>
+                <div class="absolute bottom-0 left-0 h-1 bg-indigo-100 w-full"></div>
             </div>
-            <div class="security-card card-vivid-emerald p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">Punctuality Rate</p>
+            <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-50 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-4">Punctuality Rate</p>
                 <?php $rate = $stats['total_present'] > 0 ? round(($stats['on_time_total'] / $stats['total_present']) * 100) : 0; ?>
-                <div class="text-6xl font-black text-white tracking-tighter"><?= $rate ?><span class="text-3xl text-emerald-200">%</span></div>
+                <div class="text-6xl font-black text-slate-900 tracking-tighter"><?= $rate ?><span class="text-3xl text-emerald-500">%</span></div>
             </div>
-            <div class="security-card card-vivid-sky p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-sky-100 uppercase tracking-[0.2em] mb-4">Location Compliance</p>
+            <div class="bg-white rounded-2xl border border-sky-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-sky-50 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-sky-600 uppercase tracking-[0.2em] mb-4">Location Compliance</p>
                 <?php $comp_rate = $stats['total_present'] > 0 ? round(($stats['compliant'] / $stats['total_present']) * 100) : 0; ?>
-                <div class="text-6xl font-black text-white tracking-tighter"><?= $comp_rate ?><span class="text-3xl text-sky-200">%</span></div>
+                <div class="text-6xl font-black text-slate-900 tracking-tighter"><?= $comp_rate ?><span class="text-3xl text-sky-500">%</span></div>
             </div>
         </div>
 
@@ -160,10 +160,10 @@ if ($logs_res) {
                     <div class="text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Displaying last 50 entries</div>
                 </div>
 
-                <div class="security-manifest-wrapper">
-                    <table class="security-manifest-table security-manifest-table-lg">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                            <tr class="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
                                 <th class="px-12 py-4 text-left">Date & Time</th>
                                 <th class="px-12 py-4 text-left">Punctuality</th>
                                 <th class="px-12 py-4 text-left">Location Check</th>
@@ -175,8 +175,21 @@ if ($logs_res) {
                             <?php foreach ($history as $log): ?>
                                 <tr>
                                     <td class="px-12 py-6">
-                                        <div class="font-bold text-slate-900 tracking-tight text-lg mb-1 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
-                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?> UTC IDENTIFIED</div>
+                                        <div class="font-bold text-slate-900 tracking-tight text-lg mb-3 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 w-6">IN:</span>
+                                                <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?></div>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 w-6">OUT:</span>
+                                                <?php if($log['check_out_time']): ?>
+                                                    <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_out_time'])) ?></div>
+                                                <?php else: ?>
+                                                    <div class="text-[10px] font-black text-slate-400 italic uppercase tracking-widest leading-none">ACTIVE</div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="px-12 py-6">
                                         <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $log['p_status'] === 'Late' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' ?>">

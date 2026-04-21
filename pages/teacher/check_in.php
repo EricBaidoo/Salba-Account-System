@@ -28,13 +28,23 @@ $diagnostic_data = $_SESSION['last_diagnostic'] ?? null;
 unset($_SESSION['last_diagnostic']);
 $uid = $_SESSION['user_id'];
 
-// Check if already checked in today
+// Check attendance state for today
 $today = date('Y-m-d');
-$already = $conn->query("SELECT id FROM staff_attendance WHERE user_id = $uid AND DATE(check_in_time) = '$today'")->num_rows > 0;
+$attendance_record = null;
+$q = $conn->query("SELECT id, check_in_time, check_out_time FROM staff_attendance WHERE user_id = $uid AND DATE(check_in_time) = '$today' ORDER BY id DESC LIMIT 1");
+if ($q->num_rows > 0) {
+    $attendance_record = $q->fetch_assoc();
+}
+$already_checked_in = $attendance_record !== null;
+$already_checked_out = $attendance_record && !empty($attendance_record['check_out_time']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'geocheckin') {
-    if ($already) {
-        redirect('check_in', 'error', "You have already recorded your attendance for today.");
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['geocheckin', 'geocheckout'])) {
+    $is_checkout = $_POST['action'] === 'geocheckout';
+    
+    if (!$is_checkout && $already_checked_in) {
+        redirect('check_in.php', 'error', "You have already recorded your check-in for today.");
+    } elseif ($is_checkout && (!$already_checked_in || $already_checked_out)) {
+        redirect('check_in.php', 'error', "Invalid check-out request.");
     } else {
         $u_lat = floatval($_POST['lat']);
         $u_lng = floatval($_POST['lng']);
@@ -56,17 +66,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             if ($dist <= $allowed_radius_meters || $_SESSION['role'] === 'admin') {
                 $notes = isset($_POST['bypass']) ? "Supervisor Manual Attendance Record" : "";
-                $stmt = $conn->prepare("INSERT INTO staff_attendance (user_id, check_in_time, latitude, longitude, accuracy, notes) VALUES (?, NOW(), ?, ?, ?, ?)");
-                $stmt->bind_param("iddds", $uid, $u_lat, $u_lng, $u_acc, $notes);
+                
+                if ($is_checkout) {
+                    $stmt = $conn->prepare("UPDATE staff_attendance SET check_out_time = NOW() WHERE id = ?");
+                    $stmt->bind_param("i", $attendance_record['id']);
+                } else {
+                    $stmt = $conn->prepare("INSERT INTO staff_attendance (user_id, check_in_time, latitude, longitude, accuracy, notes) VALUES (?, NOW(), ?, ?, ?, ?)");
+                    $stmt->bind_param("iddds", $uid, $u_lat, $u_lng, $u_acc, $notes);
+                }
+
                 if ($stmt->execute()) {
-                    $msg = isset($_POST['bypass']) ? "Manual attendance record successfully authenticated." : "Campus presence verified. Welcome to school!";
+                    $msg = isset($_POST['bypass']) ? "Manual attendance record successfully authenticated." : ($is_checkout ? "Departure recorded. Have a great day!" : "Campus presence verified. Welcome to school!");
                     
                     // AUDIT LOG
-                    log_activity($conn, 'Attendance', "Staff check-in recorded. User: " . $_SESSION['username'] . " (Distance: " . round($dist) . "m)", null, $diag);
+                    $action_name = $is_checkout ? "staff check-out" : "Staff check-in";
+                    log_activity($conn, 'Attendance', "$action_name recorded. User: " . $_SESSION['username'] . " (Distance: " . round($dist) . "m)", null, $diag);
                     
-                    redirect('check_in', 'success', $msg);
+                    redirect('check_in.php', 'success', $msg);
                 } else {
-                    redirect('check_in', 'error', "An error occurred while saving your attendance record.");
+                    redirect('check_in.php', 'error', "An error occurred while saving your attendance record.");
                 }
             } else {
                 // SECURITY AUDIT LOG for violation
@@ -132,16 +150,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
 
             <div class="relative z-10 text-center">
-                <?php if($already): ?>
-                    <!-- Verification Successful -->
+                <?php if($already_checked_in && $already_checked_out): ?>
+                    <!-- Verification Successful (Full Day) -->
                     <div class="identity-lens pill-emerald mb-8 scale-110 !border-white/20">
-                        <i class="fas fa-check text-5xl text-white drop-shadow-md"></i>
+                        <i class="fas fa-check-double text-5xl text-white drop-shadow-md"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">Clock-in Successful</h2>
-                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-relaxed mb-10 bg-emerald-50 py-2 rounded-lg border border-emerald-100">Attendance Logged: <?= date('H:i:s') ?></p>
+                    <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">Shift Complete</h2>
+                    <div class="flex flex-col gap-2 mb-10">
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-relaxed bg-emerald-50 py-2 rounded-lg border border-emerald-100">Check In: <?= date('H:i', strtotime($attendance_record['check_in_time'])) ?></p>
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-relaxed bg-emerald-50 py-2 rounded-lg border border-emerald-100">Check Out: <?= date('H:i', strtotime($attendance_record['check_out_time'])) ?></p>
+                    </div>
                     
                     <div class="pt-8 border-t border-slate-700/50">
                         <a href="<?= BASE_URL ?>index" class="text-sky-400 font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Return to Terminal</a>
+                    </div>
+                <?php elseif($already_checked_in && !$already_checked_out): ?>
+                    <!-- Waiting for Check out -->
+                    <div id="authVisual" class="identity-lens mb-10 border-amber-500 bg-amber-500/10">
+                        <i class="fas fa-person-walking-arrow-right text-5xl text-amber-500 transition-all"></i>
+                    </div>
+                    
+                    <div class="space-y-1 mb-10">
+                        <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Ready to Clock Out</h2>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Authorized Area: <?= $allowed_radius_meters ?>M Radius</p>
+                    </div>
+
+                    <!-- High-Visibility HUD -->
+                    <div class="grid grid-cols-3 gap-2 mb-10">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">GPS</p>
+                            <span class="status-pill-solid pill-emerald !text-[8px] !py-1 !px-3">LOCK</span>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">SIGNAL</p>
+                            <span class="status-pill-solid pill-sky !text-[8px] !py-1 !px-3">ACTIVE</span>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                            <p class="hud-stat mb-2">AUTH</p>
+                            <span class="status-pill-solid pill-amber !text-[8px] !py-1 !px-3">AES-256</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-12">
+                        <form id="checkInForm" method="POST">
+                            <input type="hidden" name="action" value="geocheckout">
+                            <input type="hidden" name="lat" id="lat" value="0">
+                            <input type="hidden" name="lng" id="lng" value="0">
+                            <input type="hidden" name="accuracy" id="accuracy" value="0">
+                            
+                            <button type="button" onclick="initiateCheckIn()" id="authBtn" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3">
+                                <i class="fas fa-sign-out-alt"></i> Record Departure
+                            </button>
+                        </form>
+                        
+                        <div id="status-msg" class="mt-8 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hidden">
+                            <i class="fas fa-satellite-dish fa-spin mr-2 text-amber-500"></i> <span id="status-text">verifying location status...</span>
+                        </div>
                     </div>
                 <?php else: ?>
                     <!-- Awaiting Authentication -->
@@ -218,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <?php if($_SESSION['role'] === 'admin'): ?>
                     <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
                         <form method="POST">
-                            <input type="hidden" name="action" value="geocheckin">
+                            <input type="hidden" name="action" value="<?= ($already_checked_in && !$already_checked_out) ? 'geocheckout' : 'geocheckin' ?>">
                             <input type="hidden" name="lat" value="<?= $school_lat ?>">
                             <input type="hidden" name="lng" value="<?= $school_lng ?>">
                             <input type="hidden" name="accuracy" value="0">

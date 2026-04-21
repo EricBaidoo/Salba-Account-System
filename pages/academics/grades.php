@@ -273,7 +273,8 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                 </div>
                             </div>
 
-                            <table class="w-full text-left">
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left min-w-[600px]">
                                 <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[10px] uppercase font-black tracking-widest text-center">
                                     <tr>
                                         <th class="px-8 py-5 text-left">Student Identity</th>
@@ -319,7 +320,8 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
                         </div>
                         
                         <div class="flex flex-col md:flex-row justify-between items-center bg-gray-50 p-8 rounded-2xl border border-gray-100 gap-6">

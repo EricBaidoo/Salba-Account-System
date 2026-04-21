@@ -212,7 +212,7 @@ if (!function_exists('nav_active')) {
         </a>
         <a href="<?= nav_link($base_path, 'administration/staff_attendance') ?>" class="nav-item <?= nav_active('staff_attendance', $current_page) ?>">
             <i class="fas fa-clock-rotate-left"></i>
-            <span>Attendance Hub</span>
+            <span>Staff Attendance Hub</span>
         </a>
 
         <!-- ACADEMIC CENTER -->
@@ -228,7 +228,7 @@ if (!function_exists('nav_active')) {
         </a>
         <a href="<?= nav_link($base_path, 'academics/attendance') ?>" class="nav-item <?= nav_active('attendance', $current_page) ?>">
             <i class="fas fa-calendar-check"></i>
-            <span>Attendance Log</span>
+            <span>Student Attendance Hub</span>
         </a>
         <a href="<?= nav_link($base_path, 'academics/transcripts') ?>" class="nav-item <?= nav_active('transcripts', $current_page) ?>">
             <i class="fas fa-scroll"></i>
@@ -244,15 +244,23 @@ if (!function_exists('nav_active')) {
         </a>
         <a href="<?= nav_link($base_path, 'finance/fees/view_fees') ?>" class="nav-item <?= nav_active('view_fees', $current_page) ?>">
             <i class="fas fa-file-invoice"></i>
-            <span>Fee Structures</span>
+            <span>Invoicing Options</span>
         </a>
         <a href="<?= nav_link($base_path, 'finance/payments/view_payments') ?>" class="nav-item <?= nav_active('view_payments', $current_page) ?>">
             <i class="fas fa-cash-register"></i>
-            <span>Revenue stream</span>
+            <span>Payments & Receipts</span>
         </a>
         <a href="<?= nav_link($base_path, 'finance/expenses/view_expenses') ?>" class="nav-item <?= nav_active('view_expenses', $current_page) ?>">
             <i class="fas fa-receipt"></i>
             <span>Expense Tracker</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/budgets/semester_budget') ?>" class="nav-item <?= nav_active('semester_budget', $current_page) ?>">
+            <i class="fas fa-sack-dollar"></i>
+            <span>Trimester Budget</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/reports/report') ?>" class="nav-item <?= nav_active('report', $current_page) ?>">
+            <i class="fas fa-chart-bar"></i>
+            <span>Financial Reporting</span>
         </a>
         <a href="<?= nav_link($base_path, 'finance/reports/student_balances') ?>" class="nav-item <?= nav_active('student_balances', $current_page) ?>">
             <i class="fas fa-chart-pie"></i>

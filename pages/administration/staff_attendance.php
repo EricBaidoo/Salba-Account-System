@@ -94,7 +94,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="font-sans bg-security">
+<body class="bg-slate-50 text-slate-800 font-sans">
 
     <?php include '../../includes/sidebar.php'; ?>
 
@@ -130,37 +130,37 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
 
         <!-- Modern Light HUD -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <div class="security-card card-vivid-indigo p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all"></div>
-                <p class="text-[10px] font-black text-indigo-100 uppercase tracking-[0.2em] mb-4">Staff Present</p>
+            <div class="bg-white rounded-2xl border border-indigo-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-50 rounded-full blur-3xl group-hover:bg-indigo-100 transition-all"></div>
+                <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">Staff Present</p>
                 <div class="flex items-end gap-3">
-                    <span class="text-6xl font-black text-white"><?= $stats['present'] ?></span>
-                    <span class="text-xl font-bold text-indigo-200 mb-1">/ <?= $total_staff ?></span>
+                    <span class="text-6xl font-black text-slate-900"><?= $stats['present'] ?></span>
+                    <span class="text-xl font-bold text-slate-400 mb-1">/ <?= $total_staff ?></span>
                 </div>
-                <div class="mt-6 h-1 w-full bg-indigo-900/20 rounded-full overflow-hidden">
-                    <div class="h-full bg-white" style="width: <?= ($total_staff > 0) ? ($stats['present']/$total_staff)*100 : 0 ?>%"></div>
+                <div class="mt-6 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500" style="width: <?= ($total_staff > 0) ? ($stats['present']/$total_staff)*100 : 0 ?>%"></div>
                 </div>
             </div>
             
-            <div class="security-card card-vivid-emerald p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-4">On-Time Attendance</p>
-                <span class="text-6xl font-black text-white leading-none"><?= $stats['on_time'] + $stats['early'] ?></span>
-                <p class="text-[8px] font-black text-emerald-100 uppercase tracking-widest mt-4">Verified Punctuality</p>
+            <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-50 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-4">On-Time Attendance</p>
+                <span class="text-6xl font-black text-slate-900 leading-none"><?= $stats['on_time'] + $stats['early'] ?></span>
+                <p class="text-[8px] font-black text-emerald-500 uppercase tracking-widest mt-4">Verified Punctuality</p>
             </div>
  
-            <div class="security-card card-vivid-rose p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-rose-100 uppercase tracking-[0.2em] mb-4">Location Status</p>
-                <span class="text-6xl font-black text-white"><?= $stats['geofence_violations'] ?></span>
-                <p class="text-[8px] font-black text-rose-100 uppercase tracking-widest mt-4">Outside Boundary</p>
+            <div class="bg-white rounded-2xl border border-rose-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-rose-50 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-rose-600 uppercase tracking-[0.2em] mb-4">Location Status</p>
+                <span class="text-6xl font-black text-slate-900"><?= $stats['geofence_violations'] ?></span>
+                <p class="text-[8px] font-black text-rose-500 uppercase tracking-widest mt-4">Outside Boundary</p>
             </div>
  
-            <div class="security-card card-vivid-orange p-10 relative overflow-hidden group">
-                <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-orange-100 uppercase tracking-[0.2em] mb-4">Late Arrivals</p>
-                <span class="text-6xl font-black text-white"><?= $stats['late'] ?></span>
-                <p class="text-[8px] font-black text-orange-100 uppercase tracking-widest mt-4">School Policy Note</p>
+            <div class="bg-white rounded-2xl border border-orange-100 shadow-sm p-8 relative overflow-hidden group">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-orange-50 rounded-full blur-3xl"></div>
+                <p class="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] mb-4">Late Arrivals</p>
+                <span class="text-6xl font-black text-slate-900"><?= $stats['late'] ?></span>
+                <p class="text-[8px] font-black text-orange-500 uppercase tracking-widest mt-4">School Policy Note</p>
             </div>
         </div>
 
@@ -174,9 +174,9 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                     </div>
                 </div>
                 
-                <div class="security-manifest-wrapper">
-                    <table class="security-manifest-table">
-                        <thead class="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
                             <tr>
                                 <th class="px-12 py-4 text-left">Staff Member</th>
                                 <th class="px-12 py-4 text-left">Time Logged</th>
@@ -204,7 +204,18 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                                         </div>
                                     </td>
                                     <td class="px-12 py-6">
-                                        <div class="font-black text-slate-900 text-base leading-none mb-1"><?= date('H:i A', strtotime($log['check_in_time'])) ?></div>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 w-8">IN:</span>
+                                            <div class="font-black text-slate-900 text-base leading-none"><?= date('H:i A', strtotime($log['check_in_time'])) ?></div>
+                                        </div>
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 w-8">OUT:</span>
+                                            <?php if($log['check_out_time']): ?>
+                                                <div class="font-black text-slate-700 text-base leading-none"><?= date('H:i A', strtotime($log['check_out_time'])) ?></div>
+                                            <?php else: ?>
+                                                <div class="font-bold text-slate-400 text-sm leading-none italic uppercase tracking-widest">Active Shift</div>
+                                            <?php endif; ?>
+                                        </div>
                                         <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3"><?= date('M j, Y', strtotime($log['check_in_time'])) ?></div>
                                         <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $log['punctuality'] === 'Late' ? 'bg-orange-50 text-orange-600' : ($log['punctuality'] === 'Early' ? 'bg-sky-50 text-sky-600' : 'bg-emerald-50 text-emerald-600') ?>">
                                             <i class="fas <?= $log['punctuality'] === 'Late' ? 'fa-clock' : 'fa-circle-check' ?>"></i> <?= $log['punctuality'] ?>

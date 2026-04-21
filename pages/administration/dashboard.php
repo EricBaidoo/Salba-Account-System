@@ -33,14 +33,9 @@ $present_stmt->close();
 $attendance_rate = ($active_students > 0) ? round(($present_students / $active_students) * 100) : 0;
 
 // Financial stats for current semester
-require_once '../../includes/student_balance_functions.php';
-$student_balances    = getAllStudentBalances($conn, null, 'active', $current_term, $academic_year);
-$total_fees_assigned = 0;
-$outstanding_fees    = 0;
-foreach ($student_balances as $s) {
-    $total_fees_assigned += (float)($s['total_fees'] ?? 0);
-    $outstanding_fees    += (float)($s['net_balance'] ?? 0);
-}
+$total_fees_assigned = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_term' AND academic_year = '$academic_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
+$total_payments = $conn->query("SELECT SUM(amount) as total FROM payments WHERE semester = '$current_term' AND academic_year = '$academic_year'")->fetch_assoc()['total'] ?? 0;
+$outstanding_fees = $total_fees_assigned - $total_payments;
 
 // Payments this semester
 $pay_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE semester=? AND academic_year=?");
@@ -167,7 +162,7 @@ if ($sub_res) {
             </div>
         </div>
 
-        <!-- Financial Overview (current semester) -->
+        <!-- Financial Overview (current trimester) -->
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
             <i class="fas fa-chart-line"></i> Financial Overview — <?php echo htmlspecialchars($current_term); ?>
         </h2>

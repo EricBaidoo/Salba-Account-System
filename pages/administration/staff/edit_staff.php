@@ -291,7 +291,7 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                         <select name="job_title" class="fi">
                             <option value="">-- Select Role --</option>
                             <?php foreach([
-                                'Headmaster / Headmistress', 'Administrator / Manager', 'Class Teacher', 
+                                'Headmaster / Headmistress', 'Administrator / Manager', 'Supervisor', 'Class Teacher', 
                                 'Assistant Teacher', 'Finance Officer / Accountant', 'Secretary / Front Desk', 
                                 'IT / System Admin', 'Security', 'Facility Support (Cleaner / Caretaker)', 'Driver'
                             ] as $role): ?>

@@ -15,7 +15,7 @@ $error = '';
 $uid = $_SESSION['user_id'];
 $current_semester = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
-$weeks_limit = intval(getSystemSetting($conn, 'weeks_per_term', 12));
+$weeks_limit = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 $total_instructional_days = getInstructionalDaysCount($conn, $current_semester, $current_year);
 $semester_start = getSystemSetting($conn, 'semester_start_date');
 $semester_end = getSystemSetting($conn, 'semester_end_date');
@@ -24,7 +24,7 @@ $semester_end = getSystemSetting($conn, 'semester_end_date');
 $holidays = [];
 
 // [REMOVED SELF-REPAIR - ALIGNMENT COMPLETE]
-$h_res = $conn->query("SELECT event_date, description, event_type FROM academic_calendar");
+$h_res = $conn->query("SELECT event_date, description, event_type FROM academic_calendar WHERE event_type IN ('holiday', 'break', 'mid-term')");
 if ($h_res) {
     while($hr = $h_res->fetch_assoc()) $holidays[$hr['event_date']] = $hr;
 }

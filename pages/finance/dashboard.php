@@ -13,13 +13,13 @@ require_finance_access();
 $current_semester = getCurrentSemester($conn);
 $acad_year = getAcademicYear($conn);
 
-// Get finance statistics for CURRENT TERM ONLY
+// Get finance statistics for CURRENT TRIMESTER ONLY
 $total_fees = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_semester' AND academic_year = '$acad_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
 $total_payments = $conn->query("SELECT SUM(amount) as total FROM payments WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
 $total_expenses = $conn->query("SELECT SUM(amount) as total FROM expenses WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
 $outstanding = $total_fees - $total_payments;
 
-// Count students with outstanding fees in CURRENT TERM
+// Count students with outstanding fees in CURRENT TRIMESTER
 $pending_payments_result = $conn->query("
     SELECT COUNT(DISTINCT s.id) as cnt 
     FROM students s 
@@ -95,7 +95,7 @@ $net_position = $total_payments - $total_expenses;
                 <p class="text-indigo-100 text-xs font-black uppercase tracking-widest mb-1">Total Receivables</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_fees, 2) ?></h2>
                 <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-info-circle"></i> Current Semester Context
+                    <i class="fas fa-info-circle"></i> Current Trimester Context
                 </div>
             </div>
 
@@ -116,7 +116,7 @@ $net_position = $total_payments - $total_expenses;
                 <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-exclamation-circle text-6xl"></i>
                 </div>
-                <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Semester Exposure</p>
+                <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Trimester Exposure</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($outstanding, 2) ?></h2>
                 <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                     <i class="fas fa-users"></i> <?= $pending_students ?> Active Arrears
@@ -154,12 +154,12 @@ $net_position = $total_payments - $total_expenses;
                 </div>
             </a>
 
-            <!-- Payments Card -->
+            <!-- Payments/Receipts Card -->
             <a href="payments/view_payments.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
                 <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500">
                     <i class="fas fa-credit-card"></i>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Revenue Input</h4>
+                <h4 class="text-xl font-black text-slate-900 mb-2">Payments & Receipts</h4>
                 <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Record fee payments, issue receipts, and track student balances.</p>
                 <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest">
                     Record Payment <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
@@ -178,15 +178,15 @@ $net_position = $total_payments - $total_expenses;
                 </div>
             </a>
 
-            <!-- Fees Card -->
+            <!-- Invoicing/Billing Options -->
             <a href="fees/view_fees.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
                 <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-amber-600 group-hover:text-white transition-all duration-500">
                     <i class="fas fa-tags"></i>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Fee Structure</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Define fee categories, assign tiers to classes, and manage pricing.</p>
+                <h4 class="text-xl font-black text-slate-900 mb-2">Invoicing & Pricing</h4>
+                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Define invoice categories, assign tiers to classes, and manage pricing.</p>
                 <div class="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-widest">
-                    Configure Fees <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                    Configure Invoicing <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
                 </div>
             </a>
 
@@ -195,8 +195,8 @@ $net_position = $total_payments - $total_expenses;
                 <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500">
                     <i class="fas fa-sack-dollar"></i>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Planning</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Set up semester budgets and monitor actual vs. planned performance.</p>
+                <h4 class="text-xl font-black text-slate-900 mb-2">Trimester Budget</h4>
+                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Set up trimester budgets and monitor actual vs. planned performance.</p>
                 <div class="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-widest">
                     Open Budgets <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
                 </div>
@@ -212,6 +212,21 @@ $net_position = $total_payments - $total_expenses;
                 <p class="text-slate-400 text-sm font-medium leading-relaxed mb-8 relative z-10">Configure currency, late fee rules, and global billing footer details.</p>
                 <div class="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-[0.2em] relative z-10">
                     Edit Protocol <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                </div>
+            </a>
+
+            <!-- Financial Reporting Card -->
+            <a href="reports/report.php" class="bg-gradient-to-r from-sky-500 to-sky-600 p-8 rounded-[2.5rem] shadow-xl shadow-sky-500/20 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 p-12 opacity-10 group-hover:scale-110 transition-transform duration-500 text-white">
+                    <i class="fas fa-chart-pie text-8xl"></i>
+                </div>
+                <div class="w-16 h-16 bg-white/20 text-white rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-white group-hover:text-sky-600 transition-all duration-500 relative z-10">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h4 class="text-xl font-black text-white mb-2 relative z-10">Financial Reporting</h4>
+                <p class="text-sky-100 text-sm font-medium leading-relaxed mb-8 relative z-10">Generate custom data extracts, payment histories, and overall financial summaries.</p>
+                <div class="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-[0.2em] relative z-10">
+                    Open Intelligence <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
                 </div>
             </a>
         </div>

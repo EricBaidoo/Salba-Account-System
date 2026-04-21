@@ -125,9 +125,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900">
-    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar_admin_modern.php'; ?></div>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
         <!-- Header Section -->
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
@@ -135,7 +135,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                     <span class="w-8 h-[2px] bg-purple-600"></span>
                     Financial Forecasting
                 </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Semester <span class="text-purple-600">Budget</span></h1>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Trimester <span class="text-purple-600">Budget</span></h1>
                 <p class="text-slate-500 mt-2 font-medium"><?= htmlspecialchars($current_term) ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)) ?></p>
             </div>
             <div class="flex items-center gap-3">
@@ -243,7 +243,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                  <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
                     Projected Revenue Streams <span class="flex-1 h-[1px] bg-slate-100"></span>
                 </h3>
-                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
                     <table class="w-full">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
@@ -274,7 +274,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                  <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
                     Allocated Expenditure <span class="flex-1 h-[1px] bg-slate-100"></span>
                 </h3>
-                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
                     <table class="w-full">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
