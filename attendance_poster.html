@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Attendance Poster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #d1d5db;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .poster {
+            width: 210mm;
+            height: 297mm;
+            background: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16mm 14mm 14mm;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        /* Subtle background glow */
+        .poster::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Top accent bar */
+        .top-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 7px;
+            background: linear-gradient(90deg, #4338ca, #7c3aed, #059669);
+        }
+
+        /* Bottom bar */
+        .bottom-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #059669, #4338ca, #7c3aed);
+        }
+
+        /* Corners */
+        .corner { position: absolute; width: 11mm; height: 11mm; }
+        .corner-tl { top: 11mm; left: 11mm; border-top: 2px solid #6366f1; border-left: 2px solid #6366f1; }
+        .corner-tr { top: 11mm; right: 11mm; border-top: 2px solid #6366f1; border-right: 2px solid #6366f1; }
+        .corner-bl { bottom: 10mm; left: 11mm; border-bottom: 2px solid #6366f1; border-left: 2px solid #6366f1; }
+        .corner-br { bottom: 10mm; right: 11mm; border-bottom: 2px solid #6366f1; border-right: 2px solid #6366f1; }
+
+        /* ── TOP SECTION ── */
+        .top-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .logo-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #f0f0ff;
+            border: 3px solid #e0e7ff;
+            box-shadow: 0 0 0 6px #f5f5ff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .logo-ring img { width: 56px; height: 56px; object-fit: contain; border-radius: 50%; }
+
+        .label {
+            font-size: 7.5px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 5px;
+            color: #6366f1; margin-bottom: 6px;
+        }
+        .school-name {
+            font-size: 26px; font-weight: 900;
+            color: #0f172a; text-transform: uppercase;
+            letter-spacing: 1px; line-height: 1.1;
+            margin-bottom: 4px;
+        }
+        .school-tagline {
+            font-size: 9px; color: #94a3b8; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 3px;
+        }
+
+        /* ── MIDDLE SECTION ── */
+        .mid-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .divider {
+            width: 50px; height: 2.5px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+
+        .action-title {
+            font-size: 11.5px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 5px;
+            color: #1e293b; margin-bottom: 14px;
+        }
+
+        /* QR */
+        .qr-wrap {
+            background: linear-gradient(145deg, #4338ca, #7c3aed);
+            padding: 6px;
+            border-radius: 20px;
+            box-shadow: 0 16px 50px rgba(99,102,241,0.35);
+        }
+        .qr-inner {
+            background: #fff;
+            border-radius: 15px;
+            padding: 10px;
+            display: block;
+        }
+        .qr-inner img {
+            width: 340px;
+            height: 340px;
+            display: block;
+        }
+
+        /* ── BOTTOM SECTION ── */
+        .bottom-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .scan-hint {
+            font-size: 10px; font-weight: 800;
+            color: #4f46e5; text-transform: uppercase;
+            letter-spacing: 3px;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 10px;
+        }
+        .scan-hint::before, .scan-hint::after {
+            content: '';
+            display: block; width: 28px; height: 1.5px;
+            background: #c7d2fe;
+        }
+
+        .footer-txt {
+            font-size: 7px; font-weight: 700;
+            color: #cbd5e1; text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: none; padding: 0; margin: 0; }
+            .poster { box-shadow: none; page-break-after: avoid; }
+            .print-btn { display: none !important; }
+        }
+
+        .print-btn {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #4f46e5; color: white;
+            border: none; border-radius: 100px;
+            padding: 13px 26px; font-size: 14px;
+            font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 24px rgba(79,70,229,0.4);
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .print-btn:hover { background: #4338ca; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="poster">
+    <div class="top-bar"></div>
+    <div class="bottom-bar"></div>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <!-- TOP: Branding -->
+    <div class="top-section">
+        <div class="logo-ring">
+            <img src="assets/img/salba_logo.jpg" alt="">
+            <!-- To use your logo: <img src="assets/img/logo.png"> -->
+        </div>
+        <div class="label">Salba Montessori School</div>
+        <div class="school-name">Staff Attendance<br>Check-In</div>
+        <div class="school-tagline">Scan &bull; Verify &bull; Done</div>
+    </div>
+
+    <!-- MIDDLE: QR -->
+    <div class="mid-section">
+        <div class="divider"></div>
+        <div class="action-title">📱 Scan to Clock In / Out</div>
+        <div class="qr-wrap">
+            <div class="qr-inner">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=https%3A%2F%2Fsmis.e7techlab.com%2Fpages%2Fteacher%2Fcheck_in&color=1e1b6e&bgcolor=ffffff&margin=6&qzone=2&format=png&ecc=H" alt="QR Code">
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM: Footer -->
+    <div class="bottom-section">
+        <div class="scan-hint">Point phone camera at code</div>
+        <div class="footer-txt">Salba Montessori &bull; Institutional Attendance System &bull; 2026</div>
+    </div></div>
+
+<div style="position:fixed;bottom:24px;right:24px;display:flex;gap:12px;z-index:999;">
+    <a href="attendance_poster_pdf.php" 
+       style="background:#059669;color:white;border:none;border-radius:100px;padding:13px 26px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(5,150,105,0.4);font-family:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;transition:all 0.2s;"
+       onmouseover="this.style.background='#047857';this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.background='#059669';this.style.transform='translateY(0)'">
+        ⬇️ Download PDF
+    </a>
+    <button onclick="window.print()" 
+        style="background:#4f46e5;color:white;border:none;border-radius:100px;padding:13px 26px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(79,70,229,0.4);font-family:inherit;transition:all 0.2s;"
+        onmouseover="this.style.background='#4338ca';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.background='#4f46e5';this.style.transform='translateY(0)'">
+        🖨️ Print Poster
+    </button>
+</div>
+
+</body>
+</html>

@@ -81,7 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
             $_SESSION['last_diagnostic'] = $diag;
 
             if ($dist <= $allowed_radius_meters || $_SESSION['role'] === 'admin') {
-                $notes = isset($_POST['bypass']) ? "Supervisor Manual Attendance Record" : "";
+                // Bypass is strictly admin-only (server-side enforced)
+                $is_bypass = isset($_POST['bypass']) && $_SESSION['role'] === 'admin';
+                $notes = $is_bypass ? "Admin Manual Attendance Override" : "";
+                
+                // Accuracy check — reject unreliable GPS fixes (unless admin bypass)
+                $max_acceptable_accuracy = 150; // meters
+                if (!$is_bypass && $u_acc > $max_acceptable_accuracy && $u_acc > 0) {
+                    log_activity($conn, 'Attendance Warning', "Low accuracy GPS fix rejected for " . $_SESSION['username'] . " (accuracy: {$u_acc}m)", null, $diag);
+                    redirect('check_in.php', 'error', "GPS accuracy too low (±" . round($u_acc) . "m). Please move to an open area and try again.");
+                }
                 
                 if ($is_checkout) {
                     $stmt = $conn->prepare("UPDATE staff_attendance SET check_out_time = NOW() WHERE id = ?");
@@ -92,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                 }
 
                 if ($stmt->execute()) {
-                    $msg = isset($_POST['bypass']) ? "Manual attendance record successfully authenticated." : ($is_checkout ? "Departure recorded. Have a great day!" : "Campus presence verified. Welcome to school!");
+                    $msg = $is_bypass ? "Manual attendance record successfully authenticated." : ($is_checkout ? "Departure recorded. Have a great day!" : "Campus presence verified. Welcome to school!");
                     
                     // AUDIT LOG
                     $action_name = $is_checkout ? "staff check-out" : "Staff check-in";
@@ -378,11 +387,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                 navigator.geolocation.getCurrentPosition(
                     handleSuccess,
                     function(err) {
-                        statusText.innerText = "Signal low, retrying verification...";
+                        statusText.innerText = "Signal low, retrying (no cache)...";
                         navigator.geolocation.getCurrentPosition(
                             handleSuccess,
                             handleFailure,
-                            { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+                            { enableHighAccuracy: false, timeout: 15000, maximumAge: 0 }
                         );
                     },
                     { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
