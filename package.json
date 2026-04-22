@@ -1,0 +1,27 @@
+{
+  "name": "accounting",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "npx tailwindcss -i ./assets/css/tailwind-source.css -o ./assets/css/tailwind.css --minify",
+    "watch": "npx tailwindcss -i ./assets/css/tailwind-source.css -o ./assets/css/tailwind.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EricBaidoo/ACCOUNTING.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EricBaidoo/ACCOUNTING/issues"
+  },
+  "homepage": "https://github.com/EricBaidoo/ACCOUNTING#readme",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^4.2.4"
+  }
+}

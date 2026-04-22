@@ -13,6 +13,13 @@
  */
 if (!function_exists('getSystemSetting')) {
 function getSystemSetting($conn, $key, $default = null) {
+    static $settings_cache = [];
+    
+    // Check cache first
+    if (isset($settings_cache[$key])) {
+        return $settings_cache[$key];
+    }
+    
     $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
     $stmt->bind_param("s", $key);
     $stmt->execute();
@@ -20,10 +27,12 @@ function getSystemSetting($conn, $key, $default = null) {
     
     if ($row = $result->fetch_assoc()) {
         $stmt->close();
+        $settings_cache[$key] = $row['setting_value']; // Store in cache
         return $row['setting_value'];
     }
     
     $stmt->close();
+    $settings_cache[$key] = $default;
     return $default;
 }
 }

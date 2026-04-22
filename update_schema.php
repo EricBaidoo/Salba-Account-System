@@ -145,5 +145,23 @@ applyPatch($conn, 'semester_integrity_sync', [
     "INSERT IGNORE INTO academic_semester_dictionary (semester_name) VALUES ('Trimester')"
 ]);
 
+// 4. SYSTEM PERFORMANCE OPTIMIZATION (INDEXING)
+applyPatch($conn, 'system_performance_optimization_v1', [
+    // Students Directory Optimization
+    "CREATE INDEX IF NOT EXISTS idx_students_status_class ON students(status, class)",
+    "CREATE INDEX IF NOT EXISTS idx_students_names ON students(last_name, first_name)",
+    
+    // Financial Reporting Optimization
+    "CREATE INDEX IF NOT EXISTS idx_payments_semester_year ON payments(semester, academic_year)",
+    "CREATE INDEX IF NOT EXISTS idx_expenses_semester_year ON expenses(semester, academic_year)",
+    
+    // Academic Workflow Optimization
+    "CREATE INDEX IF NOT EXISTS idx_lesson_plans_query ON lesson_plans(semester, academic_year, status)",
+    "CREATE INDEX IF NOT EXISTS idx_lesson_plan_teacher ON lesson_plans(teacher_id)",
+    
+    // Staff & Access Optimization
+    "CREATE INDEX IF NOT EXISTS idx_staff_attendance_lookup ON staff_attendance(user_id, check_in_time)"
+]);
+
 echo "<h3>Schema is up to date.</h3>";
 ?>
