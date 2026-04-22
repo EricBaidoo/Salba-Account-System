@@ -20,11 +20,17 @@ $cols_to_check = [
     'updated_at' => "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
     'status' => "VARCHAR(20) DEFAULT 'pending' AFTER objectives",
     'supervisor_comments' => "TEXT NULL AFTER status",
-    'supervisor_id' => "INT NULL AFTER supervisor_comments"
+    'supervisor_id' => "INT NULL AFTER supervisor_comments",
+    'references' => "TEXT NULL",
+    'tlm' => "TEXT NULL"
 ];
 foreach ($cols_to_check as $col => $def) {
-    if (!$conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'lesson_plans' AND COLUMN_NAME = '$col'")->fetch_row()[0]) {
+    $exists = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'lesson_plans' AND COLUMN_NAME = '$col'")->fetch_row()[0];
+    if (!$exists) {
         $conn->query("ALTER TABLE lesson_plans ADD COLUMN `$col` $def");
+    } elseif ($col === 'status') {
+        // Ensure status is at least VARCHAR(20) to support 'draft'
+        $conn->query("ALTER TABLE lesson_plans MODIFY COLUMN `$col` VARCHAR(20) DEFAULT 'pending'");
     }
 }
 
@@ -61,7 +67,7 @@ $reviewed_plans = $conn->query("
     JOIN subjects s ON l.subject_id = s.id 
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.staff_id = sp.id
-    WHERE l.status != 'pending' 
+    WHERE l.status IN ('approved', 'rejected') 
     ORDER BY l.updated_at DESC LIMIT 20
 ");
 ?>

@@ -119,41 +119,45 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         </div>
 
         <div class="header-title">
-            <h2>SEMESTER <?= strtoupper($v('semester')) ?: 'THREE' ?></h2>
+            <h2 style="font-size: 14px; margin-bottom: 5px;">TERM <?= strtoupper($v('semester')) ?: 'THREE' ?></h2>
             <h1>WEEKLY LESSON NOTES</h1>
             <h2>WEEK <?= $v('week_number') ?></h2>
         </div>
 
         <table class="box-table">
+            <!-- Row 1 -->
             <tr>
-                <td style="width: 35%;"><span class="label">Week Ending:</span><span class="content"><?= date('jS M, Y', strtotime($p['week_ending'] ?? '')) ?></span></td>
+                <td style="width: 35%;"><span class="label">Week Ending:</span><span class="content"><?= $p['week_ending'] ? date('jS M, Y', strtotime($p['week_ending'])) : '-' ?></span></td>
                 <td style="width: 25%;"><span class="label">DAY:</span><span class="content"><?= strtoupper($v('day_of_week')) ?></span></td>
                 <td style="width: 40%;"><span class="label">Subject:</span><span class="content"><?= $v('subject_name') ?></span></td>
             </tr>
+            <!-- Row 2 -->
             <tr>
                 <td><span class="label">Duration:</span><span class="content"><?= $v('duration') ?></span></td>
                 <td colspan="2"><span class="label">Strand:</span><span class="content"><?= $v('strand') ?></span></td>
             </tr>
+            <!-- Row 3 -->
             <tr>
                 <td><span class="label">Class:</span><span class="content"><?= $v('class_name') ?></span></td>
                 <td><span class="label">Class Size:</span><span class="content"><?= $v('class_size') ?></span></td>
-                <td><span class="label">Facilitator:</span><span class="content"><?= htmlspecialchars($v('teacher_full_name')) ?></span></td>
+                <td><span class="label">Sub Strand:</span><span class="content"><?= $v('sub_strand') ?></span></td>
             </tr>
+            <!-- Row 4 -->
             <tr>
-                <td colspan="3"><span class="label">Sub Strand:</span><span class="content"><?= $v('sub_strand') ?></span></td>
+                <td style="width: 45%;"><span class="label">Content Standard:</span><br><span class="textarea-content"><?= $n('content_standard') ?></span></td>
+                <td style="width: 35%;"><span class="label">Indicator:</span><br><span class="textarea-content"><?= $n('indicator') ?></span></td>
+                <td style="width: 20%;"><span class="label">Lesson:</span><br><span class="content"><?= $v('lesson_number') ?></span></td>
             </tr>
+            <!-- Row 5 -->
             <tr>
-                <td><span class="label">Content Standard:</span><br><span class="textarea-content"><?= $n('content_standard') ?></span></td>
-                <td><span class="label">Indicator:</span><br><span class="textarea-content"><?= $n('indicator') ?></span></td>
-                <td><span class="label">Lesson:</span><br><span class="content"><?= $v('lesson_number') ?></span></td>
+                <td colspan="2" style="width: 70%;"><span class="label">Performance Indicator:</span><br><span class="textarea-content"><?= $n('performance_indicator') ?></span></td>
+                <td style="width: 30%;"><span class="label">Core Competencies:</span><br><span class="textarea-content"><?= $n('core_competencies') ?></span></td>
             </tr>
+            <!-- Row 6 -->
             <tr>
-                <td colspan="2"><span class="label">Performance Indicator:</span><br><span class="textarea-content"><?= $n('performance_indicator') ?></span></td>
-                <td><span class="label">Core Competencies:</span><br><span class="textarea-content"><?= $n('core_competencies') ?></span></td>
+                <td colspan="3"><span class="label">References:</span><span class="content"><?= $v('references') ?></span></td>
             </tr>
-            <tr>
-                <td colspan="3"><span class="label">References:</span><span class="content"><?= $v('references_materials') ?></span></td>
-            </tr>
+            <!-- Row 7 -->
             <tr>
                 <td colspan="3"><span class="label">New words:</span><span class="content"><?= $v('new_words') ?></span></td>
             </tr>
@@ -182,7 +186,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                             <?= $n('learning_assessment') ?>
                         <?php endif; ?>
                     </td>
-                    <td class="resources-col"><?= $n('learning_resources') ?></td>
+                    <td class="resources-col"><?= $n('tlm') ?></td>
                 </tr>
                 <tr>
                     <td class="phase-col">PHASE 3: REFLECTION<br><?= $v('phase3_duration') ?></td>
