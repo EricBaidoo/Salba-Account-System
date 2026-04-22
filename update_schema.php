@@ -124,5 +124,26 @@ applyPatch($conn, 'high_capacity_text_expansion', [
     "ALTER TABLE attendance MODIFY remarks MEDIUMTEXT NULL"
 ]);
 
+// 3. SEMESTER INTEGRITY SYNC (DATA MIGRATION & REPAIR)
+applyPatch($conn, 'semester_integrity_sync', [
+    // Normalize "Third Semester" variants to "Trimester" across all logic tables
+    "UPDATE assessment_configurations SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE attendance SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE budgets SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE expenses SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE grades SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE lesson_plans SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE payments SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE semester_budgets SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE semester_invoices SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE student_fees SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE student_semester_remarks SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE student_term_remarks SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    "UPDATE teacher_allocations SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
+    
+    // Ensure "Trimester" exists in the dictionary if it's the current context
+    "INSERT IGNORE INTO academic_semester_dictionary (semester_name) VALUES ('Trimester')"
+]);
+
 echo "<h3>Schema is up to date.</h3>";
 ?>
