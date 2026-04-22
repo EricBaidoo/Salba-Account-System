@@ -112,7 +112,7 @@ for ($i = 0; $i < 12; $i++) {
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="admin-main-content p-4 md:p-10 min-h-screen">
+    <main class="min-h-screen p-4 md:p-10 pt-20 md:pt-24">
 
         <!-- Breadcrumb -->
         <nav class="mb-10 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 no-print">

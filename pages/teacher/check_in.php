@@ -121,34 +121,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="min-h-screen font-sans overflow-x-hidden bg-security">
 
-    <!-- Minimalist Security Header -->
-    <header class="w-full bg-slate-900/40 backdrop-blur-xl border-b border-white/5 px-6 md:px-12 py-5 fixed top-0 z-50 flex items-center justify-between">
+    <!-- Clean Light Header -->
+    <header class="w-full bg-white border-b border-slate-100 shadow-sm px-6 md:px-12 py-4 fixed top-0 z-50 flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <a href="<?= BASE_URL ?>index" class="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+            <a href="<?= $dashboard_url ?>" class="w-10 h-10 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all">
                 <i class="fas fa-chevron-left text-sm"></i>
             </a>
             <div class="hidden sm:block">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] block leading-none mb-1 text-left">Internal Navigation</span>
-                <span class="text-xs font-bold text-slate-300">Staff Portal Hub</span>
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block leading-none mb-1 text-left">Salba Montessori</span>
+                <span class="text-xs font-black text-slate-700">Staff Attendance Portal</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <a href="<?= BASE_URL ?>pages/common/profile.php" class="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group">
+        <div class="flex items-center gap-3">
+            <a href="<?= BASE_URL ?>pages/common/profile.php" class="flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all group">
                 <div class="text-right hidden xs:block">
-                    <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Authenticated as</p>
-                    <p class="text-[11px] font-bold text-white leading-none"><?= htmlspecialchars($_SESSION['username']) ?></p>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Logged in as</p>
+                    <p class="text-[11px] font-black text-slate-800 leading-none"><?= htmlspecialchars($_SESSION['username']) ?></p>
                 </div>
-                <div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-400 border border-sky-500/20 group-hover:scale-105 transition-transform">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 border border-indigo-100">
                     <i class="fas fa-user-shield text-sm"></i>
                 </div>
             </a>
             
-            <a href="<?= BASE_URL ?>logout" class="w-10 h-10 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg shadow-rose-900/10" title="Secure Logout">
+            <a href="<?= BASE_URL ?>logout" class="w-10 h-10 bg-rose-50 text-rose-500 border border-rose-100 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all" title="Logout">
                 <i class="fas fa-power-off text-sm"></i>
             </a>
         </div>
