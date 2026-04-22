@@ -18,6 +18,39 @@ if (!defined('BASE_URL')) {
 $root_path = defined('BASE_URL') ? BASE_URL : '/';
 $base_path = $root_path . 'pages/';
 include_once __DIR__ . '/system_settings.php';
+?>
+<!-- Unified System Typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --font-sans: 'Inter', sans-serif;
+        --font-display: 'Outfit', sans-serif;
+    }
+    body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, h4, h5, h6, .display-font { font-family: var(--font-display); letter-spacing: -0.02em; }
+</style>
+<script>
+    // Unified Tailwind Configuration
+    if (window.tailwind) {
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'apple-system', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    letterSpacing: {
+                        tighter: '-0.05em',
+                        tight: '-0.025em',
+                    }
+                }
+            }
+        }
+    }
+</script>
+<?php
 
 // Helper: Smart Nav Link (Extension-less)
 if (!function_exists('nav_link')) {
