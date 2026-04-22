@@ -163,6 +163,18 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                     <h3 class="text-2xl font-black text-gray-900 mb-2">Daily Check-In</h3>
                     <p class="text-gray-500 text-sm leading-relaxed">Log your daily school arrival and departure status with GPS verification.</p>
                 </a>
+
+                <!-- Card: My Attendance History -->
+                <a href="<?= BASE_URL ?>pages/teacher/my_attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-sky-300 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i class="fas fa-calendar-days text-8xl text-sky-500"></i>
+                    </div>
+                    <div class="w-16 h-16 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-days"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-2">My Attendance</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Review your personal check-in history, punctuality record, and location compliance.</p>
+                </a>
             </div>
         </div>
     </main>

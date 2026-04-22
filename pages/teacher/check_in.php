@@ -38,6 +38,22 @@ if ($q->num_rows > 0) {
 $already_checked_in = $attendance_record !== null;
 $already_checked_out = $attendance_record && !empty($attendance_record['check_out_time']);
 
+// Dashboard URL based on role
+$dashboard_url = BASE_URL . 'pages/teacher/dashboard';
+if ($_SESSION['role'] === 'supervisor') $dashboard_url = BASE_URL . 'pages/supervisor/dashboard';
+if ($_SESSION['role'] === 'admin') $dashboard_url = BASE_URL . 'pages/administration/dashboard';
+
+// Read flash messages (redirect() stores in flash_messages, not $_SESSION['success'] directly)
+$flash_messages = get_flash();
+$flash_success = null;
+$flash_error = null;
+foreach ($flash_messages as $fm) {
+    if ($fm['type'] === 'success' && !$flash_success) $flash_success = $fm['message'];
+    if ($fm['type'] === 'error' && !$flash_error) $flash_error = $fm['message'];
+}
+// "Just clocked in" = checked in, not out, and a success flash was just set
+$just_checked_in = $already_checked_in && !$already_checked_out && $flash_success !== null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['geocheckin', 'geocheckout'])) {
     $is_checkout = $_POST['action'] === 'geocheckout';
     
@@ -148,6 +164,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                     <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Institutional Management</p>
                     <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-800 leading-tight uppercase">Staff Clock-in Portal</h1>
                 </div>
+                
+                <?php if($flash_success && !$just_checked_in): ?>
+                <div class="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-emerald-700 text-center">
+                    <i class="fas fa-check-circle mr-2"></i> <?= htmlspecialchars($flash_success) ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if($flash_error): ?>
+                <div class="mb-8 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-rose-700 text-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> <?= htmlspecialchars($flash_error) ?>
+                </div>
+            <?php endif; ?>
 
             <div class="relative z-10 text-center">
                 <?php if($already_checked_in && $already_checked_out): ?>
@@ -164,6 +192,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                     <div class="pt-8 border-t border-slate-700/50">
                         <a href="<?= BASE_URL ?>index" class="text-sky-400 font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Return to Terminal</a>
                     </div>
+                <?php elseif($just_checked_in): ?>
+                    <!-- ✅ Post Clock-In Success State -->
+                    <div class="identity-lens mb-8 border-emerald-500 bg-emerald-500/10" style="animation: pulse 2s infinite;">
+                        <i class="fas fa-circle-check text-5xl text-emerald-500"></i>
+                    </div>
+
+                    <div class="space-y-1 mb-6">
+                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Attendance Recorded!</h2>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Campus presence verified &amp; logged</p>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 mb-10 text-center">
+                        <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Check-In Time</p>
+                        <p class="text-2xl font-black text-emerald-700"><?= date('H:i', strtotime($attendance_record['check_in_time'])) ?></p>
+                        <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mt-1"><?= date('l, F j, Y', strtotime($attendance_record['check_in_time'])) ?></p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a href="<?= $dashboard_url ?>" class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-black text-[11px] uppercase tracking-[0.2em] py-5 rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3">
+                            <i class="fas fa-home"></i> Return to Dashboard
+                        </a>
+                        <a href="check_in.php" class="block text-center text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-amber-500 transition-colors py-2">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Record Departure Now &rarr;
+                        </a>
+                    </div>
+
                 <?php elseif($already_checked_in && !$already_checked_out): ?>
                     <!-- Waiting for Check out -->
                     <div id="authVisual" class="identity-lens mb-10 border-amber-500 bg-amber-500/10">
@@ -172,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                     
                     <div class="space-y-1 mb-10">
                         <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Ready to Clock Out</h2>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Authorized Area: <?= $allowed_radius_meters ?>M Radius</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Checked in at <?= date('H:i', strtotime($attendance_record['check_in_time'])) ?> &middot; <?= $allowed_radius_meters ?>M Radius</p>
                     </div>
 
                     <!-- High-Visibility HUD -->
@@ -203,9 +257,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                             </button>
                         </form>
                         
-                        <div id="status-msg" class="mt-8 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hidden">
+                        <div id="status-msg" class="mt-6 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hidden">
                             <i class="fas fa-satellite-dish fa-spin mr-2 text-amber-500"></i> <span id="status-text">verifying location status...</span>
                         </div>
+
+                        <a href="<?= $dashboard_url ?>" class="block text-center mt-5 text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-sky-400 transition-colors py-2">
+                            <i class="fas fa-home mr-1"></i> Return to Dashboard
+                        </a>
                     </div>
                 <?php else: ?>
                     <!-- Awaiting Authentication -->

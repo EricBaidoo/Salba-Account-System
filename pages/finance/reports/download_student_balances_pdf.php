@@ -1,34 +1,30 @@
-<?php 
+<?php
+require_once '../../../vendor/autoload.php';
 include '../../../includes/auth_functions.php';
-if (!is_logged_in()) {
-    header('Location: ../../../login');
-    exit;
-}
+if (!is_logged_in()) { header('Location: ../../../login'); exit; }
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
 
-// Get current semester and academic year from system settings
 $current_term = getCurrentSemester($conn);
 $default_academic_year = getAcademicYear($conn);
 
-// Allow manual semester override via URL parameter
-$selected_term = $_GET['semester'] ?? $current_term;
+$selected_term          = $_GET['semester']      ?? $current_term;
 $selected_academic_year = $_GET['academic_year'] ?? $default_academic_year;
+$class_filter           = $_GET['class']         ?? 'all';
+$status_filter          = $_GET['status']        ?? 'active';
+$owing_filter           = $_GET['owing']         ?? 'all';
+$percent_filter         = $_GET['percent']       ?? 'all';
+
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
+$school_name    = getSystemSetting($conn, 'school_name', 'Salba Montessori');
+$school_address = getSystemSetting($conn, 'school_address', '');
 
-// Get filter parameters
-$class_filter = $_GET['class'] ?? 'all';
-$status_filter = $_GET['status'] ?? 'active';
-$owing_filter = $_GET['owing'] ?? 'all';
-
-// Ensure arrears assignment exists
+// Pre-compute arrears
 {
-    $where = [];
-    $params = [];
-    $types = '';
+    $where = []; $params = []; $types = '';
     if ($status_filter && $status_filter !== 'all') { $where[] = "status = ?"; $params[] = $status_filter; $types .= 's'; }
-    if ($class_filter && $class_filter !== 'all') { $where[] = "class = ?"; $params[] = $class_filter; $types .= 's'; }
+    if ($class_filter  && $class_filter  !== 'all') { $where[] = "class = ?";  $params[] = $class_filter;  $types .= 's'; }
     $sql = "SELECT id FROM students" . (empty($where) ? '' : (' WHERE ' . implode(' AND ', $where)));
     $stmt = $conn->prepare($sql);
     if (!empty($params)) { $stmt->bind_param($types, ...$params); }
@@ -41,111 +37,168 @@ $owing_filter = $_GET['owing'] ?? 'all';
     $stmt->close();
 }
 
-// Get all student balances for the selected semester/year
 $student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);
 
-// Apply owing filter
 if ($owing_filter === 'owing') {
-    $student_balances = array_filter($student_balances, function($student) {
-        return $student['net_balance'] > 0;
-    });
+    $student_balances = array_filter($student_balances, fn($s) => $s['net_balance'] > 0);
 } elseif ($owing_filter === 'paid_up') {
-    $student_balances = array_filter($student_balances, function($student) {
-        return $student['net_balance'] == 0;
+    $student_balances = array_filter($student_balances, fn($s) => $s['net_balance'] == 0);
+}
+
+foreach ($student_balances as &$s) {
+    $tf = (float)($s['total_fees'] ?? 0);
+    $tp = (float)($s['total_payments'] ?? 0);
+    $s['paid_percent'] = ($tf > 0) ? min(100, ($tp / $tf) * 100) : (($tp > 0) ? 100 : 0);
+}
+unset($s);
+
+if ($percent_filter !== 'all') {
+    $student_balances = array_filter($student_balances, function($st) use ($percent_filter) {
+        $p = $st['paid_percent'];
+        if ($percent_filter === 'below50')  return $p < 50;
+        if ($percent_filter === 'below75')  return $p < 75;
+        if ($percent_filter === 'below100') return $p < 100;
+        return true;
     });
 }
 
-// Sort by student name
-usort($student_balances, function($a, $b) {
-    return strcmp($a['student_name'], $b['student_name']);
-});
+usort($student_balances, fn($a, $b) => strcmp($a['student_name'], $b['student_name']));
 
-// Calculate totals
-$total_owing = array_sum(array_column($student_balances, 'net_balance'));
-$school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
+$total_students = count($student_balances);
+$sum_fees = array_sum(array_column($student_balances, 'total_fees'));
+$sum_paid = array_sum(array_column($student_balances, 'total_payments'));
+$sum_due  = array_sum(array_column($student_balances, 'net_balance'));
 
-// Check if mPDF is available
-if (!file_exists('../vendor/autoload.php')) {
-    die('PDF library not found. Please ensure composer dependencies are installed.');
-}
-
-require_once '../vendor/autoload.php';
-
-use Mpdf\Mpdf;
-
-// Create PDF object
-$mpdf = new Mpdf([
-    'mode' => 'utf-8',
-    'format' => 'A4',
-    'margin_left' => 15,
-    'margin_right' => 15,
-    'margin_top' => 15,
-    'margin_bottom' => 15,
-]);
-
-// Build HTML content
-$html = '
+ob_start();
+?><!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    
+<style>
+    body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; margin: 0; color: #1e293b; }
+    .header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px; }
+    .school-name { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .school-address { font-size: 8px; color: #64748b; margin-top: 2px; }
+    .report-title { font-size: 11px; font-weight: 900; text-align: center; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 2px; }
+    .meta { text-align: center; font-size: 8px; color: #64748b; margin-bottom: 14px; }
+    table.stats-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    table.stats-table td { width: 25%; text-align: center; padding: 8px; border: 1px solid #e2e8f0; }
+    .stat-label { font-size: 7px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
+    .stat-value { font-size: 13px; font-weight: 900; margin-top: 2px; }
+    table.ledger { width: 100%; border-collapse: collapse; }
+    table.ledger th { background: #f1f5f9; font-size: 7px; font-weight: 900; text-transform: uppercase; padding: 7px 5px; text-align: left; border-bottom: 2px solid #cbd5e1; }
+    table.ledger td { padding: 7px 5px; font-size: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 7px; font-weight: 900; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-emerald { background: #d1fae5; color: #065f46; }
+    .badge-slate { background: #f1f5f9; color: #64748b; }
+    .text-rose { color: #e11d48; }
+    .text-emerald { color: #059669; }
+    .tfoot-row td { font-weight: 900; background: #f8fafc; border-top: 2px solid #cbd5e1; }
+    .bar-wrap { width: 50px; height: 5px; background: #e2e8f0; border-radius: 3px; display: inline-block; vertical-align: middle; }
+    .bar-fill { height: 5px; border-radius: 3px; }
+    .inactive-tag { font-size: 6px; background: #f1f5f9; color: #94a3b8; padding: 1px 4px; border-radius: 3px; margin-left: 3px; }
+    .footer { margin-top: 20px; text-align: center; font-size: 7px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; }
+</style>
 </head>
-<body>';
-
-$html .= '
+<body>
     <div class="header">
-        <h1>' . htmlspecialchars($school_name) . '</h1>
-        <p>Student Balances Report</p>
-        <p>Printed on ' . date('M j, Y \a\t g:i A') . '</p>
-    </div>';
+        <div class="school-name"><?= htmlspecialchars($school_name) ?></div>
+        <?php if($school_address): ?><div class="school-address"><?= htmlspecialchars($school_address) ?></div><?php endif; ?>
+    </div>
+    <div class="report-title">Student Balances Report</div>
+    <div class="meta">
+        Semester: <strong><?= htmlspecialchars($selected_term) ?></strong> &nbsp;&middot;&nbsp;
+        Year: <strong><?= htmlspecialchars($display_academic_year) ?></strong> &nbsp;&middot;&nbsp;
+        Class: <strong><?= $class_filter !== 'all' ? htmlspecialchars($class_filter) : 'All Classes' ?></strong> &nbsp;&middot;&nbsp;
+        Status: <strong><?= ucfirst($status_filter) ?></strong> &nbsp;&middot;&nbsp;
+        Generated: <strong><?= date('M j, Y H:i') ?></strong>
+    </div>
 
-// Add filter information
-$html .= '<div class="filters">
-    <strong>Semester:</strong> ' . htmlspecialchars($selected_term) . ' | 
-    <strong>Academic Year:</strong> ' . htmlspecialchars($display_academic_year);
-if ($class_filter !== 'all') {
-    $html .= ' | <strong>Class:</strong> ' . htmlspecialchars($class_filter);
-}
-$html .= ' | <strong>Status:</strong> ' . ucfirst($status_filter) . '
-</div>';
+    <table class="stats-table">
+        <tr>
+            <td><div class="stat-label">Total Students</div><div class="stat-value"><?= $total_students ?></div></td>
+            <td><div class="stat-label">Total Fees</div><div class="stat-value">&#8373;<?= number_format($sum_fees, 2) ?></div></td>
+            <td><div class="stat-label">Total Paid</div><div class="stat-value">&#8373;<?= number_format($sum_paid, 2) ?></div></td>
+            <td><div class="stat-label">Outstanding</div><div class="stat-value text-rose">&#8373;<?= number_format($sum_due, 2) ?></div></td>
+        </tr>
+    </table>
 
-// Add summary statistics
-$html .= '<div class="summary">
-    <div class="summary-item"><span class="summary-label">Total Students:</span> ' . count($student_balances) . '</div>
-    <div class="summary-item"><span class="summary-label">Total Outstanding:</span> GH₵' . number_format($total_owing, 2) . '</div>
-</div>';
-
-// Build table
-$html .= '
-    <table>
+    <table class="ledger">
         <thead>
             <tr>
-                <th class="text-left w-70">Student Name</th>
-                <th class="text-right w-30">Amount Owing (GH₵)</th>
+                <th>#</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th class="text-right">Total Fees (&#8373;)</th>
+                <th class="text-right">Total Paid (&#8373;)</th>
+                <th class="text-right">Balance (&#8373;)</th>
+                <th class="text-center">% Paid</th>
+                <th class="text-center">Pending</th>
+                <th class="text-center">Paid Fees</th>
             </tr>
         </thead>
-        <tbody>';
-
-foreach ($student_balances as $student) {
-    $outstanding = max(0, (float)($student['total_fees'] ?? 0) - (float)($student['total_payments'] ?? 0));
-    $html .= '<tr>
-        <td>' . htmlspecialchars($student['student_name']) . '</td>
-        <td class="amount">' . number_format($outstanding, 2) . '</td>
-    </tr>';
-}
-
-$html .= '
+        <tbody>
+            <?php
+            $i = 1; $grand_fees = 0; $grand_paid_t = 0; $grand_bal = 0;
+            foreach ($student_balances as $s):
+                $outstanding = max(0, (float)($s['net_balance'] ?? 0));
+                $tf = (float)($s['total_fees'] ?? 0);
+                $tp = (float)($s['total_payments'] ?? 0);
+                $percent = round($s['paid_percent']);
+                $pending_cnt = intval($s['pending_assignments'] ?? 0);
+                $paid_cnt    = intval($s['paid_assignments']    ?? 0);
+                $is_inactive = ($s['student_status'] ?? '') === 'inactive';
+                $bar_color   = $percent >= 100 ? '#10b981' : ($percent >= 50 ? '#6366f1' : '#f43f5e');
+                $grand_fees += $tf; $grand_paid_t += $tp; $grand_bal += $outstanding;
+            ?>
+            <tr>
+                <td><?= $i++ ?></td>
+                <td>
+                    <?= htmlspecialchars($s['student_name']) ?>
+                    <?php if($is_inactive): ?><span class="inactive-tag">Inactive</span><?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars($s['class']) ?></td>
+                <td class="text-right"><?= number_format($tf, 2) ?></td>
+                <td class="text-right text-emerald"><?= number_format($tp, 2) ?></td>
+                <td class="text-right <?= $outstanding > 0 ? 'text-rose' : 'text-emerald' ?>">
+                    <?= $outstanding > 0 ? number_format($outstanding, 2) : 'Paid Up' ?>
+                </td>
+                <td class="text-center">
+                    <div class="bar-wrap"><div class="bar-fill" style="width:<?= $percent ?>%;background:<?= $bar_color ?>;"></div></div>
+                    <span style="margin-left:3px;"><?= $percent ?>%</span>
+                </td>
+                <td class="text-center"><span class="badge <?= $pending_cnt > 0 ? 'badge-amber' : 'badge-slate' ?>"><?= $pending_cnt ?></span></td>
+                <td class="text-center"><span class="badge <?= $paid_cnt > 0 ? 'badge-emerald' : 'badge-slate' ?>"><?= $paid_cnt ?></span></td>
+            </tr>
+            <?php endforeach; ?>
         </tbody>
+        <tfoot>
+            <tr class="tfoot-row">
+                <td colspan="3">TOTALS (<?= $total_students ?> students)</td>
+                <td class="text-right">&#8373;<?= number_format($grand_fees, 2) ?></td>
+                <td class="text-right text-emerald">&#8373;<?= number_format($grand_paid_t, 2) ?></td>
+                <td class="text-right text-rose">&#8373;<?= number_format($grand_bal, 2) ?></td>
+                <td colspan="3"></td>
+            </tr>
+        </tfoot>
     </table>
+
     <div class="footer">
-        <p>This is an automatically generated report. For inquiries, contact the accounting office.</p>
+        <?= htmlspecialchars($school_name) ?> &middot; Student Balance Ledger &middot; <?= date('Y') ?>
     </div>
 </body>
-</html>';
-
+</html>
+<?php
+$html = ob_get_clean();
+$mpdf = new \Mpdf\Mpdf([
+    'mode'          => 'utf-8',
+    'format'        => 'A4-L',
+    'margin_left'   => 10,
+    'margin_right'  => 10,
+    'margin_top'    => 10,
+    'margin_bottom' => 12,
+]);
 $mpdf->WriteHTML($html);
-
-// Output PDF
-$filename = 'student_balances_' . date('Y-m-d_His') . '.pdf';
-$mpdf->Output($filename, 'D');
-?>
+$mpdf->Output('Student_Balances_' . date('Y-m-d') . '.pdf', 'D');

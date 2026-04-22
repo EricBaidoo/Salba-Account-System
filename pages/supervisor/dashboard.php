@@ -106,6 +106,17 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                     </div>
                 </a>
 
+                <!-- Card: My Attendance History -->
+                <a href="<?= BASE_URL ?>pages/teacher/my_attendance" class="relative group bg-white rounded-[2rem] p-8 border border-sky-100 shadow-sm hover:shadow-2xl hover:border-sky-300 transition-all duration-500 overflow-hidden">
+                    <div class="flex flex-col items-center gap-4 relative z-10 text-center">
+                        <div class="w-16 h-16 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-calendar-days"></i></div>
+                        <div>
+                            <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">My Attendance</h3>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Personal History</p>
+                        </div>
+                    </div>
+                </a>
+
                 <!-- Card: Staff Presence -->
                 <a href="<?= BASE_URL ?>pages/administration/staff_attendance" class="relative group bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-300 transition-all duration-500 overflow-hidden bg-indigo-50/10">
                     <div class="flex flex-col items-center gap-4 relative z-10 text-center">
