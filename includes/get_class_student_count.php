@@ -1,6 +1,6 @@
 <?php
-include 'db_connect.php';
-include 'auth_functions.php';
+include __DIR__ . '/db_connect.php';
+include __DIR__ . '/auth_functions.php';
 session_start();
 if (!is_logged_in()) {
     header('HTTP/1.1 401 Unauthorized');

@@ -37,7 +37,7 @@ if (!function_exists('verify_csrf')) {
     }
 }
 
-include 'db_connect.php';
+include __DIR__ . '/db_connect.php';
 
 if (!function_exists('login')) {
     function login($username, $password) {

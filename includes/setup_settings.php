@@ -1,6 +1,6 @@
 <?php
 // Run this file once to create the system_settings table
-include 'db_connect.php';
+include __DIR__ . '/db_connect.php';
 
 $sql = "CREATE TABLE IF NOT EXISTS system_settings (
     id INT PRIMARY KEY AUTO_INCREMENT,

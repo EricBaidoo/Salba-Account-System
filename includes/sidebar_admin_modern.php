@@ -11,9 +11,13 @@ if (session_status() === PHP_SESSION_NONE) {
 $user_role    = $_SESSION['role']     ?? 'staff';
 $user_name    = $_SESSION['username'] ?? 'User';
 $current_page = str_replace('.php', '', basename($_SERVER['PHP_SELF']));
-// We now rely on BASE_URL from config via db_connect.php
-$root_path = BASE_URL;
-$base_path = BASE_URL . 'pages/';
+// Ensure config is loaded for BASE_URL
+if (!defined('BASE_URL')) {
+    include_once __DIR__ . '/config.php';
+}
+$root_path = defined('BASE_URL') ? BASE_URL : '/';
+$base_path = $root_path . 'pages/';
+include_once __DIR__ . '/system_settings.php';
 
 // Helper: Smart Nav Link (Extension-less)
 if (!function_exists('nav_link')) {

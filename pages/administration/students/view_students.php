@@ -1,11 +1,7 @@
 <?php
+include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
-include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
-if (!is_logged_in()) {
-    header('Location: ../../../login');
-    exit;
-}
 
 // Get filter parameters
 $class_filter = $_GET['class'] ?? '';
@@ -77,12 +73,12 @@ while ($row = $class_result->fetch_assoc()) {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-0 md:p-0 min-h-screen">
+    <main class="admin-main-content lg:ml-72 min-h-screen">
         <!-- Header Section -->
-        <div class="bg-white border-b border-gray-100 px-4 md:px-8 py-6">
-            <div class="flex justify-between items-center mb-6">
-                <a href="../dashboard.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> <span class="hidden xs:inline">Back to Dashboard</span>
+        <div class="bg-white border-b border-gray-100 px-8 py-6">
+            <div class="flex items-center gap-3 mb-4">
+                <a href="../dashboard" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left"></i> Dashboard
                 </a>
             </div>
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -105,7 +101,7 @@ while ($row = $class_result->fetch_assoc()) {
                     <button type="button" onclick="exportToCSV()" class="flex-1 md:flex-none px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium flex items-center justify-center gap-2">
                         <i class="fas fa-download"></i> Export
                     </button>
-                    <a href="add_student_form.php" class="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-sm">
+                    <a href="add_student_form" class="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-sm">
                         <i class="fas fa-plus"></i> Add <span class="hidden sm:inline">Student</span>
                     </a>
                 </div>
@@ -252,7 +248,7 @@ while ($row = $class_result->fetch_assoc()) {
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <a href="edit_student_form.php?id=<?php echo $row['id']; ?>" class="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 flex items-center justify-center hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all" title="Edit Student">
+                                        <a href="edit_student_form?id=<?php echo $row['id']; ?>" class="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 flex items-center justify-center hover:bg-white hover:text-blue-600 hover:shadow-sm transition-all" title="Edit Student">
                                             <i class="fas fa-edit text-xs"></i>
                                         </a>
                                         <?php if ($row['status'] === 'active'): ?>

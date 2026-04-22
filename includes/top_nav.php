@@ -7,8 +7,12 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $user_role = $_SESSION['role'] ?? 'staff';
 $user_name = $_SESSION['username'] ?? 'User';
 
-// We now rely on BASE_URL from config via db_connect.php
-$root_path = BASE_URL;
+// Ensure config is loaded for BASE_URL
+if (!defined('BASE_URL')) {
+    include_once __DIR__ . '/config.php';
+}
+include_once __DIR__ . '/system_settings.php';
+$root_path = defined('BASE_URL') ? BASE_URL : '/';
 ?>
 <header class="w-full bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 md:px-10 py-3 md:py-4 sticky top-0 z-50 shadow-sm flex items-center justify-between transition-all duration-300">
     <div class="flex items-center gap-4">

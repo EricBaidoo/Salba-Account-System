@@ -1,13 +1,11 @@
 <?php
+include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
-include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
 
-if (!is_logged_in()) {
-    header('Location: ../../../login');
-    exit;
-}
+// Enforce admin only for enrollment
 if (($_SESSION['role'] ?? '') !== 'admin') {
-    header('Location: ../../../index.php');
+    header('Location: ' . BASE_URL . 'index');
     exit;
 }
 
@@ -32,12 +30,12 @@ while ($row = $classes_result->fetch_assoc()) {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
+    <main class="admin-main-content lg:ml-72 min-h-screen">
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6">
             <div class="flex items-center gap-3 mb-4">
-                <a href="view_students.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> Back to Directory
+                <a href="view_students" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left"></i> Directory
                 </a>
             </div>
             <div>
@@ -82,7 +80,7 @@ while ($row = $classes_result->fetch_assoc()) {
                         </h5>
                     </div>
                     
-                    <form action="add_student.php" method="POST" id="studentForm" class="p-6">
+                    <form action="add_student" method="POST" id="studentForm" class="p-6">
                         <!-- Required Information -->
                         <div class="mb-8">
                             <h6 class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -164,7 +162,7 @@ while ($row = $classes_result->fetch_assoc()) {
                                     <i class="fas fa-upload text-green-500"></i> Import CSV Data
                                 </h5>
                             </div>
-                            <form action="bulk_upload_students.php" method="POST" enctype="multipart/form-data" id="bulkUploadForm" class="p-6">
+                            <form action="bulk_upload_students" method="POST" enctype="multipart/form-data" id="bulkUploadForm" class="p-6">
                                 <div class="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center bg-gray-50 hover:bg-gray-100 hover:border-green-400 transition-colors cursor-pointer group" id="uploadArea">
                                     <i class="fas fa-cloud-upload-alt text-5xl text-gray-300 group-hover:text-green-500 transition-colors mb-4 block"></i>
                                     <h5 class="text-lg font-bold text-gray-800 mb-1">Click or drag CSV file here</h5>

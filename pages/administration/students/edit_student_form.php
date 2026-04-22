@@ -1,6 +1,7 @@
 <?php 
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
+include_once '../../../includes/system_settings.php';
 
 $student = null;
 $error = '';
@@ -36,12 +37,12 @@ if (isset($_GET['id'])) {
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
+    <main class="admin-main-content lg:ml-72 min-h-screen">
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6">
             <div class="flex items-center gap-3 mb-4">
-                <a href="view_students.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> Back to Directory
+                <a href="view_students" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left"></i> Directory
                 </a>
             </div>
             <div>
@@ -90,7 +91,7 @@ if (isset($_GET['id'])) {
                     </div>
 
                     <div class="bg-white rounded-b-xl border border-gray-100 shadow-sm overflow-hidden">
-                        <form action="update_student.php" method="POST" id="editStudentForm" class="p-6">
+                        <form action="update_student" method="POST" id="editStudentForm" class="p-6">
                             <input type="hidden" name="student_id" value="<?php echo $student['id']; ?>">
                             
                             <!-- Required Information -->

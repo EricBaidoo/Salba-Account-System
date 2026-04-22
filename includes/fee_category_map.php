@@ -1,6 +1,6 @@
 <?php
 // Helper: get all fee categories as id=>name
-include_once 'db_connect.php';
+include_once __DIR__ . '/db_connect.php';
 $category_map = [];
 $res = $conn->query("SELECT id, name FROM fee_categories");
 while ($row = $res->fetch_assoc()) {
