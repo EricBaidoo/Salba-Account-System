@@ -72,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
             
             $check = $conn->query("SELECT id FROM attendance WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
             if ($check->num_rows > 0) {
-                $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem', week_number = $week_to_mark WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
+                // UPDATE: Now also refreshes semester/year/week to keep records aligned with active settings
+                $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem', week_number = $week_to_mark, semester = '$current_semester', academic_year = '$current_year' WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
             } else {
                 $conn->query("INSERT INTO attendance (student_id, attendance_date, status, remarks, semester, academic_year, week_number) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_semester', '$current_year', $week_to_mark)");
             }
@@ -88,11 +89,11 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
     $stmt = $conn->prepare("
         SELECT s.id, s.first_name, s.last_name, a.status, a.remarks 
         FROM students s 
-        LEFT JOIN attendance a ON s.id = a.student_id AND a.attendance_date = ? 
+        LEFT JOIN attendance a ON s.id = a.student_id AND a.attendance_date = ? AND a.semester = ? AND a.academic_year = ?
         WHERE s.class = ? AND s.status = 'active'
         ORDER BY s.first_name ASC
     ");
-    $stmt->bind_param("ss", $selected_date, $selected_class);
+    $stmt->bind_param("ssss", $selected_date, $current_semester, $current_year, $selected_class);
     $stmt->execute();
     $res = $stmt->get_result();
     while($row = $res->fetch_assoc()) $students[] = $row;
