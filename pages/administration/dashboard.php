@@ -107,6 +107,52 @@ if ($sub_res) {
         }
     }
 }
+// 1. CELEBRATORY BIRTHDAYS (Current Month ONLY)
+$student_birthdays = [];
+$staff_birthdays = [];
+$current_month_num = (int)date('n');
+$today_day = (int)date('j');
+
+// Fetch Students Birthdays (Filtered to Current Month)
+$s_res = $conn->query("SELECT first_name, last_name, date_of_birth, class, status FROM students WHERE status='active' AND MONTH(date_of_birth) = $current_month_num");
+if ($s_res) {
+    while ($row = $s_res->fetch_assoc()) {
+        $day = (int)date('j', strtotime($row['date_of_birth']));
+        $days_until = $day - $today_day;
+        
+        $student_birthdays[] = [
+            'name' => $row['first_name'] . ' ' . $row['last_name'],
+            'info' => $row['class'],
+            'day' => $day,
+            'days_until' => $days_until,
+            'is_today' => ($day == $today_day),
+            'is_passed' => ($day < $today_day)
+        ];
+    }
+    usort($student_birthdays, fn($a, $b) => $a['day'] <=> $b['day']);
+}
+
+// Fetch Staff Birthdays (Filtered to Current Month)
+$st_res = $conn->query("SELECT full_name, job_title, department, date_of_birth FROM staff_profiles WHERE employment_status='active' AND MONTH(date_of_birth) = $current_month_num");
+if ($st_res) {
+    while ($row = $st_res->fetch_assoc()) {
+        $day = (int)date('j', strtotime($row['date_of_birth']));
+        $days_until = $day - $today_day;
+        
+        $staff_birthdays[] = [
+            'name' => $row['full_name'],
+            'info' => $row['job_title'] . ' (' . $row['department'] . ')',
+            'day' => $day,
+            'days_until' => $days_until,
+            'is_today' => ($day == $today_day),
+            'is_passed' => ($day < $today_day)
+        ];
+    }
+    usort($staff_birthdays, fn($a, $b) => $a['day'] <=> $b['day']);
+}
+
+$month_names = [1=>"January", 2=>"February", 3=>"March", 4=>"April", 5=>"May", 6=>"June", 7=>"July", 8=>"August", 9=>"September", 10=>"October", 11=>"November", 12=>"December"];
+$display_month = $month_names[$current_month_num];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -261,9 +307,118 @@ if ($sub_res) {
             </div>
         </div>
 
+        <!-- Birthdays & Celebrations -->
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2 mt-4">
+            <i class="fas fa-cake-candles text-pink-500"></i> Birthdays in <?= $display_month ?>
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            
+            <!-- STUDENT BIRTHDAYS -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[31.25rem]">
+                <div class="p-6 border-b border-gray-50 bg-gradient-to-r from-blue-50/50 to-transparent flex justify-between items-center">
+                    <div>
+                        <h3 class="font-black text-gray-900 flex items-center gap-2 text-lg italic uppercase tracking-tighter">
+                            <i class="fas fa-graduation-cap text-blue-500"></i> Student <span class="text-blue-500">Sparklers</span>
+                        </h3>
+                        <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Enrolled Celebrants — <?= $display_month ?></p>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6">
+                    <?php if (empty($student_birthdays)): ?>
+                        <div class="h-full flex flex-col items-center justify-center text-gray-300">
+                            <i class="fas fa-calendar-times text-5xl mb-4 opacity-10"></i>
+                            <p class="text-sm font-medium">No student birthdays this month.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="grid grid-cols-1 gap-3">
+                            <?php foreach ($student_birthdays as $b): ?>
+                                <div class="flex items-center justify-between p-3.5 rounded-xl border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all group <?= $b['is_today'] ? 'bg-blue-50 border-blue-200' : ($b['is_passed'] ? 'opacity-40 grayscale-[0.5]' : '') ?>">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-[0.625rem] font-black <?= $b['is_today'] ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 animate-bounce' : 'bg-gray-50 text-gray-400 border border-gray-100' ?>">
+                                            <span class="text-[0.5rem] uppercase opacity-60"><?= substr($display_month, 0, 3) ?></span>
+                                            <span class="text-xs -mt-1"><?= $b['day'] ?></span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                                <?= htmlspecialchars($b['name']) ?>
+                                                <?php if ($b['is_today']): ?>
+                                                    <i class="fas fa-bahai text-blue-500 animate-spin-slow"></i>
+                                                <?php endif; ?>
+                                            </h4>
+                                            <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest"><?= htmlspecialchars($b['info']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <?php if ($b['is_today']): ?>
+                                            <div class="text-[0.625rem] font-black text-blue-600 uppercase tracking-widest bg-white px-2.5 py-1 rounded-full shadow-sm border border-blue-100">Today</div>
+                                        <?php elseif ($b['is_passed']): ?>
+                                            <div class="text-[0.5rem] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded">Passed</div>
+                                        <?php else: ?>
+                                            <div class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">In <?= $b['days_until'] ?> days</div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- STAFF BIRTHDAYS -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[31.25rem]">
+                <div class="p-6 border-b border-gray-50 bg-gradient-to-r from-indigo-50/50 to-transparent flex justify-between items-center">
+                    <div>
+                        <h3 class="font-black text-gray-900 flex items-center gap-2 text-lg italic uppercase tracking-tighter">
+                            <i class="fas fa-user-tie text-indigo-500"></i> Staff <span class="text-indigo-500">Stars</span>
+                        </h3>
+                        <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Faculty Celebrants — <?= $display_month ?></p>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6">
+                    <?php if (empty($staff_birthdays)): ?>
+                        <div class="h-full flex flex-col items-center justify-center text-gray-300">
+                            <i class="fas fa-calendar-times text-5xl mb-4 opacity-10"></i>
+                            <p class="text-sm font-medium">No staff birthdays this month.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="grid grid-cols-1 gap-3">
+                            <?php foreach ($staff_birthdays as $b): ?>
+                                <div class="flex items-center justify-between p-3.5 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-indigo-50/30 transition-all group <?= $b['is_today'] ? 'bg-indigo-50 border-indigo-200' : ($b['is_passed'] ? 'opacity-40 grayscale-[0.5]' : '') ?>">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-[0.625rem] font-black <?= $b['is_today'] ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 animate-bounce' : 'bg-gray-50 text-gray-400 border border-gray-100' ?>">
+                                            <span class="text-[0.5rem] uppercase opacity-60"><?= substr($display_month, 0, 3) ?></span>
+                                            <span class="text-xs -mt-1"><?= $b['day'] ?></span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                                <?= htmlspecialchars($b['name']) ?>
+                                                <?php if ($b['is_today']): ?>
+                                                    <i class="fas fa-bahai text-indigo-500 animate-spin-slow"></i>
+                                                <?php endif; ?>
+                                            </h4>
+                                            <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest"><?= htmlspecialchars($b['info']) ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <?php if ($b['is_today']): ?>
+                                            <div class="text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest bg-white px-2.5 py-1 rounded-full shadow-sm border border-indigo-100">Today</div>
+                                        <?php elseif ($b['is_passed']): ?>
+                                            <div class="text-[0.5rem] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded">Passed</div>
+                                        <?php else: ?>
+                                            <div class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">In <?= $b['days_until'] ?> days</div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <i class="fas fa-bolt"></i> Quick Actions
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2 mt-4">
+            <i class="fas fa-bolt text-amber-500"></i> Quick Actions Center
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <?php
