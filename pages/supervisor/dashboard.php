@@ -149,6 +149,17 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         </div>
                     </div>
                 </a>
+
+                <!-- Card: Staff Portfolios (NEW) -->
+                <a href="<?= BASE_URL ?>pages/supervisor/staff_portfolio" class="relative group bg-white rounded-[2rem] p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-500 overflow-hidden text-center">
+                    <div class="flex flex-col items-center gap-4 relative z-10">
+                        <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-id-badge"></i></div>
+                        <div>
+                            <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Staff Portfolios</h3>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2">Comprehensive Audit</p>
+                        </div>
+                    </div>
+                </a>
             </div>
 
             <h2 class="text-3xl font-black text-gray-900 mb-10 flex items-center gap-4 tracking-tight">

@@ -140,7 +140,6 @@ if ($view_mode === 'history' && $selected_class) {
     }
 }
 
-// Calculate Stats for header & Precision Totaling
 $total_semester_days = getInstructionalDaysCount($conn, $current_semester, $current_year); // Full semester target
 $instructional_days_to_date = [];
 if ($semester_start) {
@@ -154,6 +153,7 @@ if ($semester_start) {
         $curr = strtotime("+1 day", $curr);
     }
 }
+$days_passed_count = count($instructional_days_to_date);
 
 $stats = ['present' => 0, 'absent' => 0, 'total' => count($students)];
 foreach ($students as $s) {
@@ -324,7 +324,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     <?php if($view_mode === 'daily'): ?>
                         <div class="w-full md:w-48">
                             <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Session Date</label>
-                            <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                            <input type="date" name="date" value="<?= $selected_date ?>" max="<?= date('Y-m-d') ?>" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
                     <?php else: ?>
                         <div class="w-full md:w-48">
@@ -425,7 +425,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     <table class="w-full text-left border-collapse min-w-[62.5rem]">
                         <thead>
                             <tr class="bg-slate-900 border-b border-slate-800">
-                                <th class="px-8 py-10 sticky-col bg-slate-900 text-[0.625rem] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800">Operational Log</th>
+                                <th class="px-8 py-10 sticky left-0 bg-slate-900 text-[0.625rem] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800 z-20">Identity & Performance</th>
                                 <?php foreach($tracker_dates as $date): 
                                     $is_h = isset($holidays[$date]);
                                 ?>
@@ -459,7 +459,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                 }
                             ?>
                                 <tr class="attendance-row group transition-all" data-name="<?= strtolower(htmlspecialchars($s['first_name'].' '.$s['last_name'])) ?>">
-                                    <td class="px-8 py-5 sticky-col group-hover:bg-slate-50 border-r border-slate-100 shadow-sm">
+                                    <td class="px-8 py-5 sticky left-0 group-hover:bg-slate-50 bg-white border-r border-slate-100 shadow-sm z-10">
                                         <div class="font-bold text-slate-900 leading-tight"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?></div>
                                         <div class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1">
                                             <span class="w-1 h-1 rounded-full bg-slate-300"></span> SID: #<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?>
@@ -494,9 +494,11 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                         <div class="flex flex-col items-center">
                                             <div class="flex items-baseline gap-1">
                                                 <span class="font-black text-slate-900 text-base"><?= $sem_total ?></span>
-                                                <span class="text-[0.625rem] text-slate-400 font-bold">/ <?= $total_semester_days ?></span>
+                                                <span class="text-[0.625rem] text-slate-400 font-bold">/ <?= $days_passed_count ?></span>
                                             </div>
-                                            <div class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mt-0.5">Semester Total</div>
+                                            <div class="text-[0.5rem] font-black text-indigo-500 uppercase tracking-widest mt-0.5">
+                                                <?= $days_passed_count > 0 ? round(($sem_total/$days_passed_count)*100) : 0 ?>% Rate
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

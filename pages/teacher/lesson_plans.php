@@ -297,6 +297,21 @@ if ($_SESSION['role'] === 'admin') {
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Left Sidebar (Reordered for mobile: appears after form) -->
             <div class="lg:col-span-4 space-y-8 order-last lg:order-first lg:sticky lg:top-24">
+                <!-- Professional Portfolio Card -->
+                <div class="bg-gradient-to-br from-indigo-700 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-100 group">
+                    <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform duration-700"><i class="fas fa-id-badge text-8xl"></i></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm border border-white/20">
+                            <i class="fas fa-award text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-2 tracking-tight">Professional Portfolio</h3>
+                        <p class="text-xs font-medium text-indigo-100 leading-relaxed mb-6 opacity-80">View your full teaching history, performance stats, and administrative audit logs in one place.</p>
+                        <a href="my_portfolio.php" class="inline-flex items-center gap-2 bg-white text-indigo-900 px-6 py-2.5 rounded-xl font-black text-[0.625rem] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-95">
+                            Open Portfolio <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Bulk Import Section -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="bg-indigo-600 p-4 flex justify-between items-center">

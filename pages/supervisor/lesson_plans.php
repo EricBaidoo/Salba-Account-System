@@ -119,7 +119,9 @@ $reviewed_plans = $conn->query("
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-sm font-bold bg-blue-50 text-blue-800 px-3 py-1 rounded-full"><i class="fas fa-chalkboard-user"></i> Tr. <?= htmlspecialchars($p['teacher_name']) ?></div>
+                                        <a href="staff_portfolio.php?user_id=<?= $p['teacher_id'] ?>" class="block text-sm font-bold bg-blue-50 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
+                                            <i class="fas fa-chalkboard-user"></i> Tr. <?= htmlspecialchars($p['teacher_name']) ?>
+                                        </a>
                                         <div class="text-xs text-gray-400 mt-1"><?= date('M j, g:i a', strtotime($p['created_at'])) ?></div>
                                     </div>
                                 </div>
@@ -201,7 +203,11 @@ $reviewed_plans = $conn->query("
                         <tbody class="divide-y divide-gray-100">
                             <?php if($reviewed_plans && $reviewed_plans->num_rows > 0): while($rp = $reviewed_plans->fetch_assoc()): ?>
                                 <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-semibold text-gray-800"><?= htmlspecialchars($rp['username']) ?></td>
+                                    <td class="py-3 px-4 font-semibold text-gray-800">
+                                        <a href="staff_portfolio.php?user_id=<?= $rp['teacher_id'] ?>" class="text-indigo-600 hover:underline">
+                                            <?= htmlspecialchars($rp['username']) ?>
+                                        </a>
+                                    </td>
                                     <td class="py-3 px-4 text-gray-600"><?= htmlspecialchars($rp['class_name']) ?> | <?= htmlspecialchars($rp['subject_name']) ?></td>
                                     <td class="py-3 px-4 font-medium text-gray-800"><?= htmlspecialchars($rp['topic']) ?></td>
                                     <td class="py-3 px-4 text-center">
