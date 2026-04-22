@@ -56,7 +56,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                 <div>
                     <h1 class="text-3xl md:text-6xl font-black tracking-tight leading-tight">Welcome Back, <br class="sm:hidden"><?= htmlspecialchars($display_name) ?>!</h1>
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-6">
-                        <span class="bg-white/20 px-5 py-2 rounded-full text-[10px] md:text-sm font-bold tracking-widest backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
+                        <span class="bg-white/20 px-5 py-2 rounded-full text-[0.625rem] md:text-sm font-bold tracking-widest backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
                     </div>
                 </div>
             </div>
@@ -67,21 +67,21 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
-                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pending Approvals</div>
+                        <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Pending Approvals</div>
                         <i class="fas fa-file-signature text-emerald-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $pending_plans ?></div>
                 </div>
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
-                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Classes</div>
+                        <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Active Classes</div>
                         <i class="fas fa-school text-blue-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $active_classes ?></div>
                 </div>
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
-                        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Students</div>
+                        <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Total Students</div>
                         <i class="fas fa-users-viewfinder text-purple-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $total_students ?></div>
@@ -101,7 +101,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-location-dot"></i></div>
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Daily Check-In</h3>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Campus Verification</p>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2">Campus Verification</p>
                         </div>
                     </div>
                 </a>
@@ -112,7 +112,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-16 h-16 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-calendar-days"></i></div>
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">My Attendance</h3>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Personal History</p>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2">Personal History</p>
                         </div>
                     </div>
                 </a>
@@ -123,7 +123,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-users-rectangle"></i></div>
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Staff Presence</h3>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2"><?= $staff_today ?> Logged Today</p>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2"><?= $staff_today ?> Logged Today</p>
                         </div>
                     </div>
                 </a>
@@ -134,7 +134,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-clipboard-user"></i></div>
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Student Attendance</h3>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2">Global Tracking</p>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2">Global Tracking</p>
                         </div>
                     </div>
                 </a>
@@ -145,7 +145,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-file-circle-check"></i></div>
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Review Plans</h3>
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-2"><?= $pending_plans ?> Drafts Pending</p>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2"><?= $pending_plans ?> Drafts Pending</p>
                         </div>
                     </div>
                 </a>
@@ -162,14 +162,14 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-file-invoice"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Manage Reports</h3>
                     </div>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Global transcript oversight and remarks.</p>
+                    <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest">Global transcript oversight and remarks.</p>
                 </a>
                 <a href="<?= BASE_URL ?>pages/academics/report" class="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:border-indigo-500 transition-all duration-300 group">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"><i class="fas fa-chart-pie"></i></div>
                         <h3 class="text-lg font-black text-gray-900 tracking-tight">Global Reports</h3>
                     </div>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Institutional performance analytics.</p>
+                    <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest">Institutional performance analytics.</p>
                 </a>
                 
             </div>

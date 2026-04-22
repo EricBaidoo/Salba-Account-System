@@ -92,16 +92,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
                     Audit Node
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Adjust <span class="text-emerald-600">Remittance</span></h1>
                 <div class="mt-3 flex items-center gap-3">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student:</span>
+                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Student:</span>
                     <span class="text-xs font-black text-slate-700 uppercase"><?= htmlspecialchars($payment['student_name']) ?></span>
                 </div>
             </div>
-            <a href="../reports/student_balance_details.php?id=<?= $payment['student_id'] ?>" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+            <a href="../reports/student_balance_details.php?id=<?= $payment['student_id'] ?>" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
                 <i class="fas fa-arrow-left mr-2"></i> Exit Audit
             </a>
         </header>
@@ -119,27 +119,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" class="space-y-10">
                 <!-- Parameters Hub -->
                 <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Fiscal Parameters</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Fiscal Parameters</h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="space-y-8">
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Remittance Value (GHS)</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Remittance Value (GHS)</label>
                                 <input type="number" step="0.01" name="amount" value="<?= $payment['amount'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
-                                <p class="text-[9px] text-slate-400 mt-2 font-medium italic">* Allocation weights will be proportionally updated.</p>
+                                <p class="text-[0.5625rem] text-slate-400 mt-2 font-medium italic">* Allocation weights will be proportionally updated.</p>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verification Date</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verification Date</label>
                                 <input type="date" name="payment_date" value="<?= $payment['payment_date'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
                             </div>
                         </div>
                         <div class="space-y-8">
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Receipt No</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Receipt No</label>
                                 <input type="text" name="receipt_no" value="<?= htmlspecialchars($payment['receipt_no'] ?: '') ?>" placeholder="e.g. REC-1001" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Administrative Logic / Description</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Administrative Logic / Description</label>
                                 <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-indigo-500 transition-all"><?= htmlspecialchars($payment['description'] ?: '') ?></textarea>
                             </div>
                         </div>
@@ -150,8 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 flex items-start gap-4">
                     <i class="fas fa-triangle-exclamation text-amber-500 mt-1"></i>
                     <div>
-                        <h4 class="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Fiscal Re-balancing Awareness</h4>
-                        <p class="text-[9px] font-medium text-amber-600 leading-relaxed italic">Modifying the aggregate remittance value will automatically re-allocate portions to assigned student fees based on existing proportionality. Ensure student account integrity after synchronization.</p>
+                        <h4 class="text-[0.625rem] font-black text-amber-700 uppercase tracking-widest mb-1">Fiscal Re-balancing Awareness</h4>
+                        <p class="text-[0.5625rem] font-medium text-amber-600 leading-relaxed italic">Modifying the aggregate remittance value will automatically re-allocate portions to assigned student fees based on existing proportionality. Ensure student account integrity after synchronization.</p>
                     </div>
                 </div>
 
@@ -163,17 +163,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Parameter Sync Authorized</h4>
-                            <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase leading-none italic">Recalibrating student ledger balances.</p>
+                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating student ledger balances.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-emerald-600/20 active:scale-95 leading-none h-fit">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-emerald-600/20 active:scale-95 leading-none h-fit">
                         Sync Remittance Node
                     </button>
                 </div>
             </form>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Salba Montessori &middot; Financial Audit Node &middot; v9.5.0
         </footer>
     </main>

@@ -123,11 +123,11 @@ $reviewed_plans = $conn->query("
                                             <span class="text-xs font-black text-indigo-700 uppercase tracking-widest flex items-center gap-2">
                                                 <i class="fas fa-file-invoice"></i> View Full Details
                                             </span>
-                                            <i class="fas fa-chevron-down text-[10px] text-gray-400 group-open:rotate-180 transition-transform"></i>
+                                            <i class="fas fa-chevron-down text-[0.625rem] text-gray-400 group-open:rotate-180 transition-transform"></i>
                                         </summary>
                                         <div class="px-4 pb-4 space-y-4">
                                             <!-- Logistics -->
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[0.6875rem]">
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Week Ending</span> <?= date('d M, Y', strtotime($p['week_ending'] ?? '')) ?></div>
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Day</span> <?= htmlspecialchars($p['day_of_week'] ?? '-') ?></div>
                                                 <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Duration</span> <?= htmlspecialchars($p['duration'] ?? '-') ?></div>
@@ -137,13 +137,13 @@ $reviewed_plans = $conn->query("
                                             <div class="space-y-1 text-sm">
                                                 <div class="font-bold text-gray-800 tracking-tight">Strand: <span class="bg-gray-200 px-1 rounded font-medium"><?= htmlspecialchars($p['strand'] ?? '-') ?></span></div>
                                                 <div class="font-bold text-gray-800 tracking-tight">Sub-Strand: <span class="bg-gray-200 px-1 rounded font-medium"><?= htmlspecialchars($p['sub_strand'] ?? '-') ?></span></div>
-                                                <div class="mt-2 text-[11px] text-gray-500 font-bold uppercase tracking-widest">Content Standard</div>
+                                                <div class="mt-2 text-[0.6875rem] text-gray-500 font-bold uppercase tracking-widest">Content Standard</div>
                                                 <div class="bg-white p-2 border border-gray-100 rounded text-xs"><?= htmlspecialchars($p['content_standard'] ?? '-') ?></div>
-                                                <div class="mt-2 text-[11px] text-gray-500 font-bold uppercase tracking-widest">Indicator</div>
+                                                <div class="mt-2 text-[0.6875rem] text-gray-500 font-bold uppercase tracking-widest">Indicator</div>
                                                 <div class="bg-white p-2 border border-gray-100 rounded text-xs"><?= htmlspecialchars($p['indicator'] ?? '-') ?></div>
                                             </div>
                                             <!-- Phases -->
-                                            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden text-[11px]">
+                                            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden text-[0.6875rem]">
                                                 <table class="w-full text-left border-collapse">
                                                     <tr class="bg-gray-100"><th class="p-2 border border-gray-200">Phase</th><th class="p-2 border border-gray-200 text-center">Duration</th><th class="p-2 border border-gray-200">Activities</th></tr>
                                                     <tr><td class="p-2 border border-gray-200 font-bold">Starter</td><td class="p-2 border border-gray-200 text-center"><?= htmlspecialchars($p['phase1_duration'] ?? '-') ?></td><td class="p-2 border border-gray-200"><?= htmlspecialchars($p['starter_activities'] ?? '-') ?></td></tr>

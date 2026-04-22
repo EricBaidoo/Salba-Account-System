@@ -63,24 +63,24 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
         
         .stat-card {
             background: #ffffff;
-            border-radius: 20px;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            border-radius: 1.25rem;
+            border: 0.0625rem solid #f1f5f9;
+            box-shadow: 0 0.25rem 0.375rem -0.0625rem rgba(0, 0, 0, 0.02), 0 0.125rem 0.25rem -0.0625rem rgba(0, 0, 0, 0.02);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
             position: relative;
         }
         
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            transform: translateY(-0.25rem);
+            box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.05), 0 0.25rem 0.375rem -0.125rem rgba(0, 0, 0, 0.03);
             border-color: #e2e8f0;
         }
 
         .stat-icon-wrapper {
             position: absolute;
-            right: -10px;
-            bottom: -15px;
+            right: -0.625rem;
+            bottom: -0.9375rem;
             opacity: 0.04;
             font-size: 6rem;
             transition: all 0.3s ease;
@@ -93,9 +93,9 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
 
         .glass-panel {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            backdrop-filter: blur(0.75rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0.25rem 1.25rem rgba(0,0,0,0.03);
         }
 
         .table-row-hover {
@@ -113,9 +113,9 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
         }
 
         /* Custom Scrollbar for table */
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 0.5rem; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 0.25rem; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 0.25rem; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
@@ -123,7 +123,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
 
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[1600px] mx-auto">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[100rem] mx-auto">
 
         <!-- Header -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
@@ -152,7 +152,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <div class="stat-card p-5 border-t-4 border-t-indigo-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Total Personnel</div>
+                        <div class="text-[0.625rem] font-black tracking-widest text-slate-400 uppercase mb-1">Total Personnel</div>
                         <div class="text-3xl font-black text-slate-800"><?= $total_count ?></div>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center">
@@ -165,7 +165,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <div class="stat-card p-5 border-t-4 border-t-emerald-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Teaching</div>
+                        <div class="text-[0.625rem] font-black tracking-widest text-slate-400 uppercase mb-1">Teaching</div>
                         <div class="text-3xl font-black text-slate-800"><?= $teaching_count ?></div>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
@@ -178,7 +178,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <div class="stat-card p-5 border-t-4 border-t-orange-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Non-Teaching</div>
+                        <div class="text-[0.625rem] font-black tracking-widest text-slate-400 uppercase mb-1">Non-Teaching</div>
                         <div class="text-3xl font-black text-slate-800"><?= $non_teaching_count ?></div>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
@@ -191,7 +191,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <div class="stat-card p-5 border-t-4 border-t-blue-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Males</div>
+                        <div class="text-[0.625rem] font-black tracking-widest text-slate-400 uppercase mb-1">Males</div>
                         <div class="text-3xl font-black text-slate-800"><?= $male_count ?></div>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
@@ -204,7 +204,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <div class="stat-card p-5 border-t-4 border-t-rose-500">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <div class="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1">Females</div>
+                        <div class="text-[0.625rem] font-black tracking-widest text-slate-400 uppercase mb-1">Females</div>
                         <div class="text-3xl font-black text-slate-800"><?= $female_count ?></div>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center">
@@ -227,14 +227,14 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
             <form method="GET" class="flex w-full xl:w-auto gap-3 flex-1 xl:flex-none justify-end">
                 <input type="hidden" name="tab" value="<?= $tab ?>">
                 
-                <div class="relative min-w-[160px]">
+                <div class="relative min-w-[10rem]">
                     <select name="status" onchange="this.form.submit()" class="w-full appearance-none pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-sm">
                         <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Statuses</option>
                         <option value="active" <?= $status_filter === 'active' ? 'selected' : '' ?>>Active Only</option>
                         <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactive Only</option>
                         <option value="retired" <?= $status_filter === 'retired' ? 'selected' : '' ?>>Retired Only</option>
                     </select>
-                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[0.625rem] text-slate-400 pointer-events-none"></i>
                 </div>
 
                 <div class="relative w-full max-w-sm">
@@ -253,9 +253,9 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
         <?php if($staff && $staff->num_rows > 0): ?>
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <table class="w-full min-w-[62.5rem] text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">
                                 <th class="px-6 py-4">Personnel Identity</th>
                                 <th class="px-6 py-4">Role & Function</th>
                                 <th class="px-6 py-4">Contact Info</th>
@@ -303,9 +303,9 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
                                         <div>
                                             <div class="font-extrabold text-slate-900 text-sm mb-0.5"><?= htmlspecialchars($s['full_name']) ?></div>
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"><?= htmlspecialchars($s['staff_code'] ?? 'N/A') ?></span>
+                                                <span class="text-[0.5625rem] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded"><?= htmlspecialchars($s['staff_code'] ?? 'N/A') ?></span>
                                                 <?php if($has_login): ?>
-                                                    <span class="text-[9px] font-bold text-slate-400 flex items-center gap-1"><i class="fas fa-lock text-[8px]"></i> @<?= htmlspecialchars($s['username']) ?></span>
+                                                    <span class="text-[0.5625rem] font-bold text-slate-400 flex items-center gap-1"><i class="fas fa-lock text-[0.5rem]"></i> @<?= htmlspecialchars($s['username']) ?></span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -320,9 +320,9 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
                                         foreach($types as $t): 
                                             $t = trim($t);
                                             if ($t === 'teaching'): ?>
-                                            <span class="text-[9px] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wide">Teaching</span>
+                                            <span class="text-[0.5625rem] font-black bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-wide">Teaching</span>
                                         <?php elseif ($t === 'non-teaching'): ?>
-                                            <span class="text-[9px] font-black bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100 uppercase tracking-wide">Non-Teaching</span>
+                                            <span class="text-[0.5625rem] font-black bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100 uppercase tracking-wide">Non-Teaching</span>
                                         <?php endif; endforeach; ?>
                                     </div>
                                 </td>
@@ -335,7 +335,7 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center gap-1.5 text-[10px] font-black bg-<?= $s_color ?>-50 text-<?= $s_color ?>-700 border border-<?= $s_color ?>-200 px-2.5 py-1.5 rounded-full uppercase tracking-wider">
+                                    <span class="inline-flex items-center gap-1.5 text-[0.625rem] font-black bg-<?= $s_color ?>-50 text-<?= $s_color ?>-700 border border-<?= $s_color ?>-200 px-2.5 py-1.5 rounded-full uppercase tracking-wider">
                                         <span class="w-1.5 h-1.5 rounded-full bg-<?= $s_color ?>-500"></span>
                                         <?= ucfirst($status) ?>
                                     </span>
@@ -353,31 +353,31 @@ $female_count = $conn->query("SELECT COUNT(*) FROM staff_profiles WHERE gender =
                                         <!-- Actions Dropdown -->
                                         <div class="relative group/menu inline-block">
                                             <button class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm shadow-slate-100">
-                                                <i class="fas fa-ellipsis-v text-[10px]"></i>
+                                                <i class="fas fa-ellipsis-v text-[0.625rem]"></i>
                                             </button>
-                                            <div class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden transform origin-bottom-right scale-95 group-hover/menu:scale-100">
+                                            <div class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-[0_0.625rem_2.5rem_-0.625rem_rgba(0,0,0,0.15)] border border-slate-100 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-50 overflow-hidden transform origin-bottom-right scale-95 group-hover/menu:scale-100">
                                                 <div class="p-1">
                                                     <?php if($status !== 'active'): ?>
-                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'activate')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-emerald-700 bg-white hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-2">
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'activate')" class="w-full text-left px-3 py-2 text-[0.6875rem] font-bold text-emerald-700 bg-white hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-2">
                                                             <i class="fas fa-rotate-left w-3 text-center opacity-70"></i> <?= $status === 'retired' ? 'Unretire' : 'Reactivate' ?>
                                                         </button>
                                                     <?php endif; ?>
                                                     
                                                     <?php if($status === 'active'): ?>
-                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'deactivate')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-orange-700 bg-white hover:bg-orange-50 rounded-lg transition-colors flex items-center gap-2">
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'deactivate')" class="w-full text-left px-3 py-2 text-[0.6875rem] font-bold text-orange-700 bg-white hover:bg-orange-50 rounded-lg transition-colors flex items-center gap-2">
                                                             <i class="fas fa-power-off w-3 text-center opacity-70"></i> Deactivate
                                                         </button>
                                                     <?php endif; ?>
 
                                                     <?php if($status !== 'retired'): ?>
-                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'retire')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-amber-700 bg-white hover:bg-amber-50 rounded-lg transition-colors flex items-center gap-2">
+                                                        <button onclick="updateStatus(<?= $s['id'] ?>, 'retire')" class="w-full text-left px-3 py-2 text-[0.6875rem] font-bold text-amber-700 bg-white hover:bg-amber-50 rounded-lg transition-colors flex items-center gap-2">
                                                             <i class="fas fa-bed w-3 text-center opacity-70"></i> Retire
                                                         </button>
                                                     <?php endif; ?>
 
                                                     <div class="h-px bg-slate-100 my-1"></div>
 
-                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'delete')" class="w-full text-left px-3 py-2 text-[11px] font-bold text-rose-600 bg-white hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2">
+                                                    <button onclick="updateStatus(<?= $s['id'] ?>, 'delete')" class="w-full text-left px-3 py-2 text-[0.6875rem] font-bold text-rose-600 bg-white hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-2">
                                                         <i class="fas fa-trash-alt w-3 text-center opacity-70"></i> Delete
                                                     </button>
                                                 </div>

@@ -133,14 +133,14 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .fi { width:100%; padding:10px 14px; border:1.5px solid #e8e8f0; border-radius:10px; font-size:14px; font-weight:500; color:#1f2937; background:#fafafa; transition:all .2s; outline:none; }
-        .fi:focus { border-color:#6366f1; background:white; box-shadow:0 0 0 3px rgba(99,102,241,.08); }
+        .fi { width:100%; padding:0.625rem 0.875rem; border:0.09375rem solid #e8e8f0; border-radius:0.625rem; font-size:0.875rem; font-weight:500; color:#1f2937; background:#fafafa; transition:all .2s; outline:none; }
+        .fi:focus { border-color:#6366f1; background:white; box-shadow:0 0 0 0.1875rem rgba(99,102,241,.08); }
         .fi::placeholder { color:#c4c6d5; font-weight:400; }
-        .fl { display:block; font-size:11px; font-weight:700; color:#8b8fa8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
-        .card { background:white; border-radius:16px; border:1px solid #f0f0f5; box-shadow:0 1px 4px rgba(0,0,0,.04); overflow:hidden; }
-        .card-header { display:flex; align-items:center; gap:12px; padding:16px 24px; border-bottom:1px solid #f5f5fa; }
-        .card-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-        .photo-box { width:110px; height:130px; border:2.5px dashed #d1d5db; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:#f8f9fc; transition:all .2s; }
+        .fl { display:block; font-size:0.6875rem; font-weight:700; color:#8b8fa8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:0.375rem; }
+        .card { background:white; border-radius:1rem; border:0.0625rem solid #f0f0f5; box-shadow:0 0.0625rem 0.25rem rgba(0,0,0,.04); overflow:hidden; }
+        .card-header { display:flex; align-items:center; gap:0.75rem; padding:1rem 1.5rem; border-bottom:0.0625rem solid #f5f5fa; }
+        .card-icon { width:2.125rem; height:2.125rem; border-radius:0.5625rem; display:flex; align-items:center; justify-content:center; font-size:0.875rem; flex-shrink:0; }
+        .photo-box { width:6.875rem; height:8.125rem; border:0.15625rem dashed #d1d5db; border-radius:0.75rem; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:#f8f9fc; transition:all .2s; }
         .photo-box:hover { border-color:#6366f1; background:#f0f0ff; }
     </style>
 </head>
@@ -190,12 +190,12 @@ $v = fn($key) => htmlspecialchars($s[$key] ?? '');
                                     <img id="photo_preview" class="w-full h-full object-cover hidden">
                                     <div id="photo_placeholder" class="flex flex-col items-center justify-center text-center p-2">
                                         <i class="fas fa-camera text-2xl text-gray-300 mb-2"></i>
-                                        <span class="text-[10px] text-gray-400 font-bold">Change photo</span>
+                                        <span class="text-[0.625rem] text-gray-400 font-bold">Change photo</span>
                                     </div>
                                 <?php endif; ?>
                             </label>
                             <input type="file" name="photo" id="photo_input" accept=".jpg,.jpeg,.png,.webp" class="sr-only" onchange="previewPhoto(event)">
-                            <p class="text-[10px] text-gray-400 mt-1 text-center font-medium">Leave blank to keep current</p>
+                            <p class="text-[0.625rem] text-gray-400 mt-1 text-center font-medium">Leave blank to keep current</p>
                         </div>
 
                         <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

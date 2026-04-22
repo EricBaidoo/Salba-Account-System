@@ -77,7 +77,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
             </div>
             <div class="flex flex-wrap items-center justify-between gap-6">
                 <div>
-                    <div class="app-title-pill !bg-indigo-500 !text-white !px-3 !py-1 !text-[10px] !font-black !uppercase !tracking-widest !mb-2 !inline-flex">
+                    <div class="app-title-pill !bg-indigo-500 !text-white !px-3 !py-1 !text-[0.625rem] !font-black !uppercase !tracking-widest !mb-2 !inline-flex">
                         <i class="fas fa-tower-broadcast mr-2"></i> Signal Modulation
                     </div>
                     <h1 class="app-title uppercase tracking-tighter text-indigo-900">Communication Node Settings</h1>
@@ -106,7 +106,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                         </div>
                         <div class="p-6 space-y-6">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Service Provider</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Service Provider</label>
                                 <select name="sms_provider" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 appearance-none">
                                     <option value="bulksms" <?= $sms_provider === 'bulksms' ? 'selected' : '' ?>>BulkSMS.com</option>
                                     <option value="twilio" <?= $sms_provider === 'twilio' ? 'selected' : '' ?>>Twilio Node</option>
@@ -114,15 +114,15 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">API Key / Auth Token</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">API Key / Auth Token</label>
                                 <input type="password" name="sms_api_key" value="<?= htmlspecialchars($sms_api_key) ?>" 
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sender ID / Mask</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Sender ID / Mask</label>
                                 <input type="text" name="sms_sender_id" value="<?= htmlspecialchars($sms_sender_id) ?>" maxlength="11"
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 uppercase">
-                                <p class="text-[9px] text-slate-400 mt-2 italic">Max 11 characters. Example: SALBA</p>
+                                <p class="text-[0.5625rem] text-slate-400 mt-2 italic">Max 11 characters. Example: SALBA</p>
                             </div>
                         </div>
                     </div>
@@ -136,27 +136,27 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                         </div>
                         <div class="p-6 space-y-5">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Host Address</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Host Address</label>
                                 <input type="text" name="smtp_host" value="<?= htmlspecialchars($smtp_host) ?>" placeholder="smtp.gmail.com"
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Port</label>
+                                    <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Port</label>
                                     <input type="text" name="smtp_port" value="<?= htmlspecialchars($smtp_port) ?>" 
                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Auth User</label>
+                                    <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Auth User</label>
                                     <input type="text" name="smtp_user" value="<?= htmlspecialchars($smtp_user) ?>" 
                                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Auth Password</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Auth Password</label>
                                 <input type="password" name="smtp_pass" placeholder="••••••••••••"
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
-                                <p class="text-[9px] text-slate-400 mt-2 italic">Leave blank to keep current password.</p>
+                                <p class="text-[0.5625rem] text-slate-400 mt-2 italic">Leave blank to keep current password.</p>
                             </div>
                         </div>
                     </div>
@@ -176,7 +176,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                                        class="mt-1 w-6 h-6 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                 <div>
                                     <span class="block text-xs font-black text-slate-700 uppercase tracking-widest">Payment Receipts</span>
-                                    <span class="block text-[10px] text-slate-400 mt-1 italic font-medium">Broadcast SMS/Email on fee payment.</span>
+                                    <span class="block text-[0.625rem] text-slate-400 mt-1 italic font-medium">Broadcast SMS/Email on fee payment.</span>
                                 </div>
                             </label>
                             
@@ -185,7 +185,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                                        class="mt-1 w-6 h-6 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                 <div>
                                     <span class="block text-xs font-black text-slate-700 uppercase tracking-widest">Absence Alerts</span>
-                                    <span class="block text-[10px] text-slate-400 mt-1 italic font-medium">Notify parents when student is absent.</span>
+                                    <span class="block text-[0.625rem] text-slate-400 mt-1 italic font-medium">Notify parents when student is absent.</span>
                                 </div>
                             </label>
 
@@ -194,7 +194,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                                        class="mt-1 w-6 h-6 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                 <div>
                                     <span class="block text-xs font-black text-slate-700 uppercase tracking-widest">Grade Publication</span>
-                                    <span class="block text-[10px] text-slate-400 mt-1 italic font-medium">Alert when terminal results are ready.</span>
+                                    <span class="block text-[0.625rem] text-slate-400 mt-1 italic font-medium">Alert when terminal results are ready.</span>
                                 </div>
                             </label>
                         </div>
@@ -208,7 +208,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
                         </div>
                         <div>
                             <h3 class="text-white text-xs font-black uppercase tracking-[0.3em]">Module-Wide Signal Registry</h3>
-                            <p class="text-indigo-300/60 text-[10px] mt-1 font-medium italic leading-relaxed">Changes synchronize across all departmental communication sub-systems.</p>
+                            <p class="text-indigo-300/60 text-[0.625rem] mt-1 font-medium italic leading-relaxed">Changes synchronize across all departmental communication sub-systems.</p>
                         </div>
                     </div>
                     <button type="submit" class="bg-indigo-500 hover:bg-indigo-400 text-white font-black uppercase tracking-widest px-12 py-5 rounded-xl shadow-xl shadow-indigo-900/40 transition-all active:scale-95 leading-none h-fit border border-indigo-400/30">
@@ -219,7 +219,7 @@ $notify_grading = getSystemSetting($conn, 'notify_on_grading', '0');
         </div>
 
         <footer class="mt-24 py-16 text-left border-t border-slate-200">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Communication Hub &middot; Salba Institutional Oversight &middot; v9.4.0</p>
+            <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">Communication Hub &middot; Salba Institutional Oversight &middot; v9.4.0</p>
         </footer>
     </main>
 </body>

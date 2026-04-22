@@ -222,11 +222,11 @@ if(empty($classes_list)) {
                                 <tr class="hover:bg-gray-50/80 transition-colors">
                                     <td class="px-6 py-4 pl-16">
                                         <?php if ($row['is_class_teacher']): ?>
-                                            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase rounded-full border border-emerald-100 flex items-center gap-1 w-fit">
+                                            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[0.625rem] font-black uppercase rounded-full border border-emerald-100 flex items-center gap-1 w-fit">
                                                 <i class="fas fa-home"></i> Home Class
                                             </span>
                                         <?php else: ?>
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase rounded-full border border-blue-100 flex items-center gap-1 w-fit">
+                                            <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[0.625rem] font-black uppercase rounded-full border border-blue-100 flex items-center gap-1 w-fit">
                                                 <i class="fas fa-walking"></i> Visiting
                                             </span>
                                         <?php endif; ?>
@@ -237,12 +237,12 @@ if(empty($classes_list)) {
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-1">
                                             <?php if ($row['is_class_teacher']): ?>
-                                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-[10px] uppercase rounded border border-indigo-100 flex items-center gap-1">
+                                                <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-[0.625rem] uppercase rounded border border-indigo-100 flex items-center gap-1">
                                                     <i class="fas fa-chalkboard-user"></i> Class Tr
                                                 </span>
                                             <?php endif; ?>
                                             <?php if ($row['is_subject_teacher']): ?>
-                                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 font-bold text-[10px] uppercase rounded border border-amber-100 flex items-center gap-1">
+                                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 font-bold text-[0.625rem] uppercase rounded border border-amber-100 flex items-center gap-1">
                                                     <i class="fas fa-book"></i> Subject Tr
                                                 </span>
                                             <?php endif; ?>
@@ -330,7 +330,7 @@ if(empty($classes_list)) {
                     <div class="space-y-2">
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-sm font-semibold text-gray-700">Target Classes <span class="text-red-500">*</span></label>
-                            <button type="button" onclick="toggleAllClasses()" class="text-[10px] text-purple-600 font-bold uppercase hover:underline">Select/Deselect All</button>
+                            <button type="button" onclick="toggleAllClasses()" class="text-[0.625rem] text-purple-600 font-bold uppercase hover:underline">Select/Deselect All</button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-gray-50 rounded-lg border border-gray-100" id="classes_container">
                             <?php foreach ($classes_list as $cl): ?>
@@ -343,20 +343,20 @@ if(empty($classes_list)) {
                     </div>
                     
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
-                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
+                        <p class="text-[0.625rem] font-black text-gray-500 uppercase tracking-widest mb-2">Designated Roles (Select at least one)</p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-purple-50 hover:border-purple-200 transition-all group role-checkbox-container" data-role="class">
                                 <input type="checkbox" name="is_class_teacher" id="is_class_teacher" class="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                                 <div>
                                     <span class="block text-sm font-bold text-gray-800">Class Teacher</span>
-                                    <span class="block text-[10px] text-gray-500 leading-tight">Generalist: Teaches all subjects in assigned class(es).</span>
+                                    <span class="block text-[0.625rem] text-gray-500 leading-tight">Generalist: Teaches all subjects in assigned class(es).</span>
                                 </div>
                             </label>
                             <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all group role-checkbox-container" data-role="subject">
                                 <input type="checkbox" name="is_subject_teacher" id="is_subject_teacher" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <div>
                                     <span class="block text-sm font-bold text-gray-800">Subject Teacher</span>
-                                    <span class="block text-[10px] text-gray-500 leading-tight">Specialist: Teaches only a specific subject.</span>
+                                    <span class="block text-[0.625rem] text-gray-500 leading-tight">Specialist: Teaches only a specific subject.</span>
                                 </div>
                             </label>
                         </div>

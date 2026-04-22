@@ -57,9 +57,9 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 <div>
                     <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">Welcome Back, <br class="sm:hidden"><?= htmlspecialchars($display_name) ?>!</h1>
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 mt-4">
-                        <span class="bg-white/20 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-wider backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
+                        <span class="bg-white/20 px-4 py-1.5 rounded-full text-[0.625rem] md:text-sm font-bold uppercase tracking-wider backdrop-blur-sm border border-white/20 text-indigo-50"><?= htmlspecialchars($job_title) ?></span>
                         <div class="h-6 w-px bg-white/20 hidden md:block"></div>
-                        <span class="text-indigo-100 text-[10px] md:text-sm font-medium flex items-center gap-2"><i class="fas fa-calendar-check opacity-60"></i> <?= $current_term ?> · <?= $current_year ?></span>
+                        <span class="text-indigo-100 text-[0.625rem] md:text-sm font-medium flex items-center gap-2"><i class="fas fa-calendar-check opacity-60"></i> <?= $current_term ?> · <?= $current_year ?></span>
                     </div>
                 </div>
             </div>

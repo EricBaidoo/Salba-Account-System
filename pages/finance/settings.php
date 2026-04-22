@@ -141,7 +141,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
             </div>
             <div class="flex flex-wrap items-center justify-between gap-6">
                 <div>
-                    <div class="app-title-pill !bg-emerald-600 !text-white !px-3 !py-1 !text-[10px] !font-black !uppercase !tracking-widest !mb-2 !inline-flex">
+                    <div class="app-title-pill !bg-emerald-600 !text-white !px-3 !py-1 !text-[0.625rem] !font-black !uppercase !tracking-widest !mb-2 !inline-flex">
                         <i class="fas fa-vault mr-2"></i> Fiscal Configuration
                     </div>
                     <h1 class="app-title uppercase tracking-tighter text-emerald-900">Finance & Fee Settings</h1>
@@ -170,18 +170,18 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                         </div>
                         <div class="p-6 space-y-6">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Currency Symbol</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Currency Symbol</label>
                                 <input type="text" name="currency_symbol" value="<?= htmlspecialchars($currency) ?>" 
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Bill Number Prefix</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Bill Number Prefix</label>
                                 <input type="text" name="invoice_prefix" value="<?= htmlspecialchars($invoice_prefix) ?>" 
                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
-                                <p class="text-[9px] text-slate-400 mt-2 italic">Example: <?= htmlspecialchars($invoice_prefix) ?>1001</p>
+                                <p class="text-[0.5625rem] text-slate-400 mt-2 italic">Example: <?= htmlspecialchars($invoice_prefix) ?>1001</p>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Fee Payment Allocation</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Fee Payment Allocation</label>
                                 <select name="payment_allocation_scope" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700 appearance-none">
                                     <option value="global" <?= $alloc_scope === 'global' ? 'selected' : '' ?>>Global (Pays oldest debts first)</option>
                                     <option value="term_year" <?= $alloc_scope === 'term_year' ? 'selected' : '' ?>>Semester Context (Target semester only)</option>
@@ -197,7 +197,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                                 <i class="fas fa-gavel text-amber-500"></i> Delinquency System
                             </h2>
                         </div>
-                        <div class="p-6 space-y-6 flex flex-col justify-center h-[calc(100%-60px)]">
+                        <div class="p-6 space-y-6 flex flex-col justify-center h-[calc(100%-3.75rem)]">
                             <div>
                                 <label class="flex items-center gap-3 cursor-pointer group mb-6">
                                     <input type="checkbox" name="late_fee_enabled" value="1" <?= $late_fee_enabled === '1' ? 'checked' : '' ?>
@@ -207,12 +207,12 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Penalty %</label>
+                                        <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Penalty %</label>
                                         <input type="number" name="late_fee_percentage" value="<?= $late_fee_percentage ?>" 
                                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Grace Period (Days)</label>
+                                        <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Grace Period (Days)</label>
                                         <input type="number" name="late_fee_grace_days" value="<?= $late_fee_grace_days ?>" 
                                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
                                     </div>
@@ -228,7 +228,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                                 <i class="fas fa-file-invoice text-emerald-400"></i> 
                                 Semester Bill Footer Settings
                             </h2>
-                            <div class="px-3 py-1 rounded bg-slate-700/50 text-slate-300 text-[10px] uppercase font-black tracking-widest">
+                            <div class="px-3 py-1 rounded bg-slate-700/50 text-slate-300 text-[0.625rem] uppercase font-black tracking-widest">
                                 Editing For: <?= htmlspecialchars($active_semester) ?> (<?= htmlspecialchars($active_year) ?>)
                             </div>
                         </div>
@@ -237,40 +237,40 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                             <!-- Payment Nodes Layer -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div class="space-y-4">
-                                    <h4 class="text-[10px] uppercase text-emerald-400 font-black tracking-widest border-b border-slate-700 pb-2">Bank Mode Layout</h4>
+                                    <h4 class="text-[0.625rem] uppercase text-emerald-400 font-black tracking-widest border-b border-slate-700 pb-2">Bank Mode Layout</h4>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Section Title</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Section Title</label>
                                         <input type="text" name="bank_title" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['bank']['title']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Account Name</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Account Name</label>
                                         <input type="text" name="bank_account_name" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['bank']['account_name']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Account Number</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Account Number</label>
                                         <input type="text" name="bank_account_number" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['bank']['account_number']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bank Name</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Bank Name</label>
                                         <input type="text" name="bank_name" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['bank']['bank_name']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                 </div>
                                 <div class="space-y-4">
-                                    <h4 class="text-[10px] uppercase text-emerald-400 font-black tracking-widest border-b border-slate-700 pb-2">MoMo Mode Layout</h4>
+                                    <h4 class="text-[0.625rem] uppercase text-emerald-400 font-black tracking-widest border-b border-slate-700 pb-2">MoMo Mode Layout</h4>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Section Title</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Section Title</label>
                                         <input type="text" name="momo_title" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['momo']['title']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Registered Name</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Registered Name</label>
                                         <input type="text" name="momo_name" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['momo']['name']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mobile Number</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Mobile Number</label>
                                         <input type="text" name="momo_number" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['momo']['number']) ?>" class="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-xs focus:border-emerald-500 outline-none">
                                     </div>
                                     <div class="pt-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Reference Note</label>
+                                        <label class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Global Reference Note</label>
                                         <input type="text" name="payment_reference" value="<?= htmlspecialchars($active_bill_settings['payment_modes']['payment_reference']) ?>" class="w-full mt-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 rounded-lg px-3 py-2 text-xs focus:border-indigo-400 outline-none">
                                     </div>
                                 </div>
@@ -278,8 +278,8 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                             
                             <!-- Payment Plan -->
                             <div class="border-t border-slate-700 pt-6">
-                                <h4 class="text-[10px] uppercase text-emerald-400 font-black tracking-widest mb-4">Payment Plan Table</h4>
-                                <div class="grid grid-cols-12 gap-2 text-[9px] uppercase font-black text-slate-500 tracking-widest mb-2 px-2">
+                                <h4 class="text-[0.625rem] uppercase text-emerald-400 font-black tracking-widest mb-4">Payment Plan Table</h4>
+                                <div class="grid grid-cols-12 gap-2 text-[0.5625rem] uppercase font-black text-slate-500 tracking-widest mb-2 px-2">
                                     <div class="col-span-5">Installment Label</div>
                                     <div class="col-span-3">Percentage (%)</div>
                                     <div class="col-span-4">Due Date String</div>
@@ -315,7 +315,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                             
                             <!-- Policy Notes -->
                             <div class="border-t border-slate-700 pt-6">
-                                <h4 class="text-[10px] uppercase text-emerald-400 font-black tracking-widest mb-4">Policy Footer Notes (One per line)</h4>
+                                <h4 class="text-[0.625rem] uppercase text-emerald-400 font-black tracking-widest mb-4">Policy Footer Notes (One per line)</h4>
                                 <textarea name="bill_notes" rows="4" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 text-xs leading-loose outline-none"><?= htmlspecialchars(implode("\n", $active_bill_settings['notes'])) ?></textarea>
                             </div>
                             
@@ -330,7 +330,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                         </div>
                         <div>
                             <h3 class="text-white text-xs font-black uppercase tracking-[0.2em]">Secure Parameter Sync</h3>
-                            <p class="text-emerald-200/50 text-[10px] mt-1 font-medium italic">Commits changes globally to the current academic year block.</p>
+                            <p class="text-emerald-200/50 text-[0.625rem] mt-1 font-medium italic">Commits changes globally to the current academic year block.</p>
                         </div>
                     </div>
                     <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-black uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg transition-all active:scale-95 leading-none h-fit">
@@ -341,7 +341,7 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
         </div>
 
         <footer class="mt-24 py-16 text-left border-t border-slate-200">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Finance Control Node &middot; Salba Institutional Oversight &middot; v9.4.0</p>
+            <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">Finance Control Node &middot; Salba Institutional Oversight &middot; v9.4.0</p>
         </footer>
     </main>
 </body>

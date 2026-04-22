@@ -37,7 +37,7 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .taxonomy-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .taxonomy-card:hover { transform: translateY(-4px); border-color: #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
+        .taxonomy-card:hover { transform: translateY(-0.25rem); border-color: #e2e8f0; box-shadow: 0 1.25rem 1.5625rem -0.3125rem rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
@@ -48,13 +48,13 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-rose-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
                     Taxonomy Node
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Expense <span class="text-rose-600">Categories</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Managing the functional classification of institutional spending.</p>
             </div>
-            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
                 <i class="fas fa-arrow-left mr-2"></i> Return to Ledger
             </a>
         </header>
@@ -63,20 +63,20 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
             <!-- Left: Entry Hub -->
             <div class="lg:col-span-4">
                 <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm sticky top-10">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Node Registration</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Node Registration</h3>
                     
                     <?php if ($message): ?>
-                        <div class="mb-8 bg-emerald-50 text-emerald-700 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-100 italic animate-in fade-in duration-500">
+                        <div class="mb-8 bg-emerald-50 text-emerald-700 px-5 py-3 rounded-2xl text-[0.625rem] font-black uppercase tracking-widest border border-emerald-100 italic animate-in fade-in duration-500">
                             <?= $message ?>
                         </div>
                     <?php endif; ?>
 
                     <form method="POST" class="space-y-6">
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Classification Label</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Classification Label</label>
                             <input type="text" name="name" placeholder="e.g. INFRASTRUCTURE" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
                         </div>
-                        <button type="submit" class="w-full bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all active:scale-95 leading-none">
+                        <button type="submit" class="w-full bg-rose-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all active:scale-95 leading-none">
                             Register Category
                         </button>
                     </form>
@@ -96,13 +96,13 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
                                     <i class="fas fa-folder-tree"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Index SMS-<?= str_pad($row['id'], 3, '0', STR_PAD_LEFT) ?></p>
+                                    <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Index SMS-<?= str_pad($row['id'], 3, '0', STR_PAD_LEFT) ?></p>
                                     <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight"><?= htmlspecialchars($row['name']) ?></h4>
                                 </div>
                             </div>
                             <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <a href="edit_expense_category_form.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[10px]"></i></a>
-                                <a href="delete_expense_category.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: This Category taxonomy node will be expunged. Proceed?');" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-trash text-[10px]"></i></a>
+                                <a href="edit_expense_category_form.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[0.625rem]"></i></a>
+                                <a href="delete_expense_category.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: This Category taxonomy node will be expunged. Proceed?');" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-trash text-[0.625rem]"></i></a>
                             </div>
                         </div>
                     <?php endwhile; ?>
@@ -113,7 +113,7 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
             </div>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Institutional Registry Node &middot; Salba Montessori &middot; v9.5.0
         </footer>
     </main>

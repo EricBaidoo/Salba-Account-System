@@ -53,13 +53,13 @@ if (!$cat) { die('Taxonomy node not found.'); }
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-rose-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
                     Taxonomy Audit
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">Adjust <span class="text-rose-600">Classifer</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Re-labeling institutional spending classification nodes.</p>
             </div>
-            <a href="add_expense_category_form.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+            <a href="add_expense_category_form.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
                 <i class="fas fa-arrow-left mr-2"></i> Return to Registry
             </a>
         </header>
@@ -80,13 +80,13 @@ if (!$cat) { die('Taxonomy node not found.'); }
                      <div class="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
                         <i class="fas fa-tags text-8xl text-rose-600"></i>
                     </div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Node Definition</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Node Definition</h3>
                     
                     <div class="space-y-8">
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Label</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Label</label>
                             <input type="text" name="name" value="<?= htmlspecialchars($cat['name']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
-                            <p class="text-[9px] text-slate-400 mt-3 font-medium uppercase tracking-widest italic">* This change will propagate to all legacy expenditure entries mapped to this node.</p>
+                            <p class="text-[0.5625rem] text-slate-400 mt-3 font-medium uppercase tracking-widest italic">* This change will propagate to all legacy expenditure entries mapped to this node.</p>
                         </div>
                     </div>
                 </section>
@@ -99,17 +99,17 @@ if (!$cat) { die('Taxonomy node not found.'); }
                         </div>
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-[0.2em] text-rose-400">Classifer Sync Authorized</h4>
-                            <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional spending taxonomy.</p>
+                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional spending taxonomy.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-rose-600/20 active:scale-95 leading-none h-fit">
+                    <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-rose-600/20 active:scale-95 leading-none h-fit">
                         Sync Classifer Node
                     </button>
                 </div>
             </form>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Salba Institutional Registry &middot; v9.5.0
         </footer>
     </main>

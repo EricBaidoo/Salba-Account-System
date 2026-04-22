@@ -59,21 +59,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/../../../css/all.min.css">
     .student-details {
             background: linear-gradient(145deg, #f8f9ff 0%, #e8f0fe 100%);
-            border-radius: 15px;
+            border-radius: 0.9375rem;
             padding: 1.5rem;
             margin: 1rem 0;
         }
         
         .action-px-3 py-2 rounded {
-            border-radius: 25px;
+            border-radius: 1.5625rem;
             padding: 0.75rem 2rem;
             font-weight: 600;
             transition: all 0.3s ease;
         }
         
         .action-px-3 py-2 rounded:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-0.125rem);
+            box-shadow: 0 0.3125rem 0.9375rem rgba(0, 0, 0, 0.2);
         }
         
         .fade-in {
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(1.875rem);
             }
             to {
                 opacity: 1;

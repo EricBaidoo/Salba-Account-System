@@ -50,35 +50,35 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
         
         .glass-effect {
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(1rem);
+            -webkit-backdrop-filter: blur(1rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.4);
         }
 
         .section-card {
             background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-            border: 1px solid #f3f4f6;
+            border-radius: 1.25rem;
+            box-shadow: 0 0.25rem 0.375rem -0.0625rem rgba(0, 0, 0, 0.02), 0 0.125rem 0.25rem -0.0625rem rgba(0, 0, 0, 0.02);
+            border: 0.0625rem solid #f3f4f6;
             transition: all 0.2s ease-in-out;
         }
 
         .section-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-            transform: translateY(-2px);
+            box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.05), 0 0.25rem 0.375rem -0.125rem rgba(0, 0, 0, 0.025);
+            transform: translateY(-0.125rem);
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
             gap: 1.25rem;
         }
 
         .data-point-wrapper {
             background: #f8fafc;
-            border-radius: 12px;
+            border-radius: 0.75rem;
             padding: 1rem;
-            border: 1px solid #f1f5f9;
+            border: 0.0625rem solid #f1f5f9;
         }
 
         .data-label {
@@ -112,11 +112,11 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
             body { background: white !important; font-size: 12pt; }
             aside, nav, .print-hidden { display: none !important; }
             main { margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
-            .section-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
-            .data-point-wrapper { background: transparent !important; padding: 0.5rem 0 !important; border: none !important; border-bottom: 1px dotted #ccc !important; border-radius: 0 !important; }
+            .section-card { box-shadow: none !important; border: 0.0625rem solid #ccc !important; break-inside: avoid; }
+            .data-point-wrapper { background: transparent !important; padding: 0.5rem 0 !important; border: none !important; border-bottom: 0.0625rem dotted #ccc !important; border-radius: 0 !important; }
             .grid { display: block !important; }
             .lg\:col-span-1, .lg\:col-span-2 { width: 100% !important; margin-bottom: 1rem; }
-            .print-header { display: flex !important; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 1rem; margin-bottom: 2rem; }
+            .print-header { display: flex !important; align-items: center; justify-content: space-between; border-bottom: 0.125rem solid #000; padding-bottom: 1rem; margin-bottom: 2rem; }
         }
     </style>
 </head>
@@ -138,7 +138,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
         </div>
     </div>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[1400px] mx-auto print:ml-0 print:">
+    <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen lg:p-10 max-w-[87.5rem] mx-auto print:ml-0 print:">
 
         <!-- Top Actions -->
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 print-hidden">
@@ -164,7 +164,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                 <div class="section-card relative overflow-hidden bg-white">
                     <!-- Decorative Background -->
                     <div class="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 print:hidden">
-                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(white 1px, transparent 1px); background-size: 16px 16px;"></div>
+                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(white 0.0625rem, transparent 0.0625rem); background-size: 1rem 1rem;"></div>
                     </div>
                     
                     <div class="p-6 pt-20 relative z-10 text-center print:pt-6">
@@ -236,7 +236,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div>
-                                    <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Account Active</div>
+                                    <div class="text-[0.625rem] uppercase font-bold text-emerald-600 tracking-wider">Account Active</div>
                                     <div class="text-sm font-bold text-emerald-900">@<?= htmlspecialchars($s['username']) ?></div>
                                 </div>
                             </div>
@@ -252,7 +252,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                             </div>
                             <div>
                                 <div class="text-xs font-bold text-slate-700">No Login Access</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">Profile is read-only</div>
+                                <div class="text-[0.625rem] text-slate-500 mt-0.5">Profile is read-only</div>
                             </div>
                         </div>
                         <a href="activate_login.php?id=<?= $s['id'] ?>" class="block w-full text-center text-xs font-bold bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition shadow-sm shadow-indigo-200">
@@ -409,7 +409,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:divide-x divide-slate-100">
                         <div class="md:pr-6 space-y-4">
-                            <div class="text-[10px] font-black text-sky-600 uppercase tracking-widest flex items-center gap-2 mb-2">
+                            <div class="text-[0.625rem] font-black text-sky-600 uppercase tracking-widest flex items-center gap-2 mb-2">
                                 <span class="w-5 h-5 bg-sky-600 text-white rounded-full flex items-center justify-center">1</span> 
                                 First Guarantor
                             </div>
@@ -428,7 +428,7 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                         </div>
 
                         <div class="md:pl-6 space-y-4 pt-4 md:pt-0 border-t border-slate-100 md:border-0">
-                            <div class="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-2">
+                            <div class="text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-2">
                                 <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center">2</span> 
                                 Second Guarantor
                             </div>

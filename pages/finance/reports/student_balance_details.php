@@ -55,20 +55,20 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                     Individual Audit
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight italic"><?= htmlspecialchars($student_balance['student_name']) ?></h1>
                 <div class="flex items-center gap-3 mt-3">
-                    <span class="bg-indigo-50 text-indigo-600 font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-lg border border-indigo-100"><?= htmlspecialchars($student_balance['class']) ?></span>
-                    <span class="bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-lg">UID: SMS-<?= str_pad($student_id, 3, '0', STR_PAD_LEFT) ?></span>
+                    <span class="bg-indigo-50 text-indigo-600 font-black text-[0.625rem] uppercase tracking-widest px-3 py-1 rounded-lg border border-indigo-100"><?= htmlspecialchars($student_balance['class']) ?></span>
+                    <span class="bg-slate-100 text-slate-500 font-black text-[0.625rem] uppercase tracking-widest px-3 py-1 rounded-lg">UID: SMS-<?= str_pad($student_id, 3, '0', STR_PAD_LEFT) ?></span>
                 </div>
             </div>
             <div class="flex gap-4">
-                <a href="../bills/semester_bill.php?student_id=<?= $student_id ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-800 transition-all leading-none">
+                <a href="../bills/semester_bill.php?student_id=<?= $student_id ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-800 transition-all leading-none">
                     <i class="fas fa-print mr-2"></i> View Bill
                 </a>
-                <a href="../payments/record_payment_form.php?student_id=<?= $student_id ?>" class="bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-emerald-500 transition-all leading-none">
+                <a href="../payments/record_payment_form.php?student_id=<?= $student_id ?>" class="bg-emerald-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-emerald-500 transition-all leading-none">
                     <i class="fas fa-plus mr-2"></i> Record Intake
                 </a>
             </div>
@@ -79,10 +79,10 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             <div class="lg:col-span-12 xl:col-span-4 space-y-10">
                 <!-- Context Switcher -->
                 <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Audit Period Scope</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Audit Period Scope</h3>
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Fiscal Year</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Fiscal Year</label>
                             <select id="yearFilter" onchange="updateContext()" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
                                 <?php 
                                 $yrs_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees ORDER BY academic_year DESC");
@@ -94,7 +94,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                             </select>
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester Context</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester Context</label>
                             <select id="termFilter" onchange="updateContext()" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
                                 <?php foreach (getAvailableSemesters($conn) as $t): ?>
                                     <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
@@ -107,22 +107,22 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                 <!-- Balance Pulse -->
                 <section class="bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-900/20 text-white relative overflow-hidden">
                     <div class="absolute -right-10 -bottom-10 opacity-10">
-                        <i class="fas fa-vault text-[120px]"></i>
+                        <i class="fas fa-vault text-[7.5rem]"></i>
                     </div>
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-8">Fulfillment Matrix</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-500 uppercase tracking-[0.3em] mb-8">Fulfillment Matrix</h3>
                     
                     <div class="space-y-8 relative z-10">
                         <div>
-                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Current Liability</p>
+                            <p class="text-[0.5625rem] font-black text-slate-500 uppercase tracking-widest mb-1">Current Liability</p>
                             <h2 class="text-4xl font-black italic text-rose-500">₵<?= number_format($student_balance['net_balance'], 2) ?></h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Total Due</p>
+                                <p class="text-[0.5rem] font-black text-slate-500 uppercase mb-1">Total Due</p>
                                 <p class="text-sm font-black text-slate-200">₵<?= number_format($student_balance['total_fees'], 2) ?></p>
                             </div>
                             <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Aggregate Paid</p>
+                                <p class="text-[0.5rem] font-black text-slate-500 uppercase mb-1">Aggregate Paid</p>
                                 <p class="text-sm font-black text-emerald-400">₵<?= number_format($student_balance['total_payments'], 2) ?></p>
                             </div>
                         </div>
@@ -130,8 +130,8 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                         <div class="flex items-center gap-3 p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
                             <i class="fas fa-triangle-exclamation text-rose-500"></i>
                             <div>
-                                <p class="text-[10px] font-black text-rose-100 uppercase leading-none mb-1">Arrears Included</p>
-                                <p class="text-[9px] font-bold text-rose-300 italic">₵<?= number_format($student_balance['arrears'], 2) ?> from previous period</p>
+                                <p class="text-[0.625rem] font-black text-rose-100 uppercase leading-none mb-1">Arrears Included</p>
+                                <p class="text-[0.5625rem] font-bold text-rose-300 italic">₵<?= number_format($student_balance['arrears'], 2) ?> from previous period</p>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -143,13 +143,13 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             <div class="lg:col-span-12 xl:col-span-8 space-y-10">
                 <section class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                     <div class="px-10 py-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Institutional Master Ledger</h3>
+                        <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em]">Institutional Master Ledger</h3>
                     </div>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/20">
+                                <tr class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest bg-slate-50/20">
                                     <th class="px-10 py-6">Transaction Entry</th>
                                     <th class="px-6 py-6">Value (₵)</th>
                                     <th class="px-6 py-6">Status</th>
@@ -165,28 +165,28 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                 <tr class="ledger-row group">
                                     <td class="px-10 py-6">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-8 h-8 rounded-lg <?= $is_ob?'bg-rose-50 text-rose-600 font-black':'bg-indigo-50 text-indigo-600' ?> flex items-center justify-center text-[10px]">
+                                            <div class="w-8 h-8 rounded-lg <?= $is_ob?'bg-rose-50 text-rose-600 font-black':'bg-indigo-50 text-indigo-600' ?> flex items-center justify-center text-[0.625rem]">
                                                 <i class="fas <?= $is_ob?'fa-exclamation-triangle-check':'fa-receipt' ?>"></i>
                                             </div>
                                             <div>
-                                                <p class="text-[11px] font-black text-slate-800 uppercase leading-none mb-1"><?= htmlspecialchars($fee['fee_name']) ?></p>
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Entry Date: <?= $fee['due_date'] ? date('M j, Y', strtotime($fee['due_date'])) : 'Rolling' ?></p>
+                                                <p class="text-[0.6875rem] font-black text-slate-800 uppercase leading-none mb-1"><?= htmlspecialchars($fee['fee_name']) ?></p>
+                                                <p class="text-[0.5625rem] font-bold text-slate-400 uppercase tracking-tighter italic">Entry Date: <?= $fee['due_date'] ? date('M j, Y', strtotime($fee['due_date'])) : 'Rolling' ?></p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-6 text-sm font-black <?= $fee['status']==='paid'?'text-emerald-600':'text-rose-600' ?>">₵<?= number_format($fee['amount'], 2) ?></td>
                                     <td class="px-6 py-6">
-                                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-md <?= $fee['status']==='paid'?'bg-emerald-50 text-emerald-600':'bg-slate-100 text-slate-400' ?>"><?= $fee['status'] ?></span>
+                                        <span class="text-[0.5625rem] font-black uppercase px-2 py-1 rounded-md <?= $fee['status']==='paid'?'bg-emerald-50 text-emerald-600':'bg-slate-100 text-slate-400' ?>"><?= $fee['status'] ?></span>
                                     </td>
-                                    <td class="px-6 py-6 text-[10px] font-bold text-slate-400">—</td>
+                                    <td class="px-6 py-6 text-[0.625rem] font-bold text-slate-400">—</td>
                                     <td class="px-10 py-6 text-right no-print">
                                         <?php if(!$is_ob): ?>
                                         <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onclick="editFee(<?= $fee['id'] ?>, '<?= htmlspecialchars($fee['fee_name']) ?>', <?= $fee['amount'] ?>)" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[10px]"></i></button>
-                                            <button onclick="unassignFee(<?= $fee['id'] ?>)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-times text-[10px]"></i></button>
+                                            <button onclick="editFee(<?= $fee['id'] ?>, '<?= htmlspecialchars($fee['fee_name']) ?>', <?= $fee['amount'] ?>)" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[0.625rem]"></i></button>
+                                            <button onclick="unassignFee(<?= $fee['id'] ?>)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-times text-[0.625rem]"></i></button>
                                         </div>
                                         <?php else: ?>
-                                            <span class="text-[8px] font-black text-slate-300 uppercase italic">System Lock</span>
+                                            <span class="text-[0.5rem] font-black text-slate-300 uppercase italic">System Lock</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -197,23 +197,23 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                 <tr class="ledger-row group bg-emerald-50/20">
                                     <td class="px-10 py-6">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px]">
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-[0.625rem]">
                                                 <i class="fas fa-shield-check"></i>
                                             </div>
                                             <div>
-                                                <p class="text-[11px] font-black text-emerald-800 uppercase leading-none mb-1">Remittance Applied</p>
-                                                <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-tighter">Verified: <?= date('M j, Y', strtotime($p['payment_date'])) ?></p>
+                                                <p class="text-[0.6875rem] font-black text-emerald-800 uppercase leading-none mb-1">Remittance Applied</p>
+                                                <p class="text-[0.5625rem] font-bold text-emerald-400 uppercase tracking-tighter">Verified: <?= date('M j, Y', strtotime($p['payment_date'])) ?></p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-6 text-sm font-black text-emerald-600 italic">₵<?= number_format($p['amount'], 2) ?></td>
                                     <td class="px-6 py-6">
-                                        <span class="text-[9px] font-black uppercase px-2 py-1 rounded-md bg-emerald-100 text-emerald-600">Settled</span>
+                                        <span class="text-[0.5625rem] font-black uppercase px-2 py-1 rounded-md bg-emerald-100 text-emerald-600">Settled</span>
                                     </td>
-                                    <td class="px-6 py-6 text-[10px] font-black text-slate-600 italic"><?= $p['receipt_no'] ?: 'AUTO-GEN' ?></td>
+                                    <td class="px-6 py-6 text-[0.625rem] font-black text-slate-600 italic"><?= $p['receipt_no'] ?: 'AUTO-GEN' ?></td>
                                     <td class="px-10 py-6 text-right no-print">
                                          <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onclick="deletePayment(<?= $p['id'] ?>)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-trash text-[10px]"></i></button>
+                                            <button onclick="deletePayment(<?= $p['id'] ?>)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-trash text-[0.625rem]"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -228,7 +228,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             </div>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Institutional Registry Ledger &middot; Salba Montessori &middot; v9.5.0
         </footer>
     </main>
@@ -242,13 +242,13 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                 <input type="hidden" name="student_fee_id" id="editFeeId">
                 <div class="space-y-6">
                     <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Modified Amount (GHS)</label>
+                        <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Modified Amount (GHS)</label>
                         <input type="number" step="0.01" name="amount" id="editFeeAmount" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
                 <div class="flex gap-4 mt-10">
-                    <button type="button" onclick="closeModals()" class="flex-1 px-3 py-2 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">Sync Adjustments</button>
+                    <button type="button" onclick="closeModals()" class="flex-1 px-3 py-2 rounded-xl text-[0.625rem] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded-xl text-[0.625rem] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">Sync Adjustments</button>
                 </div>
             </form>
         </div>

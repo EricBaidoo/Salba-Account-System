@@ -209,7 +209,7 @@ if ($sub_res) {
             <i class="fas fa-list-check"></i> Class Progress Tracker
         </h2>
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-8">
-            <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar relative">
+            <div class="overflow-x-auto max-h-[21.875rem] overflow-y-auto custom-scrollbar relative">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm border-b border-gray-100">
                         <tr class="font-semibold text-gray-500">
@@ -234,7 +234,7 @@ if ($sub_res) {
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="px-6 py-4 font-bold text-gray-900">
                                 <?php echo htmlspecialchars($cname); ?>
-                                <span class="block text-[10px] uppercase text-gray-400 font-normal"><?php echo $att_total; ?> Active Students</span>
+                                <span class="block text-[0.625rem] uppercase text-gray-400 font-normal"><?php echo $att_total; ?> Active Students</span>
                             </td>
                             
                             <td class="px-6 py-4">

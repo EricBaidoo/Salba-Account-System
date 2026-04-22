@@ -260,11 +260,11 @@ if($dl_res) {
                         <!-- Dashboards -->
                         <div class="flex gap-4 mb-6">
                             <div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                <div class="text-[10px] font-bold text-gray-400 uppercase">OA Bucket Used</div>
+                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase">OA Bucket Used</div>
                                 <div class="text-xl font-black <?= $oa_total == 100 ? 'text-green-500' : 'text-blue-600' ?>"><?= $oa_total ?>% / 100</div>
                             </div>
                             <div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-                                <div class="text-[10px] font-bold text-gray-400 uppercase">Exam Bucket Used</div>
+                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase">Exam Bucket Used</div>
                                 <div class="text-xl font-black <?= $exam_total == 100 ? 'text-green-500' : 'text-red-600' ?>"><?= $exam_total ?>% / 100</div>
                             </div>
                         </div>
@@ -285,7 +285,7 @@ if($dl_res) {
                                         <td class="py-3 px-3 font-bold text-gray-800">
                                             <?= htmlspecialchars($c['assessment_name']) ?>
                                             <?php if($c['is_exam']): ?>
-                                                <span class="ml-2 bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded font-black">EXAM RULE</span>
+                                                <span class="ml-2 bg-red-100 text-red-700 text-[0.625rem] px-1.5 py-0.5 rounded font-black">EXAM RULE</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="py-3 px-3 font-black <?= $c['is_exam'] ? 'text-red-500' : 'text-blue-500' ?>"><?= floatval($c['max_marks_allocation']) ?></td>
@@ -294,7 +294,7 @@ if($dl_res) {
                                                 <input type="hidden" name="action" value="toggle_lock">
                                                 <input type="hidden" name="item_id" value="<?= $c['id'] ?>">
                                                 <input type="hidden" name="new_status" value="<?= $c['is_locked'] ? '0' : '1' ?>">
-                                                <button type="submit" class="flex items-center gap-1 mx-auto px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter transition-all <?= $c['is_locked'] ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' ?>">
+                                                <button type="submit" class="flex items-center gap-1 mx-auto px-2 py-1 rounded text-[0.625rem] font-black uppercase tracking-tighter transition-all <?= $c['is_locked'] ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' ?>">
                                                     <i class="fas <?= $c['is_locked'] ? 'fa-lock' : 'fa-lock-open' ?>"></i>
                                                     <?= $c['is_locked'] ? 'Locked' : 'Active' ?>
                                                 </button>
@@ -320,11 +320,11 @@ if($dl_res) {
                             
                             <div class="grid grid-cols-5 gap-3">
                                 <div class="col-span-3">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Assessment Label</label>
+                                    <label class="block text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mb-1">Assessment Label</label>
                                     <input type="text" name="assessment_name" required placeholder="e.g. 'EXAM'" class="w-full px-3 py-2 border border-gray-300 rounded font-medium bg-white">
                                 </div>
                                 <div class="col-span-2">
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Internal Target</label>
+                                    <label class="block text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mb-1">Internal Target</label>
                                     <input type="number" step="0.1" name="max_marks" id="target_input" required class="w-full px-3 py-2 border border-gray-300 rounded font-bold bg-white text-center">
                                 </div>
                             </div>
@@ -337,7 +337,7 @@ if($dl_res) {
                                 
                                 <button type="submit" class="bg-indigo-600 text-white font-bold px-6 py-2 rounded hover:bg-indigo-700 transition">Save Record</button>
                             </div>
-                            <div class="mt-2 text-[10px] text-gray-400 font-bold uppercase" id="math_indicator">Adding to OA Bucket. Available space: <?= $remaining_oa ?>.</div>
+                            <div class="mt-2 text-[0.625rem] text-gray-400 font-bold uppercase" id="math_indicator">Adding to OA Bucket. Available space: <?= $remaining_oa ?>.</div>
                         </form>
                         
                         <script>
@@ -461,7 +461,7 @@ if($dl_res) {
                             <!-- Add New Level -->
                             <form method="POST" class="p-5 bg-indigo-50/30 rounded-2xl border border-dashed border-indigo-200 flex flex-col justify-center">
                                 <input type="hidden" name="action" value="add_level">
-                                <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">New Institutional Node</div>
+                                <div class="text-[0.625rem] font-black text-indigo-400 uppercase tracking-widest mb-2">New Institutional Node</div>
                                 <div class="flex gap-2">
                                     <input type="text" name="level_name" placeholder="e.g. 'Senior High'" required class="flex-1 bg-white border border-indigo-100 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
                                     <button type="submit" class="bg-indigo-600 text-white w-10 h-10 rounded-lg shadow-sm hover:bg-indigo-700 transition">
@@ -480,10 +480,10 @@ if($dl_res) {
                             <h2 class="text-xl font-bold text-white flex items-center gap-3">
                                 <i class="fas fa-sitemap text-indigo-400"></i> Class Level Organization
                             </h2>
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-1">Assign classes to institution-wide academic cycles</p>
+                            <p class="text-[0.625rem] font-black text-gray-500 uppercase tracking-widest mt-1">Assign classes to institution-wide academic cycles</p>
                         </div>
                         <div class="flex items-center gap-4">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Total Active Nodes: <?= count($classes_metadata) ?></span>
+                            <span class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-tighter">Total Active Nodes: <?= count($classes_metadata) ?></span>
                         </div>
                     </div>
                     
@@ -516,7 +516,7 @@ if($dl_res) {
                         <div class="flex justify-between items-center pt-8 border-t border-gray-800">
                              <div class="flex items-center gap-3 text-gray-500">
                                 <i class="fas fa-info-circle text-indigo-400"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Applying changes will re-classify students and curriculum rules.</span>
+                                <span class="text-[0.625rem] font-bold uppercase tracking-widest">Applying changes will re-classify students and curriculum rules.</span>
                             </div>
                             <button type="submit" class="bg-indigo-600 text-white font-black py-4 px-12 rounded-xl shadow-lg hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 text-sm">
                                 <i class="fas fa-save"></i> Save Institutional Mapping

@@ -74,32 +74,32 @@ ob_start();
 <html>
 <head>
 <style>
-    body { font-family: 'DejaVu Sans', sans-serif; font-size: 9px; margin: 0; color: #1e293b; }
-    .header { text-align: center; border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px; }
-    .school-name { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-    .school-address { font-size: 8px; color: #64748b; margin-top: 2px; }
-    .report-title { font-size: 11px; font-weight: 900; text-align: center; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 2px; }
-    .meta { text-align: center; font-size: 8px; color: #64748b; margin-bottom: 14px; }
-    table.stats-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-    table.stats-table td { width: 25%; text-align: center; padding: 8px; border: 1px solid #e2e8f0; }
-    .stat-label { font-size: 7px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
-    .stat-value { font-size: 13px; font-weight: 900; margin-top: 2px; }
+    body { font-family: 'DejaVu Sans', sans-serif; font-size: 0.5625rem; margin: 0; color: #1e293b; }
+    .header { text-align: center; border-bottom: 0.125rem solid #1e293b; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+    .school-name { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.0625rem; }
+    .school-address { font-size: 0.5rem; color: #64748b; margin-top: 0.125rem; }
+    .report-title { font-size: 0.6875rem; font-weight: 900; text-align: center; margin: 0.625rem 0 0.25rem; text-transform: uppercase; letter-spacing: 0.125rem; }
+    .meta { text-align: center; font-size: 0.5rem; color: #64748b; margin-bottom: 0.875rem; }
+    table.stats-table { width: 100%; border-collapse: collapse; margin-bottom: 0.875rem; }
+    table.stats-table td { width: 25%; text-align: center; padding: 0.5rem; border: 0.0625rem solid #e2e8f0; }
+    .stat-label { font-size: 0.4375rem; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
+    .stat-value { font-size: 0.8125rem; font-weight: 900; margin-top: 0.125rem; }
     table.ledger { width: 100%; border-collapse: collapse; }
-    table.ledger th { background: #f1f5f9; font-size: 7px; font-weight: 900; text-transform: uppercase; padding: 7px 5px; text-align: left; border-bottom: 2px solid #cbd5e1; }
-    table.ledger td { padding: 7px 5px; font-size: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    table.ledger th { background: #f1f5f9; font-size: 0.4375rem; font-weight: 900; text-transform: uppercase; padding: 0.4375rem 0.3125rem; text-align: left; border-bottom: 0.125rem solid #cbd5e1; }
+    table.ledger td { padding: 0.4375rem 0.3125rem; font-size: 0.5rem; border-bottom: 0.0625rem solid #f1f5f9; vertical-align: middle; }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
-    .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 7px; font-weight: 900; }
+    .badge { display: inline-block; padding: 0.0625rem 0.3125rem; border-radius: 0.1875rem; font-size: 0.4375rem; font-weight: 900; }
     .badge-amber { background: #fef3c7; color: #92400e; }
     .badge-emerald { background: #d1fae5; color: #065f46; }
     .badge-slate { background: #f1f5f9; color: #64748b; }
     .text-rose { color: #e11d48; }
     .text-emerald { color: #059669; }
-    .tfoot-row td { font-weight: 900; background: #f8fafc; border-top: 2px solid #cbd5e1; }
-    .bar-wrap { width: 50px; height: 5px; background: #e2e8f0; border-radius: 3px; display: inline-block; vertical-align: middle; }
-    .bar-fill { height: 5px; border-radius: 3px; }
-    .inactive-tag { font-size: 6px; background: #f1f5f9; color: #94a3b8; padding: 1px 4px; border-radius: 3px; margin-left: 3px; }
-    .footer { margin-top: 20px; text-align: center; font-size: 7px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 2px; }
+    .tfoot-row td { font-weight: 900; background: #f8fafc; border-top: 0.125rem solid #cbd5e1; }
+    .bar-wrap { width: 3.125rem; height: 0.3125rem; background: #e2e8f0; border-radius: 0.1875rem; display: inline-block; vertical-align: middle; }
+    .bar-fill { height: 0.3125rem; border-radius: 0.1875rem; }
+    .inactive-tag { font-size: 0.375rem; background: #f1f5f9; color: #94a3b8; padding: 0.0625rem 0.25rem; border-radius: 0.1875rem; margin-left: 0.1875rem; }
+    .footer { margin-top: 1.25rem; text-align: center; font-size: 0.4375rem; font-weight: 900; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.125rem; }
 </style>
 </head>
 <body>
@@ -167,7 +167,7 @@ ob_start();
                 </td>
                 <td class="text-center">
                     <div class="bar-wrap"><div class="bar-fill" style="width:<?= $percent ?>%;background:<?= $bar_color ?>;"></div></div>
-                    <span style="margin-left:3px;"><?= $percent ?>%</span>
+                    <span style="margin-left:0.1875rem;"><?= $percent ?>%</span>
                 </td>
                 <td class="text-center"><span class="badge <?= $pending_cnt > 0 ? 'badge-amber' : 'badge-slate' ?>"><?= $pending_cnt ?></span></td>
                 <td class="text-center"><span class="badge <?= $paid_cnt > 0 ? 'badge-emerald' : 'badge-slate' ?>"><?= $paid_cnt ?></span></td>

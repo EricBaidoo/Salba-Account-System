@@ -81,7 +81,7 @@ if (empty($s['staff_code'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; } .fi { width:100%; padding:10px 14px; border:1.5px solid #e8e8f0; border-radius:10px; font-size:14px; font-weight:500; outline:none; transition:all .2s; background:#fafafa; } .fi:focus { border-color:#6366f1; background:white; box-shadow:0 0 0 3px rgba(99,102,241,.08); } .fl { display:block; font-size:11px; font-weight:700; color:#8b8fa8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }</style>
+    <style>body { font-family: 'Inter', sans-serif; } .fi { width:100%; padding:0.625rem 0.875rem; border:0.09375rem solid #e8e8f0; border-radius:0.625rem; font-size:0.875rem; font-weight:500; outline:none; transition:all .2s; background:#fafafa; } .fi:focus { border-color:#6366f1; background:white; box-shadow:0 0 0 0.1875rem rgba(99,102,241,.08); } .fl { display:block; font-size:0.6875rem; font-weight:700; color:#8b8fa8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:0.375rem; }</style>
 </head>
 <body class="bg-gray-50">
     <?php include '../../../includes/sidebar.php'; ?>

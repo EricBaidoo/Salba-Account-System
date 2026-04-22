@@ -96,9 +96,9 @@ foreach ($students as &$student) {
             width: 210mm; 
             min-height: 297mm; 
             padding: 20mm; 
-            margin: 20px auto; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05); 
-            border-radius: 4px;
+            margin: 1.25rem auto; 
+            box-shadow: 0 0.625rem 2.5rem rgba(0,0,0,0.05); 
+            border-radius: 0.25rem;
             position: relative;
         }
         .watermark {
@@ -134,7 +134,7 @@ foreach ($students as &$student) {
             </span>
         </div>
         <div class="flex gap-4">
-            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none">
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none">
                 <i class="fas fa-print mr-2 text-xs"></i> Release Print Job
             </button>
         </div>
@@ -147,7 +147,7 @@ foreach ($students as &$student) {
             </div>
             <h2 class="text-2xl font-black text-slate-900 mb-2">Null Set Encountered</h2>
             <p class="text-slate-500 font-medium mb-8">No students found with active billing assignments for the selected parameters.</p>
-            <a href="view_semester_bills.php" class="inline-flex bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl">Adjust Selection</a>
+            <a href="view_semester_bills.php" class="inline-flex bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl">Adjust Selection</a>
         </div>
     <?php endif; ?>
 
@@ -163,18 +163,18 @@ foreach ($students as &$student) {
                     <img src="../../../img/salba_logo.jpg" alt="Logo" class="w-24 h-24 object-contain rounded-2xl">
                     <div>
                         <h1 class="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-1">SALBA MONTESSORI</h1>
-                        <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.4em] mb-3">Institutional Ledger</p>
-                        <p class="text-[10px] font-bold text-slate-400 leading-tight">
+                        <p class="text-[0.625rem] font-black text-emerald-600 uppercase tracking-[0.4em] mb-3">Institutional Ledger</p>
+                        <p class="text-[0.625rem] font-bold text-slate-400 leading-tight">
                             GC-051-0961 | Tel: 059 887 2309<br>
                             Email: info@salbamontessori.edu.gh
                         </p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <div class="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest mb-4">
+                    <div class="bg-slate-900 text-white px-5 py-2 rounded-xl text-[0.625rem] font-black uppercase tracking-widest mb-4">
                         Status: Bill Generated
                     </div>
-                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Bill Reference</p>
+                    <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-widest mb-1">Bill Reference</p>
                     <p class="text-lg font-black text-slate-900 leading-none">#<?= $bill_no ?></p>
                 </div>
             </div>
@@ -182,30 +182,30 @@ foreach ($students as &$student) {
             <!-- Student Snapshot -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 bg-slate-50 p-8 rounded-3xl border border-slate-100">
                 <div>
-                    <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Entity Description</h6>
+                    <h6 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Entity Description</h6>
                     <p class="text-sm font-black text-slate-900 uppercase leading-none mb-1"><?= htmlspecialchars($student['first_name'] . ' ' . $student['last_name']) ?></p>
-                    <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-tight"><?= htmlspecialchars($student['class']) ?></p>
+                    <p class="text-[0.625rem] font-bold text-indigo-600 uppercase tracking-tight"><?= htmlspecialchars($student['class']) ?></p>
                 </div>
                 <div>
-                    <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Scope Context</h6>
+                    <h6 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Scope Context</h6>
                     <p class="text-sm font-black text-slate-900 leading-none mb-1 text-xs"><?= htmlspecialchars($semester) ?></p>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-tight"><?= htmlspecialchars($display_academic_year) ?></p>
+                    <p class="text-[0.625rem] font-bold text-slate-500 uppercase tracking-tight"><?= htmlspecialchars($display_academic_year) ?></p>
                 </div>
                 <div class="text-right">
-                    <h6 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Issue Date</h6>
+                    <h6 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Issue Date</h6>
                     <p class="text-sm font-black text-slate-900 mb-1"><?= date('F j, Y') ?></p>
-                    <p class="text-[10px] font-bold text-slate-500">Fiscal Period Active</p>
+                    <p class="text-[0.625rem] font-bold text-slate-500">Fiscal Period Active</p>
                 </div>
             </div>
 
             <div class="mb-2 w-full text-center">
-                <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-[0.5em] py-3 border-y border-slate-100">Consolidated Fee Schedule</h3>
+                <h3 class="text-[0.6875rem] font-black text-slate-900 uppercase tracking-[0.5em] py-3 border-y border-slate-100">Consolidated Fee Schedule</h3>
             </div>
 
             <!-- Fees Table -->
             <table class="w-full mb-8">
                 <thead>
-                    <tr class="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <tr class="border-b border-slate-100 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">
                         <th class="py-4 text-left">Classification</th>
                         <th class="py-4 text-right">Maturity Amount (GHS)</th>
                     </tr>
@@ -218,7 +218,7 @@ foreach ($students as &$student) {
                         <td class="py-4 text-xs font-bold text-slate-700">
                              <?= strtoupper(htmlspecialchars($fee['fee_name'])) ?>
                              <?php if ($is_arrears): ?>
-                                <span class="ml-2 text-[8px] font-black text-rose-500 uppercase bg-rose-100 px-2 py-0.5 rounded leading-none">Carry Forward</span>
+                                <span class="ml-2 text-[0.5rem] font-black text-rose-500 uppercase bg-rose-100 px-2 py-0.5 rounded leading-none">Carry Forward</span>
                              <?php endif; ?>
                         </td>
                         <td class="py-4 text-right text-xs font-black text-slate-900"><?= number_format($fee['amount'], 2) ?></td>
@@ -236,10 +236,10 @@ foreach ($students as &$student) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12 pb-12 border-b border-slate-100">
                  <!-- Payment Plan -->
                  <div>
-                    <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <h4 class="text-[0.625rem] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i class="fas fa-calendar-check text-emerald-500"></i> Optimized Payment Plan
                     </h4>
-                    <table class="w-full text-left text-[10px]">
+                    <table class="w-full text-left text-[0.625rem]">
                         <thead>
                             <tr class="border-b border-slate-100 text-slate-400 font-bold tracking-widest uppercase">
                                 <th class="pb-2">Tranche</th>
@@ -265,26 +265,26 @@ foreach ($students as &$student) {
 
                  <!-- Payment Modes -->
                  <div>
-                    <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <h4 class="text-[0.625rem] font-black text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <i class="fas fa-vault text-emerald-500"></i> Remittance Channels
                     </h4>
                     <div class="space-y-4">
                         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['bank']['title'] ?? 'Bank Details') ?></h5>
-                             <p class="text-[10px] font-black text-slate-800 leading-tight">
+                             <h5 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['bank']['title'] ?? 'Bank Details') ?></h5>
+                             <p class="text-[0.625rem] font-black text-slate-800 leading-tight">
                                 <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc Name:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_name'] ?? '---') ?><br>
                                 <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Acc No:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['account_number'] ?? '---') ?><br>
                                 <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Bank:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['bank']['bank_name'] ?? '---') ?>
                              </p>
                         </div>
                         <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['momo']['title'] ?? 'Mobile Money') ?></h5>
-                             <p class="text-[10px] font-black text-slate-800 leading-tight">
+                             <h5 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2"><?= htmlspecialchars($invoice_settings['payment_modes']['momo']['title'] ?? 'Mobile Money') ?></h5>
+                             <p class="text-[0.625rem] font-black text-slate-800 leading-tight">
                                 <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Number:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['number'] ?? '---') ?><br>
                                 <span class="text-slate-400 font-bold uppercase tracking-tighter mr-2">Registered:</span> <?= htmlspecialchars($invoice_settings['payment_modes']['momo']['name'] ?? '---') ?>
                              </p>
                         </div>
-                        <p class="text-[9px] font-bold text-indigo-600 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                        <p class="text-[0.5625rem] font-bold text-indigo-600 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
                             <i class="fas fa-info-circle mr-2"></i> <?= htmlspecialchars($invoice_settings['payment_modes']['payment_reference'] ?? 'Please use student ID as reference.') ?>
                         </p>
                     </div>
@@ -294,20 +294,20 @@ foreach ($students as &$student) {
             <!-- Policy Footer -->
             <div class="mt-12 flex justify-between items-end gap-12">
                 <div class="flex-1">
-                    <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-4">Institutional Protocol & Notes</h4>
-                    <ol class="text-[10px] text-slate-500 font-bold space-y-2 list-decimal list-inside pl-2">
+                    <h4 class="text-[0.625rem] font-black text-slate-900 uppercase tracking-widest mb-4">Institutional Protocol & Notes</h4>
+                    <ol class="text-[0.625rem] text-slate-500 font-bold space-y-2 list-decimal list-inside pl-2">
                         <?php foreach(($invoice_settings['notes'] ?? []) as $note): ?>
                             <li><?= htmlspecialchars($note) ?></li>
                         <?php endforeach; ?>
                     </ol>
                 </div>
                 <div class="w-48 text-center border-t border-slate-300 pt-4">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Authorized Oversight</p>
-                    <p class="text-[10px] font-black text-slate-900 mt-1">Institutional Seal</p>
+                    <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Authorized Oversight</p>
+                    <p class="text-[0.625rem] font-black text-slate-900 mt-1">Institutional Seal</p>
                 </div>
             </div>
             
-            <div class="mt-20 text-center text-[8px] font-black text-slate-300 uppercase tracking-[0.6em]">
+            <div class="mt-20 text-center text-[0.5rem] font-black text-slate-300 uppercase tracking-[0.6em]">
                 Secure Document Generated by Salba Fiscal Module &middot; v9.5.0
             </div>
         </div>

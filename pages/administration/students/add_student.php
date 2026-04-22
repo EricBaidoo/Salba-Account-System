@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         .fade-in { animation: fadeInUp 0.6s ease; }
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(1.875rem); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
@@ -82,27 +82,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <h3 class="text-2xl font-black text-slate-900 mb-1">
                                 <?= htmlspecialchars($success_data['first_name'] . ' ' . $success_data['last_name']) ?>
                             </h3>
-                            <span class="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                            <span class="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[0.625rem] font-black uppercase tracking-widest border border-indigo-100">
                                 Student ID: #<?= $success_data['id'] ?>
                             </span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-6 pt-6 border-t border-slate-50">
                             <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Class Assignment</p>
+                                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Class Assignment</p>
                                 <p class="font-bold text-slate-700"><?= htmlspecialchars($success_data['class']) ?></p>
                             </div>
                             <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Guardian Contact</p>
+                                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Guardian Contact</p>
                                 <p class="font-bold text-slate-700"><?= htmlspecialchars($success_data['parent_contact'] ?: 'Not Provided') ?></p>
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-3 pt-8">
-                            <a href="add_student_form.php" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center hover:bg-indigo-600 transition-all shadow-lg active:scale-95">
+                            <a href="add_student_form.php" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[0.625rem] uppercase tracking-widest text-center hover:bg-indigo-600 transition-all shadow-lg active:scale-95">
                                 <i class="fas fa-plus mr-2"></i> Enroll Another Student
                             </a>
-                            <a href="view_students.php" class="w-full bg-slate-100 text-slate-600 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center hover:bg-slate-200 transition-all active:scale-95">
+                            <a href="view_students.php" class="w-full bg-slate-100 text-slate-600 py-4 rounded-2xl font-black text-[0.625rem] uppercase tracking-widest text-center hover:bg-slate-200 transition-all active:scale-95">
                                 <i class="fas fa-users mr-2"></i> Return to Directory
                             </a>
                         </div>

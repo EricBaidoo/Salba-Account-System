@@ -51,8 +51,8 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(0.75rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -67,7 +67,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Finance Hub</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Finance Hub</p>
                     <h4 class="text-sm font-bold text-slate-700">Billing & Invoicing Center</h4>
                 </div>
             </div>
@@ -79,7 +79,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
         <!-- Main Header -->
         <header class="mb-12 relative">
             <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-4">
-                <span class="w-8 h-[2px] bg-indigo-600"></span>
+                <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                 Invoicing Control Hub
             </div>
             <h1 class="text-4xl font-black text-slate-900 tracking-tight">Institutional <span class="text-indigo-600">Billing Center</span></h1>
@@ -112,7 +112,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
 
                     <form method="GET" action="download_semester_bill.php" class="space-y-8">
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Semester</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Semester</label>
                             <select name="semester" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none" required>
                                 <option value="">Select Target...</option>
                                 <?php 
@@ -127,7 +127,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Filter by Class</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Filter by Class</label>
                             <select name="class" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none">
                                 <option value="all">Global Population (All Classes)</option>
                                 <?php 
@@ -160,7 +160,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
 
                     <form method="GET" action="download_semester_bill.php" class="space-y-8">
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Semester</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Semester</label>
                             <select name="semester" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
                                 <option value="">Select Target...</option>
                                 <?php 
@@ -175,7 +175,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Student</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Target Student</label>
                             <select name="student_id" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
                                 <option value="">Select a student...</option>
                                 <?php
@@ -205,7 +205,7 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
             </div>
             <div>
                 <h4 class="text-sm font-black text-indigo-900 uppercase tracking-widest mb-1">Billing Policy & PDF Logic</h4>
-                <p class="text-[11px] text-indigo-700 font-bold leading-relaxed max-w-3xl">
+                <p class="text-[0.6875rem] text-indigo-700 font-bold leading-relaxed max-w-3xl">
                     The Batch Printing Console uses ZipArchive to package multiple statements. PDFs are rendered using a 400DPI-equivalent resolution for crystal-clear printing. Standard billing includes arrears carry-forward, currently active semester fees, and verified bank/MoMo payment details as defined in your institutional protocols.
                 </p>
             </div>

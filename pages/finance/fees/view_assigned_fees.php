@@ -117,7 +117,7 @@ if (!empty($year_filter)) {
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .table-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        .table-container { box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.05); }
         @media print {
             .no-print { display: none !important; }
             .ml-72 { margin-left: 0 !important; }
@@ -133,17 +133,17 @@ if (!empty($year_filter)) {
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                     Audit & Ledger
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Fee <span class="text-indigo-600">Assignments</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Historical trace of all financial obligations assigned to students.</p>
             </div>
             <div class="flex items-center gap-4">
-                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
+                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
                     <i class="fas fa-print mr-2"></i> Print Report
                 </button>
-                <a href="assign_fee_form.php" class="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">
+                <a href="assign_fee_form.php" class="bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">
                     <i class="fas fa-plus mr-2"></i> New Assignment
                 </a>
             </div>
@@ -152,28 +152,28 @@ if (!empty($year_filter)) {
         <!-- Stats Overview -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-10 no-print">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Assigned</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Total Assigned</p>
                 <h4 class="text-2xl font-black text-slate-900 leading-none mb-2"><?= $stats['total_assignments'] ?></h4>
                 <div class="w-full h-1 bg-slate-50 rounded-full overflow-hidden">
                     <div class="h-full bg-slate-200" style="width: 100%"></div>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Collected</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Collected</p>
                 <h4 class="text-2xl font-black text-emerald-600 leading-none mb-2"><?= $stats['paid_count'] ?></h4>
                 <div class="w-full h-1 bg-emerald-50 rounded-full overflow-hidden">
                     <div class="h-full bg-emerald-500" style="width: <?= ($stats['paid_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Overdue</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Overdue</p>
                 <h4 class="text-2xl font-black text-rose-600 leading-none mb-2"><?= $stats['overdue_count'] ?></h4>
                 <div class="w-full h-1 bg-rose-50 rounded-full overflow-hidden">
                     <div class="h-full bg-rose-500" style="width: <?= ($stats['overdue_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
                 </div>
             </div>
              <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Pending</p>
                 <h4 class="text-2xl font-black text-amber-600 leading-none mb-2"><?= $stats['pending_count'] ?></h4>
                 <div class="w-full h-1 bg-amber-50 rounded-full overflow-hidden">
                     <div class="h-full bg-amber-500" style="width: <?= ($stats['pending_count'] / ($stats['total_assignments'] ?: 1)) * 100 ?>%"></div>
@@ -183,10 +183,10 @@ if (!empty($year_filter)) {
             <div class="bg-slate-900 p-6 rounded-3xl shadow-lg border border-slate-800 lg:col-span-1 xl:col-span-2 flex flex-col justify-center">
                 <div class="flex justify-between items-end mb-4">
                     <div>
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Revenue Performance</p>
+                        <p class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest mb-1">Revenue Performance</p>
                         <h4 class="text-xl font-black text-white">GHS <?= number_format($stats['paid_amount'], 2) ?> <span class="text-xs font-bold text-slate-500 tracking-tight">/ GHS <?= number_format($stats['total_amount'], 2) ?></span></h4>
                     </div>
-                    <div class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                    <div class="text-[0.625rem] font-black text-emerald-400 uppercase tracking-widest">
                         <?= number_format(($stats['paid_amount'] / ($stats['total_amount'] ?: 1)) * 100, 1) ?>%
                     </div>
                 </div>
@@ -199,15 +199,15 @@ if (!empty($year_filter)) {
         <!-- Filter Panel -->
         <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm mb-10 no-print">
             <form method="GET" class="flex flex-wrap items-end gap-6">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div class="flex-1 min-w-[12.5rem]">
+                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <i class="fas fa-search text-indigo-500"></i> Search Ledger
                     </label>
                     <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Student name or fee..." 
                            class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 transition-all">
                 </div>
                 <div class="w-48">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <i class="fas fa-school text-indigo-500"></i> Class
                     </label>
                     <select name="class" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
@@ -218,7 +218,7 @@ if (!empty($year_filter)) {
                     </select>
                 </div>
                 <div class="w-48">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                          <i class="fas fa-graduation-cap text-indigo-500"></i> Academic Year
                     </label>
                     <select name="year" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
@@ -229,7 +229,7 @@ if (!empty($year_filter)) {
                     </select>
                 </div>
                 <div class="w-48">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <i class="fas fa-filter text-indigo-500"></i> Status
                     </label>
                     <select name="status" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
@@ -250,12 +250,12 @@ if (!empty($year_filter)) {
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Student & Class</th>
-                        <th class="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Fee Description</th>
-                        <th class="px-8 py-6 text-left text-[10px) font-black text-slate-400 uppercase tracking-widest">Value (GHS)</th>
-                        <th class="px-8 py-6 text-left text-[10px) font-black text-slate-400 uppercase tracking-widest">Maturity / Period</th>
-                        <th class="px-8 py-6 text-center text-[10px) font-black text-slate-400 uppercase tracking-widest">Audit Status</th>
-                        <th class="px-8 py-6 text-right text-[10px) font-black text-slate-400 uppercase tracking-widest no-print">Ops</th>
+                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Student & Class</th>
+                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Fee Description</th>
+                        <th class="px-8 py-6 text-left text-[0.625rem) font-black text-slate-400 uppercase tracking-widest">Value (GHS)</th>
+                        <th class="px-8 py-6 text-left text-[0.625rem) font-black text-slate-400 uppercase tracking-widest">Maturity / Period</th>
+                        <th class="px-8 py-6 text-center text-[0.625rem) font-black text-slate-400 uppercase tracking-widest">Audit Status</th>
+                        <th class="px-8 py-6 text-right text-[0.625rem) font-black text-slate-400 uppercase tracking-widest no-print">Ops</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -265,13 +265,13 @@ if (!empty($year_filter)) {
                                 <td class="px-8 py-6">
                                     <div class="flex flex-col">
                                         <span class="font-black text-slate-900 text-sm tracking-tight"><?= htmlspecialchars($row['student_name']) ?></span>
-                                        <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider"><?= htmlspecialchars($row['student_class']) ?></span>
+                                        <span class="text-[0.625rem] font-bold text-indigo-600 uppercase tracking-wider"><?= htmlspecialchars($row['student_class']) ?></span>
                                     </div>
                                 </td>
                                 <td class="px-8 py-6 text-sm font-medium text-slate-600">
                                     <?= htmlspecialchars($row['fee_name']) ?>
                                     <?php if (!empty($row['notes'])): ?>
-                                        <div class="mt-1 text-[10px] text-slate-400 italic font-medium flex items-center gap-1">
+                                        <div class="mt-1 text-[0.625rem] text-slate-400 italic font-medium flex items-center gap-1">
                                             <i class="fas fa-sticky-note"></i> Notes attached
                                         </div>
                                     <?php endif; ?>
@@ -282,7 +282,7 @@ if (!empty($year_filter)) {
                                 <td class="px-8 py-6">
                                     <div class="flex flex-col">
                                         <span class="text-xs font-bold text-slate-700 leading-none mb-1"><?= date('M j, Y', strtotime($row['due_date'])) ?></span>
-                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest"><?= htmlspecialchars($row['semester']) ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) ?></span>
+                                        <span class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest"><?= htmlspecialchars($row['semester']) ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) ?></span>
                                     </div>
                                 </td>
                                 <td class="px-8 py-6 text-center">
@@ -296,7 +296,7 @@ if (!empty($year_filter)) {
                                             default: $label = 'Unknown'; $color = 'bg-slate-100 text-slate-400'; $icon = 'fa-question';
                                         }
                                     ?>
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest <?= $color ?>">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[0.5625rem] font-black uppercase tracking-widest <?= $color ?>">
                                         <i class="fas <?= $icon ?>"></i> <?= $label ?>
                                     </span>
                                 </td>
@@ -325,7 +325,7 @@ if (!empty($year_filter)) {
                                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 text-3xl mb-4">
                                         <i class="fas fa-inbox"></i>
                                     </div>
-                                    <p class="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">No active assignments detected for this scope</p>
+                                    <p class="text-slate-400 font-bold uppercase tracking-[0.2em] text-[0.625rem]">No active assignments detected for this scope</p>
                                 </div>
                             </td>
                         </tr>
@@ -335,7 +335,7 @@ if (!empty($year_filter)) {
         </div>
 
         <!-- Footer Audit -->
-        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
+        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
             <span>Institutional Ledger &middot; Status Report &middot; <?= date('Y-m-d H:i:s') ?></span>
             <div class="flex gap-6">
                 <a href="../dashboard.php">Finance Home</a>

@@ -63,14 +63,14 @@ if (!in_array($default_academic_year, $year_options, true)) {
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(0.75rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.3);
         }
         .fee-card.selected {
             border-color: #10b981;
             background-color: #F0FDF4;
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+            transform: translateY(-0.25rem);
+            box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(16, 185, 129, 0.1);
         }
         .fee-card.selected .check-icon {
             opacity: 1;
@@ -92,7 +92,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Finance Hub</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Finance Hub</p>
                     <h4 class="text-sm font-bold text-slate-700">Billing Initialization</h4>
                 </div>
             </div>
@@ -104,7 +104,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
         <!-- Main Header -->
         <header class="mb-12 relative">
             <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-4">
-                <span class="w-8 h-[2px] bg-emerald-600"></span>
+                <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
                 Billing Preparation
             </div>
             <h1 class="text-4xl font-black text-slate-900 tracking-tight">Prepare <span class="text-emerald-600">Semester Bills</span></h1>
@@ -130,7 +130,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                             <div class="md:col-span-4">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Semester</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Semester</label>
                                 <select name="semester" id="semester" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
                                     <option value="">Select Semester</option>
                                     <option value="First Semester" <?= getCurrentSemester($conn) === 'First Semester' ? 'selected' : '' ?>>First Semester</option>
@@ -139,7 +139,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                 </select>
                             </div>
                             <div class="md:col-span-4">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Academic Year</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Academic Year</label>
                                 <select name="academic_year" id="academic_year" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
                                     <?php foreach ($year_options as $yr): ?>
                                         <option value="<?= htmlspecialchars($yr) ?>" <?= ($yr === $default_academic_year) ? 'selected' : '' ?>>
@@ -149,7 +149,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                 </select>
                             </div>
                             <div class="md:col-span-4">
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Deadline Date</label>
+                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Deadline Date</label>
                                 <input type="date" name="due_date" id="due_date" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required>
                             </div>
                         </div>
@@ -159,9 +159,9 @@ if (!in_array($default_academic_year, $year_options, true)) {
                     <div>
                         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                             <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                Available Fee Categories <span class="w-12 h-[1px] bg-slate-200"></span>
+                                Available Fee Categories <span class="w-12 h-[0.0625rem] bg-slate-200"></span>
                             </h3>
-                            <button type="button" onclick="selectAllFees()" class="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:bg-emerald-50 px-3 py-1 rounded-full transition-all">Select All</button>
+                            <button type="button" onclick="selectAllFees()" class="text-[0.625rem] font-black text-emerald-600 uppercase tracking-widest hover:bg-emerald-50 px-3 py-1 rounded-full transition-all">Select All</button>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,7 +179,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                         </div>
                                         <div>
                                             <h5 class="text-sm font-black text-slate-900 leading-tight"><?= htmlspecialchars($fee['name']) ?></h5>
-                                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400"><?= strtoupper($fee['fee_type']) ?></span>
+                                            <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400"><?= strtoupper($fee['fee_type']) ?></span>
                                         </div>
                                     </div>
                                     <div class="check-icon opacity-0 transform scale-50 transition-all duration-300 text-emerald-500 text-xl">
@@ -192,13 +192,13 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                         <?= $isFixed ? number_format($fee['amount'], 2) : '---' ?>
                                     </span>
                                     <?php if (!$isFixed): ?>
-                                        <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest ml-1">Tiered Rate</span>
+                                        <span class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest ml-1">Tiered Rate</span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($fee['amount_details']): ?>
                                     <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 overflow-hidden">
-                                        <i class="fas fa-info-circle text-[10px] text-slate-300"></i>
-                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest truncate">
+                                        <i class="fas fa-info-circle text-[0.625rem] text-slate-300"></i>
+                                        <p class="text-[0.5625rem] text-slate-400 font-bold uppercase tracking-widest truncate">
                                             <?= htmlspecialchars($fee['amount_details']) ?>
                                         </p>
                                     </div>
@@ -217,7 +217,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                         </div>
                         <div class="relative z-10">
                             <h3 class="text-lg font-black mb-6">Audience Filter</h3>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Apply Process To:</label>
+                            <label class="block text-[0.625rem] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Apply Process To:</label>
                             
                             <select name="class_filter" id="class_filter" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none mb-6">
                                 <option value="all" class="text-slate-900">Entire Active Population</option>
@@ -262,7 +262,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
                         <i class="fas fa-bolt"></i>
                     </div>
                     <div>
-                        <div class="flex items-center gap-2 text-rose-600 font-black text-[10px] uppercase tracking-widest mb-1">
+                        <div class="flex items-center gap-2 text-rose-600 font-black text-[0.625rem] uppercase tracking-widest mb-1">
                             <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
                             System Ready for Billing
                         </div>

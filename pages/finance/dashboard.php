@@ -49,8 +49,8 @@ $net_position = $total_payments - $total_expenses;
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(0.75rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.3);
         }
         .metric-gradient-1 { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
         .metric-gradient-2 { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
@@ -66,7 +66,7 @@ $net_position = $total_payments - $total_expenses;
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
                     Institutional Oversight
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Finance & <span class="text-emerald-600">Billing Hub</span></h1>
@@ -78,7 +78,7 @@ $net_position = $total_payments - $total_expenses;
                         <i class="fas fa-calendar-day"></i>
                     </div>
                     <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Current Session</p>
+                        <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Current Session</p>
                         <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars(getCurrentSemester($conn)) ?> | <?= htmlspecialchars(getAcademicYear($conn)) ?></p>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ $net_position = $total_payments - $total_expenses;
                 </div>
                 <p class="text-indigo-100 text-xs font-black uppercase tracking-widest mb-1">Total Receivables</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_fees, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                     <i class="fas fa-info-circle"></i> Current Trimester Context
                 </div>
             </div>
@@ -106,7 +106,7 @@ $net_position = $total_payments - $total_expenses;
                 </div>
                 <p class="text-emerald-100 text-xs font-black uppercase tracking-widest mb-1">Revenue Collected</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_payments, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                     <i class="fas fa-check-circle"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collections
                 </div>
             </div>
@@ -118,7 +118,7 @@ $net_position = $total_payments - $total_expenses;
                 </div>
                 <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Trimester Exposure</p>
                 <h2 class="text-3xl font-black mb-4">GHS <?= number_format($outstanding, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                     <i class="fas fa-users"></i> <?= $pending_students ?> Active Arrears
                 </div>
             </div>
@@ -130,15 +130,15 @@ $net_position = $total_payments - $total_expenses;
                 </div>
                 <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Net Cashflow</p>
                 <h2 class="text-3xl font-black mb-4 <?= $net_position >= 0 ? 'text-emerald-400' : 'text-rose-400' ?>">GHS <?= number_format($net_position, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-white/5 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/5 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
                     <i class="fas fa-shield-halved"></i> Liquidity Status
                 </div>
             </div>
         </div>
 
         <!-- Navigation Grid -->
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-            Available Modules <span class="flex-1 h-[1px] bg-slate-100"></span>
+        <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+            Available Modules <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -232,7 +232,7 @@ $net_position = $total_payments - $total_expenses;
         </div>
 
         <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Salba Montessori Financial ERP &middot; v9.5.0</p>
+            <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">Salba Montessori Financial ERP &middot; v9.5.0</p>
             <div class="flex gap-4">
                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs hover:bg-emerald-600 hover:text-white cursor-help transition-all">
                     <i class="fas fa-question"></i>

@@ -210,7 +210,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-200 mb-6 border-l-4 border-l-red-500">
             <div>
                 <h1 class="text-xl md:text-2xl font-extrabold text-gray-900"><i class="fas fa-file-pdf text-red-500 mr-2"></i> Official Transcripts</h1>
-                <p class="text-[10px] md:text-sm text-gray-700 mt-1 font-bold tracking-wider leading-relaxed">MASTER PRINT SPLIT: <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded whitespace-nowrap">OA MAX <?= $global_oa_weight ?>%</span> <span class="mx-1">+</span> <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap">EXAM MAX <?= $global_exam_weight ?>%</span></p>
+                <p class="text-[0.625rem] md:text-sm text-gray-700 mt-1 font-bold tracking-wider leading-relaxed">MASTER PRINT SPLIT: <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded whitespace-nowrap">OA MAX <?= $global_oa_weight ?>%</span> <span class="mx-1">+</span> <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap">EXAM MAX <?= $global_exam_weight ?>%</span></p>
             </div>
             
             <div class="flex items-center flex-wrap gap-2 md:gap-3 w-full md:w-auto">
@@ -223,7 +223,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
                 <?php else: ?>
-                    <span class="flex-1 md:flex-none justify-center bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2.5 rounded-lg text-[10px] md:text-sm flex items-center gap-2">
+                    <span class="flex-1 md:flex-none justify-center bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2.5 rounded-lg text-[0.625rem] md:text-sm flex items-center gap-2">
                         <i class="fas fa-lock"></i> Restricted
                     </span>
                 <?php endif; ?>

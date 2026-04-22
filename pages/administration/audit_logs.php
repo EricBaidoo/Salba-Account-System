@@ -63,11 +63,11 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 0.25rem; height: 0.25rem; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 0.625rem; }
         .log-row:hover { background-color: #f8fafc; }
-        .json-viewer { font-family: 'Courier New', Courier, monospace; font-size: 11px; white-space: pre-wrap; }
+        .json-viewer { font-family: 'Courier New', Courier, monospace; font-size: 0.6875rem; white-space: pre-wrap; }
     </style>
 </head>
 <body class="bg-gray-50 flex">
@@ -105,7 +105,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <input type="date" name="date" value="<?= $date_filter ?>" onchange="this.form.submit()" class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/10">
                     
                     <?php if($user_filter || $action_filter || $date_filter): ?>
-                        <a href="audit_logs.php" class="text-rose-500 hover:text-rose-700 font-black text-[10px] uppercase tracking-widest ml-2">Clear Filters</a>
+                        <a href="audit_logs.php" class="text-rose-500 hover:text-rose-700 font-black text-[0.625rem] uppercase tracking-widest ml-2">Clear Filters</a>
                     <?php endif; ?>
                 </form>
             </div>
@@ -117,11 +117,11 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 border-b border-gray-100">
                             <tr>
-                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest pl-10">Timestamp</th>
-                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operator</th>
-                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Event Category</th>
-                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Action Details</th>
-                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Device Metadata</th>
+                                <th class="px-6 py-5 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest pl-10">Timestamp</th>
+                                <th class="px-6 py-5 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Operator</th>
+                                <th class="px-6 py-5 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Event Category</th>
+                                <th class="px-6 py-5 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Action Details</th>
+                                <th class="px-6 py-5 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Device Metadata</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -149,39 +149,39 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                                             <div class="w-2 h-2 rounded-full bg-slate-200 group-hover:bg-indigo-500 transition-colors"></div>
                                             <div>
                                                 <p class="text-xs font-black text-slate-900 leading-none mb-1"><?= date('H:i:s', strtotime($log['created_at'])) ?></p>
-                                                <p class="text-[9px] font-bold text-slate-400 uppercase"><?= date('M j, Y', strtotime($log['created_at'])) ?></p>
+                                                <p class="text-[0.5625rem] font-bold text-slate-400 uppercase"><?= date('M j, Y', strtotime($log['created_at'])) ?></p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-6">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black text-[10px]">
+                                            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black text-[0.625rem]">
                                                 <?= strtoupper(substr($log['username'] ?? 'Sys', 0, 2)) ?>
                                             </div>
                                             <p class="text-xs font-black text-slate-700">@<?= htmlspecialchars($log['username'] ?? 'System') ?></p>
                                         </div>
                                     </td>
                                     <td class="px-6 py-6">
-                                        <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border <?= $badgeColor ?>">
+                                        <span class="px-2.5 py-1 rounded-lg text-[0.5625rem] font-black uppercase tracking-widest border <?= $badgeColor ?>">
                                             <?= $log['action'] ?>
                                         </span>
                                     </td>
                                     <td class="px-6 py-6 max-w-sm">
                                         <p class="text-xs font-bold text-slate-800 leading-relaxed"><?= htmlspecialchars($log['description']) ?></p>
                                         <?php if($log['old_values'] || $log['new_values']): ?>
-                                            <button onclick="toggleDetails('det-<?= $log['id'] ?>')" class="mt-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest hover:text-black">
+                                            <button onclick="toggleDetails('det-<?= $log['id'] ?>')" class="mt-2 text-[0.5625rem] font-black text-indigo-600 uppercase tracking-widest hover:text-black">
                                                 View State Changes <i class="fas fa-chevron-down ml-1"></i>
                                             </button>
                                             <div id="det-<?= $log['id'] ?>" class="hidden mt-4 grid grid-cols-1 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 animate-in fade-in slide-in-from-top-2">
                                                 <?php if($log['old_values']): ?>
                                                     <div>
-                                                        <p class="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Before</p>
+                                                        <p class="text-[0.5rem] font-black text-rose-400 uppercase tracking-widest mb-1">Before</p>
                                                         <div class="json-viewer p-2 bg-white rounded-lg border border-slate-100 overflow-x-auto"><?= htmlspecialchars($log['old_values']) ?></div>
                                                     </div>
                                                 <?php endif; ?>
                                                 <?php if($log['new_values']): ?>
                                                     <div>
-                                                        <p class="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">After</p>
+                                                        <p class="text-[0.5rem] font-black text-emerald-400 uppercase tracking-widest mb-1">After</p>
                                                         <div class="json-viewer p-2 bg-white rounded-lg border border-slate-100 overflow-x-auto"><?= htmlspecialchars($log['new_values']) ?></div>
                                                     </div>
                                                 <?php endif; ?>
@@ -194,8 +194,8 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                                                 <i class="fas fa-network-wired text-xs"></i>
                                             </div>
                                             <div>
-                                                <p class="text-[10px] font-black text-slate-900"><?= $log['ip_address'] ?></p>
-                                                <p class="text-[9px] font-medium text-slate-400 line-clamp-1 max-w-[150px]" title="<?= htmlspecialchars($log['user_agent']) ?>"><?= htmlspecialchars($log['user_agent']) ?></p>
+                                                <p class="text-[0.625rem] font-black text-slate-900"><?= $log['ip_address'] ?></p>
+                                                <p class="text-[0.5625rem] font-medium text-slate-400 line-clamp-1 max-w-[9.375rem]" title="<?= htmlspecialchars($log['user_agent']) ?>"><?= htmlspecialchars($log['user_agent']) ?></p>
                                             </div>
                                         </div>
                                     </td>
@@ -206,7 +206,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                 </div>
                 
                 <div class="px-10 py-6 bg-slate-50/50 border-t border-gray-100 flex items-center justify-between">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Displaying latest 500 security events</p>
+                    <p class="text-[0.625rem] font-bold text-slate-400 uppercase tracking-[0.2em]">Displaying latest 500 security events</p>
                     <div class="flex items-center gap-4">
                         <!-- Pagination etc -->
                     </div>

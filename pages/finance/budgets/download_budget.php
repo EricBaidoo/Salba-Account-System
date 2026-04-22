@@ -100,9 +100,9 @@ $header = '
 <table width="100%" class="border-b-4 border-gray-800 pb-2.5 mb-2.5">
     <tr>
         <td class="text-center">
-            <h2 style="margin: 0; color: #2c3e50; font-size: 22px; font-weight: bold; letter-spacing: 1px;">' . htmlspecialchars($school_name) . '</h2>
-            <p style="margin: 5px 0 2px 0; font-size: 10px; color: #7f8c8d;">' . htmlspecialchars($school_address) . '</p>
-            <p style="margin: 0; font-size: 9px; color: #95a5a6;">' . htmlspecialchars($school_phone) . ' | ' . htmlspecialchars($school_email) . '</p>
+            <h2 style="margin: 0; color: #2c3e50; font-size: 1.375rem; font-weight: bold; letter-spacing: 0.0625rem;">' . htmlspecialchars($school_name) . '</h2>
+            <p style="margin: 0.3125rem 0 0.125rem 0; font-size: 0.625rem; color: #7f8c8d;">' . htmlspecialchars($school_address) . '</p>
+            <p style="margin: 0; font-size: 0.5625rem; color: #95a5a6;">' . htmlspecialchars($school_phone) . ' | ' . htmlspecialchars($school_email) . '</p>
         </td>
     </tr>
 </table>
@@ -112,7 +112,7 @@ $mpdf->SetHTMLHeader($header);
 
 // Set footer
 $mpdf->SetHTMLFooter('
-<table width="100%" style="border-top: 1px solid #ddd; padding-top: 5px; font-size: 9px; color: #666;">
+<table width="100%" style="border-top: 0.0625rem solid #ddd; padding-top: 0.3125rem; font-size: 0.5625rem; color: #666;">
     <tr>
         <td width="33%">Generated: ' . date('d/m/Y H:i') . '</td>
         <td width="33%" align="center">Page {PAGENO} of {nbpg}</td>
@@ -131,10 +131,10 @@ $html = '
 if ($semester_budget) {
     $status_class = ($semester_budget['status'] === 'locked') ? 'status-locked' : 'status-draft';
     $status_text = strtoupper($semester_budget['status']);
-    $html .= '<p style="text-align: center; margin: 0 0 20px 0;"><span class="status-badge ' . $status_class . '">' . $status_text . '</span></p>';
+    $html .= '<p style="text-align: center; margin: 0 0 1.25rem 0;"><span class="status-badge ' . $status_class . '">' . $status_text . '</span></p>';
     
     if ($semester_budget['status'] === 'locked') {
-        $html .= '<p style="text-align: center; font-size: 9pt; color: #7f8c8d; margin: -15px 0 20px 0;">Locked by ' . htmlspecialchars($semester_budget['locked_by']) . ' on ' . date('d M Y H:i', strtotime($semester_budget['locked_at'])) . '</p>';
+        $html .= '<p style="text-align: center; font-size: 9pt; color: #7f8c8d; margin: -0.9375rem 0 1.25rem 0;">Locked by ' . htmlspecialchars($semester_budget['locked_by']) . ' on ' . date('d M Y H:i', strtotime($semester_budget['locked_at'])) . '</p>';
     }
 }
 

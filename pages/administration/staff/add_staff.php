@@ -138,15 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .section-card { background: white; border-radius: 16px; border: 1px solid #f0f0f5; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-        .section-header { display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #f5f5fa; }
-        .section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-        .field-label { display: block; font-size: 11px; font-weight: 700; color: #8b8fa8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-        .field-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e8e8f0; border-radius: 10px; font-size: 14px; font-weight: 500; color: #1f2937; background: #fafafa; transition: all 0.2s; outline: none; }
-        .field-input:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+        .section-card { background: white; border-radius: 1rem; border: 0.0625rem solid #f0f0f5; box-shadow: 0 0.0625rem 0.25rem rgba(0,0,0,0.04); }
+        .section-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.125rem 1.5rem; border-bottom: 0.0625rem solid #f5f5fa; }
+        .section-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.625rem; display: flex; align-items: center; justify-content: center; font-size: 0.9375rem; flex-shrink: 0; }
+        .field-label { display: block; font-size: 0.6875rem; font-weight: 700; color: #8b8fa8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.375rem; }
+        .field-input { width: 100%; padding: 0.625rem 0.875rem; border: 0.09375rem solid #e8e8f0; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 500; color: #1f2937; background: #fafafa; transition: all 0.2s; outline: none; }
+        .field-input:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 0.1875rem rgba(99,102,241,0.08); }
         .field-input::placeholder { color: #c4c6d5; font-weight: 400; }
         select.field-input { cursor: pointer; }
-        .photo-upload { width: 110px; height: 130px; border: 2.5px dashed #d1d5db; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; overflow: hidden; background: #f8f9fc; }
+        .photo-upload { width: 6.875rem; height: 8.125rem; border: 0.15625rem dashed #d1d5db; border-radius: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; overflow: hidden; background: #f8f9fc; }
         .photo-upload:hover { border-color: #6366f1; background: #f0f0ff; }
         .photo-preview { width: 100%; height: 100%; object-fit: cover; }
     </style>
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <img id="photo_preview" class="photo-preview hidden">
                                 <div id="photo_placeholder" class="flex flex-col items-center justify-center text-center p-2">
                                     <i class="fas fa-camera text-2xl text-gray-300 mb-2 group-hover:text-indigo-400 transition"></i>
-                                    <span class="text-[10px] text-gray-400 font-bold group-hover:text-indigo-500">Click to upload</span>
+                                    <span class="text-[0.625rem] text-gray-400 font-bold group-hover:text-indigo-500">Click to upload</span>
                                 </div>
                             </label>
                             <input type="file" name="photo" id="photo_input" accept=".jpg,.jpeg,.png,.webp" class="sr-only" onchange="previewPhoto(event)">

@@ -152,10 +152,10 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .grade-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.05); }
-        .grade-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1); border-color: rgba(245, 158, 11, 0.2); }
-        .input-active { border-bottom: 2px solid #f59e0b !important; }
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(0.75rem); -webkit-backdrop-filter: blur(0.75rem); border-bottom: 0.0625rem solid rgba(0,0,0,0.05); }
+        .grade-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 0.0625rem solid rgba(0,0,0,0.05); }
+        .grade-card:hover { transform: translateY(-0.125rem); box-shadow: 0 0.75rem 1.5rem -0.625rem rgba(0, 0, 0, 0.1); border-color: rgba(245, 158, 11, 0.2); }
+        .input-active { border-bottom: 0.125rem solid #f59e0b !important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -174,7 +174,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <div>
                     <div class="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest mb-2">
-                        <i class="fas fa-graduation-cap text-[10px]"></i> Academic Records
+                        <i class="fas fa-graduation-cap text-[0.625rem]"></i> Academic Records
                     </div>
                     <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
                         Auto-Scaling <span class="text-amber-600">Gradebook</span>
@@ -215,24 +215,24 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                         <i class="fas fa-calculator text-9xl"></i>
                     </div>
                     <form method="GET" class="flex flex-wrap md:flex-nowrap items-center gap-6 w-full relative z-10">
-                        <div class="flex-1 min-w-[150px]">
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Target Class</label>
+                        <div class="flex-1 min-w-[9.375rem]">
+                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Target Class</label>
                             <select name="class" class="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 font-bold text-gray-700 shadow-inner appearance-none transition-all" onchange="this.form.submit()">
                                 <?php foreach($allocated_classes as $cl): ?>
                                     <option value="<?= htmlspecialchars($cl) ?>" <?= $selected_class === $cl ? 'selected' : '' ?>><?= htmlspecialchars($cl) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="flex-1 min-w-[200px]">
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Subject Selection</label>
+                        <div class="flex-1 min-w-[12.5rem]">
+                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Subject Selection</label>
                             <select name="subject" class="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 font-bold text-gray-700 shadow-inner appearance-none transition-all" onchange="this.form.submit()">
                                 <?php foreach($allocated_subjects as $id => $name): ?>
                                     <option value="<?= htmlspecialchars($id) ?>" <?= $selected_subject_id == $id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="flex-[1.5] min-w-[250px]">
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Assessment Context</label>
+                        <div class="flex-[1.5] min-w-[15.625rem]">
+                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Assessment Context</label>
                             <div class="relative">
                                 <select name="assessment" class="w-full px-5 py-3 bg-amber-50 border border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-500 font-black text-amber-900 shadow-sm appearance-none transition-all" onchange="this.form.submit()">
                                     <?php foreach($assessment_configs as $id => $conf): ?>
@@ -258,24 +258,24 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                     <h3 class="font-bold text-gray-900 text-lg flex items-center gap-3">
                                         <?= htmlspecialchars($selected_subject_name) ?> <i class="fas fa-arrow-right-long text-gray-300"></i> <?= htmlspecialchars($selected_assessment['name']) ?>
                                         <?php if($selected_assessment['is_locked'] ?? false): ?>
-                                            <span class="bg-red-50 text-red-600 text-[10px] px-2 py-1 rounded border border-red-100 flex items-center gap-1">
-                                                <i class="fas fa-lock text-[9px]"></i> LOCKED FOR TEACHERS
+                                            <span class="bg-red-50 text-red-600 text-[0.625rem] px-2 py-1 rounded border border-red-100 flex items-center gap-1">
+                                                <i class="fas fa-lock text-[0.5625rem]"></i> LOCKED FOR TEACHERS
                                             </span>
                                         <?php endif; ?>
                                     </h3>
-                                    <p class="text-[10px] font-black uppercase tracking-widest mt-1 <?= $selected_assessment['is_exam'] ? 'text-red-500' : 'text-amber-600' ?>">
+                                    <p class="text-[0.625rem] font-black uppercase tracking-widest mt-1 <?= $selected_assessment['is_exam'] ? 'text-red-500' : 'text-amber-600' ?>">
                                         Internal Scaling Engine Output Matrix: <span class="bg-white px-2 py-0.5 rounded shadow-sm border border-opacity-50 ml-1"><?= $selected_assessment['weight'] ?> points max</span>
                                     </p>
                                 </div>
                                 <div class="bg-white/50 px-3 py-1.5 rounded-lg border border-opacity-20 flex items-center gap-2">
                                      <i class="fas fa-robot text-gray-400 text-xs"></i>
-                                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Auto-Scale Enabled</span>
+                                     <span class="text-[0.625rem] font-bold text-gray-500 uppercase tracking-tighter">Auto-Scale Enabled</span>
                                 </div>
                             </div>
 
                             <div class="overflow-x-auto w-full">
-                                <table class="w-full text-left min-w-[600px]">
-                                <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[10px] uppercase font-black tracking-widest text-center">
+                                <table class="w-full text-left min-w-[37.5rem]">
+                                <thead class="bg-gray-50/50 text-gray-400 border-b border-gray-100 text-[0.625rem] uppercase font-black tracking-widest text-center">
                                     <tr>
                                         <th class="px-8 py-5 text-left">Student Identity</th>
                                         <th class="px-8 py-5">Marks Awarded</th>
@@ -295,7 +295,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                     <div>
                                                         <div class="font-bold tracking-tight"><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></div>
                                                         <?php if($s['scaled_marks'] !== null): ?>
-                                                            <div class="text-[9px] font-black text-emerald-600 uppercase tracking-wide flex items-center gap-1 mt-0.5">
+                                                            <div class="text-[0.5625rem] font-black text-emerald-600 uppercase tracking-wide flex items-center gap-1 mt-0.5">
                                                                 <i class="fas fa-check-circle"></i> Scaled: <?= round($s['scaled_marks'],1) ?> / <?= $selected_assessment['weight'] ?>
                                                             </div>
                                                         <?php endif; ?>

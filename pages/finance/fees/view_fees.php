@@ -63,7 +63,7 @@ $cy = getAcademicYear($conn);
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                     Fee Infrastructure
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Structured <span class="text-indigo-600">Receivables</span></h1>
@@ -87,7 +87,7 @@ $cy = getAcademicYear($conn);
                 </div>
                 <div>
                     <h4 class="text-2xl font-black text-slate-900 leading-none mb-1"><?= $stats['total_fees'] ?></h4>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Fees</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Total Fees</p>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5">
@@ -96,7 +96,7 @@ $cy = getAcademicYear($conn);
                 </div>
                 <div>
                     <h4 class="text-2xl font-black text-slate-900 leading-none mb-1"><?= $stats['fixed_fees'] ?></h4>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fixed Rates</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Fixed Rates</p>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5">
@@ -105,7 +105,7 @@ $cy = getAcademicYear($conn);
                 </div>
                 <div>
                     <h4 class="text-2xl font-black text-slate-900 leading-none mb-1"><?= $stats['class_based_fees'] ?></h4>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiered (Class)</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Tiered (Class)</p>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-5">
@@ -114,14 +114,14 @@ $cy = getAcademicYear($conn);
                 </div>
                 <div>
                     <h4 class="text-2xl font-black text-slate-900 leading-none mb-1"><?= $stats['category_fees'] ?></h4>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generalized</p>
+                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Generalized</p>
                 </div>
             </div>
         </div>
 
         <!-- Fees Display -->
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-            Defined Fee Categories <span class="flex-1 h-[1px] bg-slate-100"></span>
+        <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+            Defined Fee Categories <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -134,7 +134,7 @@ $cy = getAcademicYear($conn);
                                 <div class="w-12 h-12 <?= $row['fee_type'] === 'fixed' ? 'bg-emerald-50 text-emerald-600' : ($row['fee_type'] === 'class_based' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600') ?> rounded-2xl flex items-center justify-center text-xl transition-all duration-500">
                                     <i class="fas <?= $row['fee_type'] === 'fixed' ? 'fa-tag' : ($row['fee_type'] === 'class_based' ? 'fa-layer-group' : 'fa-shapes') ?>"></i>
                                 </div>
-                                <div class="bg-slate-50 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full border border-slate-100 uppercase tracking-widest">
+                                <div class="bg-slate-50 text-slate-400 text-[0.625rem] font-black px-3 py-1 rounded-full border border-slate-100 uppercase tracking-widest">
                                     ID: <?= $row['id'] ?>
                                 </div>
                             </div>
@@ -156,14 +156,14 @@ $cy = getAcademicYear($conn);
                         <div class="px-8 py-6 bg-slate-50">
                             <?php if ($row['fee_type'] === 'fixed'): ?>
                                 <div class="flex flex-col">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Standard Amount</span>
+                                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Standard Amount</span>
                                     <span class="text-3xl font-black text-slate-900">GHS <?= number_format($row['amount'], 2) ?></span>
                                 </div>
                             <?php else: ?>
                                 <div class="flex flex-col">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tiered Adjustments</span>
+                                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">Tiered Adjustments</span>
                                     <div class="max-h-24 overflow-y-auto pr-2 custom-scrollbar">
-                                        <p class="text-[11px] font-bold text-slate-600 leading-relaxed">
+                                        <p class="text-[0.6875rem] font-bold text-slate-600 leading-relaxed">
                                             <?php
                                                 $details = explode(' | ', $row['amount_details'] ?? '');
                                                 $out = [];
@@ -201,8 +201,8 @@ $cy = getAcademicYear($conn);
                                         <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 </div>
-                                <a href="assign_fee_form.php?fee_id=<?= $row['id'] ?>" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-slate-900/20 transition-all flex items-center gap-2">
-                                    Execute Assignment <i class="fas fa-arrow-right text-[8px]"></i>
+                                <a href="assign_fee_form.php?fee_id=<?= $row['id'] ?>" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-slate-900/20 transition-all flex items-center gap-2">
+                                    Execute Assignment <i class="fas fa-arrow-right text-[0.5rem]"></i>
                                 </a>
                             </div>
                         </div>
@@ -223,7 +223,7 @@ $cy = getAcademicYear($conn);
         </div>
 
         <!-- Footer Nav -->
-        <div class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <div class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             <span>Salba Montessori &middot; Fee Architecture &middot; v9.5.0</span>
             <div class="flex gap-6">
                 <a href="view_assigned_fees.php" class="hover:text-indigo-600 transition-colors">Active Assignments</a>

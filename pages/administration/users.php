@@ -139,17 +139,17 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #fbfcfe; }
-        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid #f1f5f9; }
-        .stat-card { background: white; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .user-table-container { background: white; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .action-btn { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .modal-blur { backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.6); }
-        .form-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #f1f5f9; background: #f8fafc; transition: all 0.2s; outline: none; font-size: 14px; font-weight: 500; }
-        .form-input:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
-        ::-webkit-scrollbar { width: 6px; }
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(0.75rem); border-bottom: 0.0625rem solid #f1f5f9; }
+        .stat-card { background: white; border-radius: 1.25rem; border: 0.0625rem solid #f1f5f9; box-shadow: 0 0.25rem 0.375rem -0.0625rem rgba(0,0,0,0.02); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-0.1875rem); box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0,0,0,0.05); }
+        .user-table-container { background: white; border-radius: 1.5rem; border: 0.0625rem solid #f1f5f9; box-shadow: 0 0.0625rem 0.1875rem rgba(0,0,0,0.02); }
+        .action-btn { width: 2.125rem; height: 2.125rem; border-radius: 0.625rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .modal-blur { backdrop-filter: blur(0.5rem); background: rgba(15, 23, 42, 0.6); }
+        .form-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 0.09375rem solid #f1f5f9; background: #f8fafc; transition: all 0.2s; outline: none; font-size: 0.875rem; font-weight: 500; }
+        .form-input:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 0.25rem rgba(99,102,241,0.1); }
+        ::-webkit-scrollbar { width: 0.375rem; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 0.625rem; }
     </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -164,7 +164,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">System Users</h1>
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Access Control Center</span>
+                    <span class="text-[0.625rem] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Access Control Center</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -181,7 +181,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     <i class="fas fa-users"></i>
                 </div>
                 <div>
-                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Users</h3>
+                    <h3 class="text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest">Total Users</h3>
                     <p class="text-2xl font-black text-slate-900 mt-0.5"><?= $total_users ?></p>
                 </div>
             </div>
@@ -190,7 +190,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div>
-                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Now</h3>
+                    <h3 class="text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest">Active Now</h3>
                     <p class="text-2xl font-black text-slate-900 mt-0.5"><?= $active_users ?></p>
                 </div>
             </div>
@@ -199,7 +199,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     <i class="fas fa-shield-halved"></i>
                 </div>
                 <div>
-                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Administrators</h3>
+                    <h3 class="text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest">Administrators</h3>
                     <p class="text-2xl font-black text-slate-900 mt-0.5"><?= $admins_count ?></p>
                 </div>
             </div>
@@ -208,7 +208,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     <i class="fas fa-link"></i>
                 </div>
                 <div>
-                    <h3 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Linked Profiles</h3>
+                    <h3 class="text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest">Linked Profiles</h3>
                     <p class="text-2xl font-black text-slate-900 mt-0.5"><?= $linked_count ?></p>
                 </div>
             </div>
@@ -236,14 +236,14 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
             </div>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full min-w-[62.5rem] text-left border-collapse">
                     <thead class="bg-slate-50/50">
                         <tr>
-                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">System User</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Privileges</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Linked Personnel</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Current Status</th>
-                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] text-right">Actions</th>
+                            <th class="px-6 py-4 text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.15em]">System User</th>
+                            <th class="px-6 py-4 text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.15em]">Privileges</th>
+                            <th class="px-6 py-4 text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.15em]">Linked Personnel</th>
+                            <th class="px-6 py-4 text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.15em]">Current Status</th>
+                            <th class="px-6 py-4 text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.15em] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
@@ -260,7 +260,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                                     </div>
                                     <div>
                                         <div class="text-sm font-black text-slate-900">@<?= h($user['username']) ?></div>
-                                        <div class="text-[10px] font-bold text-slate-400 mt-0.5">UID: ACC-<?= str_pad($user['id'], 4, '0', STR_PAD_LEFT) ?></div>
+                                        <div class="text-[0.625rem] font-bold text-slate-400 mt-0.5">UID: ACC-<?= str_pad($user['id'], 4, '0', STR_PAD_LEFT) ?></div>
                                     </div>
                                 </div>
                             </td>
@@ -273,7 +273,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                                             'facilitator' => 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                         ][$user['role']] ?? 'bg-slate-50 text-slate-700 border-slate-100';
                                     ?>
-                                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border <?= $role_class ?>">
+                                    <span class="px-2.5 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest border <?= $role_class ?>">
                                         <?= $user['role'] ?>
                                     </span>
                                 </div>
@@ -282,7 +282,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                                 <?php if($user['staff_name']): ?>
                                     <a href="staff/profile_staff.php?id=<?= $user['staff_profile_id'] ?>" class="flex items-center gap-2 group/link">
                                         <div class="text-xs font-bold text-slate-700 group-hover/link:text-indigo-600 transition-colors"><?= htmlspecialchars($user['staff_name']) ?></div>
-                                        <div class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded"><?= $user['staff_code'] ?></div>
+                                        <div class="text-[0.625rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded"><?= $user['staff_code'] ?></div>
                                     </a>
                                 <?php else: ?>
                                     <span class="text-xs font-bold text-slate-300 italic tracking-tight">Access not linked</span>
@@ -291,7 +291,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                             <td class="px-6 py-5">
                                 <div class="flex items-center gap-2">
                                     <div class="w-1.5 h-1.5 rounded-full <?= $user['is_active'] ? 'bg-emerald-500' : 'bg-slate-300' ?>"></div>
-                                    <span class="text-[11px] font-black uppercase tracking-widest <?= $user['is_active'] ? 'text-emerald-600' : 'text-slate-400' ?>">
+                                    <span class="text-[0.6875rem] font-black uppercase tracking-widest <?= $user['is_active'] ? 'text-emerald-600' : 'text-slate-400' ?>">
                                         <?= $user['is_active'] ? 'Active' : 'Locked' ?>
                                     </span>
                                 </div>
@@ -313,7 +313,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
             </div>
             
             <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing all registered system users</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Showing all registered system users</p>
                 <div class="flex gap-2">
                      <!-- Pagination would go here -->
                 </div>
@@ -327,11 +327,11 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <!-- Create Account Modal -->
     <div id="createModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-blur" onclick="closeModal('createModal')"></div>
-        <div class="bg-white w-full max-w-[480px] rounded-[32px] shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+        <div class="bg-white w-full max-w-[30rem] rounded-[2rem] shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
             <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-black text-slate-900 tracking-tight">New Credentials</h3>
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Grant Internal System Access</p>
+                    <p class="text-[0.6875rem] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Grant Internal System Access</p>
                 </div>
                 <button onclick="closeModal('createModal')" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 transition-colors">
                     <i class="fas fa-times"></i>
@@ -344,11 +344,11 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Username</label>
+                            <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Username</label>
                             <input type="text" name="username" placeholder="e.g. JohnD" required class="form-input">
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Access Role</label>
+                            <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Access Role</label>
                             <select name="role" class="form-input cursor-pointer">
                                 <option value="facilitator">Facilitator</option>
                                 <option value="supervisor">Supervisor</option>
@@ -358,12 +358,12 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Password</label>
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Password</label>
                         <input type="password" name="password" placeholder="••••••••••••" required class="form-input">
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Link to Staff Member</label>
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Link to Staff Member</label>
                         <select name="staff_id" class="form-input cursor-pointer">
                             <option value="">-- No Linked Personnel --</option>
                             <?php foreach ($available_staff as $st): ?>
@@ -389,11 +389,11 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <!-- Edit Modal (Simplified logic, Rich UI) -->
     <div id="editModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-blur" onclick="closeModal('editModal')"></div>
-        <div class="bg-white w-full max-w-[480px] rounded-[32px] shadow-2xl relative overflow-hidden">
+        <div class="bg-white w-full max-w-[30rem] rounded-[2rem] shadow-2xl relative overflow-hidden">
             <div class="p-8 border-b border-indigo-50 bg-indigo-50/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-xl font-black text-indigo-900 tracking-tight">Security Override</h3>
-                    <p class="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Manage Account Level: <span id="e_user_display" class="text-indigo-600 font-black"></span></p>
+                    <p class="text-[0.6875rem] font-bold text-indigo-400 uppercase tracking-widest mt-0.5">Manage Account Level: <span id="e_user_display" class="text-indigo-600 font-black"></span></p>
                 </div>
                 <button onclick="closeModal('editModal')" class="w-8 h-8 rounded-full hover:bg-indigo-100 flex items-center justify-center text-indigo-400 transition-colors">
                     <i class="fas fa-times"></i>
@@ -407,11 +407,11 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                 <div class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Username</label>
+                            <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2">Username</label>
                             <input type="text" name="username" id="edit_username" required class="form-input">
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Role Type</label>
+                            <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2">Role Type</label>
                             <select name="role" id="edit_role" class="form-input">
                                 <option value="facilitator">Facilitator</option>
                                 <option value="supervisor">Supervisor</option>
@@ -421,13 +421,13 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">Security Key Update</label>
-                        <p class="text-[9px] text-slate-400 font-medium mb-2 pl-1">Leave blank unless you want to reset their password</p>
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-1 px-1">Security Key Update</label>
+                        <p class="text-[0.5625rem] text-slate-400 font-medium mb-2 pl-1">Leave blank unless you want to reset their password</p>
                         <input type="password" name="new_password" placeholder="Enter new strong password" class="form-input">
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Associated Registry Profile</label>
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Associated Registry Profile</label>
                         <select name="staff_id" id="edit_staff_id" class="form-input cursor-pointer">
                             <option value="">-- No Registry Link --</option>
                         </select>
@@ -450,7 +450,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
     <!-- Final Choice Confirmation -->
     <div id="deleteModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-blur" onclick="closeModal('deleteModal')"></div>
-        <div class="bg-white w-full max-w-[400px] rounded-[40px] shadow-2xl relative p-10 text-center animate-in zoom-in-95 duration-200">
+        <div class="bg-white w-full max-w-[25rem] rounded-[2.5rem] shadow-2xl relative p-10 text-center animate-in zoom-in-95 duration-200">
             <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 shadow-inner ring-8 ring-rose-50/50">
                 <i class="fas fa-user-slash"></i>
             </div>

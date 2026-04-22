@@ -112,8 +112,8 @@ $filter_qs = http_build_query([
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
         .stat-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .stat-card:hover { transform: translateY(-4px); }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; z-index: 50; min-width: 180px; }
+        .stat-card:hover { transform: translateY(-0.25rem); }
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; z-index: 50; min-width: 11.25rem; }
         .dropdown-trigger:focus + .dropdown-menu,
         .dropdown-trigger:focus-within + .dropdown-menu,
         .dropdown-wrapper:hover .dropdown-menu,
@@ -148,23 +148,23 @@ $filter_qs = http_build_query([
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-emerald-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
                     Financial Intelligence
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Student <span class="text-emerald-600">Balances</span></h1>
                 <p class="text-slate-500 mt-2 font-medium text-sm">Institutional debt exposure and revenue maturity overview.</p>
             </div>
             <div class="no-print flex flex-wrap gap-3">
-                <a href="download_student_balances.php?<?= $filter_qs ?>" class="bg-emerald-50 text-emerald-700 font-black text-[10px] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2 border border-emerald-100">
+                <a href="download_student_balances.php?<?= $filter_qs ?>" class="bg-emerald-50 text-emerald-700 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2 border border-emerald-100">
                     <i class="fas fa-file-csv"></i> Download CSV
                 </a>
-                <a href="download_student_balances_pdf.php?<?= $filter_qs ?>" class="bg-rose-50 text-rose-700 font-black text-[10px] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 border border-rose-100">
+                <a href="download_student_balances_pdf.php?<?= $filter_qs ?>" class="bg-rose-50 text-rose-700 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 border border-rose-100">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </a>
-                <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
+                <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
                     <i class="fas fa-print"></i> Print
                 </button>
-                <a href="../payments/record_payment_form.php" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2">
+                <a href="../payments/record_payment_form.php" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2">
                     <i class="fas fa-plus"></i> Record Payment
                 </a>
             </div>
@@ -174,34 +174,34 @@ $filter_qs = http_build_query([
         <section class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
             <div class="stat-card bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
                 <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-5"><i class="fas fa-users-viewfinder"></i></div>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Students</p>
+                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Students</p>
                 <h3 class="text-3xl font-black text-slate-900"><?= number_format($total_students) ?></h3>
             </div>
             <div class="stat-card bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
                 <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5"><i class="fas fa-file-invoice-dollar"></i></div>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Fees</p>
+                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Total Fees</p>
                 <h3 class="text-2xl font-black text-slate-900">₵<?= number_format($sum_fees, 2) ?></h3>
             </div>
             <div class="stat-card bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
                 <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5"><i class="fas fa-hand-holding-dollar"></i></div>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
+                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
                 <h3 class="text-2xl font-black text-slate-900">₵<?= number_format($sum_paid, 2) ?></h3>
             </div>
             <div class="stat-card bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
                 <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 mb-5"><i class="fas fa-triangle-exclamation"></i></div>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Outstanding</p>
+                <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Outstanding</p>
                 <h3 class="text-2xl font-black text-rose-600">₵<?= number_format($sum_due, 2) ?></h3>
             </div>
         </section>
 
         <!-- Filters Console -->
         <section class="no-print bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm mb-10">
-            <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                Parameters &amp; Refinement <span class="flex-1 h-[1px] bg-slate-100"></span>
+            <h3 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                Parameters &amp; Refinement <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
             </h3>
             <form method="GET" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Semester</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">Semester</label>
                     <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <?php foreach (getAvailableSemesters($conn) as $s): ?>
                             <option value="<?= htmlspecialchars($s) ?>" <?= $selected_term === $s ? 'selected' : '' ?>><?= htmlspecialchars($s) ?></option>
@@ -209,7 +209,7 @@ $filter_qs = http_build_query([
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Academic Year</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">Academic Year</label>
                     <select name="academic_year" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <?php
                         $yr_opts = [];
@@ -222,7 +222,7 @@ $filter_qs = http_build_query([
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Class</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">Class</label>
                     <select name="class" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <option value="all">All Classes</option>
                         <?php while($c = $classes_rs->fetch_assoc()): ?>
@@ -231,7 +231,7 @@ $filter_qs = http_build_query([
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Status</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">Status</label>
                     <select name="status" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <option value="active"   <?= $status_filter === 'active'   ? 'selected' : '' ?>>Active Only</option>
                         <option value="inactive" <?= $status_filter === 'inactive' ? 'selected' : '' ?>>Inactive Only</option>
@@ -239,7 +239,7 @@ $filter_qs = http_build_query([
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Balance</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">Balance</label>
                     <select name="owing" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <option value="all"     <?= $owing_filter === 'all'     ? 'selected' : '' ?>>All</option>
                         <option value="owing"   <?= $owing_filter === 'owing'   ? 'selected' : '' ?>>Owing Money</option>
@@ -247,7 +247,7 @@ $filter_qs = http_build_query([
                     </select>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 block">% Paid</label>
+                    <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1 block">% Paid</label>
                     <select name="percent" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500">
                         <option value="all"      <?= $percent_filter === 'all'      ? 'selected' : '' ?>>All</option>
                         <option value="below50"  <?= $percent_filter === 'below50'  ? 'selected' : '' ?>>Below 50%</option>
@@ -255,7 +255,7 @@ $filter_qs = http_build_query([
                         <option value="below100" <?= $percent_filter === 'below100' ? 'selected' : '' ?>>Below 100%</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[9px] uppercase tracking-widest px-3 py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.5625rem] uppercase tracking-widest px-3 py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all">
                     <i class="fas fa-filter mr-1"></i> Apply
                 </button>
             </form>
@@ -265,8 +265,8 @@ $filter_qs = http_build_query([
         <section class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-12">
             <div class="px-8 py-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/50">
                 <div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Master Balance Ledger</h3>
-                    <p class="text-[9px] text-slate-400 font-bold mt-1">Showing <strong class="text-slate-600"><?= $total_students ?></strong> students</p>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em]">Master Balance Ledger</h3>
+                    <p class="text-[0.5625rem] text-slate-400 font-bold mt-1">Showing <strong class="text-slate-600"><?= $total_students ?></strong> students</p>
                 </div>
                 <!-- Sort Controls -->
                 <form method="GET" class="flex items-center gap-2 no-print">
@@ -276,12 +276,12 @@ $filter_qs = http_build_query([
                     <input type="hidden" name="status"        value="<?= htmlspecialchars($status_filter) ?>">
                     <input type="hidden" name="owing"         value="<?= htmlspecialchars($owing_filter) ?>">
                     <input type="hidden" name="percent"       value="<?= htmlspecialchars($percent_filter) ?>">
-                    <select name="sort_by" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg outline-none">
+                    <select name="sort_by" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-600 text-[0.5625rem] font-black uppercase tracking-widest px-3 py-2 rounded-lg outline-none">
                         <option value="name"    <?= $sort_by === 'name'    ? 'selected' : '' ?>>Sort: Name</option>
                         <option value="class"   <?= $sort_by === 'class'   ? 'selected' : '' ?>>Sort: Class</option>
                         <option value="percent" <?= $sort_by === 'percent' ? 'selected' : '' ?>>Sort: % Paid</option>
                     </select>
-                    <select name="order" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg outline-none">
+                    <select name="order" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-600 text-[0.5625rem] font-black uppercase tracking-widest px-3 py-2 rounded-lg outline-none">
                         <option value="asc"  <?= $order === 'asc'  ? 'selected' : '' ?>>Asc</option>
                         <option value="desc" <?= $order === 'desc' ? 'selected' : '' ?>>Desc</option>
                     </select>
@@ -291,7 +291,7 @@ $filter_qs = http_build_query([
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/30 border-b border-slate-100">
+                        <tr class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest bg-slate-50/30 border-b border-slate-100">
                             <th class="px-8 py-5">Student</th>
                             <th class="px-5 py-5">Class</th>
                             <th class="px-5 py-5 text-center">% Paid</th>
@@ -332,27 +332,27 @@ $filter_qs = http_build_query([
                                             <?= strtoupper(substr($s['student_name'], 0, 1)) ?>
                                         </div>
                                         <div>
-                                            <a href="student_balance_details.php?id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="text-[12px] font-black text-slate-800 hover:text-emerald-600 transition-colors block leading-tight">
+                                            <a href="student_balance_details.php?id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="text-[0.75rem] font-black text-slate-800 hover:text-emerald-600 transition-colors block leading-tight">
                                                 <?= htmlspecialchars($s['student_name']) ?>
                                             </a>
                                             <div class="flex items-center gap-2 mt-0.5">
-                                                <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight">SMS-<?= str_pad($s['student_id'], 3, '0', STR_PAD_LEFT) ?></p>
+                                                <p class="text-[0.5rem] font-bold text-slate-400 uppercase tracking-tight">SMS-<?= str_pad($s['student_id'], 3, '0', STR_PAD_LEFT) ?></p>
                                                 <?php if($is_inactive): ?>
-                                                    <span class="text-[7px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>
+                                                    <span class="text-[0.4375rem] font-black uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-5 py-5">
-                                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-tight bg-slate-100 px-2.5 py-1 rounded-lg"><?= htmlspecialchars($s['class']) ?></span>
+                                    <span class="text-[0.625rem] font-bold text-slate-600 uppercase tracking-tight bg-slate-100 px-2.5 py-1 rounded-lg"><?= htmlspecialchars($s['class']) ?></span>
                                 </td>
                                 <td class="px-5 py-5">
-                                    <div class="flex items-center gap-2 min-w-[90px]">
+                                    <div class="flex items-center gap-2 min-w-[5.625rem]">
                                         <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                             <div class="h-full <?= $bar_color ?> transition-all" style="width: <?= $percent ?>%"></div>
                                         </div>
-                                        <span class="text-[9px] font-black text-slate-500 w-7 text-right"><?= $percent ?>%</span>
+                                        <span class="text-[0.5625rem] font-black text-slate-500 w-7 text-right"><?= $percent ?>%</span>
                                     </div>
                                 </td>
                                 <td class="px-5 py-5 text-right text-sm font-black text-slate-700">₵<?= number_format($total_fees, 2) ?></td>
@@ -361,35 +361,35 @@ $filter_qs = http_build_query([
                                     <?= $outstanding > 0 ? '₵'.number_format($outstanding, 2) : 'Paid Up' ?>
                                 </td>
                                 <td class="px-5 py-5 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[10px] font-black <?= $pending_cnt > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400' ?>">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[0.625rem] font-black <?= $pending_cnt > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400' ?>">
                                         <?= $pending_cnt ?>
                                     </span>
                                 </td>
                                 <td class="px-5 py-5 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[10px] font-black <?= $paid_cnt > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400' ?>">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[0.625rem] font-black <?= $paid_cnt > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400' ?>">
                                         <?= $paid_cnt ?>
                                     </span>
                                 </td>
                                 <td class="px-8 py-5 text-right no-print">
                                     <div class="dropdown-wrapper inline-block relative">
                                         <button class="dropdown-trigger w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-all" tabindex="0">
-                                            <i class="fas fa-ellipsis-v text-[11px]"></i>
+                                            <i class="fas fa-ellipsis-v text-[0.6875rem]"></i>
                                         </button>
                                         <div class="dropdown-menu bg-white border border-slate-100 rounded-2xl shadow-xl py-2 mt-1">
-                                            <a href="student_balance_details.php?id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors uppercase tracking-widest">
+                                            <a href="student_balance_details.php?id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="flex items-center gap-3 px-4 py-2.5 text-[0.625rem] font-black text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-colors uppercase tracking-widest">
                                                 <i class="fas fa-eye w-4 text-indigo-500"></i> View Details
                                             </a>
-                                            <a href="../payments/record_payment_form.php?student_id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors uppercase tracking-widest">
+                                            <a href="../payments/record_payment_form.php?student_id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[0.625rem] font-black text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition-colors uppercase tracking-widest">
                                                 <i class="fas fa-credit-card w-4 text-emerald-500"></i> Record Payment
                                             </a>
-                                            <a href="../fees/assign_fee_form.php?student_id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors uppercase tracking-widest">
+                                            <a href="../fees/assign_fee_form.php?student_id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[0.625rem] font-black text-slate-600 hover:bg-slate-50 hover:text-sky-600 transition-colors uppercase tracking-widest">
                                                 <i class="fas fa-plus w-4 text-sky-500"></i> Assign Fee
                                             </a>
-                                            <a href="student_percentage.php?id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-slate-50 hover:text-purple-600 transition-colors uppercase tracking-widest">
+                                            <a href="student_percentage.php?id=<?= $s['student_id'] ?>" class="flex items-center gap-3 px-4 py-2.5 text-[0.625rem] font-black text-slate-600 hover:bg-slate-50 hover:text-purple-600 transition-colors uppercase tracking-widest">
                                                 <i class="fas fa-chart-pie w-4 text-purple-500"></i> Percentage
                                             </a>
                                             <div class="border-t border-slate-100 my-1"></div>
-                                            <a href="download_invoice.php?student_id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors uppercase tracking-widest">
+                                            <a href="download_invoice.php?student_id=<?= $s['student_id'] ?>&semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="flex items-center gap-3 px-4 py-2.5 text-[0.625rem] font-black text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors uppercase tracking-widest">
                                                 <i class="fas fa-download w-4 text-slate-400"></i> Download Invoice
                                             </a>
                                         </div>
@@ -403,7 +403,7 @@ $filter_qs = http_build_query([
             </div>
         </section>
 
-        <footer class="mt-4 py-8 border-t border-slate-200 text-[9px] font-black text-slate-300 uppercase tracking-[0.5em] text-center">
+        <footer class="mt-4 py-8 border-t border-slate-200 text-[0.5625rem] font-black text-slate-300 uppercase tracking-[0.5em] text-center">
             Institutional Registry Ledger &middot; <?= htmlspecialchars($school_name) ?> &middot; <?= date('Y') ?>
         </footer>
     </main>

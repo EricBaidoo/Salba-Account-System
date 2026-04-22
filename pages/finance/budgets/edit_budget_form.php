@@ -42,13 +42,13 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                     Fiscal Node
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">Adjust <span class="text-indigo-600">Projection</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Calibrating institutional spending thresholds for <?= htmlspecialchars($budget['semester']) ?>.</p>
             </div>
-            <a href="budgets.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+            <a href="budgets.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
                 <i class="fas fa-arrow-left mr-2"></i> Return to Projections
             </a>
         </header>
@@ -63,12 +63,12 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
                      <div class="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
                         <i class="fas fa-calculator text-8xl text-indigo-600"></i>
                     </div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Allocation Details</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Allocation Details</h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="space-y-8">
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Fiscal Category</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Fiscal Category</label>
                                 <select name="category" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 appearance-none transition-all">
                                     <option value="">-- Classification --</option>
                                     <?php foreach ($cat_list as $cat): ?>
@@ -77,20 +77,20 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Projected Amount (GHS)</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Projected Amount (GHS)</label>
                                 <input type="number" step="0.01" name="amount" id="amount" value="<?= htmlspecialchars($budget['amount']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                             </div>
                         </div>
                         <div class="space-y-8">
                              <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Constraint Narrative / Notes</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Constraint Narrative / Notes</label>
                                 <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all leading-loose"><?= htmlspecialchars($budget['description'] ?? '') ?></textarea>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Risk Alert Threshold (%)</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Risk Alert Threshold (%)</label>
                                 <div class="relative">
                                     <input type="number" step="1" name="alert_threshold" id="alert_threshold" value="<?= htmlspecialchars($budget['alert_threshold'] ?? 80) ?>" min="0" max="100" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
-                                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase">Percent</span>
+                                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[0.625rem] font-black text-slate-300 uppercase">Percent</span>
                                 </div>
                             </div>
                         </div>
@@ -99,11 +99,11 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
                     <!-- Date Scope -->
                     <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-slate-50">
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Activation Date</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Activation Date</label>
                             <input type="date" name="start_date" id="start_date" value="<?= htmlspecialchars($budget['start_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Semesterination Date</label>
+                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Semesterination Date</label>
                             <input type="date" name="end_date" id="end_date" value="<?= htmlspecialchars($budget['end_date']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                         </div>
                     </div>
@@ -117,17 +117,17 @@ while($c = $categories->fetch_assoc()) $cat_list[] = $c;
                         </div>
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-[0.2em] text-indigo-400">Projection Sync Authorized</h4>
-                            <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional fiscal constraints.</p>
+                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional fiscal constraints.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 leading-none h-fit">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 leading-none h-fit">
                         Sync Fiscal Node
                     </button>
                 </div>
             </form>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Salba Montessori &middot; Institutional Planning Hub &middot; v9.5.0
         </footer>
     </main>

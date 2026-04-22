@@ -47,12 +47,12 @@ if (!function_exists('nav_active')) {
     }
 
     #sidebar-modern::-webkit-scrollbar {
-        width: 4px;
+        width: 0.25rem;
     }
 
     #sidebar-modern::-webkit-scrollbar-thumb {
         background: #1e293b;
-        border-radius: 10px;
+        border-radius: 0.625rem;
     }
 
     .nav-item {
@@ -72,13 +72,13 @@ if (!function_exists('nav_active')) {
     .nav-item:hover {
         background: var(--sidebar-hover-bg);
         color: white;
-        transform: translateX(4px);
+        transform: translateX(0.25rem);
     }
 
     .nav-item.active {
         background: var(--sidebar-accent);
         color: white;
-        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(99, 102, 241, 0.3);
     }
 
     .nav-item.active i {
@@ -112,13 +112,13 @@ if (!function_exists('nav_active')) {
     .nav-group-label::after {
         content: '';
         flex: 1;
-        height: 1px;
+        height: 0.0625rem;
         background: #1e293b;
     }
 
     .user-pill {
         background: #0f172a;
-        border: 1px solid #1e293b;
+        border: 0.0625rem solid #1e293b;
         border-radius: 1rem;
         padding: 0.75rem;
         transition: all 0.3s;
@@ -153,7 +153,7 @@ if (!function_exists('nav_active')) {
             </div>
             <div>
                 <h1 class="text-white font-black tracking-tighter text-xl leading-none">SALBA</h1>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Management Hub</p>
+                <p class="text-[0.625rem] text-slate-500 font-bold uppercase tracking-widest mt-1">Management Hub</p>
             </div>
         </div>
         <!-- Mobile Close -->
@@ -285,9 +285,9 @@ if (!function_exists('nav_active')) {
                         <i class="fas fa-user-shield text-base"></i>
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5">Welcome</p>
+                        <p class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-[0.2em] mb-0.5">Welcome</p>
                         <p class="text-xs font-black text-white truncate"><?= htmlspecialchars($user_name) ?></p>
-                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest mt-0.5"><?= htmlspecialchars($user_role) ?></p>
+                        <p class="text-[0.5625rem] text-slate-500 uppercase font-black tracking-widest mt-0.5"><?= htmlspecialchars($user_role) ?></p>
                     </div>
                 </div>
                 <a href="<?= $root_path ?>logout" class="w-9 h-9 rounded-xl bg-slate-900 text-slate-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all border border-slate-800 shadow-sm" title="Secure Logout">

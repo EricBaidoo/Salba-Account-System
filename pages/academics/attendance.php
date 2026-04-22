@@ -178,21 +178,21 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
-        .stat-card { background: white; border: 1px solid #f1f5f9; border-radius: 1.25rem; padding: 1.5rem; transition: all 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(0.625rem); border-bottom: 0.0625rem solid rgba(226, 232, 240, 0.8); }
+        .stat-card { background: white; border: 0.0625rem solid #f1f5f9; border-radius: 1.25rem; padding: 1.5rem; transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-0.125rem); box-shadow: 0 0.625rem 0.9375rem -0.1875rem rgba(0,0,0,0.05); }
         .attendance-row:hover { background: #f8fafc; }
         .radio-btn { display: none; }
         .status-pill {
-            cursor: pointer; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700;
-            text-transform: uppercase; border: 1.5px solid #e2e8f0; transition: all 0.2s; color: #94a3b8;
+            cursor: pointer; padding: 0.5rem 1rem; border-radius: 624.938rem; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; border: 0.09375rem solid #e2e8f0; transition: all 0.2s; color: #94a3b8;
         }
         .radio-btn:checked + .present { background: #f0fdf4; color: #15803d; border-color: #15803d; }
         .radio-btn:checked + .absent { background: #fef2f2; color: #b91c1c; border-color: #b91c1c; }
         
-        .sticky-col { position: sticky; left: 0; background: white; z-index: 10; border-right: 1px solid #f1f5f9; }
-        .tracker-grid::-webkit-scrollbar { height: 8px; }
-        .tracker-grid::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .sticky-col { position: sticky; left: 0; background: white; z-index: 10; border-right: 0.0625rem solid #f1f5f9; }
+        .tracker-grid::-webkit-scrollbar { height: 0.5rem; }
+        .tracker-grid::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 0.625rem; }
     </style>
 </head>
 <body class="bg-[#fcfdfe] text-slate-800">
@@ -208,7 +208,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
         <header class="glass-nav sticky top-0 z-50 px-4 md:px-10 py-4 md:py-5">
             <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <div class="flex items-center gap-2 text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">
+                    <div class="flex items-center gap-2 text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest mb-1">
                         <i class="fas fa-fingerprint"></i> Institutional Biometrics
                     </div>
                     <div class="flex items-center flex-wrap gap-2 md:gap-4 mt-2">
@@ -223,20 +223,20 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight whitespace-nowrap">Attendance <span class="text-indigo-600">Hub</span></h1>
                         <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
                         <nav class="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto mt-2 md:mt-0">
-                            <a href="?class=<?= $selected_class ?>&mode=daily" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all <?= $view_mode==='daily'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Daily Roll Call</a>
-                            <a href="?class=<?= $selected_class ?>&mode=history" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all <?= $view_mode==='history'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Semester Ledger</a>
+                            <a href="?class=<?= $selected_class ?>&mode=daily" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[0.625rem] md:text-xs font-bold transition-all <?= $view_mode==='daily'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Daily Roll Call</a>
+                            <a href="?class=<?= $selected_class ?>&mode=history" class="flex-1 text-center px-2 md:px-4 py-1.5 rounded-lg text-[0.625rem] md:text-xs font-bold transition-all <?= $view_mode==='history'?'bg-white shadow-sm text-indigo-600':'text-slate-500 hover:text-slate-800' ?>">Semester Ledger</a>
                         </nav>
                     </div>
                 </div>
                 <div class="flex w-full md:w-auto justify-between md:justify-end items-center gap-2 md:gap-4 border-t border-slate-100 md:border-none pt-4 md:pt-0 mt-2 md:mt-0">
                     <div class="text-left md:text-right border-r border-slate-100 pr-4 mr-1 hidden md:block">
-                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-start md:justify-end gap-1">
-                            <i class="fas fa-clock text-[8px]"></i> Session Timeline
+                        <div class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-start md:justify-end gap-1">
+                            <i class="fas fa-clock text-[0.5rem]"></i> Session Timeline
                         </div>
-                        <div class="text-[11px] font-bold text-slate-600 flex items-center gap-2">
+                        <div class="text-[0.6875rem] font-bold text-slate-600 flex items-center gap-2">
                             <?php if($semester_start && $semester_end): ?>
                                 <span><?= date('M d', strtotime($semester_start)) ?></span>
-                                <i class="fas fa-arrow-right text-[8px] opacity-30"></i>
+                                <i class="fas fa-arrow-right text-[0.5rem] opacity-30"></i>
                                 <span><?= date('M d, Y', strtotime($semester_end)) ?></span>
                             <?php else: ?>
                                 <span class="text-slate-400 italic">Dates not set</span>
@@ -244,7 +244,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-[10px] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1"><?= $current_semester ?></div>
+                        <div class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1"><?= $current_semester ?></div>
                         <div class="text-xs font-bold text-slate-700"><?= $current_year ?> Academic Session</div>
                     </div>
                     <button onclick="window.print()" class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors shadow-sm">
@@ -266,7 +266,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
             <!-- Global Stats Ribbon -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                 <div class="stat-card">
-                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Institutional Days</div>
+                    <div class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3">Institutional Days</div>
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black text-slate-900"><?= $total_instructional_days ?></span>
                         <span class="text-xs font-bold text-slate-400">School Sessions</span>
@@ -276,7 +276,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-3">Live Presence</div>
+                    <div class="text-[0.625rem] font-black text-emerald-500 uppercase tracking-widest mb-3">Live Presence</div>
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black text-emerald-600"><?= $stats['present'] ?></span>
                         <span class="text-xs font-bold text-slate-400">/ <?= $stats['total'] ?> Present</span>
@@ -286,7 +286,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3">Live Absence</div>
+                    <div class="text-[0.625rem] font-black text-red-500 uppercase tracking-widest mb-3">Live Absence</div>
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black text-red-600"><?= $stats['absent'] ?></span>
                         <span class="text-xs font-bold text-slate-400">/ <?= $stats['total'] ?> Missing</span>
@@ -296,7 +296,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     </div>
                 </div>
                 <div class="stat-card bg-slate-900 border-slate-800">
-                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Class Performance</div>
+                    <div class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest mb-3">Class Performance</div>
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black text-white"><?= $participation_rate ?>%</span>
                         <span class="text-xs font-bold text-slate-500">Participation</span>
@@ -313,8 +313,8 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
             <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm mb-10">
                 <form method="GET" class="flex flex-col md:flex-row flex-wrap items-end gap-6">
                     <input type="hidden" name="mode" value="<?= $view_mode ?>">
-                    <div class="w-full md:flex-1 md:min-w-[200px]">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Selected Class / Level</label>
+                    <div class="w-full md:flex-1 md:min-w-[12.5rem]">
+                        <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Selected Class / Level</label>
                         <select name="class" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer appearance-none">
                             <?php foreach($allocated_classes as $cl): ?>
                                 <option value="<?= htmlspecialchars($cl) ?>" <?= $selected_class === $cl ? 'selected' : '' ?>><?= htmlspecialchars($cl) ?></option>
@@ -323,12 +323,12 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                     </div>
                     <?php if($view_mode === 'daily'): ?>
                         <div class="w-full md:w-48">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Session Date</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Session Date</label>
                             <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
                     <?php else: ?>
                         <div class="w-full md:w-48">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Analysis Week</label>
+                            <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Analysis Week</label>
                             <select name="h_week" onchange="this.form.submit()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
                                 <?php for($w=1; $w<=$weeks_limit; $w++): ?>
                                     <option value="<?= $w ?>" <?= ($target_week ?? 1) == $w ? 'selected' : '' ?>>Week <?= $w ?></option>
@@ -337,8 +337,8 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         </div>
                     <?php endif; ?>
                     
-                    <div class="w-full md:flex-1 md:min-w-[280px]">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Real-time Search</label>
+                    <div class="w-full md:flex-1 md:min-w-[17.5rem]">
+                        <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Real-time Search</label>
                         <div class="relative">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
                             <input type="text" id="liveSearch" placeholder="Filter by student name..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-100 transition-all">
@@ -367,9 +367,9 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <input type="hidden" name="week_val" value="<?= $selected_week ?>">
                         
                         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-8 overflow-x-auto">
-                            <table class="w-full text-left min-w-[700px]">
+                            <table class="w-full text-left min-w-[62.5rem]">
                                 <thead>
-                                    <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                    <tr class="bg-slate-50/50 text-[0.625rem] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                         <th class="px-10 py-6">Identity & Records</th>
                                         <th class="px-10 py-6 text-center">Engagement Status</th>
                                         <th class="px-10 py-6">Incident Notes</th>
@@ -387,7 +387,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                                     </div>
                                                     <div>
                                                         <div class="font-bold text-slate-900 leading-tight"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?></div>
-                                                        <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mt-0.5">SID: #<?= str_pad($s['id'], 5, '0', STR_PAD_LEFT) ?></div>
+                                                        <div class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-widest mt-0.5">SID: #<?= str_pad($s['id'], 5, '0', STR_PAD_LEFT) ?></div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -409,8 +409,8 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         
                         <div class="flex flex-col md:flex-row justify-between items-center gap-6 p-6 md:p-8 bg-slate-900 rounded-[2rem] shadow-xl border border-slate-800">
                            <div class="flex w-full md:w-auto gap-3 md:gap-4">
-                               <button type="button" onclick="markAll('present')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[10px] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Present</button>
-                               <button type="button" onclick="markAll('absent')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[10px] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Absent</button>
+                               <button type="button" onclick="markAll('present')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[0.625rem] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Present</button>
+                               <button type="button" onclick="markAll('absent')" class="flex-1 md:flex-none px-4 md:px-5 py-3 md:py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-[0.625rem] md:text-xs hover:bg-slate-700 transition-all border border-slate-700 uppercase tracking-wider text-center">Mark All Absent</button>
                            </div>
                            <button type="submit" class="w-full md:w-auto justify-center bg-indigo-600 text-white px-8 md:px-10 py-4 md:py-3 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-500 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-900/40 flex items-center gap-3">
                                <i class="fas fa-lock text-indigo-400"></i> Save Register
@@ -422,26 +422,26 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
             <?php else: ?>
                 <!-- Semester Ledger: Recovery Overhaul -->
                 <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden tracker-grid overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <table class="w-full text-left border-collapse min-w-[62.5rem]">
                         <thead>
                             <tr class="bg-slate-900 border-b border-slate-800">
-                                <th class="px-8 py-10 sticky-col bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800">Operational Log</th>
+                                <th class="px-8 py-10 sticky-col bg-slate-900 text-[0.625rem] font-black uppercase tracking-widest text-slate-400 w-64 border-r border-slate-800">Operational Log</th>
                                 <?php foreach($tracker_dates as $date): 
                                     $is_h = isset($holidays[$date]);
                                 ?>
-                                    <th class="px-2 py-8 text-center border-r border-slate-800 min-w-[70px] <?= $is_h ? 'bg-orange-950/20':'' ?>">
-                                        <div class="text-[10px] font-black uppercase tracking-wider <?= $is_h ? 'text-orange-400':'text-slate-500' ?>"><?= date('D', strtotime($date)) ?></div>
+                                    <th class="px-2 py-8 text-center border-r border-slate-800 min-w-[4.375rem] <?= $is_h ? 'bg-orange-950/20':'' ?>">
+                                        <div class="text-[0.625rem] font-black uppercase tracking-wider <?= $is_h ? 'text-orange-400':'text-slate-500' ?>"><?= date('D', strtotime($date)) ?></div>
                                         <div class="text-xl font-black leading-none my-1 <?= $is_h ? 'text-orange-200':'text-white' ?>"><?= date('d', strtotime($date)) ?></div>
-                                        <div class="text-[9px] font-bold text-slate-600 uppercase"><?= date('M', strtotime($date)) ?></div>
+                                        <div class="text-[0.5625rem] font-bold text-slate-600 uppercase"><?= date('M', strtotime($date)) ?></div>
                                     </th>
                                 <?php endforeach; ?>
                                 <th class="px-6 py-8 text-center bg-indigo-950 text-indigo-400 border-l border-indigo-900 border-r border-indigo-900">
-                                    <div class="text-[10px] font-black uppercase mb-1">Weekly Sum</div>
+                                    <div class="text-[0.625rem] font-black uppercase mb-1">Weekly Sum</div>
                                     <i class="fas fa-plus-circle text-xs"></i>
                                 </th>
                                 <th class="px-8 py-8 text-center bg-slate-950 text-white">
-                                    <div class="text-[10px] font-black uppercase mb-1 text-slate-500">Institution Total</div>
-                                    <div class="text-[9px] font-black uppercase opacity-40">Semester</div>
+                                    <div class="text-[0.625rem] font-black uppercase mb-1 text-slate-500">Institution Total</div>
+                                    <div class="text-[0.5625rem] font-black uppercase opacity-40">Semester</div>
                                 </th>
                             </tr>
                         </thead>
@@ -461,7 +461,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                 <tr class="attendance-row group transition-all" data-name="<?= strtolower(htmlspecialchars($s['first_name'].' '.$s['last_name'])) ?>">
                                     <td class="px-8 py-5 sticky-col group-hover:bg-slate-50 border-r border-slate-100 shadow-sm">
                                         <div class="font-bold text-slate-900 leading-tight"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?></div>
-                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                        <div class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1">
                                             <span class="w-1 h-1 rounded-full bg-slate-300"></span> SID: #<?= str_pad($id, 5, '0', STR_PAD_LEFT) ?>
                                         </div>
                                     </td>
@@ -477,7 +477,7 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                                 <?php elseif($st === 'absent'): ?>
                                                     <div class="w-2.5 h-2.5 border-2 border-red-400 rounded-full opacity-90" title="Absent"></div>
                                                 <?php elseif($st): ?>
-                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)]" title="Present"></div>
+                                                    <div class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_0.75rem_rgba(16,185,129,0.4)]" title="Present"></div>
                                                 <?php else: ?>
                                                     <div class="w-1.5 h-1.5 bg-slate-100 rounded-full opacity-50"></div>
                                                 <?php endif; ?>
@@ -487,16 +487,16 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                                     <td class="px-6 py-5 text-center bg-indigo-50/30 border-l border-indigo-100 shadow-inner">
                                         <div class="flex flex-col items-center">
                                             <span class="font-black text-indigo-700 text-base"><?= $w_sum ?></span>
-                                            <div class="text-[8px] font-black text-indigo-300 uppercase tracking-widest mt-0.5">Present</div>
+                                            <div class="text-[0.5rem] font-black text-indigo-300 uppercase tracking-widest mt-0.5">Present</div>
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 text-center bg-slate-50 border-l border-slate-100 shadow-inner">
                                         <div class="flex flex-col items-center">
                                             <div class="flex items-baseline gap-1">
                                                 <span class="font-black text-slate-900 text-base"><?= $sem_total ?></span>
-                                                <span class="text-[10px] text-slate-400 font-bold">/ <?= $total_semester_days ?></span>
+                                                <span class="text-[0.625rem] text-slate-400 font-bold">/ <?= $total_semester_days ?></span>
                                             </div>
-                                            <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Semester Total</div>
+                                            <div class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mt-0.5">Semester Total</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -507,11 +507,11 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                 
                 <div class="mt-8 flex justify-end">
                     <div class="flex items-center gap-6 bg-white px-8 py-4 rounded-[2rem] border border-slate-100 shadow-xl">
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full shadow-lg"></div> <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Present</span></div>
-                        <div class="flex items-center gap-2"><div class="w-3 h-3 border-2 border-red-400 rounded-full"></div> <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Absent</span></div>
-                        <div class="flex items-center gap-2"><div class="w-4 h-1 bg-orange-300 rounded-full opacity-60"></div> <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Holiday</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full shadow-lg"></div> <span class="text-[0.5625rem] font-black text-slate-500 uppercase tracking-widest">Present</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 border-2 border-red-400 rounded-full"></div> <span class="text-[0.5625rem] font-black text-slate-500 uppercase tracking-widest">Absent</span></div>
+                        <div class="flex items-center gap-2"><div class="w-4 h-1 bg-orange-300 rounded-full opacity-60"></div> <span class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest">Holiday</span></div>
                         <div class="h-4 w-px bg-slate-100"></div>
-                        <div class="flex items-center gap-2 italic"><span class="text-[9px] font-bold text-slate-400">Values calculated based on session timeline</span></div>
+                        <div class="flex items-center gap-2 italic"><span class="text-[0.5625rem] font-bold text-slate-400">Values calculated based on session timeline</span></div>
                     </div>
                 </div>
             <?php endif; ?>

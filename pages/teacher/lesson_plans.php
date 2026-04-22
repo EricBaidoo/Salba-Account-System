@@ -197,7 +197,7 @@ if ($_SESSION['role'] === 'admin') {
                     <!-- SECTION 1: HEADER & LOGISTICS -->
                     <div>
                         <h3 class="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
-                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[10px]">1</span> Logistics & Header
+                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[0.625rem]">1</span> Logistics & Header
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
@@ -246,7 +246,7 @@ if ($_SESSION['role'] === 'admin') {
                     <!-- SECTION 2: CURRICULUM ALIGNMENT -->
                     <div class="pt-4 border-t border-gray-50">
                         <h3 class="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
-                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[10px]">2</span> Curriculum & Strand
+                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[0.625rem]">2</span> Curriculum & Strand
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
@@ -283,7 +283,7 @@ if ($_SESSION['role'] === 'admin') {
                     <!-- SECTION 3: PREPARATION -->
                     <div class="pt-4 border-t border-gray-50">
                         <h3 class="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
-                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[10px]">3</span> Preparation & Materials
+                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[0.625rem]">3</span> Preparation & Materials
                         </h3>
                         <div class="space-y-4">
                             <div>
@@ -304,7 +304,7 @@ if ($_SESSION['role'] === 'admin') {
                     <!-- SECTION 4: LESSON PHASES -->
                     <div class="pt-4 border-t border-gray-50">
                         <h3 class="flex items-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest mb-4">
-                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[10px]">4</span> Lesson Delivery (Phases)
+                            <span class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[0.625rem]">4</span> Lesson Delivery (Phases)
                         </h3>
                         
                         <!-- Phase 1 -->
@@ -312,17 +312,17 @@ if ($_SESSION['role'] === 'admin') {
                             <div class="flex justify-between items-center">
                                 <h4 class="text-xs font-black text-green-700 uppercase">Phase 1: Starter / Introduction</h4>
                                 <div class="flex items-center gap-2">
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Duration</label>
+                                    <label class="text-[0.625rem] font-bold text-gray-400 uppercase">Duration</label>
                                     <input type="text" name="phase1_duration" placeholder="e.g. 5 mins" class="px-2 py-1 bg-white border border-gray-200 rounded text-xs w-24">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Learner Activities</label>
+                                    <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Learner Activities</label>
                                     <textarea name="starter_activities" rows="3" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Resources</label>
+                                    <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Resources</label>
                                     <textarea name="starter_resources" rows="3" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                 </div>
                             </div>
@@ -333,23 +333,23 @@ if ($_SESSION['role'] === 'admin') {
                             <div class="flex justify-between items-center">
                                 <h4 class="text-xs font-black text-green-800 uppercase">Phase 2: New Learning & Development</h4>
                                 <div class="flex items-center gap-2">
-                                    <label class="text-[10px] font-bold text-gray-400 border-green-100 uppercase">Duration</label>
+                                    <label class="text-[0.625rem] font-bold text-gray-400 border-green-100 uppercase">Duration</label>
                                     <input type="text" name="phase2_duration" placeholder="e.g. 40 mins" class="px-2 py-1 bg-white border border-gray-200 rounded text-xs w-24">
                                 </div>
                             </div>
                             <div class="space-y-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Learner Activities</label>
+                                        <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Learner Activities</label>
                                         <textarea name="learning_activities" rows="5" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                     </div>
                                     <div class="space-y-4">
                                         <div>
-                                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Resources</label>
+                                            <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Resources</label>
                                             <textarea name="learning_resources" rows="2" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                         </div>
                                         <div>
-                                            <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Assessment Queries / Feedback</label>
+                                            <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Assessment Queries / Feedback</label>
                                             <textarea name="learning_assessment" rows="2" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                         </div>
                                     </div>
@@ -362,23 +362,23 @@ if ($_SESSION['role'] === 'admin') {
                             <div class="flex justify-between items-center">
                                 <h4 class="text-xs font-black text-gray-700 uppercase">Phase 3: Reflection & Conclusion</h4>
                                 <div class="flex items-center gap-2">
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Duration</label>
+                                    <label class="text-[0.625rem] font-bold text-gray-400 uppercase">Duration</label>
                                     <input type="text" name="phase3_duration" placeholder="e.g. 10 mins" class="px-2 py-1 bg-white border border-gray-200 rounded text-xs w-24">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Reflection Activities</label>
+                                        <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Reflection Activities</label>
                                         <textarea name="reflection_activities" rows="3" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Resources</label>
+                                        <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Resources</label>
                                         <textarea name="reflection_resources" rows="2" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"></textarea>
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Homework / Assignment</label>
+                                    <label class="block text-[0.625rem] font-bold text-gray-500 uppercase mb-1">Homework / Assignment</label>
                                     <textarea name="homework" rows="6" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm" placeholder="List questions or tasks for home..."></textarea>
                                 </div>
                             </div>
@@ -401,27 +401,27 @@ if ($_SESSION['role'] === 'admin') {
                         <div class="border border-gray-100 p-5 rounded-2xl bg-gray-50 group hover:bg-white hover:border-green-200 transition-all shadow-sm flex flex-col sm:flex-row justify-between items-start gap-4">
                             <div class="flex-1">
                                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                                    <span class="text-[10px] font-black bg-indigo-600 text-white px-2 py-0.5 rounded tracking-widest uppercase">Week <?= $p['week_number'] ?></span>
-                                    <span class="text-[10px] font-black bg-gray-200 text-gray-600 px-2 py-0.5 rounded tracking-tighter"><?= htmlspecialchars($p['class_name']) ?></span>
-                                    <span class="text-[10px] font-black bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100"><?= htmlspecialchars($p['subject_name']) ?></span>
+                                    <span class="text-[0.625rem] font-black bg-indigo-600 text-white px-2 py-0.5 rounded tracking-widest uppercase">Week <?= $p['week_number'] ?></span>
+                                    <span class="text-[0.625rem] font-black bg-gray-200 text-gray-600 px-2 py-0.5 rounded tracking-tighter"><?= htmlspecialchars($p['class_name']) ?></span>
+                                    <span class="text-[0.625rem] font-black bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100"><?= htmlspecialchars($p['subject_name']) ?></span>
                                 </div>
                                 <h4 class="font-bold text-gray-900 mb-1"><?= htmlspecialchars($p['topic']) ?></h4>
                                 <div class="flex items-center gap-3">
                                     <?php if($p['status'] === 'pending'): ?>
-                                        <span class="text-[10px] font-bold text-yellow-600 flex items-center gap-1"><i class="fas fa-clock"></i> Pending Review</span>
+                                        <span class="text-[0.625rem] font-bold text-yellow-600 flex items-center gap-1"><i class="fas fa-clock"></i> Pending Review</span>
                                     <?php elseif($p['status'] === 'approved'): ?>
-                                        <span class="text-[10px] font-bold text-green-600 flex items-center gap-1"><i class="fas fa-check-circle"></i> Approved</span>
+                                        <span class="text-[0.625rem] font-bold text-green-600 flex items-center gap-1"><i class="fas fa-check-circle"></i> Approved</span>
                                     <?php else: ?>
-                                        <span class="text-[10px] font-bold text-red-600 flex items-center gap-1"><i class="fas fa-times-circle"></i> Rejected</span>
+                                        <span class="text-[0.625rem] font-bold text-red-600 flex items-center gap-1"><i class="fas fa-times-circle"></i> Rejected</span>
                                     <?php endif; ?>
-                                    <span class="text-[10px] text-gray-400 font-medium">Submitted <?= date('d M, Y', strtotime($p['created_at'])) ?></span>
+                                    <span class="text-[0.625rem] text-gray-400 font-medium">Submitted <?= date('d M, Y', strtotime($p['created_at'])) ?></span>
                                 </div>
                                 
                                 <?php if($p['supervisor_comments']): ?>
                                     <div class="mt-3 text-xs bg-white p-3 rounded-lg border-l-2 border-green-500 italic text-gray-600 shadow-sm">
                                         "<?= htmlspecialchars($p['supervisor_comments']) ?>"
                                     </div>
-                                    <div class="text-[9px] text-green-600 font-bold uppercase mt-1 pl-3">Principal / Headteacher / Supervisor Feedback</div>
+                                    <div class="text-[0.5625rem] text-green-600 font-bold uppercase mt-1 pl-3">Principal / Headteacher / Supervisor Feedback</div>
                                 <?php endif; ?>
                             </div>
                             

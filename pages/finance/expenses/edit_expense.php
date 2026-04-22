@@ -59,13 +59,13 @@ while($c = $cat_result->fetch_assoc()) $categories[] = $c;
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-rose-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
                     Expenditure Registry
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Revise <span class="text-rose-600">Outflow</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Updating institutional spending parameters for audit accuracy.</p>
             </div>
-            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
+            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
                 <i class="fas fa-arrow-left mr-2"></i> Return to Ledger
             </a>
         </header>
@@ -86,12 +86,12 @@ while($c = $cat_result->fetch_assoc()) $categories[] = $c;
                      <div class="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
                         <i class="fas fa-receipt text-8xl text-rose-600"></i>
                     </div>
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Spending Node</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Spending Node</h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div class="space-y-8">
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Functional Category</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Functional Category</label>
                                 <select name="category_id" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 appearance-none transition-all">
                                     <?php foreach ($categories as $cat): ?>
                                         <option value="<?= $cat['id'] ?>" <?= ($exp['category_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
@@ -99,17 +99,17 @@ while($c = $cat_result->fetch_assoc()) $categories[] = $c;
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verified Amount (GHS)</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verified Amount (GHS)</label>
                                 <input type="number" step="0.01" name="amount" value="<?= $exp['amount'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
                             </div>
                         </div>
                         <div class="space-y-8">
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Transaction Date</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Transaction Date</label>
                                 <input type="date" name="expense_date" value="<?= $exp['expense_date'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Operational Logic / Notes</label>
+                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Operational Logic / Notes</label>
                                 <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all"><?= htmlspecialchars($exp['description']) ?></textarea>
                             </div>
                         </div>
@@ -124,17 +124,17 @@ while($c = $cat_result->fetch_assoc()) $categories[] = $c;
                         </div>
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-[0.2em] text-rose-400">Registry Sync Authorized</h4>
-                            <p class="text-slate-500 text-[10px] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional spending ledger.</p>
+                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional spending ledger.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-rose-600/20 active:scale-95 leading-none h-fit">
+                    <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-rose-600/20 active:scale-95 leading-none h-fit">
                         Sync Expenditure Node
                     </button>
                 </div>
             </form>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Salba Montessori &middot; Institutional Audit Registry &middot; v9.5.0
         </footer>
     </main>

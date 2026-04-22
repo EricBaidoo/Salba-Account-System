@@ -132,7 +132,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
                 <div class="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-purple-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-purple-600"></span>
                     Financial Forecasting
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Trimester <span class="text-purple-600">Budget</span></h1>
@@ -140,11 +140,11 @@ $net_actual = $total_income_actual - $total_expense_actual;
             </div>
             <div class="flex items-center gap-3">
                  <?php if (!$is_locked): ?>
-                    <a href="edit_semester_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>" class="bg-purple-600 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-purple-600/20 hover:bg-purple-700 transition-all leading-none">
+                    <a href="edit_semester_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>" class="bg-purple-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-purple-600/20 hover:bg-purple-700 transition-all leading-none">
                         <i class="fas fa-edit mr-2"></i> Configure Estimates
                     </a>
                     <?php if ($semester_budget): ?>
-                        <a href="semester_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>&action=lock" class="bg-white text-slate-600 border border-slate-200 font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none" onclick="return confirm('DANGER: Lock this budget? All modifications will be deactivated.');">
+                        <a href="semester_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>&action=lock" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none" onclick="return confirm('DANGER: Lock this budget? All modifications will be deactivated.');">
                             <i class="fas fa-lock mr-2"></i> Lock Assets
                         </a>
                     <?php endif; ?>
@@ -152,8 +152,8 @@ $net_actual = $total_income_actual - $total_expense_actual;
                     <div class="bg-slate-900 text-white px-6 py-4 rounded-2xl flex items-center gap-3 shadow-xl">
                         <i class="fas fa-shield-halved text-emerald-400"></i>
                          <div class="flex flex-col">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-500 leading-none mb-1">Vault Locked</span>
-                            <span class="text-[10px] font-bold"><?= htmlspecialchars($semester_budget['locked_by']) ?></span>
+                            <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-500 leading-none mb-1">Vault Locked</span>
+                            <span class="text-[0.625rem] font-bold"><?= htmlspecialchars($semester_budget['locked_by']) ?></span>
                          </div>
                          <a href="semester_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>&action=unlock" class="ml-4 w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-all" title="Request Unlock">
                             <i class="fas fa-lock-open text-xs"></i>
@@ -186,9 +186,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
                 <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-money-bill-trend-up text-6xl text-emerald-600"></i>
                 </div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Projected Revenue</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Projected Revenue</p>
                 <h2 class="text-3xl font-black text-slate-900 mb-4">GHS <?= number_format($total_income_budget, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-emerald-50 text-emerald-600 w-fit px-3 py-1 rounded-full">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-emerald-50 text-emerald-600 w-fit px-3 py-1 rounded-full">
                     <i class="fas fa-circle-check"></i> From Active Bills
                 </div>
             </div>
@@ -198,9 +198,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
                 <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-receipt text-6xl text-rose-600"></i>
                 </div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Expenditure</p>
+                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Target Expenditure</p>
                 <h2 class="text-3xl font-black text-slate-900 mb-4">GHS <?= number_format($total_expense_budget, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[10px] font-bold bg-rose-50 text-rose-600 w-fit px-3 py-1 rounded-full">
+                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-rose-50 text-rose-600 w-fit px-3 py-1 rounded-full">
                     <i class="fas fa-compass"></i> Estimates Applied
                 </div>
             </div>
@@ -212,9 +212,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
                 </div>
                 <div class="flex flex-col md:flex-row gap-12">
                     <div>
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Budgeted Operating Net</p>
+                        <p class="text-[0.625rem] font-black text-slate-500 uppercase tracking-widest mb-1">Budgeted Operating Net</p>
                         <h2 class="text-4xl font-black <?= $net_budgeted >= 0 ? 'text-emerald-400' : 'text-rose-400' ?> mb-2 tracking-tighter">GHS <?= number_format($net_budgeted, 2) ?></h2>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase">Estimated Surplus/Deficit</p>
+                        <p class="text-[0.625rem] font-bold text-slate-500 uppercase">Estimated Surplus/Deficit</p>
                     </div>
                     <div class="flex flex-col justify-end">
                          <div class="p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
@@ -226,7 +226,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                             <div class="flex items-center gap-3">
                                 <i class="fas <?= $icon ?> text-xl"></i>
                                 <div>
-                                    <div class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Health Audit</div>
+                                    <div class="text-[0.5rem] font-black text-slate-500 uppercase tracking-widest">Health Audit</div>
                                     <div class="text-xs font-black uppercase tracking-tight"><?= $label ?></div>
                                 </div>
                             </div>
@@ -240,15 +240,15 @@ $net_actual = $total_income_actual - $total_expense_actual;
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <!-- Income Ledger -->
             <div>
-                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                    Projected Revenue Streams <span class="flex-1 h-[1px] bg-slate-100"></span>
+                 <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                    Projected Revenue Streams <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
                 </h3>
                 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
                     <table class="w-full">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
-                                <th class="px-8 py-5 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">Revenue Pillar</th>
-                                <th class="px-8 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Maturity (GHS)</th>
+                                <th class="px-8 py-5 text-left text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Revenue Pillar</th>
+                                <th class="px-8 py-5 text-right text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Maturity (GHS)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
@@ -261,7 +261,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                         </tbody>
                         <tfoot>
                             <tr class="bg-emerald-50/30">
-                                <td class="px-8 py-6 text-[10px] font-black text-emerald-700 uppercase tracking-widest">Total Projected Inflow</td>
+                                <td class="px-8 py-6 text-[0.625rem] font-black text-emerald-700 uppercase tracking-widest">Total Projected Inflow</td>
                                 <td class="px-8 py-6 text-right text-lg font-black text-emerald-600">GHS <?= number_format($total_income_budget, 2) ?></td>
                             </tr>
                         </tfoot>
@@ -271,15 +271,15 @@ $net_actual = $total_income_actual - $total_expense_actual;
 
             <!-- Expense Ledger -->
             <div>
-                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                    Allocated Expenditure <span class="flex-1 h-[1px] bg-slate-100"></span>
+                 <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                    Allocated Expenditure <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
                 </h3>
                 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
                     <table class="w-full">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
-                                <th class="px-8 py-5 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">Expense Category</th>
-                                <th class="px-8 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Limit (GHS)</th>
+                                <th class="px-8 py-5 text-left text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Expense Category</th>
+                                <th class="px-8 py-5 text-right text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Limit (GHS)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
@@ -292,7 +292,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
                         </tbody>
                         <tfoot>
                             <tr class="bg-rose-50/30">
-                                <td class="px-8 py-6 text-[10px] font-black text-rose-700 uppercase tracking-widest">Total Allocated Assets</td>
+                                <td class="px-8 py-6 text-[0.625rem] font-black text-rose-700 uppercase tracking-widest">Total Allocated Assets</td>
                                 <td class="px-8 py-6 text-right text-lg font-black text-rose-600">GHS <?= number_format($total_expense_budget, 2) ?></td>
                             </tr>
                         </tfoot>
@@ -302,7 +302,7 @@ $net_actual = $total_income_actual - $total_expense_actual;
         </div>
 
         <!-- Footer Audit -->
-        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
+        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
             <span>Budget Optimization Protocol &middot; Financial Forecast &middot; v9.5.0</span>
             <div class="flex gap-6">
                 <a href="../dashboard.php" class="hover:text-purple-600 transition-colors">Dashboard Control</a>

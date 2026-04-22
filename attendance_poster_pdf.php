@@ -42,7 +42,7 @@ table { border-collapse: collapse; }
 .section   { width: 100%; padding: 0 14mm; }
 .lbl {
     font-size: 7pt; font-weight: bold;
-    text-transform: uppercase; letter-spacing: 3px;
+    text-transform: uppercase; letter-spacing: 0.1875rem;
     color: #6366f1;
 }
 .sname {
@@ -53,36 +53,36 @@ table { border-collapse: collapse; }
 }
 .stag {
     font-size: 7.5pt; font-weight: bold;
-    text-transform: uppercase; letter-spacing: 3px;
+    text-transform: uppercase; letter-spacing: 0.1875rem;
     color: #94a3b8;
 }
 .rule-line {
-    width: 18mm; height: 2px;
+    width: 18mm; height: 0.125rem;
     background: #6366f1;
     margin: 0 auto;
 }
 .act-title {
     font-size: 9pt; font-weight: bold;
-    text-transform: uppercase; letter-spacing: 4px;
+    text-transform: uppercase; letter-spacing: 0.25rem;
     color: #4f46e5;
 }
 .qr-border {
-    border: 5px solid #4338ca;
-    border-radius: 8px;
-    padding: 5px;
+    border: 0.3125rem solid #4338ca;
+    border-radius: 0.5rem;
+    padding: 0.3125rem;
     display: inline-block;
     background: #fff;
 }
 .hint {
     font-size: 8pt; font-weight: bold;
-    text-transform: uppercase; letter-spacing: 4px;
+    text-transform: uppercase; letter-spacing: 0.25rem;
     color: #6366f1;
 }
 .footer {
     font-size: 6pt;
     color: #cbd5e1;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 0.125rem;
 }
 </style>
 </head>
@@ -93,7 +93,7 @@ table { border-collapse: collapse; }
 
 <!-- LOGO -->
 <br>
-' . ($logo_src ? '<img src="' . $logo_src . '" width="18mm" height="18mm" style="border-radius:50%;border:3px solid #e0e7ff;">' : '') . '
+' . ($logo_src ? '<img src="' . $logo_src . '" width="18mm" height="18mm" style="border-radius:50%;border:0.1875rem solid #e0e7ff;">' : '') . '
 <br><br>
 
 <!-- SCHOOL NAME -->
@@ -105,7 +105,7 @@ table { border-collapse: collapse; }
 <br>
 
 <!-- DIVIDER -->
-<table width="100%"><tr><td align="center"><table width="18mm"><tr><td style="height:2px;background:#6366f1;"></td></tr></table></td></tr></table>
+<table width="100%"><tr><td align="center"><table width="18mm"><tr><td style="height:0.125rem;background:#6366f1;"></td></tr></table></td></tr></table>
 <br>
 
 <!-- ACTION TITLE -->
@@ -115,7 +115,7 @@ table { border-collapse: collapse; }
 <!-- QR CODE -->
 ' . ($qr_src
     ? '<table width="100%"><tr><td align="center">
-        <table style="border:5px solid #4338ca;border-radius:8px;padding:5px;background:#fff;">
+        <table style="border:0.3125rem solid #4338ca;border-radius:0.5rem;padding:0.3125rem;background:#fff;">
             <tr><td><img src="' . $qr_src . '" width="145mm" height="145mm"></td></tr>
         </table>
       </td></tr></table>'

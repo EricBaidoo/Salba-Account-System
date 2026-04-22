@@ -104,7 +104,7 @@ for ($i = 0; $i < 12; $i++) {
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; }
-            .admin-main-content { margin-left: 0 !important; padding: 20px !important; }
+            .admin-main-content { margin-left: 0 !important; padding: 1.25rem !important; }
         }
     </style>
 </head>
@@ -115,9 +115,9 @@ for ($i = 0; $i < 12; $i++) {
     <main class="min-h-screen p-4 md:p-10 pt-20 md:pt-24">
 
         <!-- Breadcrumb -->
-        <nav class="mb-10 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 no-print">
+        <nav class="mb-10 flex items-center gap-4 text-[0.625rem] font-black uppercase tracking-widest text-slate-400 no-print">
             <a href="<?= $dashboard_url ?>" class="hover:text-indigo-600 transition-colors">Dashboard</a>
-            <i class="fas fa-chevron-right text-[7px] text-slate-300"></i>
+            <i class="fas fa-chevron-right text-[0.4375rem] text-slate-300"></i>
             <span class="text-indigo-500 italic">My Attendance History</span>
         </nav>
 
@@ -134,15 +134,15 @@ for ($i = 0; $i < 12; $i++) {
                     <?php endif; ?>
                 </div>
                 <div>
-                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Personal Attendance Record</p>
+                    <p class="text-[0.5625rem] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Personal Attendance Record</p>
                     <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight uppercase leading-tight"><?= htmlspecialchars($display_name) ?></h1>
                     <div class="flex items-center gap-3 mt-2">
-                        <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] border border-indigo-100"><?= htmlspecialchars($job_title) ?></span>
+                        <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[0.5625rem] font-black uppercase tracking-[0.2em] border border-indigo-100"><?= htmlspecialchars($job_title) ?></span>
                     </div>
                 </div>
             </div>
             <div class="flex gap-3 no-print">
-                <button onclick="window.print()" class="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-2">
+                <button onclick="window.print()" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-2">
                     <i class="fas fa-print"></i> Print Report
                 </button>
             </div>
@@ -152,28 +152,28 @@ for ($i = 0; $i < 12; $i++) {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
             <div class="bg-white rounded-2xl border border-indigo-100 shadow-sm p-8 relative overflow-hidden group">
                 <div class="absolute -right-6 -top-6 w-28 h-28 bg-indigo-50 rounded-full blur-3xl group-hover:bg-indigo-100 transition-all"></div>
-                <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-3">Total Days Present</p>
+                <p class="text-[0.625rem] font-black text-indigo-600 uppercase tracking-[0.2em] mb-3">Total Days Present</p>
                 <div class="text-5xl font-black text-slate-900 tracking-tight"><?= $stats['total'] ?> <span class="text-lg font-bold text-slate-400">DAYS</span></div>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">This Month: <span class="text-indigo-600"><?= $stats['this_month'] ?></span></p>
+                <p class="text-[0.5625rem] font-bold text-slate-400 uppercase tracking-widest mt-2">This Month: <span class="text-indigo-600"><?= $stats['this_month'] ?></span></p>
             </div>
             <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm p-8 relative overflow-hidden group">
                 <div class="absolute -right-6 -top-6 w-28 h-28 bg-emerald-50 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3">Punctuality Rate</p>
+                <p class="text-[0.625rem] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3">Punctuality Rate</p>
                 <div class="text-5xl font-black text-slate-900 tracking-tighter"><?= $punctuality_rate ?><span class="text-2xl text-emerald-500">%</span></div>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2"><?= $stats['on_time'] ?> / <?= $stats['total'] ?> on time or early</p>
+                <p class="text-[0.5625rem] font-bold text-slate-400 uppercase tracking-widest mt-2"><?= $stats['on_time'] ?> / <?= $stats['total'] ?> on time or early</p>
             </div>
             <div class="bg-white rounded-2xl border border-sky-100 shadow-sm p-8 relative overflow-hidden group">
                 <div class="absolute -right-6 -top-6 w-28 h-28 bg-sky-50 rounded-full blur-3xl"></div>
-                <p class="text-[10px] font-black text-sky-600 uppercase tracking-[0.2em] mb-3">Location Compliance</p>
+                <p class="text-[0.625rem] font-black text-sky-600 uppercase tracking-[0.2em] mb-3">Location Compliance</p>
                 <?php $comp_rate = $stats['total'] > 0 ? round(($stats['compliant'] / $stats['total']) * 100) : 0; ?>
                 <div class="text-5xl font-black text-slate-900 tracking-tighter"><?= $comp_rate ?><span class="text-2xl text-sky-500">%</span></div>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2"><?= $stats['compliant'] ?> / <?= $stats['total'] ?> within campus radius</p>
+                <p class="text-[0.5625rem] font-bold text-slate-400 uppercase tracking-widest mt-2"><?= $stats['compliant'] ?> / <?= $stats['total'] ?> within campus radius</p>
             </div>
         </div>
 
         <!-- Month Filter -->
         <div class="no-print bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8 flex items-center gap-6 flex-wrap">
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Filter by Month</p>
+            <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Filter by Month</p>
             <form method="GET" class="flex items-center gap-4">
                 <select name="month" onchange="this.form.submit()" class="bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
                     <?php foreach ($month_options as $mo): ?>
@@ -182,7 +182,7 @@ for ($i = 0; $i < 12; $i++) {
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">
                     <?= count($filtered) ?> record<?= count($filtered) !== 1 ? 's' : '' ?>
                 </span>
             </form>
@@ -191,16 +191,16 @@ for ($i = 0; $i < 12; $i++) {
         <!-- Attendance Table -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">
+                <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em]">
                     Attendance Log — <?= date('F Y', strtotime($selected_month . '-01')) ?>
                 </h3>
-                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Last 50 entries max shown</span>
+                <span class="text-[0.5rem] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Last 50 entries max shown</span>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
+                        <tr class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
                             <th class="px-8 py-4">Date</th>
                             <th class="px-6 py-4">Clock In</th>
                             <th class="px-6 py-4">Clock Out</th>
@@ -224,20 +224,20 @@ for ($i = 0; $i < 12; $i++) {
                                 <tr class="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                                     <td class="px-8 py-5">
                                         <div class="font-black text-slate-800 text-sm leading-tight"><?= date('l', strtotime($log['check_in_time'])) ?></div>
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1"><?= date('M j, Y', strtotime($log['check_in_time'])) ?></div>
+                                        <div class="text-[0.625rem] font-bold text-slate-400 uppercase tracking-wider mt-1"><?= date('M j, Y', strtotime($log['check_in_time'])) ?></div>
                                     </td>
                                     <td class="px-6 py-5">
-                                        <span class="text-[11px] font-black text-slate-700 uppercase tracking-widest"><?= date('H:i', strtotime($log['check_in_time'])) ?></span>
+                                        <span class="text-[0.6875rem] font-black text-slate-700 uppercase tracking-widest"><?= date('H:i', strtotime($log['check_in_time'])) ?></span>
                                     </td>
                                     <td class="px-6 py-5">
                                         <?php if($log['check_out_time']): ?>
-                                            <span class="text-[11px] font-black text-slate-700 uppercase tracking-widest"><?= date('H:i', strtotime($log['check_out_time'])) ?></span>
+                                            <span class="text-[0.6875rem] font-black text-slate-700 uppercase tracking-widest"><?= date('H:i', strtotime($log['check_out_time'])) ?></span>
                                         <?php else: ?>
-                                            <span class="text-[10px] font-black text-amber-500 uppercase tracking-widest italic">Active</span>
+                                            <span class="text-[0.625rem] font-black text-amber-500 uppercase tracking-widest italic">Active</span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-6 py-5">
-                                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                        <span class="text-[0.625rem] font-bold text-slate-500 uppercase tracking-widest">
                                             <?= $log['duration'] ?? '—' ?>
                                         </span>
                                     </td>
@@ -247,18 +247,18 @@ for ($i = 0; $i < 12; $i++) {
                                         $pill_class = $p === 'Late' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600';
                                         $pill_icon = $p === 'Late' ? 'fa-clock' : 'fa-circle-check';
                                         ?>
-                                        <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $pill_class ?>">
+                                        <span class="px-3 py-1 rounded-lg text-[0.5625rem] font-black uppercase tracking-widest <?= $pill_class ?>">
                                             <i class="fas <?= $pill_icon ?>"></i> <?= $p ?>
                                         </span>
                                     </td>
                                     <td class="px-6 py-5">
                                         <div class="flex flex-col gap-1">
-                                            <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?= $log['geofence_ok'] ? 'bg-sky-50 text-sky-600' : 'bg-rose-50 text-rose-600' ?>">
+                                            <span class="px-3 py-1 rounded-lg text-[0.5625rem] font-black uppercase tracking-widest <?= $log['geofence_ok'] ? 'bg-sky-50 text-sky-600' : 'bg-rose-50 text-rose-600' ?>">
                                                 <i class="fas <?= $log['geofence_ok'] ? 'fa-hand-shield' : 'fa-triangle-exclamation' ?>"></i>
                                                 <?= $log['geofence_ok'] ? 'Compliant' : 'Violation' ?>
                                             </span>
                                             <?php if($log['latitude']): ?>
-                                            <span class="text-[8px] text-slate-400 font-bold uppercase italic px-1"><?= $log['distance_m'] ?>m from campus</span>
+                                            <span class="text-[0.5rem] text-slate-400 font-bold uppercase italic px-1"><?= $log['distance_m'] ?>m from campus</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -271,7 +271,7 @@ for ($i = 0; $i < 12; $i++) {
         </div>
 
         <div class="mt-10 text-center no-print">
-            <a href="<?= $dashboard_url ?>" class="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+            <a href="<?= $dashboard_url ?>" class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
                 <i class="fas fa-home mr-2"></i> Return to Dashboard
             </a>
         </div>

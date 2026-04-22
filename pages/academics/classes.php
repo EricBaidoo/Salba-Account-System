@@ -124,7 +124,7 @@ $total_students = array_sum(array_column($classes_data, 'count'));
                         </div>
                         <div class="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
                             <a href="../administration/students/view_students.php?class=<?= urlencode($class['class']) ?>" class="text-sm font-semibold text-gray-500 group-hover:text-purple-600 transition-colors flex items-center gap-1.5">
-                                View Roster <i class="fas fa-arrow-right text-[10px]"></i>
+                                View Roster <i class="fas fa-arrow-right text-[0.625rem]"></i>
                             </a>
                             <button class="text-gray-400 hover:text-gray-600 transition-colors">
                                 <i class="fas fa-ellipsis-v"></i>

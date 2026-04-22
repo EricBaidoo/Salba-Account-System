@@ -68,69 +68,69 @@ ob_start();
         border-color: #4f46e5;
         border-style: solid;
     }
-    .corner-tl { top: 10mm; left: 10mm; border-width: 3px 0 0 3px; }
-    .corner-tr { top: 10mm; right: 10mm; border-width: 3px 3px 0 0; }
-    .corner-bl { bottom: 10mm; left: 10mm; border-width: 0 0 3px 3px; }
-    .corner-br { bottom: 10mm; right: 10mm; border-width: 0 3px 3px 0; }
+    .corner-tl { top: 10mm; left: 10mm; border-width: 0.1875rem 0 0 0.1875rem; }
+    .corner-tr { top: 10mm; right: 10mm; border-width: 0.1875rem 0.1875rem 0 0; }
+    .corner-bl { bottom: 10mm; left: 10mm; border-width: 0 0 0.1875rem 0.1875rem; }
+    .corner-br { bottom: 10mm; right: 10mm; border-width: 0 0.1875rem 0.1875rem 0; }
 
     .header-label {
-        font-size: 8px; font-weight: 900;
+        font-size: 0.5rem; font-weight: 900;
         color: #6366f1;
         text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 10px;
+        letter-spacing: 0.25rem;
+        margin-bottom: 0.625rem;
     }
     .school-name {
-        font-size: 26px; font-weight: 900;
+        font-size: 1.625rem; font-weight: 900;
         color: #0f172a;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.0625rem;
         line-height: 1.1;
-        margin-bottom: 4px;
+        margin-bottom: 0.25rem;
     }
     .school-sub {
-        font-size: 10px; color: #64748b; font-weight: 700;
-        margin-bottom: 6px;
-        letter-spacing: 1px;
+        font-size: 0.625rem; color: #64748b; font-weight: 700;
+        margin-bottom: 0.375rem;
+        letter-spacing: 0.0625rem;
     }
     .divider {
-        width: 60mm; height: 2px;
+        width: 60mm; height: 0.125rem;
         background: linear-gradient(90deg, transparent, #6366f1, transparent);
         margin: 10mm auto;
     }
     .scan-title {
-        font-size: 13px; font-weight: 900;
+        font-size: 0.8125rem; font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 0.1875rem;
         color: #1e293b;
-        margin-bottom: 4px;
+        margin-bottom: 0.25rem;
     }
     .scan-sub {
-        font-size: 9px; color: #64748b; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 2px;
+        font-size: 0.5625rem; color: #64748b; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.125rem;
         margin-bottom: 8mm;
     }
 
     /* Logo ring */
     .logo-ring {
         width: 32mm; height: 32mm;
-        border: 3px solid #e0e7ff;
+        border: 0.1875rem solid #e0e7ff;
         border-radius: 50%;
         margin: 0 auto 6mm;
         display: flex; align-items: center; justify-content: center;
         background: #f8fafc;
         overflow: hidden;
-        box-shadow: 0 0 0 6px #eef2ff;
+        box-shadow: 0 0 0 0.375rem #eef2ff;
     }
     .logo-ring img { width: 28mm; height: 28mm; object-fit: contain; }
 
     /* QR container */
     .qr-outer {
-        border: 3px solid #e0e7ff;
+        border: 0.1875rem solid #e0e7ff;
         border-radius: 8mm;
         padding: 4mm;
         background: #fff;
-        box-shadow: 0 8px 30px rgba(99,102,241,0.12);
+        box-shadow: 0 0.5rem 1.875rem rgba(99,102,241,0.12);
         display: inline-block;
         margin-bottom: 6mm;
     }
@@ -138,13 +138,13 @@ ob_start();
 
     .url-box {
         background: #f1f5f9;
-        border: 1px solid #e2e8f0;
+        border: 0.0625rem solid #e2e8f0;
         border-radius: 4mm;
         padding: 4mm 8mm;
-        font-size: 8px;
+        font-size: 0.5rem;
         font-weight: 900;
         color: #4f46e5;
-        letter-spacing: 1px;
+        letter-spacing: 0.0625rem;
         word-break: break-all;
         margin-bottom: 8mm;
         max-width: 140mm;
@@ -153,7 +153,7 @@ ob_start();
     /* Steps */
     .steps-box {
         background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        border: 0.0625rem solid #e2e8f0;
         border-radius: 5mm;
         padding: 6mm 10mm;
         text-align: left;
@@ -161,8 +161,8 @@ ob_start();
         margin-bottom: 8mm;
     }
     .steps-title {
-        font-size: 8px; font-weight: 900; color: #4f46e5;
-        text-transform: uppercase; letter-spacing: 3px;
+        font-size: 0.5rem; font-weight: 900; color: #4f46e5;
+        text-transform: uppercase; letter-spacing: 0.1875rem;
         margin-bottom: 4mm;
         text-align: center;
     }
@@ -173,12 +173,12 @@ ob_start();
     .step-num {
         width: 5mm; height: 5mm; border-radius: 50%;
         background: #4f46e5; color: white;
-        font-size: 7px; font-weight: 900;
+        font-size: 0.4375rem; font-weight: 900;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0; margin-top: 0.5mm;
     }
-    .step-text { font-size: 8.5px; color: #374151; font-weight: 700; line-height: 1.4; }
-    .step-sub  { font-size: 7.5px; color: #94a3b8; font-weight: 600; }
+    .step-text { font-size: 0.53125rem; color: #374151; font-weight: 700; line-height: 1.4; }
+    .step-sub  { font-size: 0.46875rem; color: #94a3b8; font-weight: 600; }
 
     .badge-row {
         display: flex; gap: 3mm; justify-content: center;
@@ -186,15 +186,15 @@ ob_start();
     }
     .badge {
         background: #eef2ff; color: #4f46e5;
-        border: 1px solid #c7d2fe;
+        border: 0.0625rem solid #c7d2fe;
         border-radius: 10mm;
-        font-size: 7px; font-weight: 900;
+        font-size: 0.4375rem; font-weight: 900;
         padding: 2mm 4mm;
-        text-transform: uppercase; letter-spacing: 1px;
+        text-transform: uppercase; letter-spacing: 0.0625rem;
     }
     .footer {
-        font-size: 7px; color: #cbd5e1; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 2px;
+        font-size: 0.4375rem; color: #cbd5e1; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.125rem;
         margin-top: 4mm;
     }
 </style>
@@ -229,7 +229,7 @@ ob_start();
         <img src="data:image/png;base64,<?= $qr_b64 ?>">
     </div>
     <?php else: ?>
-    <div class="qr-outer" style="width:65mm;height:65mm;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#94a3b8;">QR Code Unavailable</div>
+    <div class="qr-outer" style="width:65mm;height:65mm;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#94a3b8;">QR Code Unavailable</div>
     <?php endif; ?>
 
     <div class="url-box"><?= htmlspecialchars($base) ?></div>

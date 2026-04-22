@@ -54,9 +54,9 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
     <style>
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            backdrop-filter: blur(0.625rem);
+            border: 0.0625rem solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0.5rem 2rem 0 rgba(31, 38, 135, 0.07);
         }
         .profile-gradient {
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -99,7 +99,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                                     <!-- Upload Overlay -->
                                     <label for="photoInput" class="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white">
                                         <i class="fas fa-camera text-xl mb-1"></i>
-                                        <span class="text-[8px] font-black uppercase tracking-widest">Update</span>
+                                        <span class="text-[0.5rem] font-black uppercase tracking-widest">Update</span>
                                         <input type="file" name="profile_photo" id="photoInput" class="hidden" accept="image/*" onchange="this.form.submit()">
                                     </label>
                                 </div>
@@ -110,18 +110,18 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <div class="pt-16 pb-8 px-8 text-center">
                         <h2 class="text-2xl font-black text-slate-900 tracking-tight"><?= htmlspecialchars($profile['full_name'] ?? $profile['username']) ?></h2>
                         <div class="mt-1">
-                            <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                            <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[0.625rem] font-black uppercase tracking-widest border border-indigo-100">
                                 <?= strtoupper($profile['role'] ?? 'Staff') ?>
                             </span>
                         </div>
                         
                         <div class="mt-8 grid grid-cols-1 gap-4 text-left">
                             <div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Department</p>
+                                <p class="text-[0.625rem] font-black uppercase text-slate-400 tracking-widest mb-1">Department</p>
                                 <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars($profile['department'] ?? 'General') ?></p>
                             </div>
                             <div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Staff Role</p>
+                                <p class="text-[0.625rem] font-black uppercase text-slate-400 tracking-widest mb-1">Staff Role</p>
                                 <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars($profile['staff_role'] ?? 'Not Assigned') ?></p>
                             </div>
                         </div>
@@ -146,19 +146,19 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Username</label>
+                            <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Username</label>
                             <p class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 font-bold"><?= htmlspecialchars($profile['username']) ?></p>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
+                            <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
                             <p class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 font-bold"><?= htmlspecialchars($profile['email'] ?? 'Not Set') ?></p>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                            <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
                             <p class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 font-bold"><?= htmlspecialchars($profile['phone'] ?? 'Not Set') ?></p>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Since</label>
+                            <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Account Since</label>
                             <p class="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-slate-900 font-bold"><?= date('M j, Y', strtotime($profile['account_created'])) ?></p>
                         </div>
                     </div>
@@ -179,32 +179,32 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <form action="" method="POST" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Password</label>
+                                <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Current Password</label>
                                 <input type="password" name="current_password" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-bold text-slate-900" placeholder="••••••••">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">New Password</label>
+                                <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">New Password</label>
                                 <input type="password" name="new_password" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-bold text-slate-900" placeholder="••••••••">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Confirm New Password</label>
+                                <label class="block text-[0.6875rem] font-black text-slate-400 uppercase tracking-widest mb-2">Confirm New Password</label>
                                 <input type="password" name="confirm_password" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-bold text-slate-900" placeholder="••••••••">
                             </div>
                         </div>
 
                         <!-- Password Rule Requirements -->
                         <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex flex-wrap gap-x-8 gap-y-3">
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> MIN. 8 CHARACTERS
+                            <div class="flex items-center gap-2 text-[0.625rem] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[0.5rem]"></i> MIN. 8 CHARACTERS
                             </div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE UPPERCASE
+                            <div class="flex items-center gap-2 text-[0.625rem] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[0.5rem]"></i> ONE UPPERCASE
                             </div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE NUMBER
+                            <div class="flex items-center gap-2 text-[0.625rem] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[0.5rem]"></i> ONE NUMBER
                             </div>
-                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                <i class="fas fa-circle-check text-indigo-500 text-[8px]"></i> ONE SYMBOL (@, #, !, $)
+                            <div class="flex items-center gap-2 text-[0.625rem] font-bold text-slate-400">
+                                <i class="fas fa-circle-check text-indigo-500 text-[0.5rem]"></i> ONE SYMBOL (@, #, !, $)
                             </div>
                         </div>
                         <div class="flex justify-end pt-4">

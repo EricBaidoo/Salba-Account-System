@@ -291,14 +291,14 @@ if ($map_res) {
                             <h2 class="text-white font-black flex items-center gap-3 tracking-tight">
                                 <i class="fas fa-sitemap text-purple-400"></i> Class Curriculum Binder
                             </h2>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Bind subjects to specific class levels</p>
+                            <p class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-widest mt-1">Bind subjects to specific class levels</p>
                         </div>
                         
                         <form method="POST" class="p-8">
                             <input type="hidden" name="action" value="map_subjects">
                             
                             <div class="mb-8">
-                                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">1. Target Class</label>
+                                <label class="block text-[0.625rem] font-black text-gray-500 uppercase tracking-widest mb-2">1. Target Class</label>
                                 <select name="class" required onchange="this.form.submit()" class="w-full px-5 py-4 border border-gray-700 rounded-xl text-sm bg-gray-800 text-white font-bold hover:border-purple-500 focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-pointer">
                                     <option value="">-- Select Enrollment Level --</option>
                                     <?php foreach($classes_list as $cl): ?>
@@ -311,8 +311,8 @@ if ($map_res) {
                                 $target_cl = trim($_POST['class']);
                                 $active_maps = $mappings[$target_cl] ?? [];
                             ?>
-                                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">2. Permitted Curriculum for <span class="text-purple-400"><?= htmlspecialchars($target_cl) ?></span></label>
-                                <div class="space-y-2 max-h-[400px] overflow-y-auto mb-8 pr-2 custom-scrollbar">
+                                <label class="block text-[0.625rem] font-black text-gray-500 uppercase tracking-widest mb-4">2. Permitted Curriculum for <span class="text-purple-400"><?= htmlspecialchars($target_cl) ?></span></label>
+                                <div class="space-y-2 max-h-[25rem] overflow-y-auto mb-8 pr-2 custom-scrollbar">
                                     <?php 
                                     $subjects->data_seek(0);
                                     while($sub = $subjects->fetch_assoc()): 
@@ -322,7 +322,7 @@ if ($map_res) {
                                             <input type="checkbox" name="subjects[]" value="<?= $sub['id'] ?>" <?= $checked ?> class="w-5 h-5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 bg-gray-900 cursor-pointer">
                                             <div class="flex flex-col">
                                                 <span class="text-sm font-bold text-gray-200 group-hover:text-white transition-colors"><?= htmlspecialchars($sub['subject_name']) ?></span>
-                                                <span class="text-[10px] font-mono text-gray-500 tracking-tighter"><?= htmlspecialchars($sub['subject_code']) ?></span>
+                                                <span class="text-[0.625rem] font-mono text-gray-500 tracking-tighter"><?= htmlspecialchars($sub['subject_code']) ?></span>
                                             </div>
                                         </label>
                                     <?php endwhile; ?>
@@ -366,7 +366,7 @@ if ($map_res) {
                         <label for="subject_code" class="block text-sm font-semibold text-gray-700 mb-1">Subject Code <span class="text-red-500">*</span></label>
                         <input type="text" id="subject_code" name="subject_code" required placeholder="e.g., SCI-101"
                                class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors font-mono">
-                        <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Must be unique across the system</p>
+                        <p class="text-[0.625rem] text-gray-400 mt-1 uppercase tracking-wider">Must be unique across the system</p>
                     </div>
                     <div>
                         <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Description (Optional)</label>

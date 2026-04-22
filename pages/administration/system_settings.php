@@ -256,11 +256,11 @@ for ($i = -2; $i <= 5; $i++) {
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Early Arrival Threshold</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Early Arrival Threshold</label>
                                     <input type="time" name="attendance_early_limit" value="<?= htmlspecialchars($early_limit) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">On-Time Limit</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">On-Time Limit</label>
                                     <input type="time" name="attendance_ontime_limit" value="<?= htmlspecialchars($ontime_limit) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none">
                                 </div>
                             </div>
@@ -275,20 +275,20 @@ for ($i = -2; $i <= 5; $i++) {
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Latitude</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">School Latitude</label>
                                     <input type="text" name="attendance_lat" value="<?= htmlspecialchars($att_lat) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="5.5786875">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Longitude</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">School Longitude</label>
                                     <input type="text" name="attendance_lng" value="<?= htmlspecialchars($att_lng) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="-0.2911875">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Radius (Meters)</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Radius (Meters)</label>
                                     <input type="number" name="attendance_radius" value="<?= htmlspecialchars($att_radius) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-rose-500 outline-none" placeholder="300">
                                 </div>
                             </div>
                             <div class="px-6 py-3 bg-rose-50 border-t border-rose-100">
-                                <p class="text-[9px] font-bold text-rose-700 uppercase leading-relaxed">
+                                <p class="text-[0.5625rem] font-bold text-rose-700 uppercase leading-relaxed">
                                     <i class="fas fa-info-circle mr-1"></i> Staff must be within this radius of the coordinates to verify their presence.
                                 </p>
                             </div>
@@ -303,7 +303,7 @@ for ($i = -2; $i <= 5; $i++) {
                             </div>
                             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Active Semester</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Active Semester</label>
                                     <select name="current_semester" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
                                         <?php foreach ($available_semesters as $s): ?>
                                             <option value="<?= $s ?>" <?= $s === $current_semester ? 'selected' : '' ?>><?= $s ?></option>
@@ -311,7 +311,7 @@ for ($i = -2; $i <= 5; $i++) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Academic Year</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Academic Year</label>
                                     <select name="academic_year" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
                                         <?php foreach ($year_options as $opt): ?>
                                             <option value="<?= $opt['value'] ?>" <?= $opt['value'] === $academic_year ? 'selected' : '' ?>><?= $opt['label'] ?></option>
@@ -336,32 +336,32 @@ for ($i = -2; $i <= 5; $i++) {
                                         <img id="logoPreview" src="../../<?= getSystemLogo($conn) ?>" class="w-full h-full object-contain">
                                     </div>
                                     <div>
-                                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Active Logo</p>
+                                        <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Active Logo</p>
                                         <label class="cursor-pointer group">
-                                            <span class="text-[10px] font-black text-emerald-600 hover:text-black transition-colors uppercase tracking-widest bg-emerald-100 px-3 py-1.5 rounded-lg">Change Logo</span>
+                                            <span class="text-[0.625rem] font-black text-emerald-600 hover:text-black transition-colors uppercase tracking-widest bg-emerald-100 px-3 py-1.5 rounded-lg">Change Logo</span>
                                             <input type="file" name="system_logo" id="logoInput" class="hidden" accept="image/*" onchange="previewLogo(event)">
                                         </label>
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">School Name</label>
+                                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">School Name</label>
                                     <input type="text" name="school_name" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_name', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="md:col-span-2">
-                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Address & Location</label>
+                                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Full Address & Location</label>
                                         <textarea name="school_address" rows="2" placeholder="e.g. No 4 Crown Flower Street" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"><?= htmlspecialchars(getSystemSetting($conn, 'school_address', '')) ?></textarea>
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Primary Phone</label>
+                                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Primary Phone</label>
                                         <input type="text" name="school_phone" placeholder="e.g. 0598872309" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_phone', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Official Email</label>
+                                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Official Email</label>
                                         <input type="email" name="school_email" placeholder="e.g. sms@edu.gh" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_email', '')) ?>" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none">
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-emerald-600 transition-all active:scale-[0.98]">
+                                <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-black text-[0.625rem] uppercase tracking-[0.2em] shadow-lg hover:bg-emerald-600 transition-all active:scale-[0.98]">
                                     Commit All Changes
                                 </button>
                             </div>
@@ -380,7 +380,7 @@ for ($i = -2; $i <= 5; $i++) {
                     <form method="POST" class="flex items-center gap-4 mb-6">
                         <input type="hidden" name="semester_action" value="add_semester">
                         <input type="text" name="new_semester_name" placeholder="E.g. Summer School" required class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-3 text-xs font-bold text-white outline-none">
-                        <button type="submit" class="bg-emerald-600 py-3 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 transition-all"><i class="fas fa-plus"></i></button>
+                        <button type="submit" class="bg-emerald-600 py-3 px-4 rounded-xl font-black text-[0.625rem] uppercase tracking-widest hover:bg-emerald-500 transition-all"><i class="fas fa-plus"></i></button>
                     </form>
                     <div class="space-y-4">
                         <?php foreach($semester_dictionary as $sem): ?>
@@ -395,7 +395,7 @@ for ($i = -2; $i <= 5; $i++) {
                                 <form method="POST" class="mt-2 text-right">
                                     <input type="hidden" name="semester_action" value="delete_semester">
                                     <input type="hidden" name="delete_id" value="<?= $sem['id'] ?>">
-                                    <button type="submit" onclick="return confirm('Warning: Deleting a semester may break historical records mapped to it. Proceed?')" class="text-[9px] font-black uppercase text-rose-500 hover:text-rose-400">Delete</button>
+                                    <button type="submit" onclick="return confirm('Warning: Deleting a semester may break historical records mapped to it. Proceed?')" class="text-[0.5625rem] font-black uppercase text-rose-500 hover:text-rose-400">Delete</button>
                                 </form>
                             </div>
                         <?php endforeach; ?>
@@ -410,8 +410,8 @@ for ($i = -2; $i <= 5; $i++) {
                         <input type="hidden" name="action" value="save_semester_structure">
                         <input type="number" name="weeks_per_semester" value="<?= $weeks_per_semester ?>" class="w-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-black text-xl text-center text-indigo-600">
                         <div class="flex-1">
-                            <p class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest leading-relaxed">Standard Weeks Per Semester</p>
-                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">Update</button>
+                            <p class="text-[0.625rem] font-bold text-gray-500 mb-2 uppercase tracking-widest leading-relaxed">Standard Weeks Per Semester</p>
+                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-black text-[0.625rem] uppercase tracking-widest hover:bg-black transition-all">Update</button>
                         </div>
                     </form>
                 </div>
@@ -430,14 +430,14 @@ for ($i = -2; $i <= 5; $i++) {
                             </select>
                         </div>
                         <input type="text" name="description" placeholder="Description..." class="w-full bg-gray-800 border-none rounded-xl px-4 py-3 text-xs font-bold text-white outline-none">
-                        <button type="submit" class="w-full bg-rose-600 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-rose-600 transition-all">Add Event</button>
+                        <button type="submit" class="w-full bg-rose-600 py-3 rounded-xl font-black text-[0.625rem] uppercase tracking-widest hover:bg-white hover:text-rose-600 transition-all">Add Event</button>
                     </form>
                     <div class="space-y-4">
                         <?php foreach($calendar_events as $ev): ?>
                             <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-2xl border border-gray-800">
                                 <div class="flex items-center gap-4">
                                     <div class="text-center bg-gray-800 px-3 py-1 rounded-lg border border-gray-700">
-                                        <p class="text-[8px] font-black text-rose-500 uppercase"><?= date('M', strtotime($ev['event_date'])) ?></p>
+                                        <p class="text-[0.5rem] font-black text-rose-500 uppercase"><?= date('M', strtotime($ev['event_date'])) ?></p>
                                         <p class="text-sm font-black"><?= date('d', strtotime($ev['event_date'])) ?></p>
                                     </div>
                                     <p class="text-xs font-bold"><?= htmlspecialchars($ev['description']) ?></p>

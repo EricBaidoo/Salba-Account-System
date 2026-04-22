@@ -50,20 +50,20 @@ $arrears = max(0, $total_fees - $total_payments);
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
+                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
                     Liquidity Pulse
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">Velocity <span class="text-indigo-600">Analysis</span></h1>
                 <div class="mt-3 flex items-center gap-3">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Student:</span>
+                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Target Student:</span>
                     <span class="text-xs font-black text-slate-700 uppercase"><?= htmlspecialchars($student['student_name']) ?></span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <a href="student_balances.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 transition-all">
+                <a href="student_balances.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 transition-all">
                     <i class="fas fa-arrow-left mr-2"></i> Global Ledger
                 </a>
-                <a href="student_balance_details.php?id=<?= $student_id ?>" class="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all">
+                <a href="student_balance_details.php?id=<?= $student_id ?>" class="bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all">
                     Full Audit Hub
                 </a>
             </div>
@@ -77,33 +77,33 @@ $arrears = max(0, $total_fees - $total_payments);
                         <i class="fas fa-chart-line text-9xl"></i>
                     </div>
                     
-                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-12 flex items-center gap-3">
+                    <h3 class="text-[0.6875rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-12 flex items-center gap-3">
                         <i class="fas fa-gauge-high text-indigo-500"></i> Fulfillment Metrics
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
                         <div class="space-y-2">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institutional Liabilities</p>
+                            <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Institutional Liabilities</p>
                             <h4 class="text-3xl font-black text-slate-900 italic">₵<?= number_format($total_fees, 2) ?></h4>
                             <div class="flex items-center gap-2 mt-4">
                                 <span class="w-2 h-2 rounded-full bg-slate-200"></span>
-                                <span class="text-[9px] font-black text-slate-400 uppercase">Gross Commitment</span>
+                                <span class="text-[0.5625rem] font-black text-slate-400 uppercase">Gross Commitment</span>
                             </div>
                         </div>
                         <div class="space-y-2">
-                            <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Realized Remittance</p>
+                            <p class="text-[0.625rem] font-black text-emerald-500 uppercase tracking-widest">Realized Remittance</p>
                             <h4 class="text-3xl font-black text-slate-900 italic text-emerald-600">₵<?= number_format($total_payments, 2) ?></h4>
                             <div class="flex items-center gap-2 mt-4">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest"><?= round($paid_percent, 1) ?>% fulfilled</span>
+                                <span class="text-[0.5625rem] font-black text-emerald-500 uppercase tracking-widest"><?= round($paid_percent, 1) ?>% fulfilled</span>
                             </div>
                         </div>
                         <div class="space-y-2">
-                            <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Residual Arrears</p>
+                            <p class="text-[0.625rem] font-black text-rose-500 uppercase tracking-widest">Residual Arrears</p>
                             <h4 class="text-3xl font-black text-slate-900 italic text-rose-600">₵<?= number_format($arrears, 2) ?></h4>
                             <div class="flex items-center gap-2 mt-4">
                                 <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                <span class="text-[9px] font-black text-rose-500 uppercase tracking-widest"><?= round($owing_percent, 1) ?>% remaining</span>
+                                <span class="text-[0.5625rem] font-black text-rose-500 uppercase tracking-widest"><?= round($owing_percent, 1) ?>% remaining</span>
                             </div>
                         </div>
                     </div>
@@ -112,10 +112,10 @@ $arrears = max(0, $total_fees - $total_payments);
                     <div class="relative pt-4">
                         <div class="overflow-hidden h-8 mb-4 text-xs flex rounded-2xl bg-slate-100 border border-slate-200 p-1">
                             <div style="width:<?= $paid_percent ?>%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 rounded-xl transition-all duration-1000 ease-out relative group/bar">
-                                <span class="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover/bar:opacity-100 transition-opacity">Nexus Confirmed</span>
+                                <span class="text-[0.5625rem] font-black uppercase tracking-widest opacity-0 group-hover/bar:opacity-100 transition-opacity">Nexus Confirmed</span>
                             </div>
                         </div>
-                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[10px] font-black uppercase tracking-widest px-2">
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[0.625rem] font-black uppercase tracking-widest px-2">
                             <span class="text-indigo-600">Cleared Flow</span>
                             <span class="text-slate-300">Absolute Neutral</span>
                             <span class="text-rose-500">Arrears Liability</span>
@@ -127,7 +127,7 @@ $arrears = max(0, $total_fees - $total_payments);
             <!-- Lower Grid -->
             <div class="lg:col-span-5">
                 <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm h-full">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 italic">Core Ledger</h3>
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 italic">Core Ledger</h3>
                     <div class="space-y-6">
                         <div class="flex justify-between items-center py-4 border-b border-slate-50 group hover:translate-x-2 transition-transform">
                             <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Gross Assessment</span>
@@ -151,22 +151,22 @@ $arrears = max(0, $total_fees - $total_payments);
 
             <div class="lg:col-span-7">
                 <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm h-full overflow-hidden">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 flex items-center gap-3 italic">
+                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 flex items-center gap-3 italic">
                         <i class="fas fa-history text-indigo-500"></i> Remittance Audit
                     </h3>
                     
-                    <div class="space-y-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+                    <div class="space-y-4 max-h-[25rem] overflow-y-auto pr-4 custom-scrollbar">
                         <?php $payments = getStudentPaymentHistory($conn, $student_id); ?>
                         <?php if (!empty($payments)): ?>
                             <?php foreach ($payments as $p): ?>
                                 <div class="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-slate-900 hover:text-white transition-all duration-300 group">
                                     <div>
-                                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 group-hover:text-indigo-300"><?= date('M j, Y', strtotime($p['payment_date'])) ?></p>
+                                        <p class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest mb-1 group-hover:text-indigo-300"><?= date('M j, Y', strtotime($p['payment_date'])) ?></p>
                                         <h5 class="text-sm font-black italic">₵<?= number_format($p['amount'], 2) ?></h5>
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase mt-1 group-hover:text-slate-500">Receipt: <?= htmlspecialchars($p['receipt_no']) ?></p>
+                                        <p class="text-[0.5625rem] font-bold text-slate-400 uppercase mt-1 group-hover:text-slate-500">Receipt: <?= htmlspecialchars($p['receipt_no']) ?></p>
                                     </div>
-                                    <div class="text-right max-w-[150px]">
-                                        <p class="text-[9px] font-bold text-slate-400 italic line-clamp-2 group-hover:text-slate-300"><?= htmlspecialchars($p['description']) ?></p>
+                                    <div class="text-right max-w-[9.375rem]">
+                                        <p class="text-[0.5625rem] font-bold text-slate-400 italic line-clamp-2 group-hover:text-slate-300"><?= htmlspecialchars($p['description']) ?></p>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -175,7 +175,7 @@ $arrears = max(0, $total_fees - $total_payments);
                                 <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200 text-2xl mb-4">
                                     <i class="fas fa-ghost"></i>
                                 </div>
-                                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">No Institutional Receipts Registered</p>
+                                <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-widest italic">No Institutional Receipts Registered</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -183,7 +183,7 @@ $arrears = max(0, $total_fees - $total_payments);
             </div>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Salba Montessori &middot; Financial Intelligence Node &middot; v9.5.0
         </footer>
     </main>

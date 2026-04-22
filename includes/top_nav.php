@@ -31,7 +31,7 @@ $root_path = BASE_URL;
             </div>
             <div class="hidden xs:block">
                 <span class="font-black text-slate-900 tracking-tighter text-base md:text-2xl leading-none">SALBA</span>
-                <div class="text-[8px] md:text-[10px] text-indigo-500 font-extrabold uppercase tracking-[0.2em] leading-none mt-1"><?= ucfirst($user_role) ?> Portal</div>
+                <div class="text-[0.5rem] md:text-[0.625rem] text-indigo-500 font-extrabold uppercase tracking-[0.2em] leading-none mt-1"><?= ucfirst($user_role) ?> Portal</div>
             </div>
         </a>
     </div>
@@ -43,7 +43,7 @@ $root_path = BASE_URL;
         if ($user_role === 'supervisor') $hub_link = BASE_URL . "pages/supervisor/dashboard";
         if ($user_role === 'admin') $hub_link = BASE_URL . "pages/administration/dashboard";
         ?>
-        <a href="<?= $hub_link ?>" class="flex items-center gap-2 text-[11px] md:text-sm font-black text-slate-600 hover:text-indigo-600 transition-all bg-slate-50/80 px-3 md:px-6 py-2 md:py-2.5 rounded-xl border border-slate-100 hover:border-indigo-100 group shadow-sm">
+        <a href="<?= $hub_link ?>" class="flex items-center gap-2 text-[0.6875rem] md:text-sm font-black text-slate-600 hover:text-indigo-600 transition-all bg-slate-50/80 px-3 md:px-6 py-2 md:py-2.5 rounded-xl border border-slate-100 hover:border-indigo-100 group shadow-sm">
             <i class="fas fa-house-chimney group-hover:-translate-y-0.5 transition-transform text-xs md:text-base"></i>
             <span class="hidden md:inline">Dashboard Hub</span>
         </a>
@@ -53,7 +53,7 @@ $root_path = BASE_URL;
         <div class="flex items-center gap-3 md:gap-5">
             <a href="<?= BASE_URL ?>pages/common/profile.php" class="flex items-center gap-3 md:gap-5 group/profile">
                 <div class="text-right hidden sm:block">
-                    <div class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">Welcome Back</div>
+                    <div class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-widest mb-0.5 opacity-70 group-hover/profile:opacity-100 transition-opacity">Welcome Back</div>
                     <div class="text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($user_name) ?></div>
                 </div>
                 
@@ -85,11 +85,11 @@ if (!empty($flashes)): ?>
             <i class="fas <?= $iconClass ?> text-xl"></i>
         </div>
         <div class="flex-1 pr-4">
-            <p class="text-[9px] font-black uppercase tracking-[0.2em] opacity-50 mb-0.5"><?= strtoupper($type) ?></p>
+            <p class="text-[0.5625rem] font-black uppercase tracking-[0.2em] opacity-50 mb-0.5"><?= strtoupper($type) ?></p>
             <p class="text-xs font-bold leading-tight"><?= htmlspecialchars($f['message']) ?></p>
         </div>
         <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-black transition-colors p-2">
-            <i class="fas fa-times text-[10px]"></i>
+            <i class="fas fa-times text-[0.625rem]"></i>
         </button>
     </div>
     <?php endforeach; ?>
@@ -101,7 +101,7 @@ if (!empty($flashes)): ?>
         const toasts = document.querySelectorAll('.animate-in');
         toasts.forEach(t => {
             t.style.opacity = '0';
-            t.style.transform = 'translateX(20px)';
+            t.style.transform = 'translateX(1.25rem)';
             t.style.transition = 'all 0.5s ease';
             setTimeout(() => t.remove(), 500);
         });
