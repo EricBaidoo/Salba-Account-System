@@ -164,33 +164,32 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
         </div>
 
         <!-- Audit Manifest -->
-        <div class="overflow-x-auto">
-            <div class="min-w-full">
-                <div class="px-6 py-4 flex justify-between items-center mb-4">
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em]">Daily Attendance Log</h3>
-                    <div class="flex items-center gap-2 text-[0.5625rem] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
-                        <i class="fas fa-check-double text-[0.5rem]"></i> System Sync Active
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <table class="w-full min-w-[62.5rem] text-left border-collapse">
-                        <thead class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
-                            <tr>
-                                <th class="px-12 py-4 text-left">Staff Member</th>
-                                <th class="px-12 py-4 text-left">Time Logged</th>
-                                <th class="px-12 py-4 text-left">Location Status</th>
-                                <th class="px-12 py-4 text-center">Map</th>
-                                <th class="px-12 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
+        <div class="px-6 py-4 flex justify-between items-center mb-4">
+            <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em]">Daily Attendance Log</h3>
+            <div class="flex items-center gap-2 text-[0.5625rem] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                <i class="fas fa-check-double text-[0.5rem]"></i> System Sync Active
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[62.5rem] text-left border-collapse">
+                    <thead class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-6 py-4 text-left">Staff Member</th>
+                            <th class="px-6 py-4 text-left">Time Logged</th>
+                            <th class="px-6 py-4 text-left">Location Status</th>
+                            <th class="px-6 py-4 text-center">Map</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             <?php if(empty($attendance)): ?>
                                 <tr><td colspan="5" class="py-24 text-center text-slate-600 font-black uppercase text-[0.625rem] tracking-[0.5em] italic">No personnel identified for this cycle</td></tr>
                             <?php endif; ?>
                             <?php foreach ($attendance as $log): ?>
                                 <tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                    <td class="px-12 py-6">
+                                    <td class="px-6 py-6">
                                         <div class="flex items-center gap-5">
                                             <div class="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shrink-0">
                                                 <?php if($log['photo_path']): ?><img src="../../<?= htmlspecialchars($log['photo_path']) ?>" class="w-full h-full object-cover grayscale-0 opacity-100">
@@ -202,7 +201,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-12 py-6">
+                                    <td class="px-6 py-6">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 w-8">IN:</span>
                                             <div class="font-black text-slate-900 text-base leading-none"><?= date('H:i A', strtotime($log['check_in_time'])) ?></div>
@@ -220,7 +219,7 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                                             <i class="fas <?= $log['punctuality'] === 'Late' ? 'fa-clock' : 'fa-circle-check' ?>"></i> <?= $log['punctuality'] ?>
                                         </span>
                                     </td>
-                                    <td class="px-12 py-6">
+                                    <td class="px-6 py-6">
                                         <div class="flex flex-col gap-2">
                                             <span class="px-3 py-1 rounded-lg text-[0.5625rem] font-black uppercase tracking-widest <?= $log['geofence_status'] === 'Perimeter Variance' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600' ?>">
                                                 <i class="fas <?= $log['geofence_status'] === 'Perimeter Variance' ? 'fa-triangle-exclamation' : 'fa-hand-shield' ?>"></i> <?= $log['geofence_status'] ?>
@@ -228,12 +227,12 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                                             <span class="text-[0.5625rem] font-black text-slate-400 uppercase italic px-2"><?= $log['distance_m'] ?>m from hub center</span>
                                         </div>
                                     </td>
-                                    <td class="px-12 py-6 text-center">
+                                    <td class="px-6 py-6 text-center">
                                         <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-white hover:bg-indigo-500 transition-all">
                                             <i class="fas fa-map-pin"></i>
                                         </a>
                                     </td>
-                                    <td class="px-12 py-6 text-right">
+                                    <td class="px-6 py-6 text-right">
                                         <div class="flex items-center justify-end gap-2">
                                             <?php if($_SESSION['role'] === 'admin'): ?>
                                                 <a href="staff_history.php?user_id=<?= $log['user_id'] ?>" class="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl text-[0.5625rem] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all" title="Detailed Audit Log">

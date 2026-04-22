@@ -153,76 +153,75 @@ if ($logs_res) {
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <div class="min-w-full">
-                <div class="px-6 py-4 flex justify-between items-center mb-4">
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em]">Personal Attendance Log</h3>
-                    <div class="text-[0.5rem] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Displaying last 50 entries</div>
-                </div>
+        <!-- Audit Table -->
+        <div class="px-6 py-4 flex justify-between items-center mb-4">
+            <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.4em]">Personal Attendance Log</h3>
+            <div class="text-[0.5rem] font-bold text-slate-400 uppercase tracking-[0.3em] italic">Displaying last 50 entries</div>
+        </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <table class="w-full min-w-[62.5rem] text-left border-collapse">
-                        <thead>
-                            <tr class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
-                                <th class="px-12 py-4 text-left">Date & Time</th>
-                                <th class="px-12 py-4 text-left">Punctuality</th>
-                                <th class="px-12 py-4 text-left">Location Check</th>
-                                <th class="px-12 py-4 text-center">Map</th>
-                                <th class="px-12 py-4 text-right">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($history as $log): ?>
-                                <tr>
-                                    <td class="px-12 py-6">
-                                        <div class="font-bold text-slate-900 tracking-tight text-lg mb-3 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
-                                        <div class="flex flex-col gap-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 w-6">IN:</span>
-                                                <div class="text-[0.625rem] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?></div>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 w-6">OUT:</span>
-                                                <?php if($log['check_out_time']): ?>
-                                                    <div class="text-[0.625rem] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_out_time'])) ?></div>
-                                                <?php else: ?>
-                                                    <div class="text-[0.625rem] font-black text-slate-400 italic uppercase tracking-widest leading-none">ACTIVE</div>
-                                                <?php endif; ?>
-                                            </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[62.5rem] text-left border-collapse">
+                    <thead>
+                        <tr class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
+                            <th class="px-6 py-4 text-left">Date & Time</th>
+                            <th class="px-6 py-4 text-left">Punctuality</th>
+                            <th class="px-6 py-4 text-left">Location Check</th>
+                            <th class="px-6 py-4 text-center">Map</th>
+                            <th class="px-6 py-4 text-right">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($history as $log): ?>
+                            <tr>
+                                <td class="px-6 py-6">
+                                    <div class="font-bold text-slate-900 tracking-tight text-lg mb-3 leading-none"><?= date('l, F j, Y', strtotime($log['check_in_time'])) ?></div>
+                                    <div class="flex flex-col gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 w-6">IN:</span>
+                                            <div class="text-[0.625rem] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_in_time'])) ?></div>
                                         </div>
-                                    </td>
-                                    <td class="px-12 py-6">
-                                        <span class="px-3 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest <?= $log['p_status'] === 'Late' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' ?>">
-                                            <i class="fas <?= $log['p_status'] === 'Late' ? 'fa-clock' : 'fa-circle-check' ?>"></i> <?= $log['p_status'] ?>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 w-6">OUT:</span>
+                                            <?php if($log['check_out_time']): ?>
+                                                <div class="text-[0.625rem] font-black text-slate-600 uppercase tracking-widest leading-none"><?= date('H:i:s', strtotime($log['check_out_time'])) ?></div>
+                                            <?php else: ?>
+                                                <div class="text-[0.625rem] font-black text-slate-400 italic uppercase tracking-widest leading-none">ACTIVE</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-6">
+                                    <span class="px-3 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest <?= $log['p_status'] === 'Late' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' ?>">
+                                        <i class="fas <?= $log['p_status'] === 'Late' ? 'fa-clock' : 'fa-circle-check' ?>"></i> <?= $log['p_status'] ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-6">
+                                    <div class="flex flex-col gap-2">
+                                        <span class="px-3 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest <?= $log['geofence_status'] === 'Violation' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600' ?>">
+                                            <i class="fas <?= $log['geofence_status'] === 'Violation' ? 'fa-triangle-exclamation' : 'fa-hand-shield' ?>"></i> <?= $log['geofence_status'] ?>
                                         </span>
-                                    </td>
-                                    <td class="px-12 py-6">
-                                        <div class="flex flex-col gap-2">
-                                            <span class="px-3 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest <?= $log['geofence_status'] === 'Violation' ? 'bg-rose-50 text-rose-600' : 'bg-sky-50 text-sky-600' ?>">
-                                                <i class="fas <?= $log['geofence_status'] === 'Violation' ? 'fa-triangle-exclamation' : 'fa-hand-shield' ?>"></i> <?= $log['geofence_status'] ?>
-                                            </span>
-                                            <div class="text-[0.5625rem] text-slate-400 font-black uppercase italic px-2"><?= $log['distance_m'] ?>m from center</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-12 py-6 text-center">
-                                        <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-white hover:bg-indigo-600 transition-all">
-                                            <i class="fas fa-satellite"></i>
-                                        </a>
-                                    </td>
-                                    <td class="text-right">
-                                        <form method="POST" onsubmit="return confirm('CRITICAL: Purge this historical record?')" class="inline">
-                                            <input type="hidden" name="action" value="delete_attendance">
-                                            <input type="hidden" name="log_id" value="<?= $log['id'] ?>">
-                                            <button type="submit" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="Purge Record">
-                                                <i class="fas fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                        <div class="text-[0.5625rem] text-slate-400 font-black uppercase italic px-2"><?= $log['distance_m'] ?>m from center</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-6 text-center">
+                                    <a href="https://www.google.com/maps?q=<?= $log['latitude'] ?>,<?= $log['longitude'] ?>" target="_blank" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-white hover:bg-indigo-600 transition-all">
+                                        <i class="fas fa-satellite"></i>
+                                    </a>
+                                </td>
+                                <td class="px-6 py-6 text-right">
+                                    <form method="POST" onsubmit="return confirm('CRITICAL: Purge this historical record?')" class="inline">
+                                        <input type="hidden" name="action" value="delete_attendance">
+                                        <input type="hidden" name="log_id" value="<?= $log['id'] ?>">
+                                        <button type="submit" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="Purge Record">
+                                            <i class="fas fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
