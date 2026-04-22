@@ -22,9 +22,11 @@ error_log
 .DS_Store
 Thumbs.db
 
-# 5. Vendor Dependencies
+# 5. Dependencies
 node_modules/
+vendor/
 
-# 6. images
+# 6. Schema and Migrations
+update_schema.php
 
 

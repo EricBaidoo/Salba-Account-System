@@ -1,11 +1,13 @@
 <?php
-/**
- * DATABASE SCHEMA UPDATE LOG
- * This file handles automated structural updates for the SALBA Montessori Management System.
- * To apply updates, simply visit this file in your browser or run via terminal.
- */
-
 include 'includes/db_connect.php';
+include 'includes/auth_functions.php';
+
+session_start();
+
+// Security: Only admins can run schema updates
+if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
+    die("Access Denied: You must be an administrator to run schema updates.");
+}
 
 // Ensure the migration tracker exists
 $conn->query("CREATE TABLE IF NOT EXISTS _migration_log (

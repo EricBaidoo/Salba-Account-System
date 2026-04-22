@@ -208,6 +208,18 @@ $plans = $conn->query("
     ORDER BY l.created_at DESC
 ");
 
+// Stats for dashboard
+$stats_res = $conn->query("
+    SELECT 
+        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_count,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN status IN ('approved', 'rejected') THEN 1 ELSE 0 END) as reviewed_count
+    FROM lesson_plans 
+    WHERE teacher_id = $uid
+");
+$stats = $stats_res->fetch_assoc();
+
+
 // Fetch teacher's subjects
 $allocated_subjects = [];
 $res = $conn->query("SELECT s.id, s.name FROM subjects s ORDER BY s.name");
@@ -240,10 +252,152 @@ if ($_SESSION['role'] === 'admin') {
             <i class="fas fa-file-contract text-green-500"></i> Lesson Planning
         </h1>
 
+        <!-- Stats Dashboard Bar -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-file-edit text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">My Drafts</div>
+                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['draft_count'] ?? 0) ?></div>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-500 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-hourglass-half text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Pending Review</div>
+                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['pending_count'] ?? 0) ?></div>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-check-double text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Approved Notes</div>
+                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['reviewed_count'] ?? 0) ?></div>
+                </div>
+            </div>
+            <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 rounded-2xl shadow-lg shadow-indigo-100 flex items-center gap-4 group">
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white">
+                    <i class="fas fa-calendar-check text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-[0.625rem] font-black text-indigo-100 uppercase tracking-widest"><?= $current_term ?></div>
+                    <div class="text-lg font-black text-white leading-tight"><?= $current_year ?></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Global Flash Messages handled by top_nav.php -->
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left Sidebar (Reordered for mobile: appears after form) -->
+            <div class="lg:col-span-4 space-y-8 order-last lg:order-first lg:sticky lg:top-24">
+                <!-- Bulk Import Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-indigo-600 p-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-sm flex items-center gap-2">
+                            <i class="fas fa-file-import"></i> Quick Import
+                        </h3>
+                        <div class="flex gap-2">
+                            <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition font-bold" download>
+                                <i class="fas fa-file-excel"></i> Template
+                            </a>
+                            <a href="../../assets/templates/GES_Lesson_Note_Template.docx" class="text-[0.625rem] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition font-bold" download>
+                                <i class="fas fa-file-word"></i> Template
+                            </a>
+                        </div>
+                    </div>
+                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="p-4 flex flex-col sm:flex-row items-center gap-4">
+                        <div class="flex-1 w-full relative group">
+                            <input type="file" name="lesson_file" accept=".xlsx,.docx" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                            <div class="w-full px-4 py-2 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-center group-hover:border-indigo-400 transition-colors">
+                                <span class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud-upload-alt text-indigo-400 mr-2"></i> File...</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold text-xs hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                            Process
+                        </button>
+                    </form>
+                </div>
+
+                <!-- History Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden">
+                    <h2 class="font-black text-gray-900 border-b border-gray-100 pb-3 mb-6 uppercase tracking-tighter flex items-center gap-2">
+                        <i class="fas fa-clock-rotate-left text-indigo-500"></i> Plan History
+                    </h2>
+                    <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <?php if($plans && $plans->num_rows > 0): while($p = $plans->fetch_assoc()): ?>
+                            <!-- Plan Card -->
+                            <div class="border <?= $p['status'] === 'draft' ? 'border-dashed border-gray-300' : 'border-gray-50' ?> p-4 rounded-xl bg-gray-50/50 group hover:bg-white hover:border-green-200 transition-all shadow-sm">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                    <span class="text-[0.5rem] font-black bg-white text-gray-500 border border-gray-100 px-2 py-0.5 rounded-lg uppercase">Wk <?= $p['week_number'] ?></span>
+                                    <div>
+                                        <?php if($p['status'] === 'draft'): ?>
+                                            <span class="text-[0.5rem] font-black text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200 uppercase tracking-widest">Draft</span>
+                                        <?php elseif($p['status'] === 'pending'): ?>
+                                            <span class="text-[0.5rem] font-black text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-100 uppercase tracking-widest">Pending</span>
+                                        <?php elseif($p['status'] === 'approved'): ?>
+                                            <span class="text-[0.5rem] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-widest">Approved</span>
+                                        <?php else: ?>
+                                            <span class="text-[0.5rem] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">Rejected</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-xs mb-1 line-clamp-1"><?= htmlspecialchars($p['sub_strand']) ?></h4>
+                                <div class="text-[0.625rem] text-gray-400 font-bold mb-3"><?= htmlspecialchars($p['subject_name']) ?></div>
+                                
+                                <div class="flex gap-1 pt-3 border-t border-gray-100">
+                                    <?php if($p['status'] === 'draft'): ?>
+                                        <a href="?edit=<?= $p['id'] ?>" class="flex-1 py-1.5 bg-indigo-600 text-white text-[0.5rem] font-black rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-1 uppercase">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="flex-1 py-1.5 bg-white border border-gray-200 text-gray-700 text-[0.5rem] font-black rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-1 uppercase">
+                                            <i class="fas fa-eye text-indigo-500"></i> View
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <div class="flex gap-1">
+                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-8 py-1.5 bg-white border border-gray-200 text-gray-700 text-[0.5rem] font-black rounded-lg hover:bg-gray-50 transition flex items-center justify-center">
+                                            <i class="fas fa-file-pdf text-red-500"></i>
+                                        </a>
+                                        <?php if($p['status'] === 'pending'): ?>
+                                            <form method="POST" onsubmit="return confirm('Note: Unsubmitting will move this back to drafts.');">
+                                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                <button type="submit" name="unsubmit_plan" class="w-8 py-1.5 bg-white border border-yellow-200 text-yellow-600 text-[0.5rem] font-black rounded-lg hover:bg-yellow-50 transition flex items-center justify-center">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if($p['status'] === 'pending' || $p['status'] === 'draft'): ?>
+                                            <form method="POST" onsubmit="return confirm('Delete this lesson plan permanently?');">
+                                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                <button type="submit" name="delete_plan" class="w-8 py-1.5 bg-white border border-red-100 text-red-500 text-[0.5rem] font-black rounded-lg hover:bg-red-50 transition flex items-center justify-center">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endwhile; else: ?>
+                            <div class="text-center py-10">
+                                <i class="fas fa-folder-open text-3xl text-gray-200 mb-2"></i>
+                                <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">No plans found</div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Main Form -->
+            <div class="lg:col-span-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="bg-gradient-to-r from-green-600 to-emerald-700 p-6 flex justify-between items-center">
                     <div>
                         <h2 class="font-bold text-white text-lg flex items-center gap-2">
@@ -447,94 +601,24 @@ if ($_SESSION['role'] === 'admin') {
                     </div>
                 </form>
             </div>
-
-            <!-- History -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit sticky top-24">
-                <h2 class="font-black text-gray-900 border-b border-gray-100 pb-3 mb-6 uppercase tracking-tighter flex items-center gap-2">
-                    <i class="fas fa-clock-rotate-left text-indigo-500"></i> My Plan History
-                </h2>
-                <div class="space-y-4">
-                    <?php if($plans && $plans->num_rows > 0): while($p = $plans->fetch_assoc()): ?>
-                        <div class="border <?= $p['status'] === 'draft' ? 'border-dashed border-gray-300' : 'border-gray-50' ?> p-5 rounded-2xl bg-gray-50/50 group hover:bg-white hover:border-green-200 transition-all shadow-sm flex flex-col justify-between items-start gap-4">
-                            <div class="w-full">
-                                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[0.625rem] font-bold bg-white text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded uppercase">Week <?= $p['week_number'] ?></span>
-                                        <span class="text-[0.625rem] font-bold bg-white text-gray-500 border border-gray-100 px-2 py-0.5 rounded"><?= htmlspecialchars($p['class_name']) ?></span>
-                                    </div>
-                                    <div>
-                                        <?php if($p['status'] === 'draft'): ?>
-                                            <span class="text-[0.5625rem] font-black text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200 uppercase tracking-widest">Draft</span>
-                                        <?php elseif($p['status'] === 'pending'): ?>
-                                            <span class="text-[0.5625rem] font-black text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-100 uppercase tracking-widest animate-pulse">Pending Review</span>
-                                        <?php elseif($p['status'] === 'approved'): ?>
-                                            <span class="text-[0.5625rem] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-widest">Approved</span>
-                                        <?php else: ?>
-                                            <span class="text-[0.5625rem] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">Rejected</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <h4 class="font-bold text-gray-900 mb-1 leading-tight"><?= htmlspecialchars($p['sub_strand']) ?></h4>
-                                <div class="text-[0.625rem] text-gray-400 font-bold uppercase tracking-tight flex items-center gap-1.5"><?= htmlspecialchars($p['subject_name']) ?> <span class="w-1 h-1 bg-gray-300 rounded-full"></span> last activity <?= date('d M, Y', strtotime($p['updated_at'] ?? $p['created_at'])) ?></div>
-                                
-                                <?php if($p['supervisor_comments']): ?>
-                                    <div class="mt-4 p-3 bg-white rounded-xl border border-red-100 relative group/msg">
-                                        <div class="text-[0.5rem] font-black text-red-400 uppercase tracking-widest mb-1">Supervisor Remark</div>
-                                        <div class="text-[0.6875rem] text-gray-600 italic">"<?= htmlspecialchars($p['supervisor_comments']) ?>"</div>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-2 w-full pt-2 border-t border-gray-100">
-                                <?php if($p['status'] === 'draft'): ?>
-                                    <a href="?edit=<?= $p['id'] ?>" class="px-3 py-2 bg-indigo-600 text-white text-[0.625rem] font-black rounded-xl hover:bg-indigo-700 transition flex items-center justify-center gap-2 uppercase">
-                                        <i class="fas fa-edit"></i> Edit Draft
-                                    </a>
-                                <?php else: ?>
-                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="px-3 py-2 bg-white border border-gray-200 text-gray-700 text-[0.625rem] font-black rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 uppercase">
-                                        <i class="fas fa-eye text-indigo-500"></i> View Note
-                                    </a>
-                                <?php endif; ?>
-
-                                <div class="flex gap-1">
-                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="flex-1 px-3 py-2 bg-white border border-gray-200 text-gray-700 text-[0.625rem] font-black rounded-xl hover:bg-gray-50 transition flex items-center justify-center">
-                                        <i class="fas fa-file-pdf text-red-500"></i>
-                                    </a>
-                                    
-                                    <?php if($p['status'] === 'pending'): ?>
-                                        <form method="POST" onsubmit="return confirm('Note: Unsubmitting will move this back to drafts.');" class="flex-1">
-                                            <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                            <button type="submit" name="unsubmit_plan" class="w-full px-3 py-2 bg-white border border-yellow-200 text-yellow-600 text-[0.625rem] font-black rounded-xl hover:bg-yellow-50 transition flex items-center justify-center">
-                                                <i class="fas fa-undo"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-
-                                    <?php if($p['status'] === 'pending' || $p['status'] === 'draft'): ?>
-                                        <form method="POST" onsubmit="return confirm('Delete this lesson plan permanently?');" class="flex-1">
-                                            <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                            <button type="submit" name="delete_plan" class="w-full px-3 py-2 bg-white border border-red-100 text-red-500 text-[0.625rem] font-black rounded-xl hover:bg-red-50 transition flex items-center justify-center">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endwhile; else: ?>
-                        <div class="text-center py-10">
-                            <i class="fas fa-folder-open text-3xl text-gray-200 mb-2"></i>
-                            <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">No plans found</div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+            </div> <!-- End of Right Column (lg:col-span-8) -->
+        </div> <!-- End of Layout Grid -->
     </main>
+
+    <style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+    </style>
 </body>
 </html>
-        </div>
-    </main>
-</body>
-</html>
-
