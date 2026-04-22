@@ -92,13 +92,12 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-6 md:p-12 min-h-screen">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : '' ?> p-6 md:p-12 min-h-screen">
         <header class="mb-14 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
             <div>
                 <div class="flex items-center gap-3 mb-3">

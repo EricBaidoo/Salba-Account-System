@@ -94,7 +94,7 @@ if ($logs_res) {
 
     <?php include '../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-6 md:p-12 min-h-screen">
+    <main class="admin-main-content <?= $_SESSION['role'] === 'admin' ? 'lg:ml-72' : '' ?> p-6 md:p-12 min-h-screen">
         <nav class="mb-10 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <a href="dashboard.php" class="hover:text-indigo-600 transition-colors">Dashboard</a>
             <i class="fas fa-chevron-right text-[7px] text-slate-300"></i>
