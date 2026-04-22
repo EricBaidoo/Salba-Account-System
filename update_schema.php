@@ -82,5 +82,47 @@ applyPatch($conn, 'lesson_plan_ges_modernization', [
     "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `phase3_duration` VARCHAR(20) NULL"
 ]);
 
+// 2. HIGH-CAPACITY TEXT FIELDS (EXPANSION TO MEDIUMTEXT)
+applyPatch($conn, 'high_capacity_text_expansion', [
+    // Lesson Plans
+    "ALTER TABLE lesson_plans MODIFY objectives MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY content_standard MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY indicator MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY performance_indicator MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY core_competencies MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY references_materials MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY new_words MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY starter_activities MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY starter_resources MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY learning_activities MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY learning_resources MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY learning_assessment MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY reflection_activities MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY reflection_resources MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY homework MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY `references` MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY tlm MEDIUMTEXT NULL",
+    "ALTER TABLE lesson_plans MODIFY supervisor_comments MEDIUMTEXT NULL",
+    
+    // Student Term Remarks
+    "ALTER TABLE student_term_remarks MODIFY attitude MEDIUMTEXT NULL",
+    "ALTER TABLE student_term_remarks MODIFY conduct MEDIUMTEXT NULL",
+    "ALTER TABLE student_term_remarks MODIFY talent_and_interest MEDIUMTEXT NULL",
+    "ALTER TABLE student_term_remarks MODIFY teacher_remarks MEDIUMTEXT NULL",
+    "ALTER TABLE student_term_remarks MODIFY supervisor_remarks MEDIUMTEXT NULL",
+    
+    // Student Semester Remarks
+    "ALTER TABLE student_semester_remarks MODIFY attitude MEDIUMTEXT NULL",
+    "ALTER TABLE student_semester_remarks MODIFY conduct MEDIUMTEXT NULL",
+    "ALTER TABLE student_semester_remarks MODIFY talent_and_interest MEDIUMTEXT NULL",
+    "ALTER TABLE student_semester_remarks MODIFY teacher_remarks MEDIUMTEXT NULL",
+    "ALTER TABLE student_semester_remarks MODIFY supervisor_remarks MEDIUMTEXT NULL",
+    
+    // Communication & Logs
+    "ALTER TABLE announcements MODIFY message MEDIUMTEXT NULL",
+    "ALTER TABLE messages MODIFY body MEDIUMTEXT NULL",
+    "ALTER TABLE attendance MODIFY remarks MEDIUMTEXT NULL"
+]);
+
 echo "<h3>Schema is up to date.</h3>";
 ?>

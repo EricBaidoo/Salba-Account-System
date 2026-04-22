@@ -142,8 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_plan']) || is
     if ($class && $subject_id && $sub_strand) {
         if ($plan_id > 0) {
             // Update existing
-            $stmt = $conn->prepare("
-                UPDATE lesson_plans SET 
+            $stmt = $conn->prepare("UPDATE lesson_plans SET 
                 class_name=?, subject_id=?, week_number=?, topic=?, objectives=?, 
                 week_ending=?, day_of_week=?, duration=?, strand=?, sub_strand=?, class_size=?,
                 content_standard=?, indicator=?, lesson_number=?, performance_indicator=?, core_competencies=?,
@@ -151,10 +150,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_plan']) || is
                 learning_activities=?, learning_resources=?, learning_assessment=?,
                 reflection_activities=?, reflection_resources=?, homework=?, semester=?, academic_year=?,
                 phase1_duration=?, phase2_duration=?, phase3_duration=?, status=?
-                WHERE id=? AND teacher_id=?
-            ");
-            $stmt->bind_param(
-                "siisssssssisssssssssssssssssssssii", 
+                WHERE id=? AND teacher_id=?");
+            
+            $types = "siisssssssissssssssssssssssssssssii";
+            $stmt->bind_param($types, 
                 $class, $subject_id, $week, $topic, $objectives,
                 $week_ending, $day, $duration, $strand, $sub_strand, $class_size,
                 $standard, $indicator, $lesson_num, $perf_ind, $core_comp,
