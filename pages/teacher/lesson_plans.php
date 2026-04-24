@@ -52,7 +52,8 @@ $cols_to_check = [
     'academic_year' => "VARCHAR(20) NULL",
     'phase1_duration' => "VARCHAR(20) NULL",
     'phase2_duration' => "VARCHAR(20) NULL",
-    'phase3_duration' => "VARCHAR(20) NULL"
+    'phase3_duration' => "VARCHAR(20) NULL",
+    'week_number' => "INT DEFAULT 1 AFTER subject_id"
 ];
 foreach ($cols_to_check as $col => $def) {
     $exists = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'lesson_plans' AND COLUMN_NAME = '$col'")->fetch_row()[0];
@@ -67,6 +68,7 @@ foreach ($cols_to_check as $col => $def) {
 include_once '../../includes/system_settings.php';
 $current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);
+$total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 
 // Handle Unsubmit / Deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_plan'])) {
@@ -434,7 +436,15 @@ if ($_SESSION['role'] === 'admin') {
                         </h3>
                         <div class="space-y-4">
                             <!-- Row 1 -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="relative group">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Week</label>
+                                    <select name="week_number" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm appearance-none">
+                                        <?php for($i=1; $i<=$total_weeks; $i++): ?>
+                                            <option value="<?= $i ?>" <?= $v('week_number') == $i ? 'selected' : '' ?>>Week <?= $i ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Week Ending</label>
                                     <input type="date" name="week_ending" value="<?= $v('week_ending') ?>" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">

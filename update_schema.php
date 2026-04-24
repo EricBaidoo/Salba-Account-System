@@ -163,5 +163,10 @@ applyPatch($conn, 'system_performance_optimization_v1', [
     "CREATE INDEX IF NOT EXISTS idx_staff_attendance_lookup ON staff_attendance(user_id, check_in_time)"
 ]);
 
+// 5. LESSON PLAN STRUCTURE REFRESH (RESTORING WEEK NUMBER)
+applyPatch($conn, 'lesson_plan_structure_refresh', [
+    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `week_number` INT DEFAULT 1 AFTER subject_id"
+]);
+
 echo "<h3>Schema is up to date.</h3>";
 ?>
