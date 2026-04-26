@@ -186,41 +186,43 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <span class="w-1 h-4 bg-indigo-500 rounded-full"></span> My Drafts
                 </h3>
                 <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50/50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Week</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Topic / Subject</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Last Modified</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <?php while($p = $drafts->fetch_assoc()): ?>
-                                <tr class="hover:bg-gray-50/50 transition-colors group">
-                                    <td class="px-6 py-4"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                        <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 text-xs font-bold text-gray-500"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <a href="lesson_plans?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
-                                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Last Modified</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
                                 </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <?php while($p = $drafts->fetch_assoc()): ?>
+                                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
+                                        <td class="px-6 py-4 min-w-[300px]">
+                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                            <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
+                                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="lesson_plans?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                                <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
+                                                    <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                    <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
             <?php endif; ?>
@@ -268,48 +270,50 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <span class="w-1 h-4 bg-emerald-500 rounded-full"></span> Approved Notes Archive
                 </h3>
                 <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50/50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Wk</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Topic & Subject</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Approved On</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Supervisor Remark</th>
-                                <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <?php if($approved && $approved->num_rows > 0): while($p = $approved->fetch_assoc()): ?>
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-6 py-4"><span class="font-black text-emerald-600"><?= $p['week_number'] ?></span></td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                        <div class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-widest mt-0.5"><?= htmlspecialchars($p['subject_name']) ?></div>
-                                    </td>
-                                    <td class="px-6 py-4 text-xs font-bold text-gray-500"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
-                                    <td class="px-6 py-4">
-                                        <?php if($p['supervisor_comments']): ?>
-                                            <div class="text-[0.625rem] font-bold text-gray-400 italic max-w-xs truncate" title="<?= htmlspecialchars($p['supervisor_comments']) ?>">
-                                                "<?= htmlspecialchars($p['supervisor_comments']) ?>"
-                                            </div>
-                                        <?php else: ?>
-                                            <span class="text-[0.625rem] font-bold text-gray-300 italic">No remarks</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <div class="flex justify-end gap-2">
-                                            <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition"><i class="fas fa-eye text-xs"></i></a>
-                                            <a href="print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition"><i class="fas fa-file-pdf text-xs"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endwhile; else: ?>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50/50 border-b border-gray-100">
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No approved plans found in this view</td>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Wk</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic & Subject</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Approved On</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <?php if($approved && $approved->num_rows > 0): while($p = $approved->fetch_assoc()): ?>
+                                    <tr class="hover:bg-emerald-50/20 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600"><?= $p['week_number'] ?></span></td>
+                                        <td class="px-6 py-4 min-w-[250px]">
+                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                            <div class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-widest mt-0.5"><?= htmlspecialchars($p['subject_name']) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
+                                        <td class="px-6 py-4 min-w-[200px]">
+                                            <?php if($p['supervisor_comments']): ?>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 italic leading-relaxed" title="<?= htmlspecialchars($p['supervisor_comments']) ?>">
+                                                    "<?= htmlspecialchars($p['supervisor_comments']) ?>"
+                                                </div>
+                                            <?php else: ?>
+                                                <span class="text-[0.625rem] font-bold text-gray-300 italic">No remarks</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition"><i class="fas fa-eye text-xs"></i></a>
+                                                <a href="print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition"><i class="fas fa-file-pdf text-xs"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No approved plans found in this view</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
