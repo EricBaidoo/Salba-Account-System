@@ -50,6 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['revert_plan'])) {
+    $plan_id = intval($_POST['plan_id']);
+    $stmt = $conn->prepare("UPDATE lesson_plans SET status = 'pending' WHERE id = ?");
+    $stmt->bind_param("i", $plan_id);
+    if ($stmt->execute()) {
+        redirect('lesson_plans', 'success', "Lesson plan status reverted to PENDING.");
+    } else {
+        set_flash('error', "Failed to revert lesson plan status.");
+    }
+}
+
 // Filters
 $week_f = intval($_GET['week'] ?? 0);
 $date_f = $_GET['date'] ?? '';
@@ -243,45 +254,59 @@ $reviewed_plans = $conn->query("
             <!-- Recent History -->
             <div>
                 <h2 class="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Recently Reviewed</h2>
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 font-bold text-gray-600 border-b border-gray-200">
-                            <tr>
-                                <th class="py-3 px-4">Teacher</th>
-                                <th class="py-3 px-4">Class & Subject</th>
-                                <th class="py-3 px-4">Topic</th>
-                                <th class="py-3 px-4 text-center">Status</th>
-                                <th class="py-3 px-4">Your Remark</th>
-                                <th class="py-3 px-4 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <?php if($reviewed_plans && $reviewed_plans->num_rows > 0): while($rp = $reviewed_plans->fetch_assoc()): ?>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-semibold text-gray-800">
-                                        <a href="staff_portfolio.php?user_id=<?= $rp['teacher_id'] ?>" class="text-indigo-600 hover:underline">
-                                            <?= htmlspecialchars($rp['username']) ?>
-                                        </a>
-                                    </td>
-                                    <td class="py-3 px-4 text-gray-600"><?= htmlspecialchars($rp['class_name']) ?> | <?= htmlspecialchars($rp['subject_name']) ?></td>
-                                    <td class="py-3 px-4 font-medium text-gray-800"><?= htmlspecialchars($rp['topic']) ?></td>
-                                    <td class="py-3 px-4 text-center">
-                                        <?php if($rp['status'] === 'approved'): ?>
-                                            <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">Approved</span>
-                                        <?php else: ?>
-                                            <span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded">Rejected</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate"><?= htmlspecialchars($rp['supervisor_comments']) ?></td>
-                                    <td class="py-3 px-4 text-right">
-                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1 justify-end">
-                                            <i class="fas fa-file-pdf"></i> View / PDF
-                                        </a>
-                                    </td>
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-50 font-bold text-gray-600 border-b border-gray-200">
+                                <tr>
+                                    <th class="py-3 px-4 whitespace-nowrap">Teacher</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">Class & Subject</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">Topic</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">Your Remark</th>
+                                    <th class="py-3 px-4 text-right whitespace-nowrap">Action</th>
                                 </tr>
-                            <?php endwhile; endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <?php if($reviewed_plans && $reviewed_plans->num_rows > 0): while($rp = $reviewed_plans->fetch_assoc()): ?>
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="py-3 px-4 font-semibold text-gray-800 whitespace-nowrap">
+                                            <a href="staff_portfolio.php?user_id=<?= $rp['teacher_id'] ?>" class="text-indigo-600 hover:underline">
+                                                <?= htmlspecialchars($rp['username']) ?>
+                                            </a>
+                                        </td>
+                                        <td class="py-3 px-4 text-gray-600 whitespace-nowrap"><?= htmlspecialchars($rp['class_name']) ?> | <?= htmlspecialchars($rp['subject_name']) ?></td>
+                                        <td class="py-3 px-4 font-medium text-gray-800 min-w-[200px]"><?= htmlspecialchars($rp['topic']) ?></td>
+                                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                                            <?php if($rp['status'] === 'approved'): ?>
+                                                <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">Approved</span>
+                                            <?php else: ?>
+                                                <span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded">Rejected</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate" title="<?= htmlspecialchars($rp['supervisor_comments']) ?>"><?= htmlspecialchars($rp['supervisor_comments']) ?></td>
+                                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                                            <div class="flex items-center gap-4 justify-end">
+                                                <form method="POST" onsubmit="return confirm('Revert this plan back to PENDING queue?');" class="inline">
+                                                    <input type="hidden" name="plan_id" value="<?= $rp['id'] ?>">
+                                                    <button type="submit" name="revert_plan" class="text-[0.625rem] font-black uppercase tracking-widest text-gray-400 hover:text-orange-600 transition-colors flex items-center gap-1">
+                                                        <i class="fas fa-rotate-left"></i> Revert
+                                                    </button>
+                                                </form>
+                                                <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1">
+                                                    <i class="fas fa-file-pdf"></i> View / PDF
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; else: ?>
+                                    <tr>
+                                        <td colspan="6" class="py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No recently reviewed plans</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

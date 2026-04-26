@@ -156,25 +156,40 @@ $rejected = getPlans($conn, $where, 'rejected');
                 <h3 class="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                     <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Rejected / Needs Revision
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <?php while($p = $rejected->fetch_assoc()): ?>
-                        <div class="bg-white rounded-3xl border-2 border-red-50 p-6 hover:shadow-xl hover:border-red-100 transition-all group relative overflow-hidden">
-                            <div class="absolute -right-6 -top-6 opacity-5 group-hover:scale-110 transition-transform duration-700"><i class="fas fa-circle-exclamation text-8xl text-red-500"></i></div>
-                            <div class="flex justify-between items-start mb-4 relative z-10">
-                                <span class="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[0.625rem] font-black uppercase tracking-widest">Week <?= $p['week_number'] ?></span>
-                                <div class="flex gap-2">
-                                    <a href="lesson_plans?edit=<?= $p['id'] ?>" class="w-9 h-9 bg-red-600 text-white rounded-xl flex items-center justify-center hover:bg-red-700 transition shadow-lg shadow-red-100"><i class="fas fa-edit text-xs"></i></a>
-                                </div>
-                            </div>
-                            <h4 class="text-lg font-black text-gray-900 leading-tight mb-2"><?= htmlspecialchars($p['topic']) ?></h4>
-                            <p class="text-[0.6875rem] font-bold text-gray-400 mb-4"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></p>
-                            
-                            <div class="p-4 bg-red-50/50 rounded-2xl border border-red-100/50">
-                                <div class="text-[0.5625rem] font-black text-red-400 uppercase tracking-widest mb-1">Supervisor Remarks</div>
-                                <p class="text-xs font-bold text-red-800 italic leading-relaxed">"<?= htmlspecialchars($p['supervisor_comments'] ?: 'No specific comments provided. Please review and resubmit.') ?>"</p>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
+                <div class="bg-white rounded-3xl border border-red-100 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-red-50/30 border-b border-red-100">
+                                <tr>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Week</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
+                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-red-50">
+                                <?php while($p = $rejected->fetch_assoc()): ?>
+                                    <tr class="hover:bg-red-50/20 transition-colors group">
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-red-600">Wk <?= $p['week_number'] ?></span></td>
+                                        <td class="px-6 py-4 min-w-[250px]">
+                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                            <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 min-w-[300px]">
+                                            <div class="p-3 bg-red-50/50 rounded-xl border border-red-100/50">
+                                                <p class="text-xs font-bold text-red-800 italic leading-relaxed">"<?= htmlspecialchars($p['supervisor_comments'] ?: 'No specific comments provided. Please review and resubmit.') ?>"</p>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                                            <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
+                                                <i class="fas fa-edit"></i> Fix & Resubmit
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
             <?php endif; ?>
