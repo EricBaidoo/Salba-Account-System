@@ -460,11 +460,11 @@ if ($_SESSION['role'] === 'admin') {
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="relative group md:col-span-2">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Content Standard</label>
-                                    <input type="text" name="content_standard" value="<?= $v('content_standard') ?>" placeholder="B7.4.4.1 Examine..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
+                                    <textarea name="content_standard" placeholder="B7.4.4.1 Examine..." rows="3" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('content_standard') ?></textarea>
                                 </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Indicator</label>
-                                    <input type="text" name="indicator" value="<?= $v('indicator') ?>" placeholder="B7.4.4.1.1 Understand..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
+                                    <textarea name="indicator" placeholder="B7.4.4.1.1 Understand..." rows="3" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('indicator') ?></textarea>
                                 </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Lesson</label>
@@ -475,22 +475,22 @@ if ($_SESSION['role'] === 'admin') {
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Performance Indicator</label>
-                                    <textarea name="performance_indicator" rows="2" placeholder="Learners can explain..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('performance_indicator') ?></textarea>
+                                    <textarea name="performance_indicator" rows="4" placeholder="Learners can explain..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('performance_indicator') ?></textarea>
                                 </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Core Competencies</label>
-                                    <textarea name="core_competencies" rows="2" placeholder="DL 5.3: CI 6.8..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('core_competencies') ?></textarea>
+                                    <textarea name="core_competencies" rows="4" placeholder="DL 5.3: CI 6.8..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('core_competencies') ?></textarea>
                                 </div>
                             </div>
                             <!-- Row 6 & 7 -->
                              <div class="grid grid-cols-1 gap-4">
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">References</label>
-                                    <input type="text" name="references" value="<?= $v('references') ?>" placeholder="e.g. Science Curriculum Pg. 33-34" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
+                                    <textarea name="references" placeholder="e.g. Science Curriculum Pg. 33-34" rows="2" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('references') ?></textarea>
                                 </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">New Words</label>
-                                    <input type="text" name="new_words" value="<?= $v('new_words') ?>" placeholder="balanced, unbalanced, force" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
+                                    <textarea name="new_words" placeholder="balanced, unbalanced, force" rows="2" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('new_words') ?></textarea>
                                 </div>
                             </div>
                         </div>
