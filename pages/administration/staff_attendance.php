@@ -150,6 +150,7 @@ $sum_month = $_GET['s_month'] ?? '';
 $sum_week = $_GET['s_week'] ?? ''; // Format: Week X (Start Date)
 
 $sem_start_str = getSystemSetting($conn, 'semester_start_date', date('Y-m-01'));
+$sem_end_str = getSystemSetting($conn, 'semester_end_date', date('Y-m-t'));
 $sem_start = new DateTime($sem_start_str);
 $weeks_total = intval(getSystemSetting($conn, 'weeks_per_term', 12));
 
@@ -157,16 +158,24 @@ $range_start = null;
 $range_end = null;
 
 if ($sum_month) {
-    $range_start = date('Y-m-01', strtotime($sum_month));
-    $range_end = date('Y-m-t', strtotime($sum_month));
+    $m_start = date('Y-m-01', strtotime($sum_month));
+    $m_end = date('Y-m-t', strtotime($sum_month));
+    
+    // Constraint: Only count days within the semester boundary
+    $range_start = ($m_start > $sem_start_str) ? $m_start : $sem_start_str;
+    $range_end = ($m_end < $sem_end_str) ? $m_end : $sem_end_str;
 } elseif ($sum_week) {
     // Parse "Week X (YYYY-MM-DD)"
     if (preg_match('/\((\d{4}-\d{2}-\d{2})\)/', $sum_week, $matches)) {
-        $range_start = $matches[1];
-        $w_start = new DateTime($range_start);
+        $w_start_str = $matches[1];
+        $w_start = new DateTime($w_start_str);
         $w_end = clone $w_start;
         $w_end->modify('+6 days');
-        $range_end = $w_end->format('Y-m-d');
+        $w_end_str = $w_end->format('Y-m-d');
+
+        // Constraint: Only count days within the semester boundary
+        $range_start = ($w_start_str > $sem_start_str) ? $w_start_str : $sem_start_str;
+        $range_end = ($w_end_str < $sem_end_str) ? $w_end_str : $sem_end_str;
     }
 }
 
