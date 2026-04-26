@@ -13,9 +13,9 @@ $uid = $_SESSION['user_id'];
 $current_term = getSystemSetting($conn, 'current_semester', '1');
 $current_year = getSystemSetting($conn, 'current_academic_year', date('Y') . '/' . (date('Y')+1));
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
     $file = $_FILES['lesson_file'];
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $tmpPath = $file['tmp_name'];
     
     $imported_count = 0;
@@ -66,74 +66,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                     $imported_count++;
                 }
             }
-        } elseif ($ext === 'docx') {
-            $phpWord = \PhpOffice\PhpWord\IOFactory::load($tmpPath);
+        } elseif ($ext === 'docx' || $ext === 'rtf' || $ext === 'doc') {
+            $reader = ($ext === 'docx') ? 'Word2007' : (($ext === 'rtf') ? 'RTF' : 'HTML');
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($tmpPath, $reader);
             $sections = $phpWord->getSections();
+            $allData = [];
+            $keywords = [
+                'week_num' => ['Week Number', 'Week #', 'Week'],
+                'week_ending' => ['Week Ending', 'Date Ending'],
+                'day' => ['Day'],
+                'subject' => ['Subject'],
+                'duration' => ['Duration'],
+                'strand' => ['Strand'],
+                'sub_strand' => ['Sub-Strand', 'Sub Strand', 'Topic'],
+                'class' => ['Class'],
+                'class_size' => ['Class Size'],
+                'content_standard' => ['Content Standard'],
+                'indicator' => ['Indicator'],
+                'lesson_num' => ['Lesson Number', 'Lesson #'],
+                'perf_ind' => ['Performance Indicator'],
+                'core_comp' => ['Core Competencies', 'Core Comp'],
+                'refs' => ['References', 'Refs'],
+                'tlm' => ['TLM', 'Teaching Materials'],
+                'new_words' => ['New Words', 'Keywords'],
+                's_act' => ['Starter Activities', 'Phase 1'],
+                's_res' => ['Starter Resources'],
+                's_dur' => ['Starter Duration'],
+                'l_act' => ['Learning Activities', 'Phase 2'],
+                'l_res' => ['Learning Resources'],
+                'l_ass' => ['Assessment'],
+                'l_dur' => ['Learning Duration'],
+                'r_act' => ['Reflection Activities', 'Phase 3'],
+                'r_res' => ['Reflection Resources'],
+                'r_dur' => ['Reflection Duration'],
+                'homework' => ['Homework', 'Assignment']
+            ];
+            $allData = [];
             
-            foreach ($sections as $section) {
-                $elements = $section->getElements();
-                foreach ($elements as $element) {
-                    if ($element instanceof \PhpOffice\PhpWord\Element\Table) {
-                        $rows = $element->getRows();
-                        // Row 0 is header.
-                        for ($i = 1; $i < count($rows); $i++) {
-                            $cells = $rows[$i]->getCells();
-                            $rowData = [];
-                            foreach ($cells as $cell) {
-                                $text = '';
-                                $cellElements = $cell->getElements();
-                                foreach ($cellElements as $ce) {
-                                    if (method_exists($ce, 'getText')) $text .= $ce->getText();
+            // Check if it's our HTML-based .doc file
+            $rawContent = file_get_contents($tmpPath);
+            if ($ext === 'doc' && strpos($rawContent, '<html') !== false) {
+                // Manual HTML Table Parser (Safe Fallback)
+                preg_match_all('/<tr><td[^>]*>(.*?)<\/td><td[^>]*>(.*?)<\/td><\/tr>/is', $rawContent, $matches, PREG_SET_ORDER);
+                if (!empty($matches)) {
+                    $currentData = [];
+                    foreach ($matches as $m) {
+                        $label = trim(strip_tags($m[1]), ": \t\n\r\0\x0B");
+                        $value = trim(strip_tags($m[2]));
+                        foreach ($keywords as $key => $kMatches) {
+                            foreach ($kMatches as $km) {
+                                if (stripos($label, $km) !== false) {
+                                    $currentData[$key] = $value;
+                                    break;
                                 }
-                                $rowData[] = trim($text);
-                            }
-                            
-                            if (empty(array_filter($rowData))) continue;
-
-                            $data = [
-                                'week_ending' => $rowData[0] ?? null,
-                                'day' => $rowData[1] ?? '',
-                                'subject' => $rowData[2] ?? '',
-                                'duration' => $rowData[3] ?? '',
-                                'strand' => $rowData[4] ?? '',
-                                'sub_strand' => $rowData[5] ?? '',
-                                'class' => $rowData[6] ?? '',
-                                'class_size' => intval($rowData[7] ?? 0),
-                                'content_standard' => $rowData[8] ?? '',
-                                'indicator' => $rowData[9] ?? '',
-                                'lesson_num' => $rowData[10] ?? '',
-                                'perf_ind' => $rowData[11] ?? '',
-                                'core_comp' => $rowData[12] ?? '',
-                                'refs' => $rowData[13] ?? '',
-                                'tlm' => $rowData[14] ?? '',
-                                'new_words' => $rowData[15] ?? '',
-                                's_act' => $rowData[16] ?? '',
-                                's_res' => $rowData[17] ?? '',
-                                's_dur' => $rowData[18] ?? '',
-                                'l_act' => $rowData[19] ?? '',
-                                'l_res' => $rowData[20] ?? '',
-                                'l_ass' => $rowData[21] ?? '',
-                                'l_dur' => $rowData[22] ?? '',
-                                'r_act' => $rowData[23] ?? '',
-                                'r_res' => $rowData[24] ?? '',
-                                'r_dur' => $rowData[25] ?? '',
-                                'homework' => $rowData[26] ?? ''
-                            ];
-                            
-                            if (saveAsDraft($conn, $uid, $data, $current_term, $current_year)) {
-                                $imported_count++;
                             }
                         }
-                        break; // Only parse first table
+                    }
+                    if (count($currentData) > 3) $allData[] = $currentData;
+                }
+            }
+
+            // If manual parsing didn't find anything, use PhpWord
+            if (empty($allData)) {
+                $reader = ($ext === 'docx') ? 'Word2007' : (($ext === 'rtf') ? 'RTF' : 'HTML');
+                $phpWord = @\PhpOffice\PhpWord\IOFactory::load($tmpPath, $reader);
+                foreach ($phpWord->getSections() as $section) {
+                    foreach ($section->getElements() as $element) {
+                        if ($element instanceof \PhpOffice\PhpWord\Element\Table) {
+                            $currentData = [];
+                            foreach ($element->getRows() as $row) {
+                                $cells = $row->getCells();
+                                if (count($cells) >= 2) {
+                                    $labelCell = trim(getWordText($cells[0]), ": \t\n\r\0\x0B");
+                                    $valueCell = trim(getWordText($cells[1]));
+                                    foreach ($keywords as $key => $mKeys) {
+                                        foreach ($mKeys as $mk) {
+                                            if (stripos($labelCell, $mk) !== false) {
+                                                $currentData[$key] = $valueCell;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (count($currentData) > 3) $allData[] = $currentData;
+                        }
+                    }
+                }
+            }
+
+            foreach ($allData as $currentData) {
+                if (!empty($currentData) && count($currentData) > 5) {
+                    foreach ($keywords as $key => $matches) {
+                        if (!isset($currentData[$key])) $currentData[$key] = '';
+                    }
+                    if (saveAsDraft($conn, $uid, $currentData, $current_term, $current_year)) {
+                        $imported_count++;
                     }
                 }
             }
         }
         
         if ($imported_count > 0) {
-            header("Location: lesson_plans?msg=Successfully imported $imported_count lesson note(s) as draft.&type=success");
+            redirect('lesson_plans', 'success', "Successfully imported $imported_count lesson note(s) as draft.");
         } else {
-            header("Location: lesson_plans?msg=No notes were imported. Ensure you follow the template.&type=error");
+            redirect('lesson_plans', 'error', "No notes were imported. Ensure you follow the template.");
         }
         exit;
 
@@ -163,7 +200,7 @@ function saveAsDraft($conn, $uid, $d, $term, $year) {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')";
     
     $stmt = $conn->prepare($sql);
-    $week_num = 1; // Default
+    $week_num = intval($d['week_num'] ?? 1); 
     $topic = $d['sub_strand'];
     $obj = ''; // Consolidated objectives
     
@@ -179,5 +216,23 @@ function saveAsDraft($conn, $uid, $d, $term, $year) {
     );
     
     return $stmt->execute();
+}
+
+function getWordText($element) {
+    $text = '';
+    if ($element instanceof \PhpOffice\PhpWord\Element\Text) {
+        $text = $element->getText();
+    } elseif ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+        foreach ($element->getElements() as $child) {
+            $text .= getWordText($child);
+        }
+    } elseif (method_exists($element, 'getElements')) {
+        foreach ($element->getElements() as $child) {
+            $text .= getWordText($child);
+        }
+    } elseif (method_exists($element, 'getText')) {
+        $text = $element->getText();
+    }
+    return $text;
 }
 ?>

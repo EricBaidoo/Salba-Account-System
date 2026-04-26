@@ -43,12 +43,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
         $stmt = $conn->prepare("UPDATE lesson_plans SET status = ?, supervisor_comments = ?, supervisor_id = ? WHERE id = ?");
         $stmt->bind_param("ssii", $status, $comments, $uid, $plan_id);
         if ($stmt->execute()) {
-            $success = "Lesson plan marked as " . strtoupper($status) . ".";
+            redirect('lesson_plans', 'success', "Lesson plan marked as " . strtoupper($status) . ".");
         } else {
-            $error = "Failed to update lesson plan.";
+            set_flash('error', "Failed to update lesson plan.");
         }
     }
 }
+
+// Filters
+$week_f = intval($_GET['week'] ?? 0);
+$date_f = $_GET['date'] ?? '';
+$class_f = $_GET['class'] ?? '';
+$search_f = trim($_GET['search'] ?? '');
+
+$filter_where = "";
+if ($week_f) $filter_where .= " AND l.week_number = $week_f";
+if ($date_f) $filter_where .= " AND l.week_ending = '" . $conn->real_escape_string($date_f) . "'";
+if ($class_f) $filter_where .= " AND l.class_name = '" . $conn->real_escape_string($class_f) . "'";
+if ($search_f) {
+    $s = $conn->real_escape_string($search_f);
+    $filter_where .= " AND (l.topic LIKE '%$s%' OR s.name LIKE '%$s%' OR u.username LIKE '%$s%' OR sp.full_name LIKE '%$s%' OR l.class_name LIKE '%$s%')";
+}
+
+$total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
+$classes_res = $conn->query("SELECT DISTINCT class_name FROM lesson_plans WHERE class_name IS NOT NULL AND class_name != '' ORDER BY class_name ASC");
 
 // Fetch pending and reviewed plans
 $pending_plans = $conn->query("
@@ -56,8 +74,8 @@ $pending_plans = $conn->query("
     FROM lesson_plans l 
     JOIN subjects s ON l.subject_id = s.id 
     JOIN users u ON l.teacher_id = u.id 
-    LEFT JOIN staff_profiles sp ON u.staff_id = sp.id
-    WHERE l.status = 'pending' 
+    LEFT JOIN staff_profiles sp ON u.id = sp.user_id
+    WHERE l.status = 'pending' $filter_where
     ORDER BY l.created_at ASC
 ");
 
@@ -66,9 +84,9 @@ $reviewed_plans = $conn->query("
     FROM lesson_plans l 
     JOIN subjects s ON l.subject_id = s.id 
     JOIN users u ON l.teacher_id = u.id 
-    LEFT JOIN staff_profiles sp ON u.staff_id = sp.id
-    WHERE l.status IN ('approved', 'rejected') 
-    ORDER BY l.updated_at DESC LIMIT 20
+    LEFT JOIN staff_profiles sp ON u.id = sp.user_id
+    WHERE l.status IN ('approved', 'rejected') $filter_where
+    ORDER BY l.updated_at DESC LIMIT 100
 ");
 ?>
 <!DOCTYPE html>
@@ -90,12 +108,49 @@ $reviewed_plans = $conn->query("
             <i class="fas fa-file-signature text-green-500"></i> Supervisor's Approvals
         </h1>
 
-        <?php if ($success): ?>
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm mb-6"><i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($success); ?></div>
-        <?php endif; ?>
-        <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-3 shadow-sm mb-6"><i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
+        <!-- Global Flash Messages handled by top_nav.php -->
+
+        <!-- Filter Bar -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8">
+            <form method="GET" class="flex flex-wrap items-center gap-4">
+                <div class="relative flex-1 min-w-[200px]">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                    <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by teacher, topic, class..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</label>
+                    <select name="class" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[120px]">
+                        <option value="">All Classes</option>
+                        <?php while($c = $classes_res->fetch_assoc()): ?>
+                            <option value="<?= htmlspecialchars($c['class_name']) ?>" <?= $class_f == $c['class_name'] ? 'selected' : '' ?>><?= htmlspecialchars($c['class_name']) ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</label>
+                    <select name="week" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[100px]">
+                        <option value="0">All Weeks</option>
+                        <?php for($i=1; $i<=$total_weeks; $i++): ?>
+                            <option value="<?= $i ?>" <?= $week_f == $i ? 'selected' : '' ?>>Week <?= $i ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week Ending</label>
+                    <input type="date" name="date" value="<?= htmlspecialchars($date_f) ?>" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition shadow-lg shadow-green-100">
+                        Filter
+                    </button>
+                    <?php if($week_f || $date_f || $search_f || $class_f): ?>
+                        <a href="lesson_plans" class="bg-gray-100 text-gray-500 px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition flex items-center justify-center">
+                            Reset
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
 
         <div class="space-y-8">
             <!-- Pending Queue -->

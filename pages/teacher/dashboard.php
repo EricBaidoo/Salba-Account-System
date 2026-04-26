@@ -176,16 +176,16 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                     <p class="text-gray-500 text-sm leading-relaxed">Review your personal check-in history, punctuality record, and location compliance.</p>
                 </a>
 
-                <!-- Card: My Portfolio (NEW) -->
-                <a href="<?= BASE_URL ?>pages/teacher/my_portfolio" class="group bg-white rounded-3xl p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-300 relative overflow-hidden">
+                <!-- Card: Lesson Dashboard (Portfolio) -->
+                <a href="<?= BASE_URL ?>pages/teacher/lesson_portfolio" class="group bg-white rounded-3xl p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
                         <i class="fas fa-id-badge text-8xl text-indigo-500"></i>
                     </div>
                     <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-id-badge"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">My Portfolio</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Centralized view of your lesson plans, performance stats, and professional records.</p>
+                    <h3 class="text-2xl font-black text-gray-900 mb-2">Lesson Dashboard</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Centralized view of your lesson plans, performance stats, and submission history.</p>
                 </a>
             </div>
         </div>

@@ -15,7 +15,7 @@ $uid = $_SESSION['user_id'];
 $edit_id = intval($_GET['edit'] ?? 0);
 $edit_data = null;
 if ($edit_id) {
-    $res = $conn->query("SELECT * FROM lesson_plans WHERE id = $edit_id AND teacher_id = $uid AND status IN ('draft', 'pending') LIMIT 1");
+    $res = $conn->query("SELECT * FROM lesson_plans WHERE id = $edit_id AND teacher_id = $uid AND status IN ('draft', 'pending', 'rejected') LIMIT 1");
     if ($res && $res->num_rows > 0) {
         $edit_data = $res->fetch_assoc();
     }
@@ -78,10 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_plan'])) {
         $row = $check->fetch_assoc();
         if ($row['status'] === 'pending') {
             if ($conn->query("UPDATE lesson_plans SET status = 'draft' WHERE id = $plan_id")) {
-                redirect('lesson_plans', 'success', "Lesson plan unsubmitted to draft.");
+                redirect('lesson_portfolio', 'success', "Lesson plan unsubmitted to draft.");
             }
         } else {
-            redirect('lesson_plans', 'error', "Cannot unsubmit a plan that has been reviewed.");
+            redirect('lesson_portfolio', 'error', "Cannot unsubmit a plan that has been reviewed.");
         }
     }
 }
@@ -91,12 +91,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_plan'])) {
     $check = $conn->query("SELECT status FROM lesson_plans WHERE id = $plan_id AND teacher_id = $uid");
     if ($check && $check->num_rows > 0) {
         $row = $check->fetch_assoc();
-        if ($row['status'] === 'pending' || $row['status'] === 'draft') {
+        if ($row['status'] === 'pending' || $row['status'] === 'draft' || $row['status'] === 'rejected') {
             if ($conn->query("DELETE FROM lesson_plans WHERE id = $plan_id")) {
-                redirect('lesson_plans', 'success', "Lesson plan deleted successfully.");
+                redirect('lesson_portfolio', 'success', "Lesson plan deleted successfully.");
             }
         } else {
-            redirect('lesson_plans', 'error', "Cannot delete a reviewed plan.");
+            redirect('lesson_portfolio', 'error', "Cannot delete an approved plan.");
         }
     }
 }
@@ -191,23 +191,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_plan']) || is
         
         if ($stmt->execute()) {
             $msg = ($action_status === 'draft') ? "Lesson plan saved as draft." : "Lesson plan submitted successfully!";
-            redirect('lesson_plans', 'success', $msg);
+            redirect('lesson_portfolio', 'success', $msg);
         } else {
-            redirect('lesson_plans', 'error', "Failed: " . $conn->error);
+            redirect('lesson_portfolio', 'error', "Failed: " . $conn->error);
         }
     } else {
-        redirect('lesson_plans', 'error', "Please fill out required fields (Class, Subject, Sub-strand).");
+        redirect('lesson_portfolio', 'error', "Please fill out required fields (Class, Subject, Sub-strand).");
     }
 }
 
-// Fetch teacher's past plans
-$plans = $conn->query("
-    SELECT l.*, s.name as subject_name 
-    FROM lesson_plans l 
-    JOIN subjects s ON l.subject_id = s.id 
-    WHERE l.teacher_id = $uid 
-    ORDER BY l.created_at DESC
-");
+// Stats for dashboard (Optional if you still want counts here, but user said "nothing else")
+// I'll keep the variables but they won't be used in the view for now to keep code clean if needed later.
 
 // Stats for dashboard
 $stats_res = $conn->query("
@@ -248,185 +242,141 @@ if ($_SESSION['role'] === 'admin') {
 
     <?php include '../../includes/top_nav.php'; ?>
 
-    <main class="admin-main-content p-4 md:p-8 min-h-screen relative">
-        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
-            <i class="fas fa-file-contract text-green-500"></i> Lesson Planning
-        </h1>
+    <main class="min-h-screen pb-20 max-w-7xl mx-auto px-4 md:px-8">
+        <!-- Dashboard Style Header -->
+        <div class="py-10">
+            <!-- Flash Messages -->
+            <?php 
+            $flashes = get_flash();
+            $url_msg = $_GET['msg'] ?? '';
+            $url_type = $_GET['type'] ?? 'info';
+            if ($url_msg) $flashes[] = ['type' => $url_type, 'message' => $url_msg];
+            
+            foreach ($flashes as $f): 
+                $bgColor = ($f['type'] === 'success') ? 'bg-emerald-50 border-emerald-200' : ($f['type'] === 'error' ? 'bg-rose-50 border-rose-200' : 'bg-blue-50 border-blue-200');
+                $textColor = ($f['type'] === 'success') ? 'text-emerald-800' : ($f['type'] === 'error' ? 'text-rose-800' : 'text-blue-800');
+                $icon = ($f['type'] === 'success') ? 'fa-circle-check text-emerald-500' : ($f['type'] === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-info text-blue-500');
+            ?>
+                <div class="mb-8 p-6 rounded-3xl border <?= $bgColor ?> <?= $textColor ?> flex items-center justify-between shadow-xl shadow-slate-200/50 animate-in slide-in-from-top duration-500">
+                    <div class="flex items-center gap-4">
+                        <i class="fas <?= $icon ?> text-2xl"></i>
+                        <div>
+                            <p class="font-black text-[0.625rem] uppercase tracking-widest opacity-70"><?= $f['type'] ?></p>
+                            <p class="text-sm font-bold"><?= htmlspecialchars($f['message']) ?></p>
+                        </div>
+                    </div>
+                    <?php if($f['type'] === 'success'): ?>
+                        <a href="lesson_portfolio" class="bg-white/50 hover:bg-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-current transition-all uppercase tracking-widest">Dashboard</a>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
 
-        <!-- Stats Dashboard Bar -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
-                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-file-edit text-xl"></i>
-                </div>
-                <div>
-                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">My Drafts</div>
-                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['draft_count'] ?? 0) ?></div>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <h1 class="text-4xl font-black text-gray-900 flex items-center gap-4 tracking-tighter">
+                    <div class="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                        <i class="fas fa-file-signature text-xl"></i>
+                    </div>
+                    Lesson Planning
+                </h1>
+                <a href="lesson_portfolio" class="group bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-[0.7rem] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        </div>
+
+        <!-- Row 1: Quick Import (Horizontal) -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-10">
+            <div class="bg-slate-900 p-5 flex justify-between items-center px-8">
+                <h3 class="text-white font-black text-xs flex items-center gap-3 uppercase tracking-widest">
+                    <i class="fas fa-bolt text-yellow-400"></i> Quick Import Module
+                </h3>
+                <div class="flex gap-4">
+                    <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] text-slate-400 hover:text-emerald-400 font-black uppercase tracking-widest transition flex items-center gap-2" download>
+                        <i class="fas fa-file-excel"></i> Excel Template
+                    </a>
+                    <a href="download_word_template.php" class="text-[0.625rem] text-slate-400 hover:text-blue-400 font-black uppercase tracking-widest transition flex items-center gap-2">
+                        <i class="fas fa-file-word"></i> Word Template
+                    </a>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
-                <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-yellow-500 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-hourglass-half text-xl"></i>
-                </div>
-                <div>
-                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Pending Review</div>
-                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['pending_count'] ?? 0) ?></div>
+            <div class="p-8">
+                <div class="flex flex-col lg:flex-row items-center gap-6">
+                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex items-center gap-4">
+                        <div class="flex-1 relative group">
+                            <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                            <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-indigo-400 group-hover:bg-indigo-50/30 transition-all">
+                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500">
+                                    <i class="fas fa-cloud-arrow-up text-lg"></i>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-[0.625rem] text-slate-400 font-black uppercase tracking-widest mb-0.5">Upload Draft</div>
+                                    <div class="text-sm font-bold text-slate-600">Drop file here or click</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="h-20 px-8 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 active:scale-95">
+                            Import <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <div class="h-10 w-px bg-slate-100 hidden lg:block"></div>
+
+                    <button onclick="document.getElementById('pasteModal').classList.remove('hidden')" class="w-full lg:w-auto h-20 px-10 bg-white text-blue-600 border-2 border-blue-100 font-black rounded-2xl hover:bg-blue-50 hover:border-blue-200 transition flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] active:scale-95 shadow-lg shadow-blue-50">
+                        <i class="fas fa-paste text-lg"></i>
+                        <div class="text-left">
+                            <p class="">Paste Content</p>
+                            <p class="text-[0.625rem] text-blue-400 opacity-70">Fastest Method</p>
+                        </div>
+                    </button>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 group hover:shadow-md transition-shadow">
-                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-check-double text-xl"></i>
-                </div>
-                <div>
-                    <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Approved Notes</div>
-                    <div class="text-2xl font-black text-gray-900"><?= intval($stats['reviewed_count'] ?? 0) ?></div>
-                </div>
-            </div>
-            <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 p-5 rounded-2xl shadow-lg shadow-indigo-100 flex items-center gap-4 group">
-                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white">
-                    <i class="fas fa-calendar-check text-xl"></i>
-                </div>
-                <div>
-                    <div class="text-[0.625rem] font-black text-indigo-100 uppercase tracking-widest"><?= $current_term ?></div>
-                    <div class="text-lg font-black text-white leading-tight"><?= $current_year ?></div>
+
+            <!-- Paste Modal -->
+            <div id="pasteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                    <div class="p-8 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-black uppercase tracking-tighter">Paste Lesson Note</h3>
+                                <p class="text-blue-100 text-xs mt-1 font-bold">Copy everything from Word and paste it here</p>
+                            </div>
+                            <button onclick="document.getElementById('pasteModal').classList.add('hidden')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <form action="process_lesson_paste.php" method="POST" class="p-8">
+                        <textarea name="pasted_text" rows="12" required placeholder="Paste your lesson note text here..." class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
+                        <div class="flex gap-4">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white font-black py-5 rounded-2xl hover:bg-blue-700 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs">
+                                <i class="fas fa-wand-magic-sparkles"></i> Process & Import
+                            </button>
+                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-100 text-slate-500 font-bold py-5 rounded-2xl hover:bg-slate-200 transition uppercase tracking-widest text-xs">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Global Flash Messages handled by top_nav.php -->
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left Sidebar (Reordered for mobile: appears after form) -->
-            <div class="lg:col-span-4 space-y-8 order-last lg:order-first lg:sticky lg:top-24">
-                <!-- Professional Portfolio Card -->
-                <div class="bg-gradient-to-br from-indigo-700 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-100 group">
-                    <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform duration-700"><i class="fas fa-id-badge text-8xl"></i></div>
-                    <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm border border-white/20">
-                            <i class="fas fa-award text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-black mb-2 tracking-tight">Professional Portfolio</h3>
-                        <p class="text-xs font-medium text-indigo-100 leading-relaxed mb-6 opacity-80">View your full teaching history, performance stats, and administrative audit logs in one place.</p>
-                        <a href="my_portfolio.php" class="inline-flex items-center gap-2 bg-white text-indigo-900 px-6 py-2.5 rounded-xl font-black text-[0.625rem] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-95">
-                            Open Portfolio <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Bulk Import Section -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-indigo-600 p-4 flex justify-between items-center">
-                        <h3 class="text-white font-bold text-sm flex items-center gap-2">
-                            <i class="fas fa-file-import"></i> Quick Import
-                        </h3>
-                        <div class="flex gap-2">
-                            <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition font-bold" download>
-                                <i class="fas fa-file-excel"></i> Template
-                            </a>
-                            <a href="../../assets/templates/GES_Lesson_Note_Template.docx" class="text-[0.625rem] bg-white/20 text-white px-2 py-1 rounded hover:bg-white/30 transition font-bold" download>
-                                <i class="fas fa-file-word"></i> Template
-                            </a>
-                        </div>
-                    </div>
-                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="p-4 flex flex-col sm:flex-row items-center gap-4">
-                        <div class="flex-1 w-full relative group">
-                            <input type="file" name="lesson_file" accept=".xlsx,.docx" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
-                            <div class="w-full px-4 py-2 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-center group-hover:border-indigo-400 transition-colors">
-                                <span class="text-xs text-gray-500 font-medium"><i class="fas fa-cloud-upload-alt text-indigo-400 mr-2"></i> File...</span>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full sm:w-auto bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold text-xs hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                            Process
-                        </button>
-                    </form>
-                </div>
-
-                <!-- History Section -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden">
-                    <h2 class="font-black text-gray-900 border-b border-gray-100 pb-3 mb-6 uppercase tracking-tighter flex items-center gap-2">
-                        <i class="fas fa-clock-rotate-left text-indigo-500"></i> Plan History
+        <!-- Row 2: Main Form (Full Width) -->
+        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-10 flex justify-between items-center relative overflow-hidden">
+                <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                <div class="relative z-10">
+                    <h2 class="font-black text-white text-3xl flex items-center gap-4 tracking-tighter">
+                        <i class="fas fa-pen-nib"></i> GES Lesson Note
                     </h2>
-                    <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                        <?php if($plans && $plans->num_rows > 0): while($p = $plans->fetch_assoc()): ?>
-                            <!-- Plan Card -->
-                            <div class="border <?= $p['status'] === 'draft' ? 'border-dashed border-gray-300' : 'border-gray-50' ?> p-4 rounded-xl bg-gray-50/50 group hover:bg-white hover:border-green-200 transition-all shadow-sm">
-                                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                    <span class="text-[0.5rem] font-black bg-white text-gray-500 border border-gray-100 px-2 py-0.5 rounded-lg uppercase">Wk <?= $p['week_number'] ?></span>
-                                    <div>
-                                        <?php if($p['status'] === 'draft'): ?>
-                                            <span class="text-[0.5rem] font-black text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200 uppercase tracking-widest">Draft</span>
-                                        <?php elseif($p['status'] === 'pending'): ?>
-                                            <span class="text-[0.5rem] font-black text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-100 uppercase tracking-widest">Pending</span>
-                                        <?php elseif($p['status'] === 'approved'): ?>
-                                            <span class="text-[0.5rem] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-widest">Approved</span>
-                                        <?php else: ?>
-                                            <span class="text-[0.5rem] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">Rejected</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <h4 class="font-bold text-gray-900 text-xs mb-1 line-clamp-1"><?= htmlspecialchars($p['sub_strand']) ?></h4>
-                                <div class="text-[0.625rem] text-gray-400 font-bold mb-3"><?= htmlspecialchars($p['subject_name']) ?></div>
-                                
-                                <div class="flex gap-1 pt-3 border-t border-gray-100">
-                                    <?php if($p['status'] === 'draft'): ?>
-                                        <a href="?edit=<?= $p['id'] ?>" class="flex-1 py-1.5 bg-indigo-600 text-white text-[0.5rem] font-black rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-1 uppercase">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="flex-1 py-1.5 bg-white border border-gray-200 text-gray-700 text-[0.5rem] font-black rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-1 uppercase">
-                                            <i class="fas fa-eye text-indigo-500"></i> View
-                                        </a>
-                                    <?php endif; ?>
-                                    
-                                    <div class="flex gap-1">
-                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-8 py-1.5 bg-white border border-gray-200 text-gray-700 text-[0.5rem] font-black rounded-lg hover:bg-gray-50 transition flex items-center justify-center">
-                                            <i class="fas fa-file-pdf text-red-500"></i>
-                                        </a>
-                                        <?php if($p['status'] === 'pending'): ?>
-                                            <form method="POST" onsubmit="return confirm('Note: Unsubmitting will move this back to drafts.');">
-                                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                <button type="submit" name="unsubmit_plan" class="w-8 py-1.5 bg-white border border-yellow-200 text-yellow-600 text-[0.5rem] font-black rounded-lg hover:bg-yellow-50 transition flex items-center justify-center">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                        <?php if($p['status'] === 'pending' || $p['status'] === 'draft'): ?>
-                                            <form method="POST" onsubmit="return confirm('Delete this lesson plan permanently?');">
-                                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                <button type="submit" name="delete_plan" class="w-8 py-1.5 bg-white border border-red-100 text-red-500 text-[0.5rem] font-black rounded-lg hover:bg-red-50 transition flex items-center justify-center">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endwhile; else: ?>
-                            <div class="text-center py-10">
-                                <i class="fas fa-folder-open text-3xl text-gray-200 mb-2"></i>
-                                <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">No plans found</div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                    <p class="text-emerald-50 text-xs mt-2 font-bold uppercase tracking-[0.3em] opacity-80">Crafting educational excellence with precision</p>
                 </div>
+                <?php if($edit_id): ?>
+                    <a href="lesson_plans" class="relative z-10 bg-white/20 text-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-white/30 hover:bg-white hover:text-emerald-700 transition-all uppercase tracking-widest shadow-lg">Cancel Edit</a>
+                <?php endif; ?>
             </div>
-
-            <!-- Right Column: Main Form -->
-            <div class="lg:col-span-8">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-green-600 to-emerald-700 p-6 flex justify-between items-center">
-                    <div>
-                        <h2 class="font-bold text-white text-lg flex items-center gap-2">
-                            <i class="fas fa-edit"></i> GES Standard Lesson Note
-                        </h2>
-                        <p class="text-green-100 text-[0.625rem] mt-1 font-medium tracking-wide">Refining educational excellence with precise planning.</p>
-                    </div>
-                    <?php if($edit_id): ?>
-                        <a href="lesson_plans" class="bg-white/20 text-white text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/30 transition">Cancel Edit</a>
-                    <?php endif; ?>
-                </div>
-                
-                <form method="POST" class="p-6 space-y-10">
+            
+            <form method="POST" class="p-10 space-y-12">
                     <input type="hidden" name="existing_plan_id" value="<?= $edit_id ?>">
 
                     <!-- Block 1: Header Grid -->
@@ -616,17 +566,16 @@ if ($_SESSION['role'] === 'admin') {
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 pt-10 border-t border-gray-50">
-                        <button type="submit" name="submit_plan" class="flex-[3] bg-green-600 text-white font-black py-5 rounded-2xl hover:bg-green-700 transition shadow-xl shadow-green-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest">
+                        <button type="submit" name="submit_plan" class="flex-[3] bg-emerald-600 text-white font-black py-5 rounded-2xl hover:bg-emerald-700 transition shadow-xl shadow-emerald-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest active:scale-[0.98]">
                             <i class="fas fa-paper-plane"></i> <?= ($edit_id) ? 'Update & Submit Note' : 'Submit Lesson Note' ?>
                         </button>
-                        <button type="submit" name="save_draft" class="flex-[1] bg-white text-gray-600 border-2 border-gray-100 font-bold py-5 rounded-2xl hover:bg-gray-50 hover:border-gray-200 transition flex items-center justify-center gap-3 text-sm">
-                            <i class="fas fa-floppy-disk text-gray-400"></i> <?= ($edit_id) ? 'Update Draft' : 'Save Draft' ?>
+                        <button type="submit" name="save_draft" class="flex-[1] bg-white text-slate-600 border-2 border-slate-100 font-bold py-5 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition flex items-center justify-center gap-3 text-sm active:scale-[0.98]">
+                            <i class="fas fa-floppy-disk text-slate-400"></i> <?= ($edit_id) ? 'Update Draft' : 'Save Draft' ?>
                         </button>
                     </div>
                 </form>
-            </div>
-            </div> <!-- End of Right Column (lg:col-span-8) -->
-        </div> <!-- End of Layout Grid -->
+            </div> <!-- Close form container card -->
+        </div> <!-- Close form container card (Outer) -->
     </main>
 
     <style>
