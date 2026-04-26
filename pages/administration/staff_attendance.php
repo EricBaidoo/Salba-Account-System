@@ -143,6 +143,76 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
 $all_staff_res = $conn->query("SELECT u.id, u.username, sp.full_name FROM users u LEFT JOIN staff_profiles sp ON u.id = sp.user_id WHERE u.role IN ('facilitator', 'supervisor', 'teacher', 'admin') ORDER BY sp.full_name ASC, u.username ASC");
 $all_staff = [];
 while($as = $all_staff_res->fetch_assoc()) $all_staff[] = $as;
+
+// --- Performance Summary Logic ---
+$active_view = $_GET['view'] ?? 'daily';
+$sum_month = $_GET['s_month'] ?? '';
+$sum_week = $_GET['s_week'] ?? ''; // Format: Week X (Start Date)
+
+$sem_start_str = getSystemSetting($conn, 'semester_start_date', date('Y-m-01'));
+$sem_start = new DateTime($sem_start_str);
+$weeks_total = intval(getSystemSetting($conn, 'weeks_per_term', 12));
+
+$range_start = null;
+$range_end = null;
+
+if ($sum_month) {
+    $range_start = date('Y-m-01', strtotime($sum_month));
+    $range_end = date('Y-m-t', strtotime($sum_month));
+} elseif ($sum_week) {
+    // Parse "Week X (YYYY-MM-DD)"
+    if (preg_match('/\((\d{4}-\d{2}-\d{2})\)/', $sum_week, $matches)) {
+        $range_start = $matches[1];
+        $w_start = new DateTime($range_start);
+        $w_end = clone $w_start;
+        $w_end->modify('+6 days');
+        $range_end = $w_end->format('Y-m-d');
+    }
+}
+
+// Default to current month if no filter and historical view
+if ($active_view === 'historical' && !$range_start) {
+    $range_start = date('Y-m-01');
+    $range_end = date('Y-m-t');
+}
+
+$perf_summary = [];
+if ($range_start && $range_end) {
+    // 1. Calculate School Days in Range (Mon-Fri)
+    $school_days = 0;
+    $curr = new DateTime($range_start);
+    $end = new DateTime($range_end);
+    $holidays = [];
+    $h_res = $conn->query("SELECT event_date FROM academic_calendar WHERE event_date BETWEEN '$range_start' AND '$range_end'");
+    while($h = $h_res->fetch_row()) $holidays[] = $h[0];
+
+    $today_dt = new DateTime();
+    while ($curr <= $end) {
+        if ($curr > $today_dt) break; // Cap working days at today for accurate "to-date" reporting
+
+        $w = $curr->format('N');
+        if ($w <= 5 && !in_array($curr->format('Y-m-d'), $holidays)) {
+            $school_days++;
+        }
+        $curr->modify('+1 day');
+    }
+
+    // 2. Fetch All Staff and their presence count
+    $staff_perf_res = $conn->query("
+        SELECT u.id, u.username, sp.full_name, sp.job_title,
+               COUNT(sa.id) as presence_count
+        FROM users u
+        LEFT JOIN staff_profiles sp ON u.id = sp.user_id
+        LEFT JOIN staff_attendance sa ON u.id = sa.user_id AND sa.check_in_time BETWEEN '$range_start 00:00:00' AND '$range_end 23:59:59'
+        WHERE u.role IN ('facilitator', 'supervisor', 'teacher', 'admin')
+        GROUP BY u.id
+        ORDER BY sp.full_name ASC, u.username ASC
+    ");
+    while($row = $staff_perf_res->fetch_assoc()) {
+        $row['school_days'] = $school_days;
+        $perf_summary[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -181,8 +251,14 @@ while($as = $all_staff_res->fetch_assoc()) $all_staff[] = $as;
             </div>
  
             <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm mr-4">
+                    <a href="?view=daily&date=<?= $selected_date ?>" class="px-6 py-3 rounded-xl text-[0.625rem] font-black uppercase tracking-widest transition-all <?= $active_view === 'daily' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900' ?>">Daily Manifest</a>
+                    <a href="?view=historical&date=<?= $selected_date ?>" class="px-6 py-3 rounded-xl text-[0.625rem] font-black uppercase tracking-widest transition-all <?= $active_view === 'historical' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-900' ?>">Historical Audit</a>
+                </div>
+
                 <div class="bg-white p-2.5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
                     <form method="GET" class="flex items-center gap-3">
+                        <input type="hidden" name="view" value="<?= $active_view ?>">
                         <i class="fas fa-calendar-day text-slate-400 ml-3"></i>
                         <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:ring-1 focus:ring-indigo-500 transition-all">
                     </form>
@@ -193,6 +269,7 @@ while($as = $all_staff_res->fetch_assoc()) $all_staff[] = $as;
             </div>
         </header>
 
+        <?php if($active_view === 'daily'): ?>
         <!-- Modern Light HUD -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             <div class="bg-white rounded-2xl border border-indigo-100 shadow-sm p-8 relative overflow-hidden group">
@@ -331,6 +408,101 @@ while($as = $all_staff_res->fetch_assoc()) $all_staff[] = $as;
                 </div>
             </div>
         </div>
+        <?php endif; ?>
+
+        <?php if($active_view === 'historical'): ?>
+        <!-- Performance Summary Ledger -->
+        <div>
+            <div class="px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div>
+                    <h3 class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-[0.4em] mb-2">Personnel Performance Ledger</h3>
+                    <p class="text-xs font-bold text-slate-400">Total presence vs school working days in selected period</p>
+                </div>
+                
+                <form method="GET" class="flex flex-wrap items-center gap-4 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                    <input type="hidden" name="view" value="historical">
+                    <input type="hidden" name="date" value="<?= $selected_date ?>">
+                    
+                    <div class="flex items-center gap-2 px-3 border-r border-slate-100">
+                        <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Month</label>
+                        <input type="month" name="s_month" value="<?= $sum_month ?>" class="bg-slate-50 border-none rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold text-slate-700 outline-none">
+                    </div>
+                    
+                    <div class="flex items-center gap-2 px-3 border-r border-slate-100">
+                        <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Semester Week</label>
+                        <select name="s_week" class="bg-slate-50 border-none rounded-lg px-3 py-1.5 text-[0.6875rem] font-bold text-slate-700 outline-none appearance-none cursor-pointer">
+                            <option value="">Select Week...</option>
+                            <?php 
+                            $temp_start = clone $sem_start;
+                            for($i=1; $i<=$weeks_total; $i++): 
+                                $w_label = "Week $i (" . $temp_start->format('Y-m-d') . ")";
+                                $is_sel = ($sum_week === $w_label) ? 'selected' : '';
+                            ?>
+                                <option value="<?= $w_label ?>" <?= $is_sel ?>><?= $w_label ?></option>
+                            <?php 
+                                $temp_start->modify('+7 days');
+                            endfor; ?>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-[0.625rem] font-black uppercase tracking-widest hover:bg-slate-900 transition-all">
+                        Generate Report
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[62.5rem] text-left border-collapse">
+                        <thead class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400 bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="px-8 py-5">Personnel</th>
+                                <th class="px-8 py-5">Role</th>
+                                <th class="px-8 py-5 text-center">Days Present</th>
+                                <th class="px-8 py-5 text-center">Working Days</th>
+                                <th class="px-8 py-5 text-center">Attendance %</th>
+                                <th class="px-8 py-5 text-right">Audit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php foreach($perf_summary as $row): 
+                                $percent = $row['school_days'] > 0 ? round(($row['presence_count'] / $row['school_days']) * 100) : 0;
+                                $color = $percent >= 90 ? 'emerald' : ($percent >= 75 ? 'sky' : ($percent >= 50 ? 'orange' : 'rose'));
+                            ?>
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-8 py-6">
+                                        <div class="font-black text-slate-900 text-base tracking-tight uppercase"><?= htmlspecialchars($row['full_name'] ?: $row['username']) ?></div>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <span class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest"><?= htmlspecialchars($row['job_title'] ?: 'Authorized Staff') ?></span>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <div class="text-2xl font-black text-slate-900 leading-none"><?= $row['presence_count'] ?></div>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <div class="text-2xl font-black text-slate-300 leading-none"><?= $row['school_days'] ?></div>
+                                    </td>
+                                    <td class="px-8 py-6 text-center">
+                                        <div class="inline-flex flex-col items-center">
+                                            <div class="text-3xl font-black text-<?= $color ?>-500 leading-none mb-1"><?= $percent ?><span class="text-xs">%</span></div>
+                                            <div class="h-1 w-12 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full bg-<?= $color ?>-500" style="width: <?= $percent ?>%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-8 py-6 text-right">
+                                        <a href="staff_history.php?user_id=<?= $row['id'] ?>" class="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-400 hover:text-white hover:bg-indigo-600 transition-all">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </main>
 
     <!-- Manual Clock-in Modal -->
