@@ -273,12 +273,12 @@ if ($_SESSION['role'] === 'admin') {
 
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <h1 class="text-4xl font-black text-gray-900 flex items-center gap-4 tracking-tighter">
-                    <div class="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                        <i class="fas fa-file-signature text-xl"></i>
+                    <div class="w-12 h-12 bg-slate-800 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
+                        <i class="fas fa-landmark text-xl"></i>
                     </div>
                     Lesson Planning
                 </h1>
-                <a href="lesson_portfolio" class="group bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-[0.7rem] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-gray-100 flex items-center gap-3">
+                <a href="lesson_portfolio" class="group bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-[0.7rem] uppercase tracking-widest hover:bg-slate-800 hover:text-white transition-all shadow-sm border border-gray-100 flex items-center gap-3">
                     <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
                 </a>
             </div>
@@ -286,10 +286,10 @@ if ($_SESSION['role'] === 'admin') {
         </div>
 
         <!-- Row 1: Quick Import (Horizontal) -->
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-10">
-            <div class="bg-slate-900 p-5 flex justify-between items-center px-8">
-                <h3 class="text-white font-black text-xs flex items-center gap-3 uppercase tracking-widest">
-                    <i class="fas fa-bolt text-yellow-400"></i> Quick Import Module
+        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-12">
+            <div class="bg-slate-50/50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <i class="fas fa-bolt text-indigo-500"></i> Quick Import Tools
                 </h3>
                 <div class="flex gap-4">
                     <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] text-slate-400 hover:text-emerald-400 font-black uppercase tracking-widest transition flex items-center gap-2" download>
@@ -326,7 +326,7 @@ if ($_SESSION['role'] === 'admin') {
                         <i class="fas fa-paste text-lg"></i>
                         <div class="text-left">
                             <p class="">Paste Content</p>
-                            <p class="text-[0.625rem] text-blue-400 opacity-70">Fastest Method</p>
+                           
                         </div>
                     </button>
                 </div>
@@ -363,16 +363,16 @@ if ($_SESSION['role'] === 'admin') {
 
         <!-- Row 2: Main Form (Full Width) -->
         <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-10 flex justify-between items-center relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+            <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-indigo-900 p-10 flex justify-between items-center relative overflow-hidden">
+                <div class="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                 <div class="relative z-10">
                     <h2 class="font-black text-white text-3xl flex items-center gap-4 tracking-tighter">
-                        <i class="fas fa-pen-nib"></i> GES Lesson Note
+                        <i class="fas fa-university text-slate-400"></i> GES Lesson Note
                     </h2>
-                    <p class="text-emerald-50 text-xs mt-2 font-bold uppercase tracking-[0.3em] opacity-80">Crafting educational excellence with precision</p>
+                    <p class="text-slate-300 text-xs mt-2 font-bold uppercase tracking-[0.3em] opacity-80">Official Academic Documentation Portal</p>
                 </div>
                 <?php if($edit_id): ?>
-                    <a href="lesson_plans" class="relative z-10 bg-white/20 text-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-white/30 hover:bg-white hover:text-emerald-700 transition-all uppercase tracking-widest shadow-lg">Cancel Edit</a>
+                    <a href="lesson_plans" class="relative z-10 bg-white/10 text-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-slate-900 transition-all uppercase tracking-widest shadow-lg">Cancel Edit</a>
                 <?php endif; ?>
             </div>
             
@@ -397,19 +397,19 @@ if ($_SESSION['role'] === 'admin') {
                                 </div>
                                 <div class="relative group">
                                     <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Week Ending</label>
-                                    <input type="date" name="week_ending" value="<?= $v('week_ending') ?>" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <input type="date" name="week_ending" value="<?= $v('week_ending') ?>" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Day</label>
-                                    <select name="day_of_week" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm appearance-none">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Day</label>
+                                    <select name="day_of_week" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm appearance-none">
                                         <?php foreach(['Monday','Tuesday','Wednesday','Thursday','Friday'] as $d): ?>
                                             <option value="<?= $d ?>" <?= $v('day_of_week') == $d ? 'selected' : '' ?>><?= $d ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Subject</label>
-                                    <select name="subject_id" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm appearance-none">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Subject</label>
+                                    <select name="subject_id" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm appearance-none">
                                         <?php foreach($allocated_subjects as $id => $name): ?>
                                             <option value="<?= $id ?>" <?= $v('subject_id') == $id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
                                         <?php endforeach; ?>
@@ -419,31 +419,31 @@ if ($_SESSION['role'] === 'admin') {
                             <!-- Row 2 -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Duration</label>
-                                    <input type="text" name="duration" value="<?= $v('duration') ?>" placeholder="e.g. 60 mins" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Duration</label>
+                                    <input type="text" name="duration" value="<?= $v('duration') ?>" placeholder="e.g. 60 mins" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group md:col-span-2">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Strand</label>
-                                    <input type="text" name="strand" value="<?= $v('strand') ?>" placeholder="e.g. Forces & Energy" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Strand</label>
+                                    <input type="text" name="strand" value="<?= $v('strand') ?>" placeholder="e.g. Forces & Energy" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                             </div>
                             <!-- Row 3 -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Class</label>
-                                    <select name="class_name" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm appearance-none">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Class</label>
+                                    <select name="class_name" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm appearance-none">
                                         <?php foreach($allocated_classes as $cl): ?>
                                             <option value="<?= htmlspecialchars($cl) ?>" <?= $v('class_name') == $cl ? 'selected' : '' ?>><?= htmlspecialchars($cl) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Class Size</label>
-                                    <input type="number" name="class_size" value="<?= $v('class_size') ?>" placeholder="45" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Class Size</label>
+                                    <input type="number" name="class_size" value="<?= $v('class_size') ?>" placeholder="45" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Sub Strand</label>
-                                    <input type="text" name="sub_strand" value="<?= $v('sub_strand') ?>" placeholder="e.g. Force & Motion" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Sub Strand</label>
+                                    <input type="text" name="sub_strand" value="<?= $v('sub_strand') ?>" placeholder="e.g. Force & Motion" required class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                             </div>
                         </div>
@@ -458,38 +458,38 @@ if ($_SESSION['role'] === 'admin') {
                             <!-- Row 4 -->
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="relative group md:col-span-2">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Content Standard</label>
-                                    <input type="text" name="content_standard" value="<?= $v('content_standard') ?>" placeholder="B7.4.4.1 Examine..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Content Standard</label>
+                                    <input type="text" name="content_standard" value="<?= $v('content_standard') ?>" placeholder="B7.4.4.1 Examine..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Indicator</label>
-                                    <input type="text" name="indicator" value="<?= $v('indicator') ?>" placeholder="B7.4.4.1.1 Understand..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Indicator</label>
+                                    <input type="text" name="indicator" value="<?= $v('indicator') ?>" placeholder="B7.4.4.1.1 Understand..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Lesson</label>
-                                    <input type="text" name="lesson_number" value="<?= $v('lesson_number') ?>" placeholder="1 of 2" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Lesson</label>
+                                    <input type="text" name="lesson_number" value="<?= $v('lesson_number') ?>" placeholder="1 of 2" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                             </div>
                             <!-- Row 5 -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Performance Indicator</label>
-                                    <textarea name="performance_indicator" rows="2" placeholder="Learners can explain..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm"><?= $v('performance_indicator') ?></textarea>
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Performance Indicator</label>
+                                    <textarea name="performance_indicator" rows="2" placeholder="Learners can explain..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('performance_indicator') ?></textarea>
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">Core Competencies</label>
-                                    <textarea name="core_competencies" rows="2" placeholder="DL 5.3: CI 6.8..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm"><?= $v('core_competencies') ?></textarea>
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">Core Competencies</label>
+                                    <textarea name="core_competencies" rows="2" placeholder="DL 5.3: CI 6.8..." class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm"><?= $v('core_competencies') ?></textarea>
                                 </div>
                             </div>
                             <!-- Row 6 & 7 -->
-                            <div class="grid grid-cols-1 gap-4">
+                             <div class="grid grid-cols-1 gap-4">
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">References</label>
-                                    <input type="text" name="references" value="<?= $v('references') ?>" placeholder="e.g. Science Curriculum Pg. 33-34" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">References</label>
+                                    <input type="text" name="references" value="<?= $v('references') ?>" placeholder="e.g. Science Curriculum Pg. 33-34" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                                 <div class="relative group">
-                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-green-600 transition-colors">New Words</label>
-                                    <input type="text" name="new_words" value="<?= $v('new_words') ?>" placeholder="balanced, unbalanced, force" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 focus:border-green-500 outline-none transition-all text-sm">
+                                    <label class="absolute -top-2 left-3 px-1 bg-white text-[0.625rem] font-black text-gray-400 group-focus-within:text-slate-800 transition-colors">New Words</label>
+                                    <input type="text" name="new_words" value="<?= $v('new_words') ?>" placeholder="balanced, unbalanced, force" class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-slate-800/10 focus:border-slate-800 outline-none transition-all text-sm">
                                 </div>
                             </div>
                         </div>
@@ -503,7 +503,7 @@ if ($_SESSION['role'] === 'admin') {
                         
                         <div class="space-y-6">
                             <!-- Phase 1: Starter -->
-                            <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                             <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                                 <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h4 class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">Phase 1: Starter / Introduction</h4>
                                     <input type="text" name="phase1_duration" value="<?= $v('phase1_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
@@ -511,26 +511,26 @@ if ($_SESSION['role'] === 'admin') {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label class="block text-[0.5625rem] font-black text-gray-400 uppercase mb-2">Learner Activities</label>
-                                        <textarea name="starter_activities" rows="3" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all"><?= $v('starter_activities') ?></textarea>
+                                        <textarea name="starter_activities" rows="3" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 outline-none transition-all"><?= $v('starter_activities') ?></textarea>
                                     </div>
                                     <div>
                                         <label class="block text-[0.5625rem] font-black text-gray-400 uppercase mb-2">Resources</label>
-                                        <textarea name="starter_resources" rows="3" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all"><?= $v('starter_resources') ?></textarea>
+                                        <textarea name="starter_resources" rows="3" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 outline-none transition-all"><?= $v('starter_resources') ?></textarea>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Phase 2: New Learning -->
-                            <div class="bg-emerald-50/30 p-6 rounded-2xl border border-emerald-100/50">
-                                <div class="flex justify-between items-center mb-4 border-b border-emerald-100/50 pb-2">
-                                    <h4 class="text-[0.625rem] font-black text-emerald-800 uppercase tracking-widest">Phase 2: New Learning & Development</h4>
+                             <div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100/50">
+                                <div class="flex justify-between items-center mb-4 border-b border-indigo-100/50 pb-2">
+                                    <h4 class="text-[0.625rem] font-black text-indigo-800 uppercase tracking-widest">Phase 2: New Learning & Development</h4>
                                     <input type="text" name="phase2_duration" value="<?= $v('phase2_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
                                 </div>
                                 <div class="space-y-6">
                                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                         <div class="lg:col-span-2">
                                             <label class="block text-[0.5625rem] font-black text-gray-400 uppercase mb-2">Learner Activities</label>
-                                            <textarea name="learning_activities" rows="10" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all"><?= $v('learning_activities') ?></textarea>
+                                            <textarea name="learning_activities" rows="10" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 outline-none transition-all"><?= $v('learning_activities') ?></textarea>
                                             
                                             <div class="mt-4 p-4 bg-white/60 border border-blue-100 rounded-xl">
                                                 <label class="block text-[0.5625rem] font-black text-blue-600 uppercase mb-2"><i class="fas fa-clipboard-question"></i> Evaluation / Assessment Queries</label>
@@ -539,14 +539,14 @@ if ($_SESSION['role'] === 'admin') {
                                         </div>
                                         <div class="flex flex-col">
                                             <label class="block text-[0.5625rem] font-black text-gray-400 uppercase mb-2">Teaching & Learning Materials (TLMs)</label>
-                                            <textarea name="tlm" rows="16" placeholder="Batteries, Torch, Charts, Flashcards..." class="flex-1 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-green-500 outline-none transition-all"><?= $v('tlm') ?></textarea>
+                                            <textarea name="tlm" rows="16" placeholder="Batteries, Torch, Charts, Flashcards..." class="flex-1 w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-slate-800 outline-none transition-all"><?= $v('tlm') ?></textarea>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Phase 3: Reflection -->
-                            <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                             <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                                 <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                                     <h4 class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">Phase 3: Reflection & Conclusion</h4>
                                     <input type="text" name="phase3_duration" value="<?= $v('phase3_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
@@ -554,7 +554,7 @@ if ($_SESSION['role'] === 'admin') {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label class="block text-[0.5625rem] font-black text-gray-400 uppercase mb-2">Learner Reflection & Closure</label>
-                                        <textarea name="reflection_activities" rows="4" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-green-500 outline-none transition-all"><?= $v('reflection_activities') ?></textarea>
+                                        <textarea name="reflection_activities" rows="4" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:border-slate-800 outline-none transition-all"><?= $v('reflection_activities') ?></textarea>
                                     </div>
                                     <div>
                                         <label class="block text-[0.5625rem] font-black text-indigo-600 uppercase mb-2"><i class="fas fa-house-chimney"></i> Homework / Assignment</label>
@@ -566,7 +566,7 @@ if ($_SESSION['role'] === 'admin') {
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 pt-10 border-t border-gray-50">
-                        <button type="submit" name="submit_plan" class="flex-[3] bg-emerald-600 text-white font-black py-5 rounded-2xl hover:bg-emerald-700 transition shadow-xl shadow-emerald-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest active:scale-[0.98]">
+                        <button type="submit" name="submit_plan" class="flex-[3] bg-slate-800 text-white font-black py-5 rounded-2xl hover:bg-slate-900 transition shadow-xl shadow-slate-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest active:scale-[0.98]">
                             <i class="fas fa-paper-plane"></i> <?= ($edit_id) ? 'Update & Submit Note' : 'Submit Lesson Note' ?>
                         </button>
                         <button type="submit" name="save_draft" class="flex-[1] bg-white text-slate-600 border-2 border-slate-100 font-bold py-5 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition flex items-center justify-center gap-3 text-sm active:scale-[0.98]">
