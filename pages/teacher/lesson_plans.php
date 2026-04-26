@@ -244,7 +244,7 @@ if ($_SESSION['role'] === 'admin') {
 
     <main class="min-h-screen pb-20 max-w-7xl mx-auto px-4 md:px-8">
         <!-- Dashboard Style Header -->
-        <div class="py-10">
+        <div class="py-6 md:py-10">
             <!-- Flash Messages -->
             <?php 
             $flashes = get_flash();
@@ -257,7 +257,7 @@ if ($_SESSION['role'] === 'admin') {
                 $textColor = ($f['type'] === 'success') ? 'text-emerald-800' : ($f['type'] === 'error' ? 'text-rose-800' : 'text-blue-800');
                 $icon = ($f['type'] === 'success') ? 'fa-circle-check text-emerald-500' : ($f['type'] === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-info text-blue-500');
             ?>
-                <div class="mb-8 p-6 rounded-3xl border <?= $bgColor ?> <?= $textColor ?> flex items-center justify-between shadow-xl shadow-slate-200/50 animate-in slide-in-from-top duration-500">
+                <div class="mb-8 p-5 md:p-6 rounded-3xl border <?= $bgColor ?> <?= $textColor ?> flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl shadow-slate-200/50 animate-in slide-in-from-top duration-500">
                     <div class="flex items-center gap-4">
                         <i class="fas <?= $icon ?> text-2xl"></i>
                         <div>
@@ -266,19 +266,19 @@ if ($_SESSION['role'] === 'admin') {
                         </div>
                     </div>
                     <?php if($f['type'] === 'success'): ?>
-                        <a href="lesson_portfolio" class="bg-white/50 hover:bg-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-current transition-all uppercase tracking-widest">Dashboard</a>
+                        <a href="lesson_portfolio" class="w-full sm:w-auto text-center bg-white/50 hover:bg-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-current transition-all uppercase tracking-widest">Dashboard</a>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
 
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <h1 class="text-4xl font-black text-gray-900 flex items-center gap-4 tracking-tighter">
-                    <div class="w-12 h-12 bg-slate-800 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <h1 class="text-3xl md:text-4xl font-black text-gray-900 flex items-center gap-4 tracking-tighter">
+                    <div class="w-12 h-12 bg-slate-800 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200 flex-shrink-0">
                         <i class="fas fa-landmark text-xl"></i>
                     </div>
-                    Lesson Planning
+                    <span>Lesson Planning</span>
                 </h1>
-                <a href="lesson_portfolio" class="group bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-[0.7rem] uppercase tracking-widest hover:bg-slate-800 hover:text-white transition-all shadow-sm border border-gray-100 flex items-center gap-3">
+                <a href="lesson_portfolio" class="w-full md:w-auto group bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-[0.7rem] uppercase tracking-widest hover:bg-slate-800 hover:text-white transition-all shadow-sm border border-gray-100 flex items-center justify-center md:justify-start gap-3">
                     <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
                 </a>
             </div>
@@ -286,12 +286,12 @@ if ($_SESSION['role'] === 'admin') {
         </div>
 
         <!-- Row 1: Quick Import (Horizontal) -->
-        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-12">
-            <div class="bg-slate-50/50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
+        <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-12">
+            <div class="bg-slate-50/50 px-6 md:px-8 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                     <i class="fas fa-bolt text-indigo-500"></i> Quick Import Tools
                 </h3>
-                <div class="flex gap-4">
+                <div class="flex flex-wrap gap-4">
                     <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] text-slate-400 hover:text-emerald-400 font-black uppercase tracking-widest transition flex items-center gap-2" download>
                         <i class="fas fa-file-excel"></i> Excel Template
                     </a>
@@ -300,27 +300,27 @@ if ($_SESSION['role'] === 'admin') {
                     </a>
                 </div>
             </div>
-            <div class="p-8">
+            <div class="p-6 md:p-8">
                 <div class="flex flex-col lg:flex-row items-center gap-6">
-                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex items-center gap-4">
-                        <div class="flex-1 relative group">
+                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex flex-col sm:flex-row items-center gap-4">
+                        <div class="flex-1 w-full relative group">
                             <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
                             <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-slate-400 group-hover:bg-slate-100/50 transition-all">
-                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600">
+                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600 flex-shrink-0">
                                     <i class="fas fa-cloud-arrow-up text-lg"></i>
                                 </div>
                                 <div class="text-left">
                                     <div class="text-[0.625rem] text-slate-400 font-black uppercase tracking-widest mb-0.5">Upload Draft</div>
-                                    <div class="text-sm font-bold text-slate-600">Drop file here or click</div>
+                                    <div class="text-sm font-bold text-slate-600 truncate max-w-[150px] sm:max-w-none">Drop file here or click</div>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="h-20 px-8 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95">
+                        <button type="submit" class="w-full sm:w-auto h-20 px-8 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95">
                             Import <i class="fas fa-arrow-right text-slate-400"></i>
                         </button>
                     </form>
 
-                    <div class="h-10 w-px bg-slate-100 hidden lg:block"></div>
+                    <div class="h-px w-full lg:h-10 lg:w-px bg-slate-100"></div>
 
                     <button onclick="document.getElementById('pasteModal').classList.remove('hidden')" class="w-full lg:w-auto h-20 px-10 bg-white text-slate-800 border-2 border-slate-200 font-black rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] active:scale-95 shadow-lg shadow-slate-100">
                         <i class="fas fa-paste text-lg text-slate-400"></i>
@@ -334,26 +334,26 @@ if ($_SESSION['role'] === 'admin') {
 
             <!-- Paste Modal -->
             <div id="pasteModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                    <div class="p-8 bg-gradient-to-r from-slate-800 to-slate-900 text-white relative overflow-hidden">
+                <div class="bg-white w-full max-w-2xl rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                    <div class="p-6 md:p-8 bg-gradient-to-r from-slate-800 to-slate-900 text-white relative overflow-hidden">
                         <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
                         <div class="flex justify-between items-center relative z-10">
                             <div>
-                                <h3 class="text-xl font-black uppercase tracking-tighter">Paste Lesson Note</h3>
-                                <p class="text-slate-400 text-xs mt-1 font-bold">Transfer data directly from Word</p>
+                                <h3 class="text-lg md:text-xl font-black uppercase tracking-tighter">Paste Lesson Note</h3>
+                                <p class="text-slate-400 text-[0.625rem] md:text-xs mt-1 font-bold">Transfer data directly from Word</p>
                             </div>
                             <button onclick="document.getElementById('pasteModal').classList.add('hidden')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
-                    <form action="process_lesson_paste.php" method="POST" class="p-8">
-                        <textarea name="pasted_text" rows="12" required placeholder="Paste your lesson note text here..." class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-800 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
-                        <div class="flex gap-4">
-                            <button type="submit" class="flex-1 bg-slate-800 text-white font-black py-5 rounded-2xl hover:bg-slate-900 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs shadow-xl shadow-slate-200">
+                    <form action="process_lesson_paste.php" method="POST" class="p-6 md:p-8">
+                        <textarea name="pasted_text" rows="10" required placeholder="Paste your lesson note text here..." class="w-full p-4 md:p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-800 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button type="submit" class="flex-1 bg-slate-800 text-white font-black py-4 md:py-5 rounded-2xl hover:bg-slate-900 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs shadow-xl shadow-slate-200">
                                 <i class="fas fa-wand-magic-sparkles text-slate-400"></i> Process & Import
                             </button>
-                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-50 text-slate-400 font-bold py-5 rounded-2xl hover:bg-slate-100 transition uppercase tracking-widest text-xs border border-slate-100">
+                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-50 text-slate-400 font-bold py-4 md:py-5 rounded-2xl hover:bg-slate-100 transition uppercase tracking-widest text-xs border border-slate-100">
                                 Cancel
                             </button>
                         </div>
@@ -363,21 +363,21 @@ if ($_SESSION['role'] === 'admin') {
         </div>
 
         <!-- Row 2: Main Form (Full Width) -->
-        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-indigo-900 p-10 flex justify-between items-center relative overflow-hidden">
+        <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-indigo-900 p-6 md:p-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
                 <div class="relative z-10">
-                    <h2 class="font-black text-white text-3xl flex items-center gap-4 tracking-tighter">
+                    <h2 class="font-black text-white text-2xl md:text-3xl flex items-center gap-4 tracking-tighter">
                         <i class="fas fa-university text-slate-400"></i> GES Lesson Note
                     </h2>
-                    <p class="text-slate-300 text-xs mt-2 font-bold uppercase tracking-[0.3em] opacity-80">Official Academic Documentation Portal</p>
+                    <p class="text-slate-300 text-[0.625rem] md:text-xs mt-2 font-bold uppercase tracking-[0.3em] opacity-80">Official Academic Documentation Portal</p>
                 </div>
                 <?php if($edit_id): ?>
-                    <a href="lesson_plans" class="relative z-10 bg-white/10 text-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-slate-900 transition-all uppercase tracking-widest shadow-lg">Cancel Edit</a>
+                    <a href="lesson_plans" class="w-full sm:w-auto text-center relative z-10 bg-white/10 text-white text-[0.625rem] font-black px-6 py-3 rounded-xl border border-white/20 hover:bg-white hover:text-slate-900 transition-all uppercase tracking-widest shadow-lg">Cancel Edit</a>
                 <?php endif; ?>
             </div>
             
-            <form method="POST" class="p-10 space-y-12">
+            <form method="POST" class="p-6 md:p-10 space-y-12">
                     <input type="hidden" name="existing_plan_id" value="<?= $edit_id ?>">
 
                     <!-- Block 1: Header Grid -->
@@ -504,10 +504,10 @@ if ($_SESSION['role'] === 'admin') {
                         
                         <div class="space-y-6">
                             <!-- Phase 1: Starter -->
-                             <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                             <div class="bg-gray-50/50 p-4 md:p-6 rounded-2xl border border-gray-100">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-gray-100 pb-2">
                                     <h4 class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">Phase 1: Starter / Introduction</h4>
-                                    <input type="text" name="phase1_duration" value="<?= $v('phase1_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
+                                    <input type="text" name="phase1_duration" value="<?= $v('phase1_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-full sm:w-24">
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
@@ -522,10 +522,10 @@ if ($_SESSION['role'] === 'admin') {
                             </div>
 
                             <!-- Phase 2: New Learning -->
-                             <div class="bg-indigo-50/30 p-6 rounded-2xl border border-indigo-100/50">
-                                <div class="flex justify-between items-center mb-4 border-b border-indigo-100/50 pb-2">
+                             <div class="bg-indigo-50/30 p-4 md:p-6 rounded-2xl border border-indigo-100/50">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-indigo-100/50 pb-2">
                                     <h4 class="text-[0.625rem] font-black text-indigo-800 uppercase tracking-widest">Phase 2: New Learning & Development</h4>
-                                    <input type="text" name="phase2_duration" value="<?= $v('phase2_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
+                                    <input type="text" name="phase2_duration" value="<?= $v('phase2_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-full sm:w-24">
                                 </div>
                                 <div class="space-y-6">
                                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -547,10 +547,10 @@ if ($_SESSION['role'] === 'admin') {
                             </div>
 
                             <!-- Phase 3: Reflection -->
-                             <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                             <div class="bg-gray-50/50 p-4 md:p-6 rounded-2xl border border-gray-100">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-b border-gray-100 pb-2">
                                     <h4 class="text-[0.625rem] font-black text-gray-600 uppercase tracking-widest">Phase 3: Reflection & Conclusion</h4>
-                                    <input type="text" name="phase3_duration" value="<?= $v('phase3_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-24">
+                                    <input type="text" name="phase3_duration" value="<?= $v('phase3_duration') ?>" placeholder="Duration" class="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs w-full sm:w-24">
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
@@ -566,11 +566,11 @@ if ($_SESSION['role'] === 'admin') {
                         </div>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-4 pt-10 border-t border-gray-50">
-                        <button type="submit" name="submit_plan" class="flex-[3] bg-slate-800 text-white font-black py-5 rounded-2xl hover:bg-slate-900 transition shadow-xl shadow-slate-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest active:scale-[0.98]">
+                     <div class="flex flex-col md:flex-row gap-4 pt-10 border-t border-gray-50">
+                        <button type="submit" name="submit_plan" class="w-full md:flex-[3] bg-slate-800 text-white font-black py-5 rounded-2xl hover:bg-slate-900 transition shadow-xl shadow-slate-200/50 flex items-center justify-center gap-3 text-sm uppercase tracking-widest active:scale-[0.98]">
                             <i class="fas fa-paper-plane"></i> <?= ($edit_id) ? 'Update & Submit Note' : 'Submit Lesson Note' ?>
                         </button>
-                        <button type="submit" name="save_draft" class="flex-[1] bg-white text-slate-600 border-2 border-slate-100 font-bold py-5 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition flex items-center justify-center gap-3 text-sm active:scale-[0.98]">
+                        <button type="submit" name="save_draft" class="w-full md:flex-[1] bg-white text-slate-600 border-2 border-slate-100 font-bold py-5 rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition flex items-center justify-center gap-3 text-sm active:scale-[0.98]">
                             <i class="fas fa-floppy-disk text-slate-400"></i> <?= ($edit_id) ? 'Update Draft' : 'Save Draft' ?>
                         </button>
                     </div>
