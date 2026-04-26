@@ -13,15 +13,71 @@ if (!is_logged_in() || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== '
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 $selected_date = $_GET['date'] ?? date('Y-m-d');
 
+// Safe Migration: Ensure staff_attendance has modern columns
+$db_name = $conn->query("SELECT DATABASE()")->fetch_row()[0];
+$cols_to_check = [
+    'device_info' => "VARCHAR(255) NULL AFTER longitude"
+];
+foreach ($cols_to_check as $col => $def) {
+    $exists = $conn->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = 'staff_attendance' AND COLUMN_NAME = '$col'")->fetch_row()[0];
+    if (!$exists) {
+        $conn->query("ALTER TABLE staff_attendance ADD COLUMN `$col` $def");
+    }
+}
+
 // Deletion Handler (Admin Protocol)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_attendance') {
+// Attendance Action Handlers
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'supervisor') {
-        $_SESSION['error'] = "Institutional Violation: Unauthorized purge attempt detected.";
+        $_SESSION['error'] = "Institutional Violation: Unauthorized action attempt detected.";
     } else {
-        $log_id = intval($_POST['log_id']);
-        $conn->query("DELETE FROM staff_attendance WHERE id = $log_id");
-        log_activity($conn, 'Security Audit', "Personnel attendance record #$log_id purged from manifest.", $_SESSION['user_id']);
-        $_SESSION['success'] = "Resource purged successfully.";
+        $action = $_POST['action'];
+        
+        if ($action === 'delete_attendance') {
+            $log_id = intval($_POST['log_id']);
+            $conn->query("DELETE FROM staff_attendance WHERE id = $log_id");
+            log_activity($conn, 'Security Audit', "Personnel attendance record #$log_id purged from manifest.", $_SESSION['user_id']);
+            $_SESSION['success'] = "Resource purged successfully.";
+        }
+        
+        if ($action === 'manual_clockin') {
+            $target_user_id = intval($_POST['user_id']);
+            $manual_date = $_POST['check_in_date'];
+            $manual_time = $_POST['check_in_time'];
+            $combined_time = $manual_date . ' ' . $manual_time . ':00';
+            
+            // Check for active shift (clocked in but not clocked out)
+            $active_check = $conn->query("SELECT id FROM staff_attendance WHERE user_id = $target_user_id AND check_out_time IS NULL LIMIT 1");
+            if ($active_check->num_rows > 0) {
+                $_SESSION['error'] = "Personnel already has an active clock-in. Please clock them out before creating a new entry.";
+            } else {
+                $school_lat_val = getSystemSetting($conn, 'attendance_lat', '5.5786875');
+                $school_lng_val = getSystemSetting($conn, 'attendance_lng', '-0.2911875');
+                
+                $stmt = $conn->prepare("INSERT INTO staff_attendance (user_id, check_in_time, latitude, longitude, device_info) VALUES (?, ?, ?, ?, 'Manual Entry by Supervisor')");
+                $stmt->bind_param("isss", $target_user_id, $combined_time, $school_lat_val, $school_lng_val);
+                
+                if ($stmt->execute()) {
+                    $_SESSION['success'] = "Manual clock-in registered successfully.";
+                    log_activity($conn, 'Attendance', "Manual clock-in for user #$target_user_id at $combined_time.", $_SESSION['user_id']);
+                    $selected_date = $manual_date;
+                } else {
+                    $_SESSION['error'] = "Resource Error: Manual override rejected.";
+                }
+            }
+        }
+
+        if ($action === 'manual_clockout') {
+            $log_id = intval($_POST['log_id']);
+            $stmt = $conn->prepare("UPDATE staff_attendance SET check_out_time = NOW() WHERE id = ?");
+            $stmt->bind_param("i", $log_id);
+            if ($stmt->execute()) {
+                $_SESSION['success'] = "Personnel clocked out successfully.";
+                log_activity($conn, 'Attendance', "Manual clock-out for record #$log_id.", $_SESSION['user_id']);
+            } else {
+                $_SESSION['error'] = "Failed to update clock-out time.";
+            }
+        }
     }
     header("Location: staff_attendance.php?date=$selected_date");
     exit;
@@ -79,9 +135,14 @@ if ($logs_res) {
     }
 }
 
-$total_staff = $conn->query("SELECT COUNT(*) FROM users WHERE role IN ('facilitator', 'supervisor')")->fetch_row()[0];
+$total_staff = $conn->query("SELECT COUNT(*) FROM users WHERE role IN ('facilitator', 'supervisor', 'teacher')")->fetch_row()[0];
 $stats['total'] = $total_staff;
 $stats['absent'] = max(0, $total_staff - $stats['present']);
+
+// Fetch All Staff for Manual Entry
+$all_staff_res = $conn->query("SELECT u.id, u.username, sp.full_name FROM users u LEFT JOIN staff_profiles sp ON u.id = sp.user_id WHERE u.role IN ('facilitator', 'supervisor', 'teacher', 'admin') ORDER BY sp.full_name ASC, u.username ASC");
+$all_staff = [];
+while($as = $all_staff_res->fetch_assoc()) $all_staff[] = $as;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -119,11 +180,16 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                 <h1 class="text-4xl sm:text-5xl font-black tracking-tighter text-slate-900 leading-tight">Staff <br><span class="text-indigo-600">Attendance Hub</span></h1>
             </div>
  
-            <div class="bg-white p-2.5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-                <form method="GET" class="flex items-center gap-3">
-                    <i class="fas fa-calendar-day text-slate-400 ml-3"></i>
-                    <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:ring-1 focus:ring-indigo-500 transition-all">
-                </form>
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="bg-white p-2.5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+                    <form method="GET" class="flex items-center gap-3">
+                        <i class="fas fa-calendar-day text-slate-400 ml-3"></i>
+                        <input type="date" name="date" value="<?= $selected_date ?>" onchange="this.form.submit()" class="bg-slate-50 border-none rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    </form>
+                </div>
+                <button onclick="document.getElementById('manualClockModal').classList.remove('hidden')" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[0.625rem] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95">
+                    <i class="fas fa-hand-pointer"></i> Manual Clock-in
+                </button>
             </div>
         </header>
 
@@ -211,7 +277,16 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
                                             <?php if($log['check_out_time']): ?>
                                                 <div class="font-black text-slate-700 text-base leading-none"><?= date('H:i A', strtotime($log['check_out_time'])) ?></div>
                                             <?php else: ?>
-                                                <div class="font-bold text-slate-400 text-sm leading-none italic uppercase tracking-widest">Active Shift</div>
+                                                <div class="flex flex-col gap-2">
+                                                    <div class="font-bold text-amber-500 text-xs leading-none animate-pulse uppercase tracking-widest"><i class="fas fa-spinner fa-spin mr-1"></i> Active Shift</div>
+                                                    <form method="POST" onsubmit="return confirm('Clock out this personnel now?')">
+                                                        <input type="hidden" name="action" value="manual_clockout">
+                                                        <input type="hidden" name="log_id" value="<?= $log['id'] ?>">
+                                                        <button type="submit" class="text-[0.5rem] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                                                            <i class="fas fa-sign-out-alt"></i> Clock-out Now
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             <?php endif; ?>
                                         </div>
                                         <div class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3"><?= date('M j, Y', strtotime($log['check_in_time'])) ?></div>
@@ -257,6 +332,64 @@ $stats['absent'] = max(0, $total_staff - $stats['present']);
             </div>
         </div>
     </main>
+
+    <!-- Manual Clock-in Modal -->
+    <div id="manualClockModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div class="p-8 bg-gradient-to-br from-slate-800 to-slate-900 text-white relative overflow-hidden">
+                <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                <div class="flex justify-between items-center relative z-10">
+                    <div>
+                        <h3 class="text-xl font-black uppercase tracking-tighter">Manual Override</h3>
+                        <p class="text-slate-400 text-[0.625rem] mt-1 font-bold tracking-widest uppercase">Personnel Security Protocol</p>
+                    </div>
+                    <button onclick="document.getElementById('manualClockModal').classList.add('hidden')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form method="POST" class="p-8 space-y-6">
+                <input type="hidden" name="action" value="manual_clockin">
+                
+                <div class="space-y-2">
+                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest ml-1">Staff Member</label>
+                    <select name="user_id" required class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-indigo-500 outline-none transition-all font-bold text-sm appearance-none">
+                        <option value="">Select personnel...</option>
+                        <?php foreach($all_staff as $s): ?>
+                            <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['full_name'] ?: $s['username']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest ml-1">Log Date</label>
+                        <input type="date" name="check_in_date" value="<?= date('Y-m-d') ?>" required class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-indigo-500 outline-none transition-all font-bold text-sm">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest ml-1">Log Time</label>
+                        <input type="time" name="check_in_time" value="<?= date('H:i') ?>" required class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:border-indigo-500 outline-none transition-all font-bold text-sm">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl mb-2">
+                    <p class="text-[0.625rem] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
+                        <i class="fas fa-shield-halved mr-1"></i> NOTE: Manual entry will bypass geofencing and mark the location as "Verified Hub" in audit logs.
+                    </p>
+                </div>
+
+                <div class="flex flex-col gap-3 pt-4">
+                    <button type="submit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-indigo-600 transition flex items-center justify-center gap-3 uppercase tracking-widest text-xs shadow-xl shadow-slate-200 active:scale-95">
+                        <i class="fas fa-check-double"></i> Authorize Entry
+                    </button>
+                    <button type="button" onclick="document.getElementById('manualClockModal').classList.add('hidden')" class="w-full bg-slate-50 text-slate-400 font-black py-5 rounded-2xl hover:bg-slate-100 transition uppercase tracking-widest text-xs">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
 
