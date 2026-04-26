@@ -305,8 +305,8 @@ if ($_SESSION['role'] === 'admin') {
                     <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex items-center gap-4">
                         <div class="flex-1 relative group">
                             <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
-                            <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-indigo-400 group-hover:bg-indigo-50/30 transition-all">
-                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500">
+                            <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-slate-400 group-hover:bg-slate-100/50 transition-all">
+                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600">
                                     <i class="fas fa-cloud-arrow-up text-lg"></i>
                                 </div>
                                 <div class="text-left">
@@ -315,31 +315,32 @@ if ($_SESSION['role'] === 'admin') {
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="h-20 px-8 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 active:scale-95">
-                            Import <i class="fas fa-arrow-right"></i>
+                        <button type="submit" class="h-20 px-8 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-900 transition shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95">
+                            Import <i class="fas fa-arrow-right text-slate-400"></i>
                         </button>
                     </form>
 
                     <div class="h-10 w-px bg-slate-100 hidden lg:block"></div>
 
-                    <button onclick="document.getElementById('pasteModal').classList.remove('hidden')" class="w-full lg:w-auto h-20 px-10 bg-white text-blue-600 border-2 border-blue-100 font-black rounded-2xl hover:bg-blue-50 hover:border-blue-200 transition flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] active:scale-95 shadow-lg shadow-blue-50">
-                        <i class="fas fa-paste text-lg"></i>
+                    <button onclick="document.getElementById('pasteModal').classList.remove('hidden')" class="w-full lg:w-auto h-20 px-10 bg-white text-slate-800 border-2 border-slate-200 font-black rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] active:scale-95 shadow-lg shadow-slate-100">
+                        <i class="fas fa-paste text-lg text-slate-400"></i>
                         <div class="text-left">
                             <p class="">Paste Content</p>
-                           
+                            <p class="text-[0.625rem] text-slate-400 opacity-70">Direct Method</p>
                         </div>
                     </button>
                 </div>
             </div>
 
             <!-- Paste Modal -->
-            <div id="pasteModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                    <div class="p-8 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-                        <div class="flex justify-between items-center">
+            <div id="pasteModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                    <div class="p-8 bg-gradient-to-r from-slate-800 to-slate-900 text-white relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                        <div class="flex justify-between items-center relative z-10">
                             <div>
                                 <h3 class="text-xl font-black uppercase tracking-tighter">Paste Lesson Note</h3>
-                                <p class="text-blue-100 text-xs mt-1 font-bold">Copy everything from Word and paste it here</p>
+                                <p class="text-slate-400 text-xs mt-1 font-bold">Transfer data directly from Word</p>
                             </div>
                             <button onclick="document.getElementById('pasteModal').classList.add('hidden')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition">
                                 <i class="fas fa-times"></i>
@@ -347,12 +348,12 @@ if ($_SESSION['role'] === 'admin') {
                         </div>
                     </div>
                     <form action="process_lesson_paste.php" method="POST" class="p-8">
-                        <textarea name="pasted_text" rows="12" required placeholder="Paste your lesson note text here..." class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
+                        <textarea name="pasted_text" rows="12" required placeholder="Paste your lesson note text here..." class="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-800 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
                         <div class="flex gap-4">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white font-black py-5 rounded-2xl hover:bg-blue-700 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs">
-                                <i class="fas fa-wand-magic-sparkles"></i> Process & Import
+                            <button type="submit" class="flex-1 bg-slate-800 text-white font-black py-5 rounded-2xl hover:bg-slate-900 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs shadow-xl shadow-slate-200">
+                                <i class="fas fa-wand-magic-sparkles text-slate-400"></i> Process & Import
                             </button>
-                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-100 text-slate-500 font-bold py-5 rounded-2xl hover:bg-slate-200 transition uppercase tracking-widest text-xs">
+                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-50 text-slate-400 font-bold py-5 rounded-2xl hover:bg-slate-100 transition uppercase tracking-widest text-xs border border-slate-100">
                                 Cancel
                             </button>
                         </div>
