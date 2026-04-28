@@ -79,8 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             }
         }
+    }
 
-        if ($action === 'manual_clockout') {
+    if ($action === 'manual_clockout') {
             $log_id = intval($_POST['log_id']);
             $stmt = $conn->prepare("UPDATE staff_attendance SET check_out_time = NOW() WHERE id = ?");
             $stmt->bind_param("i", $log_id);
