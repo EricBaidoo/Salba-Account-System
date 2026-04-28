@@ -46,11 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $manual_time = $_POST['check_in_time'];
             $combined_time = $manual_date . ' ' . $manual_time . ':00';
             
-            // Check for active shift (clocked in but not clocked out)
-            $active_check = $conn->query("SELECT id FROM staff_attendance WHERE user_id = $target_user_id AND check_out_time IS NULL LIMIT 1");
-            if ($active_check->num_rows > 0) {
-                $_SESSION['error'] = "Personnel already has an active clock-in. Please clock them out before creating a new entry.";
+            // Security Protocol: Prevent duplicate records for the same day
+            $date_check = $conn->query("SELECT id, check_out_time FROM staff_attendance WHERE user_id = $target_user_id AND DATE(check_in_time) = '$manual_date' LIMIT 1");
+            
+            if ($date_check->num_rows > 0) {
+                $existing = $date_check->fetch_assoc();
+                if ($existing['check_out_time'] === null) {
+                    $_SESSION['error'] = "Personnel already has an ACTIVE clock-in for this date. Please clock them out instead.";
+                } else {
+                    $_SESSION['error'] = "Personnel already has a COMPLETED attendance record for this date. Duplicate entries are prohibited.";
+                }
             } else {
+                // Also check for unclosed shifts from OTHER days to maintain data integrity
+                $active_check = $conn->query("SELECT id, check_in_time FROM staff_attendance WHERE user_id = $target_user_id AND check_out_time IS NULL LIMIT 1");
+                if ($active_check->num_rows > 0) {
+                    $active_row = $active_check->fetch_assoc();
+                    $active_date = date('Y-m-d', strtotime($active_row['check_in_time']));
+                    $_SESSION['error'] = "Personnel has an unclosed shift from $active_date. Please close that record before creating a new one.";
+                } else {
                 $school_lat_val = getSystemSetting($conn, 'attendance_lat', '5.5786875');
                 $school_lng_val = getSystemSetting($conn, 'attendance_lng', '-0.2911875');
                 

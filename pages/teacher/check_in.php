@@ -28,13 +28,40 @@ $diagnostic_data = $_SESSION['last_diagnostic'] ?? null;
 unset($_SESSION['last_diagnostic']);
 $uid = $_SESSION['user_id'];
 
-// Check attendance state for today
+// Check attendance state
 $today = date('Y-m-d');
 $attendance_record = null;
-$q = $conn->query("SELECT id, check_in_time, check_out_time FROM staff_attendance WHERE user_id = $uid AND DATE(check_in_time) = '$today' ORDER BY id DESC LIMIT 1");
-if ($q->num_rows > 0) {
-    $attendance_record = $q->fetch_assoc();
+
+// 1. Audit check for unclosed shifts from previous days
+$unclosed_q = $conn->query("SELECT id, check_in_time FROM staff_attendance WHERE user_id = $uid AND check_out_time IS NULL ORDER BY check_in_time DESC LIMIT 1");
+if ($unclosed_q->num_rows > 0) {
+    $unclosed_record = $unclosed_q->fetch_assoc();
+    $in_date = date('Y-m-d', strtotime($unclosed_record['check_in_time']));
+    
+    if ($in_date === $today) {
+        // Active shift for today
+        $attendance_record = $unclosed_record;
+    } else {
+        // SECURITY PROTOCOL: Unclosed shift from a previous cycle detected.
+        // Action: Auto-reconcile by closing at standard end-of-day.
+        $close_time = $in_date . ' 17:00:00'; 
+        $force_stmt = $conn->prepare("UPDATE staff_attendance SET check_out_time = ?, notes = CONCAT(IFNULL(notes,''), ' [System Auto-Close: Audit Sync]') WHERE id = ?");
+        $force_stmt->bind_param("si", $close_time, $unclosed_record['id']);
+        $force_stmt->execute();
+        log_activity($conn, 'Attendance', "System auto-reconciled unclosed shift from $in_date.", $uid);
+        
+        // After reconciliation, $attendance_record remains null for today's check
+    }
 }
+
+// 2. Fetch today's manifest (if already recorded)
+if (!$attendance_record) {
+    $q = $conn->query("SELECT id, check_in_time, check_out_time FROM staff_attendance WHERE user_id = $uid AND DATE(check_in_time) = '$today' ORDER BY id DESC LIMIT 1");
+    if ($q->num_rows > 0) {
+        $attendance_record = $q->fetch_assoc();
+    }
+}
+
 $already_checked_in = $attendance_record !== null;
 $already_checked_out = $attendance_record && !empty($attendance_record['check_out_time']);
 
