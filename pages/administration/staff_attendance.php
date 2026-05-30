@@ -35,7 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         
         if ($action === 'delete_attendance') {
             $log_id = intval($_POST['log_id']);
-            $conn->query("DELETE FROM staff_attendance WHERE id = $log_id");
+            $del_stmt = $conn->prepare("DELETE FROM staff_attendance WHERE id = ?");
+            $del_stmt->bind_param("i", $log_id);
+            $del_stmt->execute();
             log_activity($conn, 'Security Audit', "Personnel attendance record #$log_id purged from manifest.", $_SESSION['user_id']);
             $_SESSION['success'] = "Resource purged successfully.";
         }
@@ -58,7 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             } else {
                 // Also check for unclosed shifts from OTHER days to maintain data integrity
-                $active_check = $conn->query("SELECT id, check_in_time FROM staff_attendance WHERE user_id = $target_user_id AND check_out_time IS NULL LIMIT 1");
+                $active_check_stmt = $conn->prepare("SELECT id, check_in_time FROM staff_attendance WHERE user_id = ? AND check_out_time IS NULL LIMIT 1");
+                $active_check_stmt->bind_param("i", $target_user_id);
+                $active_check_stmt->execute();
+                $active_check = $active_check_stmt->get_result();
                 if ($active_check->num_rows > 0) {
                     $active_row = $active_check->fetch_assoc();
                     $active_date = date('Y-m-d', strtotime($active_row['check_in_time']));
@@ -119,13 +124,15 @@ function getDistanceMeters($lat1, $lon1, $lat2, $lon2) {
 }
 
 // Fetch Staff Attendance Logs
-$sql = "SELECT sa.*, u.username, u.role, sp.full_name, sp.job_title, sp.photo_path 
+$logs_stmt = $conn->prepare("SELECT sa.*, u.username, u.role, sp.full_name, sp.job_title, sp.photo_path
         FROM staff_attendance sa
         JOIN users u ON sa.user_id = u.id
         LEFT JOIN staff_profiles sp ON sa.user_id = sp.user_id
-        WHERE DATE(sa.check_in_time) = '$selected_date'
-        ORDER BY sa.check_in_time DESC";
-$logs_res = $conn->query($sql);
+        WHERE DATE(sa.check_in_time) = ?
+        ORDER BY sa.check_in_time DESC");
+$logs_stmt->bind_param("s", $selected_date);
+$logs_stmt->execute();
+$logs_res = $logs_stmt->get_result();
 
 $attendance = [];
 $stats = [
@@ -206,7 +213,10 @@ if ($range_start && $range_end) {
     $curr = new DateTime($range_start);
     $end = new DateTime($range_end);
     $holidays = [];
-    $h_res = $conn->query("SELECT event_date FROM academic_calendar WHERE event_date BETWEEN '$range_start' AND '$range_end'");
+    $h_stmt = $conn->prepare("SELECT event_date FROM academic_calendar WHERE event_date BETWEEN ? AND ?");
+    $h_stmt->bind_param("ss", $range_start, $range_end);
+    $h_stmt->execute();
+    $h_res = $h_stmt->get_result();
     while($h = $h_res->fetch_row()) $holidays[] = $h[0];
 
     $today_dt = new DateTime();
@@ -221,16 +231,21 @@ if ($range_start && $range_end) {
     }
 
     // 2. Fetch All Staff and their presence count
-    $staff_perf_res = $conn->query("
+    $range_start_dt = $range_start . ' 00:00:00';
+    $range_end_dt = $range_end . ' 23:59:59';
+    $staff_perf_stmt = $conn->prepare("
         SELECT u.id, u.username, sp.full_name, sp.job_title,
                COUNT(sa.id) as presence_count
         FROM users u
         LEFT JOIN staff_profiles sp ON u.id = sp.user_id
-        LEFT JOIN staff_attendance sa ON u.id = sa.user_id AND sa.check_in_time BETWEEN '$range_start 00:00:00' AND '$range_end 23:59:59'
+        LEFT JOIN staff_attendance sa ON u.id = sa.user_id AND sa.check_in_time BETWEEN ? AND ?
         WHERE u.role IN ('facilitator', 'supervisor', 'teacher', 'admin')
         GROUP BY u.id
         ORDER BY sp.full_name ASC, u.username ASC
     ");
+    $staff_perf_stmt->bind_param("ss", $range_start_dt, $range_end_dt);
+    $staff_perf_stmt->execute();
+    $staff_perf_res = $staff_perf_stmt->get_result();
     while($row = $staff_perf_res->fetch_assoc()) {
         $row['school_days'] = $school_days;
         $perf_summary[] = $row;

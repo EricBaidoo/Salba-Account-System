@@ -218,6 +218,10 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <i class="fas fa-eye"></i> View Results
                 </a>
 
+                <a href="transcript_breakdown.php?class=<?= urlencode($selected_class) ?>" class="flex-1 md:flex-none justify-center bg-slate-700 hover:bg-slate-800 text-white font-bold py-2.5 px-4 md:px-5 rounded-lg shadow-sm transition flex items-center gap-2 text-sm md:text-base">
+                    <i class="fas fa-table"></i> Class Breakdown
+                </a>
+
                 <?php if($user_role === 'admin'): ?>
                     <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="flex-1 md:flex-none justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 md:px-5 rounded-lg shadow-sm transition flex items-center gap-2 text-sm md:text-base">
                         <i class="fas fa-file-pdf"></i> Download PDF

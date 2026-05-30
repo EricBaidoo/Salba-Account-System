@@ -158,6 +158,7 @@ if ($at) {
                     'title' => 'Transcripts', 'desc' => 'Generate and view student academic transcripts',
                     'links' => [
                         ['label' => 'View Transcripts', 'href' => 'transcripts.php'],
+                        ['label' => 'Class Breakdown', 'href' => 'transcript_breakdown.php'],
                         ['label' => 'Generate PDF', 'href' => 'transcripts.php?action=generate'],
                     ]
                 ],

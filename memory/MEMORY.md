@@ -1,0 +1,1 @@
+- [Project overview](project_overview.md) — PHP/XAMPP school management system (accounting + academics + staff attendance), TailwindCSS frontend, MySQL backend

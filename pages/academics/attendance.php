@@ -35,12 +35,18 @@ if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'supervisor') {
     $res = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' ORDER BY class");
     while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class'];
 } else {
-    $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year' AND is_class_teacher = 1");
+    $stmt = $conn->prepare("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = ? AND year = ? AND is_class_teacher = 1");
+    $stmt->bind_param("is", $uid, $current_year);
+    $stmt->execute();
+    $res = $stmt->get_result();
     if ($res) {
         while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
     }
     if (empty($allocated_classes)) {
-        $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year'");
+        $stmt = $conn->prepare("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = ? AND year = ?");
+        $stmt->bind_param("is", $uid, $current_year);
+        $stmt->execute();
+        $res = $stmt->get_result();
         while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
     }
 }
@@ -65,17 +71,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['attendance'])) {
     
     if ($_SESSION['role'] === 'admin' || in_array($class_to_mark, $allocated_classes)) {
         $count = 0;
+        $check_stmt = $conn->prepare("SELECT id FROM attendance WHERE student_id = ? AND attendance_date = ?");
+        $update_stmt = $conn->prepare("UPDATE attendance SET status = ?, remarks = ?, week_number = ?, semester = ?, academic_year = ? WHERE student_id = ? AND attendance_date = ?");
+        $insert_stmt = $conn->prepare("INSERT INTO attendance (student_id, attendance_date, status, remarks, semester, academic_year, week_number) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
         foreach ($_POST['attendance'] as $student_id => $status) {
             $sid = intval($student_id);
-            $stat = $conn->real_escape_string($status);
-            $rem = $conn->real_escape_string($_POST['remarks'][$sid] ?? '');
-            
-            $check = $conn->query("SELECT id FROM attendance WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
+            $stat = $status;
+            $rem = $_POST['remarks'][$sid] ?? '';
+
+            $check_stmt->bind_param("is", $sid, $date_to_mark);
+            $check_stmt->execute();
+            $check = $check_stmt->get_result();
             if ($check->num_rows > 0) {
-                // UPDATE: Now also refreshes semester/year/week to keep records aligned with active settings
-                $conn->query("UPDATE attendance SET status = '$stat', remarks = '$rem', week_number = $week_to_mark, semester = '$current_semester', academic_year = '$current_year' WHERE student_id = $sid AND attendance_date = '$date_to_mark'");
+                $update_stmt->bind_param("ssissis", $stat, $rem, $week_to_mark, $current_semester, $current_year, $sid, $date_to_mark);
+                $update_stmt->execute();
             } else {
-                $conn->query("INSERT INTO attendance (student_id, attendance_date, status, remarks, semester, academic_year, week_number) VALUES ($sid, '$date_to_mark', '$stat', '$rem', '$current_semester', '$current_year', $week_to_mark)");
+                $insert_stmt->bind_param("isssssi", $sid, $date_to_mark, $stat, $rem, $current_semester, $current_year, $week_to_mark);
+                $insert_stmt->execute();
             }
             $count++;
         }
@@ -107,13 +120,16 @@ if ($view_mode === 'history' && $selected_class) {
     $target_week = intval($_GET['h_week'] ?? $selected_week);
     
     // Fetch all attendance for this specific class across the whole semester
-    $t_res = $conn->query("
+    $t_stmt = $conn->prepare("
         SELECT a.student_id, a.attendance_date, a.status
         FROM attendance a
         JOIN students s ON a.student_id = s.id
-        WHERE s.class = '$selected_class' AND a.semester = '$current_semester' AND a.academic_year = '$current_year'
+        WHERE s.class = ? AND a.semester = ? AND a.academic_year = ?
         ORDER BY a.attendance_date ASC
     ");
+    $t_stmt->bind_param("sss", $selected_class, $current_semester, $current_year);
+    $t_stmt->execute();
+    $t_res = $t_stmt->get_result();
     
     while($row = $t_res->fetch_assoc()) {
         $tracker_data[$row['student_id']][$row['attendance_date']] = $row['status'];
