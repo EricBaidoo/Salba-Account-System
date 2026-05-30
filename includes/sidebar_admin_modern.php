@@ -243,6 +243,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-scroll"></i>
             <span>Transcripts</span>
         </a>
+        <a href="<?= nav_link($base_path, 'academics/transcript_breakdown') ?>" class="nav-item <?= nav_active('transcript_breakdown', $current_page) ?>">
+            <i class="fas fa-table-list"></i>
+            <span>Class Broadsheet</span>
+        </a>
 
         <!-- FINANCE HUB -->
         <div class="nav-group-label">Financials</div>
