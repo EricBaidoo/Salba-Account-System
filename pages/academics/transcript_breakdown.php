@@ -200,7 +200,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                                     </tr>
                                     <tr>
                                         <?php foreach ($subjects as $subject): ?>
-                                            <th class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars(substr($subject, 0, 4) . '.') ?></th>
+                                            <th class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars($subject) ?></th>
                                         <?php endforeach; ?>
                                     </tr>
                                 </thead>

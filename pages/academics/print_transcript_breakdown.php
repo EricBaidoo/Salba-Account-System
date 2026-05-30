@@ -147,7 +147,7 @@ if ($render_type === 'pdf') {
                     </tr>
                     <tr>
                         <?php foreach ($subjects as $subject): ?>
-                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars(strtoupper(substr($subject, 0, 4)) . '.') ?></th>
+                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars(strtoupper($subject)) ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
