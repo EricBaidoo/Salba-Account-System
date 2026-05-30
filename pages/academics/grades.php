@@ -83,25 +83,42 @@ $selected_assessment = $assessment_configs[$selected_assessment_id] ?? null;
 // PROCESS GRADES
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
     if ($selected_class && $selected_subject_name && $selected_assessment) {
-        $count = 0;
         $ass_name = $selected_assessment['name'];
         $ass_weight = $selected_assessment['weight'];
 
+        // PRE-FLIGHT VALIDATION: Strict rule - check all inputs before saving
+        $has_error = false;
+        $invalid_students = [];
+
         foreach ($_POST['marks'] as $student_id => $raw_marks) {
+            if ($raw_marks === '') continue;
+            
             $sid = intval($student_id);
-            $raw_out_of = $ass_weight; // System-Defined Base
             $raw_marks = floatval($raw_marks);
-            $comment = $conn->real_escape_string($_POST['comments'][$sid] ?? '');
 
-            if ($raw_marks !== '') {
-                // Validation: Prevent entering figure higher than assessment max
-                if ($raw_marks > $ass_weight) {
-                    $error = "Institutional Security: Student #$sid cannot have marks ($raw_marks) exceeding assessment maximum ($ass_weight).";
-                    continue; 
+            if ($raw_marks > $ass_weight) {
+                $has_error = true;
+                // Fetch student name for clear error
+                $sname = "Student #$sid";
+                $name_query = $conn->query("SELECT first_name, last_name FROM students WHERE id = $sid");
+                if ($name_query && $row = $name_query->fetch_assoc()) {
+                    $sname = $row['first_name'] . ' ' . $row['last_name'];
                 }
+                $invalid_students[] = "$sname ($raw_marks)";
+            }
+        }
 
-                // Mathematical Logic: Entering raw points directly out of the Weight
-                $scaled_mark = $raw_marks; 
+        if ($has_error) {
+            $error = "STRICT VALIDATION FAILED: You cannot enter marks exceeding the maximum allocated mark ($ass_weight). Please correct the marks for: " . implode(", ", $invalid_students);
+        } else {
+            // Proceed to save since all marks are valid
+            $count = 0;
+            foreach ($_POST['marks'] as $student_id => $raw_marks) {
+                if ($raw_marks === '') continue;
+
+                $sid = intval($student_id);
+                $scaled_mark = floatval($raw_marks);
+                $comment = $conn->real_escape_string($_POST['comments'][$sid] ?? '');
 
                 $check = $conn->query("SELECT id FROM grades WHERE student_id = $sid AND subject = '$selected_subject_name' AND assessment_type = '$ass_name' AND semester = '$current_term' AND year = '$current_year'");
                 
@@ -116,8 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_grades'])) {
                 }
                 $count++;
             }
+            $success = "Successfully saved grades for $count students!";
         }
-        $success = "Successfully auto-scaled and saved grades for $count students!";
     } else {
         $error = "Missing configuration boundaries. Ensure class, subject, and assessment type are selected.";
     }
@@ -264,12 +281,12 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                         <?php endif; ?>
                                     </h3>
                                     <p class="text-[0.625rem] font-black uppercase tracking-widest mt-1 <?= $selected_assessment['is_exam'] ? 'text-red-500' : 'text-amber-600' ?>">
-                                        Internal Scaling Engine Output Matrix: <span class="bg-white px-2 py-0.5 rounded shadow-sm border border-opacity-50 ml-1"><?= $selected_assessment['weight'] ?> points max</span>
+                                        Allocated Maximum Mark: <span class="bg-white px-2 py-0.5 rounded shadow-sm border border-opacity-50 ml-1"><?= $selected_assessment['weight'] ?></span>
                                     </p>
                                 </div>
                                 <div class="bg-white/50 px-3 py-1.5 rounded-lg border border-opacity-20 flex items-center gap-2">
-                                     <i class="fas fa-robot text-gray-400 text-xs"></i>
-                                     <span class="text-[0.625rem] font-bold text-gray-500 uppercase tracking-tighter">Auto-Scale Enabled</span>
+                                     <i class="fas fa-shield-halved text-gray-400 text-xs"></i>
+                                     <span class="text-[0.625rem] font-bold text-gray-500 uppercase tracking-tighter">Strict Validation On</span>
                                 </div>
                             </div>
 
@@ -303,7 +320,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                                 </div>
                                             </td>
                                             <td class="px-8 py-5 text-center">
-                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" class="w-24 px-3 py-2.5 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 text-center font-black text-lg shadow-inner transition-all">
+                                                <input type="number" step="0.1" name="marks[<?= $s['id'] ?>]" value="<?= $s['scaled_marks'] !== null ? round($s['scaled_marks'], 1) : '' ?>" max="<?= $selected_assessment['weight'] ?>" min="0" placeholder="e.g. <?= floor($selected_assessment['weight']*0.8) ?>" class="grade-input w-24 px-3 py-2.5 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-amber-500 text-center font-black text-lg shadow-inner transition-all">
                                             </td>
                                             <td class="px-2 py-5 text-center font-black text-gray-200">/</td>
                                             <td class="px-8 py-5 text-center">
@@ -334,7 +351,7 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
                                     <p class="text-xs text-gray-500">Validation: <code>Entered Marks ≤ <?= $selected_assessment['weight'] ?> (Official Max)</code></p>
                                 </div>
                             </div>
-                            <button type="submit" name="save_grades" class="bg-gray-900 text-white font-black py-4 px-10 rounded-2xl shadow-xl hover:bg-black hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 text-lg">
+                            <button type="submit" id="submitGradesBtn" name="save_grades" class="bg-gray-900 text-white font-black py-4 px-10 rounded-2xl shadow-xl hover:bg-black hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fas fa-bolt-lightning"></i> Process & Save Grades
                             </button>
                         </div>
@@ -343,5 +360,45 @@ if ($selected_class && $selected_subject_name && $selected_assessment) {
             <?php endif; ?>
         </div>
     </main>
+
+    <?php if($selected_class && $selected_subject_name && $selected_assessment): ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const submitBtn = document.getElementById('submitGradesBtn');
+        const inputs = document.querySelectorAll('.grade-input');
+        const maxWeight = <?= $selected_assessment['weight'] ?? 0 ?>;
+
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                let val = parseFloat(this.value);
+                
+                // Visual Error State
+                if (val > maxWeight) {
+                    this.classList.add('ring-2', 'ring-red-500', 'bg-red-50', 'text-red-600');
+                    this.classList.remove('focus:ring-amber-500', 'bg-gray-50');
+                } else {
+                    this.classList.remove('ring-2', 'ring-red-500', 'bg-red-50', 'text-red-600');
+                    this.classList.add('focus:ring-amber-500', 'bg-gray-50');
+                }
+                
+                // Check Global Form Validity
+                let hasError = false;
+                inputs.forEach(i => {
+                    if (parseFloat(i.value) > maxWeight) hasError = true;
+                });
+                
+                // Disable Button
+                if (hasError) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-hand text-red-400"></i> Cannot Save: Mark Exceeds ' + maxWeight;
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-bolt-lightning"></i> Process & Save Grades';
+                }
+            });
+        });
+    });
+    </script>
+    <?php endif; ?>
 </body>
 </html>
