@@ -66,6 +66,23 @@ if ($selected_class && $id) {
         else $oa_types[] = $r['assessment_name'];
     }
 
+    // Valid subjects filter
+    $valid_subjects = [];
+    $v_stmt = $conn->prepare("
+        SELECT DISTINCT s.name 
+        FROM subjects s
+        LEFT JOIN class_subjects cs ON s.id = cs.subject_id AND cs.class_name = ?
+        LEFT JOIN teacher_allocations ta ON s.id = ta.subject_id AND ta.class_name = ? AND ta.year = ?
+        WHERE cs.subject_id IS NOT NULL OR ta.subject_id IS NOT NULL
+    ");
+    $v_stmt->bind_param('sss', $selected_class, $selected_class, $current_year);
+    $v_stmt->execute();
+    $v_res = $v_stmt->get_result();
+    while ($r = $v_res->fetch_assoc()) {
+        $valid_subjects[] = $r['name'];
+    }
+    $v_stmt->close();
+
     // Fetch all raw scaled grades for class
     $g_res = $conn->query("
         SELECT student_id, subject, marks, assessment_type 
@@ -74,8 +91,10 @@ if ($selected_class && $id) {
     ");
     
     while($row = $g_res->fetch_assoc()) {
-        $sid = $row['student_id'];
         $sub = $row['subject'];
+        if (!in_array($sub, $valid_subjects)) continue;
+
+        $sid = $row['student_id'];
         $type = $row['assessment_type'];
         $m = floatval($row['marks']);
         

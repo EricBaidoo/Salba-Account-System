@@ -63,16 +63,36 @@ $subjects = [];
 $grade_matrix = [];
 $max_out_of = 0;
 
+$valid_subjects = [];
+if ($selected_class) {
+    $stmt = $conn->prepare("
+        SELECT DISTINCT s.name 
+        FROM subjects s
+        LEFT JOIN class_subjects cs ON s.id = cs.subject_id AND cs.class_name = ?
+        LEFT JOIN teacher_allocations ta ON s.id = ta.subject_id AND ta.class_name = ? AND ta.year = ?
+        WHERE cs.subject_id IS NOT NULL OR ta.subject_id IS NOT NULL
+    ");
+    $stmt->bind_param('sss', $selected_class, $selected_class, $current_year);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($r = $res->fetch_assoc()) {
+        $valid_subjects[] = $r['name'];
+    }
+    $stmt->close();
+}
+
 if ($selected_class && $selected_assessment) {
     $stmt = $conn->prepare("SELECT student_id, subject, marks, out_of FROM grades WHERE class_name = ? AND assessment_type = ? AND semester = ? AND year = ?");
     $stmt->bind_param('ssss', $selected_class, $selected_assessment, $current_term, $current_year);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) {
-        $subjects[$row['subject']] = true;
-        $grade_matrix[$row['student_id']][$row['subject']] = floatval($row['marks']);
-        if (floatval($row['out_of']) > $max_out_of) {
-            $max_out_of = floatval($row['out_of']);
+        if (in_array($row['subject'], $valid_subjects)) {
+            $subjects[$row['subject']] = true;
+            $grade_matrix[$row['student_id']][$row['subject']] = floatval($row['marks']);
+            if (floatval($row['out_of']) > $max_out_of) {
+                $max_out_of = floatval($row['out_of']);
+            }
         }
     }
     $stmt->close();

@@ -40,15 +40,35 @@ $subjects = [];
 $grade_matrix = [];
 $max_out_of = 0;
 
+$valid_subjects = [];
+if ($selected_class) {
+    $stmt = $conn->prepare("
+        SELECT DISTINCT s.name 
+        FROM subjects s
+        LEFT JOIN class_subjects cs ON s.id = cs.subject_id AND cs.class_name = ?
+        LEFT JOIN teacher_allocations ta ON s.id = ta.subject_id AND ta.class_name = ? AND ta.year = ?
+        WHERE cs.subject_id IS NOT NULL OR ta.subject_id IS NOT NULL
+    ");
+    $stmt->bind_param('sss', $selected_class, $selected_class, $current_year);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($r = $res->fetch_assoc()) {
+        $valid_subjects[] = $r['name'];
+    }
+    $stmt->close();
+}
+
 $stmt = $conn->prepare("SELECT student_id, subject, marks, out_of FROM grades WHERE class_name = ? AND assessment_type = ? AND semester = ? AND year = ?");
 $stmt->bind_param('ssss', $selected_class, $selected_assessment, $current_term, $current_year);
 $stmt->execute();
 $res = $stmt->get_result();
 while ($row = $res->fetch_assoc()) {
-    $subjects[$row['subject']] = true;
-    $grade_matrix[$row['student_id']][$row['subject']] = floatval($row['marks']);
-    if (floatval($row['out_of']) > $max_out_of) {
-        $max_out_of = floatval($row['out_of']);
+    if (in_array($row['subject'], $valid_subjects)) {
+        $subjects[$row['subject']] = true;
+        $grade_matrix[$row['student_id']][$row['subject']] = floatval($row['marks']);
+        if (floatval($row['out_of']) > $max_out_of) {
+            $max_out_of = floatval($row['out_of']);
+        }
     }
 }
 $stmt->close();
@@ -90,7 +110,7 @@ if ($render_type === 'pdf') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Times New Roman', Times, serif; color: #000; margin: 0; padding: 0; }
-        .page { width: 100%; padding: 40px; box-sizing: border-box; }
+        .page { width: 100%; padding: 1px; box-sizing: border-box; }
         .header { text-align: center; margin-bottom: 20px; }
         .logo { width: 100px; height: auto; display: block; margin: 0 auto 15px auto; }
         .school-name { font-size: 20px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
@@ -172,11 +192,11 @@ if ($render_type === 'pdf') {
         <?php
             $html = ob_get_clean();
             $mpdf = new \Mpdf\Mpdf([
-                'format' => 'A4-L', // Landscape is better for wide matrix tables
-                'margin_left' => 15,
-                'margin_right' => 15,
-                'margin_top' => 15,
-                'margin_bottom' => 15,
+                'format' => 'A4', // Portrait format
+                'margin_left' => 1,
+                'margin_right' => 1,
+                'margin_top' => 1,
+                'margin_bottom' => 1,
             ]);
             $mpdf->WriteHTML($html);
             $filename = sprintf('%s_RESULTS_%s.pdf', preg_replace('/[^A-Za-z0-9_-]+/', '_', $selected_assessment), preg_replace('/[^A-Za-z0-9_-]+/', '_', $selected_class));
