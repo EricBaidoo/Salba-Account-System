@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_subject') {
     $subject_name = trim($_POST['subject_name'] ?? '');
     $subject_code = trim($_POST['subject_code'] ?? '');
+    $abbreviation = trim($_POST['abbreviation'] ?? '');
     $description  = trim($_POST['description'] ?? '');
 
     if (empty($subject_name) || empty($subject_code)) {
@@ -48,9 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if ($check->get_result()->num_rows > 0) {
             $error = "A subject with this code already exists.";
         } else {
-            $stmt = $conn->prepare("INSERT INTO subjects (name, code, description) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO subjects (name, code, description, abbreviation) VALUES (?, ?, ?, ?)");
             if ($stmt) {
-                $stmt->bind_param('sss', $subject_name, $subject_code, $description);
+                $stmt->bind_param('ssss', $subject_name, $subject_code, $description, $abbreviation);
                 if ($stmt->execute()) {
                     $success = "Subject added successfully!";
                 } else {
@@ -82,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $subject_id = intval($_POST['subject_id'] ?? 0);
     $subject_name = trim($_POST['subject_name'] ?? '');
     $subject_code = trim($_POST['subject_code'] ?? '');
+    $abbreviation = trim($_POST['abbreviation'] ?? '');
     $description  = trim($_POST['description'] ?? '');
 
     if (empty($subject_name) || empty($subject_code) || $subject_id <= 0) {
@@ -93,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if ($check->get_result()->num_rows > 0) {
             $error = "Another subject with this code already exists.";
         } else {
-            $stmt = $conn->prepare("UPDATE subjects SET name = ?, code = ?, description = ? WHERE id = ?");
+            $stmt = $conn->prepare("UPDATE subjects SET name = ?, code = ?, description = ?, abbreviation = ? WHERE id = ?");
             if ($stmt) {
-                $stmt->bind_param('sssi', $subject_name, $subject_code, $description, $subject_id);
+                $stmt->bind_param('ssssi', $subject_name, $subject_code, $description, $abbreviation, $subject_id);
                 if ($stmt->execute()) {
                     $success = "Subject updated successfully!";
                 } else {
@@ -109,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Get subjects
-$subjects = $conn->query("SELECT id, name as subject_name, code as subject_code, description FROM subjects ORDER BY name");
+$subjects = $conn->query("SELECT id, name as subject_name, code as subject_code, description, abbreviation FROM subjects ORDER BY name");
 
 
 // Fetch Classes & Mappings (Migrated from Settings)
@@ -138,10 +140,11 @@ if ($map_res) {
             document.getElementById(modalID).classList.toggle("flex");
         }
 
-        function openEditModal(id, name, code, description) {
+        function openEditModal(id, name, code, description, abbreviation) {
             document.getElementById('edit_subject_id').value = id;
             document.getElementById('edit_subject_name').value = name;
             document.getElementById('edit_subject_code').value = code;
+            document.getElementById('edit_abbreviation').value = abbreviation;
             document.getElementById('edit_description').value = description;
             toggleModal('editSubjectModal');
         }
@@ -230,6 +233,7 @@ if ($map_res) {
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100 font-semibold text-gray-500">
                                 <th class="px-6 py-4">Subject Name</th>
+                                <th class="px-6 py-4">Abbr.</th>
                                 <th class="px-6 py-4">Subject Code</th>
                                 <th class="px-6 py-4">Description</th>
                                 <th class="px-6 py-4 text-right">Actions</th>
@@ -247,6 +251,15 @@ if ($map_res) {
                                         <div class="font-bold text-gray-900"><?php echo htmlspecialchars($row['subject_name']); ?></div>
                                     </td>
                                     <td class="px-6 py-4">
+                                        <?php if (!empty($row['abbreviation'])): ?>
+                                            <span class="px-2 py-1 bg-green-50 text-green-700 font-mono text-xs font-bold rounded border border-green-100">
+                                                <?php echo htmlspecialchars($row['abbreviation']); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-gray-300">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-6 py-4">
                                         <span class="px-2 py-1 bg-indigo-50 text-indigo-700 font-mono text-xs font-bold rounded border border-indigo-100">
                                             <?php echo htmlspecialchars($row['subject_code']); ?>
                                         </span>
@@ -255,7 +268,7 @@ if ($map_res) {
                                         <?php echo htmlspecialchars($row['description']) ?: '<span class="text-gray-300 italic">No description</span>'; ?>
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        <button onclick="openEditModal(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['subject_name'])) ?>', '<?= addslashes(htmlspecialchars($row['subject_code'])) ?>', '<?= addslashes(htmlspecialchars($row['description'])) ?>')" class="text-gray-400 hover:text-indigo-600 transition-colors mr-3" title="Edit Subject">
+                                        <button onclick="openEditModal(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['subject_name'])) ?>', '<?= addslashes(htmlspecialchars($row['subject_code'])) ?>', '<?= addslashes(htmlspecialchars($row['description'])) ?>', '<?= addslashes(htmlspecialchars($row['abbreviation'] ?? '')) ?>')" class="text-gray-400 hover:text-indigo-600 transition-colors mr-3" title="Edit Subject">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button onclick="triggerDelete(<?= $row['id'] ?>, '<?= addslashes(htmlspecialchars($row['subject_name'])) ?>')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete Subject">
@@ -369,6 +382,11 @@ if ($map_res) {
                         <p class="text-[0.625rem] text-gray-400 mt-1 uppercase tracking-wider">Must be unique across the system</p>
                     </div>
                     <div>
+                        <label for="abbreviation" class="block text-sm font-semibold text-gray-700 mb-1">Abbreviation (Optional)</label>
+                        <input type="text" id="abbreviation" name="abbreviation" placeholder="e.g., SCI, MATH, R.M.E"
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors font-mono">
+                    </div>
+                    <div>
                         <label for="description" class="block text-sm font-semibold text-gray-700 mb-1">Description (Optional)</label>
                         <textarea id="description" name="description" rows="3" placeholder="Brief overview of the subject..."
                                   class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors resize-none"></textarea>
@@ -409,6 +427,11 @@ if ($map_res) {
                     <div>
                         <label for="edit_subject_code" class="block text-sm font-semibold text-gray-700 mb-1">Subject Code <span class="text-red-500">*</span></label>
                         <input type="text" id="edit_subject_code" name="subject_code" required placeholder="e.g., SCI-101"
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors font-mono">
+                    </div>
+                    <div>
+                        <label for="edit_abbreviation" class="block text-sm font-semibold text-gray-700 mb-1">Abbreviation (Optional)</label>
+                        <input type="text" id="edit_abbreviation" name="abbreviation" placeholder="e.g., SCI, MATH, R.M.E"
                                class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors font-mono">
                     </div>
                     <div>

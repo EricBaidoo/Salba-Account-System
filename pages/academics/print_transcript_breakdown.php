@@ -41,9 +41,10 @@ $grade_matrix = [];
 $max_out_of = 0;
 
 $valid_subjects = [];
+$subject_abbreviations = [];
 if ($selected_class) {
     $stmt = $conn->prepare("
-        SELECT DISTINCT s.name 
+        SELECT DISTINCT s.name, s.abbreviation
         FROM subjects s
         LEFT JOIN class_subjects cs ON s.id = cs.subject_id AND cs.class_name = ?
         LEFT JOIN teacher_allocations ta ON s.id = ta.subject_id AND ta.class_name = ? AND ta.year = ?
@@ -54,6 +55,7 @@ if ($selected_class) {
     $res = $stmt->get_result();
     while ($r = $res->fetch_assoc()) {
         $valid_subjects[] = $r['name'];
+        $subject_abbreviations[$r['name']] = !empty($r['abbreviation']) ? $r['abbreviation'] : $r['name'];
     }
     $stmt->close();
 }
@@ -97,23 +99,7 @@ foreach ($student_totals as $student_id => $total) {
     elseif ($pos % 10 == 3 && $pos % 100 != 13) $suffix = 'RD';
     $student_positions[$student_id] = $pos . $suffix;
 }
-
-function abbr_subject($subject) {
-    $upper = strtoupper($subject);
-    if (strpos($upper, 'ENGLISH') !== false) return 'ENGLISH';
-    if (strpos($upper, 'RELIGIOUS') !== false) return 'R.M.E';
-    if (strpos($upper, 'COMPUTING') !== false) return 'COMPUTING';
-    if (strpos($upper, 'CREATIVE ARTS') !== false) return 'C. ARTS';
-    if (strpos($upper, 'OUR WORLD') !== false) return 'O.W.O.P';
-    if (strpos($upper, 'INFORMATION') !== false) return 'I.C.T';
-    if (strpos($upper, 'PHYSICAL EDUCATION') !== false) return 'P.E';
-    if (strpos($upper, 'SOCIAL STUDIES') !== false) return 'SOC. STUD';
-    if (strpos($upper, 'INTEGRATED SCIENCE') !== false) return 'INT. SCI';
-    if (strpos($upper, 'MATHEMATICS') !== false) return 'MATHS';
-    if (strpos($upper, 'GHANAIAN LANGUAGE') !== false) return 'GH. LANG';
-    if (strpos($upper, 'SCIENCE') !== false) return 'SCIENCE';
-    return $upper;
-}
+// Hardcoded abbreviations removed in favor of DB-driven aliases
 
 if ($render_type === 'pdf') {
     ob_start();
@@ -184,7 +170,7 @@ if ($render_type === 'pdf') {
                     </tr>
                     <tr>
                         <?php foreach ($subjects as $subject): ?>
-                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars(abbr_subject($subject)) ?></th>
+                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars($subject_abbreviations[$subject] ?? $subject) ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
