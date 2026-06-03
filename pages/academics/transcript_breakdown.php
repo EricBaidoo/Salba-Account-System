@@ -73,6 +73,9 @@ if ($selected_class) {
         LEFT JOIN teacher_allocations ta ON s.id = ta.subject_id AND ta.class_name = ? AND ta.year = ?
         WHERE cs.subject_id IS NOT NULL OR ta.subject_id IS NOT NULL
     ");
+    if (!$stmt) {
+        die("Database Error (fetching subjects): " . $conn->error);
+    }
     $stmt->bind_param('sss', $selected_class, $selected_class, $current_year);
     $stmt->execute();
     $res = $stmt->get_result();

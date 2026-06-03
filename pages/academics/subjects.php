@@ -112,6 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Get subjects
 $subjects = $conn->query("SELECT id, name as subject_name, code as subject_code, description, abbreviation FROM subjects ORDER BY name");
+if (!$subjects) {
+    die("Database Error in subjects query: " . $conn->error);
+}
 
 
 // Fetch Classes & Mappings (Migrated from Settings)
