@@ -99,20 +99,20 @@ foreach ($student_totals as $student_id => $total) {
 }
 
 function abbr_subject($subject) {
-    $map = [
-        'ENGLISH LANGUAGE' => 'ENGLISH',
-        'RELIGIOUS AND MORAL EDUCATION' => 'R.M.E',
-        'OUR WORLD OUR PEOPLE' => 'O.W.O.P',
-        'INFORMATION AND COMMUNICATION TECHNOLOGY' => 'I.C.T',
-        'CREATIVE ARTS' => 'C. ARTS',
-        'PHYSICAL EDUCATION' => 'P.E',
-        'SOCIAL STUDIES' => 'SOC. STUD',
-        'INTEGRATED SCIENCE' => 'INT. SCI',
-        'MATHEMATICS' => 'MATHS',
-        'GHANAIAN LANGUAGE' => 'GH. LANG'
-    ];
-    $upper = strtoupper(trim($subject));
-    return $map[$upper] ?? $upper;
+    $upper = strtoupper($subject);
+    if (strpos($upper, 'ENGLISH') !== false) return 'ENGLISH';
+    if (strpos($upper, 'RELIGIOUS') !== false) return 'R.M.E';
+    if (strpos($upper, 'COMPUTING') !== false) return 'COMPUTING';
+    if (strpos($upper, 'CREATIVE ARTS') !== false) return 'C. ARTS';
+    if (strpos($upper, 'OUR WORLD') !== false) return 'O.W.O.P';
+    if (strpos($upper, 'INFORMATION') !== false) return 'I.C.T';
+    if (strpos($upper, 'PHYSICAL EDUCATION') !== false) return 'P.E';
+    if (strpos($upper, 'SOCIAL STUDIES') !== false) return 'SOC. STUD';
+    if (strpos($upper, 'INTEGRATED SCIENCE') !== false) return 'INT. SCI';
+    if (strpos($upper, 'MATHEMATICS') !== false) return 'MATHS';
+    if (strpos($upper, 'GHANAIAN LANGUAGE') !== false) return 'GH. LANG';
+    if (strpos($upper, 'SCIENCE') !== false) return 'SCIENCE';
+    return $upper;
 }
 
 if ($render_type === 'pdf') {
