@@ -124,6 +124,23 @@ foreach ($student_totals as $student_id => $total) {
 }
 
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
+
+function abbr_subject($subject) {
+    $map = [
+        'ENGLISH LANGUAGE' => 'ENGLISH',
+        'RELIGIOUS AND MORAL EDUCATION' => 'R.M.E',
+        'OUR WORLD OUR PEOPLE' => 'O.W.O.P',
+        'INFORMATION AND COMMUNICATION TECHNOLOGY' => 'I.C.T',
+        'CREATIVE ARTS' => 'C. ARTS',
+        'PHYSICAL EDUCATION' => 'P.E',
+        'SOCIAL STUDIES' => 'SOC. STUD',
+        'INTEGRATED SCIENCE' => 'INT. SCI',
+        'MATHEMATICS' => 'MATHS',
+        'GHANAIAN LANGUAGE' => 'GH. LANG'
+    ];
+    $upper = strtoupper(trim($subject));
+    return $map[$upper] ?? $subject;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -220,7 +237,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                                     </tr>
                                     <tr>
                                         <?php foreach ($subjects as $subject): ?>
-                                            <th class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars($subject) ?></th>
+                                            <th class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars(abbr_subject($subject)) ?></th>
                                         <?php endforeach; ?>
                                     </tr>
                                 </thead>

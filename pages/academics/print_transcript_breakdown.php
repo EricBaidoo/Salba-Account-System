@@ -98,6 +98,23 @@ foreach ($student_totals as $student_id => $total) {
     $student_positions[$student_id] = $pos . $suffix;
 }
 
+function abbr_subject($subject) {
+    $map = [
+        'ENGLISH LANGUAGE' => 'ENGLISH',
+        'RELIGIOUS AND MORAL EDUCATION' => 'R.M.E',
+        'OUR WORLD OUR PEOPLE' => 'O.W.O.P',
+        'INFORMATION AND COMMUNICATION TECHNOLOGY' => 'I.C.T',
+        'CREATIVE ARTS' => 'C. ARTS',
+        'PHYSICAL EDUCATION' => 'P.E',
+        'SOCIAL STUDIES' => 'SOC. STUD',
+        'INTEGRATED SCIENCE' => 'INT. SCI',
+        'MATHEMATICS' => 'MATHS',
+        'GHANAIAN LANGUAGE' => 'GH. LANG'
+    ];
+    $upper = strtoupper(trim($subject));
+    return $map[$upper] ?? $upper;
+}
+
 if ($render_type === 'pdf') {
     ob_start();
 }
@@ -167,7 +184,7 @@ if ($render_type === 'pdf') {
                     </tr>
                     <tr>
                         <?php foreach ($subjects as $subject): ?>
-                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars(strtoupper($subject)) ?></th>
+                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars(abbr_subject($subject)) ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
