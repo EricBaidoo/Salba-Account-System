@@ -157,6 +157,7 @@ if ($render_type === 'pdf') {
             <?php endif; ?>
             <div class="school-name"><?= htmlspecialchars($school_name) ?></div>
             <div class="class-name"><?= htmlspecialchars($selected_class) ?></div>
+            <div class="term-year" style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">TERM <?= htmlspecialchars($current_term) ?> &nbsp;&nbsp;|&nbsp;&nbsp; ACADEMIC YEAR: <?= htmlspecialchars($current_year) ?></div>
             <div class="assessment-name"><?= htmlspecialchars($selected_assessment) ?> RESULTS</div>
         </div>
 
