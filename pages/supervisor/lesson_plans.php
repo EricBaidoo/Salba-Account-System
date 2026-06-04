@@ -141,9 +141,13 @@ if ($is_teacher_view) {
     // ---- MAIN DASHBOARD QUERIES ----
     $total_facilitators = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'facilitator'")->fetch_row()[0];
     
-    // Overall Rate (Facilitators who submitted ANY plan vs Total Facilitators)
-    $submitted_facilitators = $conn->query("SELECT COUNT(DISTINCT l.teacher_id) FROM lesson_plans l JOIN users u ON l.teacher_id = u.id WHERE u.role = 'facilitator'")->fetch_row()[0];
-    $overall_rate = $total_facilitators > 0 ? round(($submitted_facilitators / $total_facilitators) * 100) : 0;
+    // This Week expectations needed for cumulative calculation
+    $total_expected_this_week = array_sum($expectations);
+    
+    // Overall Rate (Cumulative Submitted up to current week / Cumulative Expected)
+    $cumulative_expected = $total_expected_this_week * $current_week;
+    $cumulative_submitted = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE week_number > 0 AND week_number <= $current_week")->fetch_row()[0] ?? 0;
+    $overall_rate = $cumulative_expected > 0 ? round(($cumulative_submitted / $cumulative_expected) * 100) : 0;
     
     // This Week Rate (Total Actuals / Total Expectations)
     $total_expected_this_week = array_sum($expectations);
@@ -287,7 +291,7 @@ $reviewed_plans = $conn->query("
                     <div class="relative z-10">
                         <div class="text-sm font-black text-gray-400 uppercase tracking-widest">Overall Active Rate</div>
                         <div class="text-3xl font-extrabold text-gray-900"><?= $overall_rate ?>%</div>
-                        <div class="text-xs font-bold text-gray-500"><?= $submitted_facilitators ?> of <?= $total_facilitators ?> facilitators have submitted plans</div>
+                        <div class="text-xs font-bold text-gray-500"><?= $cumulative_submitted ?> of <?= $cumulative_expected ?> total expected plans submitted</div>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
