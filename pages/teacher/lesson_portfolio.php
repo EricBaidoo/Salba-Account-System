@@ -37,7 +37,7 @@ if ($teacher_classes_res) {
 
 // Stats (Filtered)
 $stats = ['draft' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
-$st_res = $conn->query("SELECT l.status, COUNT(*) as count FROM lesson_plans l JOIN subjects s ON l.subject_id = s.id WHERE $where GROUP BY l.status");
+$st_res = $conn->query("SELECT l.status, COUNT(*) as count FROM lesson_plans l LEFT JOIN subjects s ON l.subject_id = s.id WHERE $where GROUP BY l.status");
 if ($st_res) {
     while($r = $st_res->fetch_assoc()) $stats[$r['status']] = $r['count'];
 }
@@ -48,9 +48,9 @@ $staff = $prof_res->fetch_assoc();
 
 function getPlans($conn, $where, $status) {
     return $conn->query("
-        SELECT l.*, s.name as subject_name 
+        SELECT l.*, COALESCE(s.name, 'Unmapped Subject') as subject_name 
         FROM lesson_plans l 
-        JOIN subjects s ON l.subject_id = s.id 
+        LEFT JOIN subjects s ON l.subject_id = s.id 
         WHERE $where AND l.status = '$status' 
         ORDER BY l.created_at DESC
     ");
