@@ -82,9 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 }
             }
 
-            // Strict Validation: Ensure essential columns exist in Excel
-            if (!isset($colMap['subject']) || !isset($colMap['class']) || !isset($colMap['sub_strand'])) {
-                throw new Exception("Invalid Excel format. The file is missing essential column headings (Subject, Class, or Topic/Sub-Strand). Please use the official GES template.");
+            // Relaxed Validation: Ensure at least some columns mapped
+            if (count($colMap) < 3) {
+                throw new Exception("Invalid Excel format. The file is missing recognized column headings. Please use the official template or standard headings.");
             }
 
             // Extract rows
@@ -98,8 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                     $currentData[$key] = ($idx >= 0 && isset($r[$idx])) ? trim((string)$r[$idx]) : '';
                 }
                 
-                // Only add if it has subject and class for this row
-                if (!empty($currentData['subject']) && !empty($currentData['class'])) {
+                // Add if it has some data
+                if (count(array_filter($currentData)) >= 2) {
                     $allData[] = $currentData;
                 }
             }
@@ -226,9 +226,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 if (!isset($currentData[$key])) $currentData[$key] = '';
             }
 
-            // Strict Validation for Word/PDF
-            if (empty($currentData['subject']) || empty($currentData['class']) || empty($currentData['sub_strand'])) {
-                throw new Exception("Invalid Document Format. The document must contain strict headings for 'Subject:', 'Class:', and 'Topic:' (or 'Sub-Strand:'). Please check your file and try again.");
+            // Relaxed Validation for Word/PDF
+            $matchedFields = count(array_filter($currentData, fn($val) => trim($val) !== ''));
+            if ($matchedFields < 3) {
+                throw new Exception("Invalid Document Format. We couldn't recognize standard headings like 'Subject:', 'Class:', 'Topic:', or 'Phase 1:'. Please add standard labels to your text or use the Paste Tool.");
             }
 
             $allData[] = $currentData;
