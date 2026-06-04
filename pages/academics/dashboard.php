@@ -179,6 +179,14 @@ if ($at) {
                     ]
                 ],
                 [
+                    'icon' => 'fa-clipboard-check', 'color' => 'teal',
+                    'title' => 'Weekly Reports', 'desc' => 'Manage and evaluate teacher weekly reports',
+                    'links' => [
+                        ['label' => 'Submit Report (Teacher)', 'href' => '../teacher/report_portfolio.php'],
+                        ['label' => 'Review Queue (Supervisor)', 'href' => '../supervisor/weekly_reports.php'],
+                    ]
+                ],
+                [
                     'icon' => 'fa-sliders', 'color' => 'indigo',
                     'title' => 'Academic Rules', 'desc' => 'Configure assessment weights, semester report rules, and pass marks',
                     'links' => [
@@ -186,6 +194,14 @@ if ($at) {
                     ]
                 ],
             ];
+
+            // Filter features based on role
+            if ($_SESSION['role'] === 'supervisor') {
+                $allowed_supervisor_features = ['Academic Reports', 'Lesson Plans', 'Weekly Reports', 'Transcripts'];
+                $features = array_filter($features, function($f) use ($allowed_supervisor_features) {
+                    return in_array($f['title'], $allowed_supervisor_features);
+                });
+            }
 
             $palettes = [
                 'yellow'  => ['bg-yellow-50',  'text-yellow-600'],
@@ -196,6 +212,7 @@ if ($at) {
                 'orange'  => ['bg-orange-50',  'text-orange-600'],
                 'rose'    => ['bg-rose-50',    'text-rose-600'],
                 'emerald' => ['bg-emerald-50', 'text-emerald-600'],
+                'teal'    => ['bg-teal-50',    'text-teal-600'],
             ];
 
             foreach ($features as $f):

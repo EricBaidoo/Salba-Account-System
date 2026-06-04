@@ -9,6 +9,11 @@ if (!is_logged_in()) {
     exit;
 }
 
+if ($_SESSION['role'] === 'supervisor') {
+    header('Location: dashboard.php');
+    exit;
+}
+
 // Get classes and student counts with robust queries
 $classes_data = [];
 $res = $conn->query("

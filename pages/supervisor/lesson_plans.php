@@ -101,6 +101,50 @@ if ($is_teacher_view) {
     
     // Filter classes to only those allocated to this teacher
     $classes_res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $teacher_id_get AND year = '$current_academic_year' ORDER BY class_name ASC");
+
+    // Calculate precise expectations vs actuals for THIS teacher
+    $expected_list = [];
+    
+    // 1. Subject Teacher specific classes
+    $t_subs = $conn->query("SELECT ta.class_name, s.name as subject_name FROM teacher_allocations ta JOIN subjects s ON ta.subject_id = s.id WHERE ta.teacher_id = $teacher_id_get AND ta.year = '$current_academic_year' AND ta.is_subject_teacher = 1");
+    if ($t_subs) {
+        while($r = $t_subs->fetch_assoc()) {
+            $expected_list[] = trim($r['class_name']) . ' - ' . trim($r['subject_name']);
+        }
+    }
+    
+    // 2. Class Teacher fallback
+    $ct_res = $conn->query("SELECT class_name FROM teacher_allocations WHERE teacher_id = $teacher_id_get AND year = '$current_academic_year' AND is_class_teacher = 1");
+    if ($ct_res) {
+        while($r = $ct_res->fetch_assoc()) {
+            $cn = $conn->real_escape_string($r['class_name']);
+            $all_subs = $conn->query("SELECT s.name as subject_name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id WHERE cs.class_name = '$cn'");
+            $taken_subs = [];
+            $taken_res = $conn->query("SELECT s.name as subject_name FROM teacher_allocations ta JOIN subjects s ON ta.subject_id = s.id WHERE ta.class_name = '$cn' AND ta.year = '$current_academic_year' AND ta.is_subject_teacher = 1");
+            if ($taken_res) { while($tr = $taken_res->fetch_assoc()) { $taken_subs[] = trim($tr['subject_name']); } }
+            
+            if ($all_subs) {
+                while($sr = $all_subs->fetch_assoc()) {
+                    if (!in_array(trim($sr['subject_name']), $taken_subs)) {
+                        $expected_list[] = trim($r['class_name']) . ' - ' . trim($sr['subject_name']);
+                    }
+                }
+            }
+        }
+    }
+    $expected_list = array_unique($expected_list);
+    
+    // 3. Submitted Actuals
+    $actual_list = [];
+    $w = $week_f ?: $current_week;
+    $act_res = $conn->query("SELECT l.class_name, s.name as subject_name FROM lesson_plans l LEFT JOIN subjects s ON l.subject_id = s.id WHERE l.teacher_id = $teacher_id_get AND l.week_number = $w AND l.status != 'draft'");
+    if ($act_res) {
+        while($r = $act_res->fetch_assoc()) {
+            $actual_list[] = trim($r['class_name']) . ' - ' . trim($r['subject_name'] ?? '');
+        }
+    }
+    $owing_list = array_diff($expected_list, $actual_list);
+
 } else {
     // ---- EXPECTATIONS LOGIC ----
     $expectations = [];
@@ -233,6 +277,28 @@ $reviewed_plans = $conn->query("
                 </a>
             <?php endif; ?>
         </div>
+
+        <?php if($is_teacher_view): ?>
+        <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-2xl mb-8 shadow-sm">
+            <h2 class="text-red-800 font-bold text-lg mb-3 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i> Missing Submissions (Week <?= $week_f ?: $current_week ?>)
+            </h2>
+            <?php if(empty($owing_list)): ?>
+                <p class="text-green-700 font-bold bg-green-100/50 p-3 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i> This teacher has submitted all expected lesson plans for this week.
+                </p>
+            <?php else: ?>
+                <p class="text-red-600 mb-3 text-sm">The following Expected Classes/Subjects have not been submitted:</p>
+                <div class="flex flex-wrap gap-2">
+                    <?php foreach($owing_list as $owing): ?>
+                        <span class="bg-white border border-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                            <i class="fas fa-times text-red-400 mr-1"></i> <?= htmlspecialchars($owing) ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Global Flash Messages handled by top_nav.php -->
 

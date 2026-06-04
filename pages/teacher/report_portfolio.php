@@ -14,17 +14,15 @@ $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 
 // Filters
 $week_f = intval($_GET['week'] ?? 0);
-$date_f = $_GET['date'] ?? '';
 $class_f = $_GET['class'] ?? '';
 $search_f = trim($_GET['search'] ?? '');
 
 $where = "l.teacher_id = $user_id";
 if ($week_f) $where .= " AND l.week_number = $week_f";
-if ($date_f) $where .= " AND l.week_ending = '" . $conn->real_escape_string($date_f) . "'";
 if ($class_f) $where .= " AND l.class_name = '" . $conn->real_escape_string($class_f) . "'";
 if ($search_f) {
     $s = $conn->real_escape_string($search_f);
-    $where .= " AND (l.topic LIKE '%$s%' OR l.sub_strand LIKE '%$s%' OR s.name LIKE '%$s%' OR l.class_name LIKE '%$s%')";
+    $where .= " AND (s.name LIKE '%$s%' OR l.class_name LIKE '%$s%')";
 }
 
 // Fetch Teacher's Allocated Classes for Filter
@@ -37,7 +35,7 @@ if ($teacher_classes_res) {
 
 // Stats (Filtered)
 $stats = ['draft' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
-$st_res = $conn->query("SELECT l.status, COUNT(*) as count FROM lesson_plans l LEFT JOIN subjects s ON l.subject_id = s.id WHERE $where GROUP BY l.status");
+$st_res = $conn->query("SELECT l.status, COUNT(*) as count FROM weekly_reports l LEFT JOIN subjects s ON l.subject_id = s.id WHERE $where GROUP BY l.status");
 if ($st_res) {
     while($r = $st_res->fetch_assoc()) $stats[$r['status']] = $r['count'];
 }
@@ -51,42 +49,23 @@ $current_week = 1;
 if (function_exists('getWeekNumberForDate')) {
     $current_week = getWeekNumberForDate($conn, date('Y-m-d'));
 }
+$teacher_classes_count = count($teacher_classes);
+$cumulative_expected = $teacher_classes_count * $current_week;
+$cumulative_submitted = $conn->query("SELECT COUNT(*) FROM weekly_reports WHERE teacher_id = $user_id AND status != 'draft'")->fetch_row()[0] ?? 0;
 
-// 1. Calculate how many subjects the teacher handles (this defines expected lesson plans per week)
-$expected_per_week = 0;
-
-// Get explicit subject assignments
-$sub_count = $conn->query("SELECT COUNT(*) FROM teacher_allocations WHERE teacher_id = $user_id AND year = '$current_academic_year' AND is_subject_teacher = 1")->fetch_row()[0];
-$expected_per_week += $sub_count;
-
-// Get class teacher assignments where they fill in for missing subject teachers
-$ct_res = $conn->query("SELECT class_name FROM teacher_allocations WHERE teacher_id = $user_id AND year = '$current_academic_year' AND is_class_teacher = 1");
-if ($ct_res) {
-    while($row = $ct_res->fetch_assoc()) {
-        $cn = $row['class_name'];
-        $total_subs = $conn->query("SELECT COUNT(DISTINCT subject_id) FROM class_subjects WHERE class_name = '$cn'")->fetch_row()[0] ?? 0;
-        $taken_subs = $conn->query("SELECT COUNT(DISTINCT subject_id) FROM teacher_allocations WHERE class_name = '$cn' AND year = '$current_academic_year' AND is_subject_teacher = 1")->fetch_row()[0] ?? 0;
-        $expected_per_week += max(0, $total_subs - $taken_subs);
-    }
-}
-
-$cumulative_expected = $expected_per_week * $current_week;
-$cumulative_submitted = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id = $user_id AND status != 'draft'")->fetch_row()[0] ?? 0;
-
-function getPlans($conn, $where, $status) {
+function getReports($conn, $where, $status) {
     return $conn->query("
-        SELECT l.*, COALESCE(s.name, 'Unmapped Subject') as subject_name 
-        FROM lesson_plans l 
-        LEFT JOIN subjects s ON l.subject_id = s.id 
+        SELECT l.* 
+        FROM weekly_reports l 
         WHERE $where AND l.status = '$status' 
         ORDER BY l.created_at DESC
     ");
 }
 
-$drafts = getPlans($conn, $where, 'draft');
-$pending = getPlans($conn, $where, 'pending');
-$approved = getPlans($conn, $where, 'approved');
-$rejected = getPlans($conn, $where, 'rejected');
+$drafts = getReports($conn, $where, 'draft');
+$pending = getReports($conn, $where, 'pending');
+$approved = getReports($conn, $where, 'approved');
+$rejected = getReports($conn, $where, 'rejected');
 
 ?>
 <!DOCTYPE html>
@@ -94,7 +73,7 @@ $rejected = getPlans($conn, $where, 'rejected');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson Dashboard | Teacher Portal</title>
+    <title>Reporting Dashboard | Teacher Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
@@ -104,13 +83,13 @@ $rejected = getPlans($conn, $where, 'rejected');
             document.getElementById(tabId).classList.remove('hidden');
             
             document.querySelectorAll('.portfolio-tab-btn').forEach(el => {
-                el.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+                el.classList.remove('border-teal-600', 'text-teal-600', 'bg-teal-50');
                 el.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
             });
             
             const activeBtn = document.getElementById('btn-' + tabId);
             activeBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
-            activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+            activeBtn.classList.add('border-teal-600', 'text-teal-600', 'bg-teal-50');
         }
     </script>
 </head>
@@ -122,18 +101,18 @@ $rejected = getPlans($conn, $where, 'rejected');
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
             <div>
-                <h1 class="text-4xl font-black text-gray-900 tracking-tight">Lesson <span class="text-indigo-600">Dashboard</span></h1>
-                <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-2">Manage, Track, and Refine your teaching plans</p>
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight">Weekly <span class="text-teal-600">Reports</span></h1>
+                <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-2">Manage, Track, and Submit your performance reports</p>
             </div>
-            <a href="lesson_plans" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition shadow-xl shadow-indigo-100 flex items-center gap-3 active:scale-95">
-                <i class="fas fa-plus"></i> Create New Plan
+            <a href="weekly_reports" class="bg-teal-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-teal-700 transition shadow-xl shadow-teal-100 flex items-center gap-3 active:scale-95">
+                <i class="fas fa-plus"></i> Create New Report
             </a>
         </div>
 
         <!-- Stats Bar -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 group hover:border-indigo-200 transition-all">
-                <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 text-2xl group-hover:scale-110 transition-transform shadow-inner">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 group hover:border-teal-200 transition-all">
+                <div class="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-500 text-2xl group-hover:scale-110 transition-transform shadow-inner">
                     <i class="fas fa-file-pen"></i>
                 </div>
                 <div>
@@ -171,7 +150,7 @@ $rejected = getPlans($conn, $where, 'rejected');
         </div>
 
         <!-- Progress Overview -->
-        <div class="bg-indigo-600 rounded-3xl p-6 md:p-8 mb-10 shadow-xl shadow-indigo-200 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="bg-teal-600 rounded-3xl p-6 md:p-8 mb-10 shadow-xl shadow-teal-200 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="absolute right-0 top-0 opacity-10 pointer-events-none p-4">
                 <i class="fas fa-chart-line text-[10rem]"></i>
             </div>
@@ -180,9 +159,9 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <i class="fas fa-bullseye"></i>
                 </div>
                 <div>
-                    <h2 class="text-sm font-black text-indigo-200 uppercase tracking-widest mb-1">Semester Submission Progress</h2>
-                    <div class="text-3xl font-black"><?= $cumulative_submitted ?> <span class="text-xl font-bold text-indigo-200">/ <?= $cumulative_expected ?> Expected</span></div>
-                    <div class="text-xs text-indigo-100 mt-1">Based on <?= $expected_per_week ?> plans per week (up to Week <?= $current_week ?>)</div>
+                    <h2 class="text-sm font-black text-teal-200 uppercase tracking-widest mb-1">Semester Submission Progress</h2>
+                    <div class="text-3xl font-black"><?= $cumulative_submitted ?> <span class="text-xl font-bold text-teal-200">/ <?= $cumulative_expected ?> Expected</span></div>
+                    <div class="text-xs text-teal-100 mt-1">Based on <?= $teacher_classes_count ?> reports per week (up to Week <?= $current_week ?>)</div>
                 </div>
             </div>
             <div class="relative z-10 w-full md:w-1/3">
@@ -190,7 +169,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <span>Progress</span>
                     <span><?= $cumulative_expected > 0 ? round(($cumulative_submitted / $cumulative_expected) * 100) : 0 ?>%</span>
                 </div>
-                <div class="w-full bg-indigo-900/50 rounded-full h-3">
+                <div class="w-full bg-teal-900/50 rounded-full h-3">
                     <div class="bg-white rounded-full h-3 transition-all duration-1000" style="width: <?= $cumulative_expected > 0 ? min(100, ($cumulative_submitted / $cumulative_expected) * 100) : 0 ?>%"></div>
                 </div>
             </div>
@@ -201,12 +180,12 @@ $rejected = getPlans($conn, $where, 'rejected');
             <form class="flex flex-wrap items-center gap-4 w-full">
                 <div class="relative flex-1 min-w-[200px]">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                    <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by topic or subject..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by class..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
                 </div>
                 
                 <div class="flex items-center gap-2">
                     <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</label>
-                    <select name="class" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[120px]">
+                    <select name="class" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[120px]">
                         <option value="">All Classes</option>
                         <?php foreach($teacher_classes as $tc): ?>
                             <option value="<?= htmlspecialchars($tc) ?>" <?= $class_f === $tc ? 'selected' : '' ?>><?= htmlspecialchars($tc) ?></option>
@@ -216,7 +195,7 @@ $rejected = getPlans($conn, $where, 'rejected');
 
                 <div class="flex items-center gap-2">
                     <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</label>
-                    <select name="week" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[100px]">
+                    <select name="week" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[100px]">
                         <option value="0">All Weeks</option>
                         <?php for($i=1; $i<=$total_weeks; $i++): ?>
                             <option value="<?= $i ?>" <?= $week_f == $i ? 'selected' : '' ?>>Week <?= $i ?></option>
@@ -224,11 +203,11 @@ $rejected = getPlans($conn, $where, 'rejected');
                     </select>
                 </div>
                 
-                <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                <button type="submit" class="bg-teal-600 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-teal-700 transition shadow-lg shadow-teal-100">
                     Filter
                 </button>
                 <?php if($week_f || $class_f || $search_f): ?>
-                    <a href="lesson_portfolio" class="text-[0.625rem] font-black text-gray-400 uppercase hover:text-red-500 transition tracking-widest">Clear All</a>
+                    <a href="report_portfolio" class="text-[0.625rem] font-black text-gray-400 uppercase hover:text-red-500 transition tracking-widest">Clear All</a>
                 <?php endif; ?>
             </form>
         </div>
@@ -250,7 +229,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                 <thead class="bg-red-50/30 border-b border-red-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
                                     </tr>
@@ -259,9 +238,8 @@ $rejected = getPlans($conn, $where, 'rejected');
                                     <?php while($p = $rejected->fetch_assoc()): ?>
                                         <tr class="hover:bg-red-50/20 transition-colors group">
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-red-600">Wk <?= $p['week_number'] ?></span></td>
-                                            <td class="px-6 py-4 min-w-[250px]">
-                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            <td class="px-6 py-4 min-w-[200px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 min-w-[300px]">
                                                 <div class="p-3 bg-red-50/50 rounded-xl border border-red-100/50">
@@ -269,7 +247,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
-                                                <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
+                                                <a href="weekly_reports?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
                                                     <i class="fas fa-edit"></i> Fix & Resubmit
                                                 </a>
                                             </td>
@@ -294,7 +272,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                 <thead class="bg-gray-50/50 border-b border-gray-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Last Modified</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
                                     </tr>
@@ -302,20 +280,19 @@ $rejected = getPlans($conn, $where, 'rejected');
                                 <tbody class="divide-y divide-gray-50">
                                     <?php while($p = $drafts->fetch_assoc()): ?>
                                         <tr class="hover:bg-gray-50/50 transition-colors group">
-                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
-                                            <td class="px-6 py-4 min-w-[300px]">
-                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-teal-600">Wk <?= $p['week_number'] ?></span></td>
+                                            <td class="px-6 py-4 min-w-[200px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="lesson_plans?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                                                    <a href="weekly_reports?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-teal-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-teal-700 transition shadow-lg shadow-teal-100">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
-                                                    <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
-                                                        <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                        <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
+                                                    <form method="POST" action="weekly_reports" onsubmit="return confirm('Delete this draft permanently?');">
+                                                        <input type="hidden" name="report_id" value="<?= $p['id'] ?>">
+                                                        <button type="submit" name="delete_report" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
                                                             <i class="fas fa-trash-alt"></i>
                                                         </button>
                                                     </form>
@@ -338,7 +315,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                 
                 <!-- Tab Headers -->
                 <div class="flex border-b border-gray-100 bg-gray-50/50">
-                    <button type="button" id="btn-tab-pending" onclick="switchTab('tab-pending')" class="portfolio-tab-btn flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50 transition-colors flex items-center justify-center gap-2">
+                    <button type="button" id="btn-tab-pending" onclick="switchTab('tab-pending')" class="portfolio-tab-btn flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 border-teal-600 text-teal-600 bg-teal-50 transition-colors flex items-center justify-center gap-2">
                         <i class="fas fa-hourglass-half"></i> Pending Review (<?= $stats['pending'] ?>)
                     </button>
                     <button type="button" id="btn-tab-approved" onclick="switchTab('tab-approved')" class="portfolio-tab-btn flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
@@ -354,7 +331,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                 <thead class="bg-gray-50/50 border-b border-gray-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Submitted On</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
@@ -364,9 +341,9 @@ $rejected = getPlans($conn, $where, 'rejected');
                                     <?php while($p = $pending->fetch_assoc()): ?>
                                         <tr class="hover:bg-yellow-50/20 transition-colors group">
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-yellow-600">Wk <?= $p['week_number'] ?></span></td>
-                                            <td class="px-6 py-4 min-w-[300px]">
-                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            <td class="px-6 py-4 min-w-[200px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -376,10 +353,10 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
-                                                    <form method="POST" action="lesson_plans" onsubmit="return confirm('Unsubmit this plan back to drafts?');">
-                                                        <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                        <button type="submit" name="unsubmit_plan" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-yellow-600 transition" title="Unsubmit">
+                                                    <a href="print_weekly_report?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-teal-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                    <form method="POST" action="weekly_reports" onsubmit="return confirm('Unsubmit this report back to drafts?');">
+                                                        <input type="hidden" name="report_id" value="<?= $p['id'] ?>">
+                                                        <button type="submit" name="unsubmit_report" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-yellow-600 transition" title="Unsubmit">
                                                             <i class="fas fa-rotate-left text-xs"></i>
                                                         </button>
                                                     </form>
@@ -393,7 +370,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <?php else: ?>
                         <div class="py-12 text-center text-gray-400">
                             <i class="fas fa-inbox text-4xl mb-3 text-gray-200"></i>
-                            <p class="font-bold text-sm uppercase tracking-widest">No plans pending review</p>
+                            <p class="font-bold text-sm uppercase tracking-widest">No reports pending review</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -406,7 +383,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                 <thead class="bg-gray-50/50 border-b border-gray-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Wk</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic & Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Approved On</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
@@ -416,9 +393,9 @@ $rejected = getPlans($conn, $where, 'rejected');
                                     <?php while($p = $approved->fetch_assoc()): ?>
                                         <tr class="hover:bg-emerald-50/20 transition-colors">
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600">Wk <?= $p['week_number'] ?></span></td>
-                                            <td class="px-6 py-4 min-w-[250px]">
-                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            <td class="px-6 py-4 min-w-[200px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 min-w-[200px]">
@@ -432,8 +409,8 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
-                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></a>
+                                                    <a href="print_weekly_report?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-teal-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                    <a href="print_weekly_report?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -444,7 +421,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                     <?php else: ?>
                         <div class="py-12 text-center text-gray-400">
                             <i class="fas fa-archive text-4xl mb-3 text-gray-200"></i>
-                            <p class="font-bold text-sm uppercase tracking-widest">No approved plans yet</p>
+                            <p class="font-bold text-sm uppercase tracking-widest">No approved reports yet</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -456,7 +433,7 @@ $rejected = getPlans($conn, $where, 'rejected');
     </main>
 
     <!-- Floating Action Button for Mobile -->
-    <a href="lesson_plans" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 active:scale-95 transition-transform">
+    <a href="weekly_reports" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-teal-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 active:scale-95 transition-transform">
         <i class="fas fa-plus text-xl"></i>
     </a>
 

@@ -95,8 +95,12 @@ if($g_res) {
         <!-- Header Section -->
         <div class="bg-white border-b border-gray-100 px-8 py-6 sticky top-0 z-30">
             <div class="flex items-center gap-3 mb-4">
-                <a href="dashboard.php" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> Back to Academics Dashboard
+                <?php
+                $back_link = ($_SESSION['role'] === 'supervisor') ? '../supervisor/dashboard.php' : 'dashboard.php';
+                $back_text = ($_SESSION['role'] === 'supervisor') ? 'Back to Supervisor Dashboard' : 'Back to Academics Dashboard';
+                ?>
+                <a href="<?= $back_link ?>" class="text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-2 text-sm font-medium">
+                    <i class="fas fa-arrow-left"></i> <?= $back_text ?>
                 </a>
             </div>
             <div class="flex justify-between items-center">

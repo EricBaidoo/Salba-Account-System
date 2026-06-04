@@ -5,7 +5,13 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 if (!is_logged_in()) {
-    header('Location: ../../login'); exit;
+    header('Location: ../../login');
+    exit;
+}
+
+if ($_SESSION['role'] === 'supervisor') {
+    header('Location: dashboard.php');
+    exit;
 }
 
 $current_term = getCurrentSemester($conn);

@@ -97,47 +97,33 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                 </div>
             </div>
 
-            <!-- Navigation Grid -->
-            <h2 class="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3 lowercase tracking-tighter">
-                <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
-                academic command center
+            <!-- Section 1: Classroom Management -->
+            <h2 class="text-xs font-black text-blue-600 mb-6 flex items-center gap-3 uppercase tracking-[0.2em] mt-12 border-b border-gray-200 pb-2">
+                <i class="fas fa-users-rectangle"></i> Student & Classroom Management
             </h2>
-
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Card: Gradebook -->
-                <a href="<?= BASE_URL ?>pages/academics/grades" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-yellow-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/academics/grades" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="fas fa-star text-8xl text-yellow-500"></i>
+                        <i class="fas fa-star text-8xl text-blue-500"></i>
                     </div>
-                    <div class="w-16 h-16 bg-yellow-50 text-yellow-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-star"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">My Gradebook</h3>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">My Gradebook</h3>
                     <p class="text-gray-500 text-sm leading-relaxed">Input raw scores and auto-scale student grades for transcripts.</p>
                 </a>
 
-                <!-- Card: Attendance -->
-                <a href="<?= BASE_URL ?>pages/academics/attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-300 relative overflow-hidden">
+                <!-- Card: Student Attendance -->
+                <a href="<?= BASE_URL ?>pages/academics/attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-indigo-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="fas fa-clipboard-user text-8xl text-blue-500"></i>
+                        <i class="fas fa-clipboard-user text-8xl text-indigo-500"></i>
                     </div>
-                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                    <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-clipboard-user"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Daily Attendance</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Track daily student presence and generate attendance reports.</p>
-                </a>
-
-                <!-- Card: Lesson Plans -->
-                <a href="<?= BASE_URL ?>pages/teacher/lesson_plans" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="fas fa-file-contract text-8xl text-emerald-500"></i>
-                    </div>
-                    <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
-                        <i class="fas fa-file-contract"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Lesson Planning</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Draft and submit weekly schemes of work for supervisor review.</p>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Student Attendance</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Track daily student presence and generate class attendance reports.</p>
                 </a>
 
                 <!-- Card: Transcripts -->
@@ -148,10 +134,46 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                     <div class="w-16 h-16 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-scroll"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Student Transcripts</h3>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Student Transcripts</h3>
                     <p class="text-gray-500 text-sm leading-relaxed">View generated official semester reports for your allocated classes.</p>
                 </a>
+            </div>
 
+            <!-- Section 2: Portfolio & Submissions -->
+            <h2 class="text-xs font-black text-teal-600 mb-6 flex items-center gap-3 uppercase tracking-[0.2em] mt-12 border-b border-gray-200 pb-2">
+                <i class="fas fa-folder-open"></i> Portfolio & Submissions
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+                <!-- Card: Lesson Dashboard (Portfolio) -->
+                <a href="<?= BASE_URL ?>pages/teacher/lesson_portfolio" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i class="fas fa-chalkboard-teacher text-8xl text-emerald-500"></i>
+                    </div>
+                    <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Lesson Notes Portfolio</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Centralized view to draft, manage, and track weekly lesson plans.</p>
+                </a>
+
+                <!-- Card: Weekly Reporting Dashboard -->
+                <a href="<?= BASE_URL ?>pages/teacher/report_portfolio" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-teal-300 transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <i class="fas fa-chart-pie text-8xl text-teal-500"></i>
+                    </div>
+                    <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Weekly Reports Portfolio</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Draft, upload, and submit your weekly teacher performance reports.</p>
+                </a>
+            </div>
+
+            <!-- Section 3: Staff Attendance & GPS -->
+            <h2 class="text-xs font-black text-red-600 mb-6 flex items-center gap-3 uppercase tracking-[0.2em] mt-12 border-b border-gray-200 pb-2">
+                <i class="fas fa-clock"></i> Staff Attendance & GPS
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 <!-- Card: Check-in -->
                 <a href="<?= BASE_URL ?>pages/teacher/check_in" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-red-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -160,32 +182,20 @@ $lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id
                     <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-location-dot"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Daily Check-In</h3>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">Daily Attendance</h3>
                     <p class="text-gray-500 text-sm leading-relaxed">Log your daily school arrival and departure status with GPS verification.</p>
                 </a>
 
                 <!-- Card: My Attendance History -->
-                <a href="<?= BASE_URL ?>pages/teacher/my_attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-sky-300 transition-all duration-300 relative overflow-hidden">
+                <a href="<?= BASE_URL ?>pages/teacher/my_attendance" class="group bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-rose-300 transition-all duration-300 relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="fas fa-calendar-days text-8xl text-sky-500"></i>
+                        <i class="fas fa-calendar-days text-8xl text-rose-500"></i>
                     </div>
-                    <div class="w-16 h-16 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                    <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
                         <i class="fas fa-calendar-days"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">My Attendance</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Review your personal check-in history, punctuality record, and location compliance.</p>
-                </a>
-
-                <!-- Card: Lesson Dashboard (Portfolio) -->
-                <a href="<?= BASE_URL ?>pages/teacher/lesson_portfolio" class="group bg-white rounded-3xl p-8 border border-indigo-100 shadow-sm hover:shadow-2xl hover:border-indigo-500 transition-all duration-300 relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <i class="fas fa-id-badge text-8xl text-indigo-500"></i>
-                    </div>
-                    <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner group-hover:scale-110 transition-transform">
-                        <i class="fas fa-id-badge"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Lesson Dashboard</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Centralized view of your lesson plans, performance stats, and submission history.</p>
+                    <h3 class="text-xl font-black text-gray-900 mb-2">My Attendance History</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Review your personal check-in history, punctuality record, and log entries.</p>
                 </a>
             </div>
         </div>

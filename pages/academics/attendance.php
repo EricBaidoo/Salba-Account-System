@@ -5,8 +5,13 @@ include '../../includes/auth_functions.php';
 include '../../includes/system_settings.php';
 
 $allowed_roles = ['admin', 'facilitator', 'teacher', 'supervisor'];
-if (!is_logged_in() || !in_array($_SESSION['role'], $allowed_roles)) {
+if (!is_logged_in()) {
     header('Location: ../../login');
+    exit;
+}
+
+if ($_SESSION['role'] === 'supervisor') {
+    header('Location: dashboard.php');
     exit;
 }
 

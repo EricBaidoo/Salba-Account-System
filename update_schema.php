@@ -51,121 +51,45 @@ function applyPatch($conn, $patch_name, $queries) {
 // PATCH LOG STARTS HERE
 // ============================================================================
 
-// 1. LESSON PLAN MODERNIZATION (GES STANDARDIZATION)
-applyPatch($conn, 'lesson_plan_ges_modernization', [
-    "ALTER TABLE lesson_plans MODIFY COLUMN status VARCHAR(20) DEFAULT 'pending'",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `references` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `tlm` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `week_ending` DATE NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `day_of_week` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `duration` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `strand` VARCHAR(255) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `sub_strand` VARCHAR(255) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `class_size` INT DEFAULT 0",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `content_standard` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `indicator` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `lesson_number` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `performance_indicator` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `core_competencies` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `new_words` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `starter_activities` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `starter_resources` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `learning_activities` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `learning_resources` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `learning_assessment` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `reflection_activities` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `reflection_resources` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `homework` TEXT NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `academic_year` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `phase1_duration` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `phase2_duration` VARCHAR(20) NULL",
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `phase3_duration` VARCHAR(20) NULL"
-]);
-
-// 2. HIGH-CAPACITY TEXT FIELDS (EXPANSION TO MEDIUMTEXT)
-applyPatch($conn, 'high_capacity_text_expansion', [
-    // Lesson Plans
-    "ALTER TABLE lesson_plans MODIFY objectives MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY content_standard MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY indicator MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY performance_indicator MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY core_competencies MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY references_materials MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY new_words MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY starter_activities MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY starter_resources MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY learning_activities MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY learning_resources MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY learning_assessment MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY reflection_activities MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY reflection_resources MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY homework MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY `references` MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY tlm MEDIUMTEXT NULL",
-    "ALTER TABLE lesson_plans MODIFY supervisor_comments MEDIUMTEXT NULL",
-    
-    // Student Term Remarks
-    "ALTER TABLE student_term_remarks MODIFY attitude MEDIUMTEXT NULL",
-    "ALTER TABLE student_term_remarks MODIFY conduct MEDIUMTEXT NULL",
-    "ALTER TABLE student_term_remarks MODIFY talent_and_interest MEDIUMTEXT NULL",
-    "ALTER TABLE student_term_remarks MODIFY teacher_remarks MEDIUMTEXT NULL",
-    "ALTER TABLE student_term_remarks MODIFY supervisor_remarks MEDIUMTEXT NULL",
-    
-    // Student Semester Remarks
-    "ALTER TABLE student_semester_remarks MODIFY attitude MEDIUMTEXT NULL",
-    "ALTER TABLE student_semester_remarks MODIFY conduct MEDIUMTEXT NULL",
-    "ALTER TABLE student_semester_remarks MODIFY talent_and_interest MEDIUMTEXT NULL",
-    "ALTER TABLE student_semester_remarks MODIFY teacher_remarks MEDIUMTEXT NULL",
-    "ALTER TABLE student_semester_remarks MODIFY supervisor_remarks MEDIUMTEXT NULL",
-    
-    // Communication & Logs
-    "ALTER TABLE announcements MODIFY message MEDIUMTEXT NULL",
-    "ALTER TABLE messages MODIFY body MEDIUMTEXT NULL",
-    "ALTER TABLE attendance MODIFY remarks MEDIUMTEXT NULL"
-]);
-
-// 3. SEMESTER INTEGRITY SYNC (DATA MIGRATION & REPAIR)
-applyPatch($conn, 'semester_integrity_sync', [
-    // Normalize "Third Semester" variants to "Trimester" across all logic tables
-    "UPDATE assessment_configurations SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE attendance SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE budgets SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE expenses SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE grades SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE lesson_plans SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE payments SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE semester_budgets SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE semester_invoices SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE student_fees SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE student_semester_remarks SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE student_term_remarks SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    "UPDATE teacher_allocations SET semester = 'Trimester' WHERE semester IN ('Third Semester', 'Third Semesters', 'Third Term')",
-    
-    // Ensure "Trimester" exists in the dictionary if it's the current context
-    "INSERT IGNORE INTO academic_semester_dictionary (semester_name) VALUES ('Trimester')"
-]);
-
-// 4. SYSTEM PERFORMANCE OPTIMIZATION (INDEXING)
-applyPatch($conn, 'system_performance_optimization_v1', [
-    // Students Directory Optimization
-    "CREATE INDEX IF NOT EXISTS idx_students_status_class ON students(status, class)",
-    "CREATE INDEX IF NOT EXISTS idx_students_names ON students(last_name, first_name)",
-    
-    // Financial Reporting Optimization
-    "CREATE INDEX IF NOT EXISTS idx_payments_semester_year ON payments(semester, academic_year)",
-    "CREATE INDEX IF NOT EXISTS idx_expenses_semester_year ON expenses(semester, academic_year)",
-    
-    // Academic Workflow Optimization
-    "CREATE INDEX IF NOT EXISTS idx_lesson_plans_query ON lesson_plans(semester, academic_year, status)",
-    "CREATE INDEX IF NOT EXISTS idx_lesson_plan_teacher ON lesson_plans(teacher_id)",
-    
-    // Staff & Access Optimization
-    "CREATE INDEX IF NOT EXISTS idx_staff_attendance_lookup ON staff_attendance(user_id, check_in_time)"
-]);
-
-// 5. LESSON PLAN STRUCTURE REFRESH (RESTORING WEEK NUMBER)
-applyPatch($conn, 'lesson_plan_structure_refresh', [
-    "ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS `week_number` INT DEFAULT 1 AFTER subject_id"
+// 1. WEEKLY REPORTS DASHBOARD MIGRATION
+applyPatch($conn, 'weekly_reports_dashboard_v2', [
+    "DROP TABLE IF EXISTS weekly_reports",
+    "CREATE TABLE weekly_reports (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        teacher_id INT NOT NULL,
+        class_name VARCHAR(100) NOT NULL,
+        week_ending DATE NOT NULL,
+        week_number INT NOT NULL,
+        academic_term VARCHAR(50) NOT NULL,
+        academic_year VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'draft',
+        supervisor_comments MEDIUMTEXT NULL,
+        supervisor_id INT NULL,
+        
+        -- Academic Coverage & Performance
+        topics_covered MEDIUMTEXT NULL,
+        assessments_conducted MEDIUMTEXT NULL,
+        overall_performance VARCHAR(50) NULL,
+        struggling_students MEDIUMTEXT NULL,
+        
+        -- Classroom Management & Behavior
+        general_behavior MEDIUMTEXT NULL,
+        discipline_issues MEDIUMTEXT NULL,
+        attendance_concerns MEDIUMTEXT NULL,
+        
+        -- Parent Engagement
+        parents_contacted MEDIUMTEXT NULL,
+        
+        -- Teacher's Challenges & Needs
+        challenges_faced MEDIUMTEXT NULL,
+        support_required MEDIUMTEXT NULL,
+        next_week_focus MEDIUMTEXT NULL,
+        
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )",
+    "CREATE INDEX idx_weekly_reports_teacher ON weekly_reports(teacher_id)",
+    "CREATE INDEX idx_weekly_reports_query ON weekly_reports(academic_term, academic_year, status)"
 ]);
 
 echo "<h3>Schema is up to date.</h3>";

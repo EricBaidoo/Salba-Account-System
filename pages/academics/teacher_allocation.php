@@ -9,6 +9,11 @@ if (!is_logged_in()) {
     exit;
 }
 
+if ($_SESSION['role'] === 'supervisor') {
+    header('Location: dashboard.php');
+    exit;
+}
+
 $success = '';
 $error = '';
 
