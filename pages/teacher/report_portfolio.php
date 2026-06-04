@@ -229,7 +229,7 @@ $rejected = getReports($conn, $where, 'rejected');
                                 <thead class="bg-red-50/30 border-b border-red-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Class</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
                                     </tr>
@@ -331,7 +331,7 @@ $rejected = getReports($conn, $where, 'rejected');
                                 <thead class="bg-gray-50/50 border-b border-gray-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Submitted On</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
@@ -343,7 +343,6 @@ $rejected = getReports($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-yellow-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[200px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -383,7 +382,7 @@ $rejected = getReports($conn, $where, 'rejected');
                                 <thead class="bg-gray-50/50 border-b border-gray-100">
                                     <tr>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Wk</th>
-                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class & Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Approved On</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
                                         <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
@@ -395,7 +394,6 @@ $rejected = getReports($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[200px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['class_name']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 min-w-[200px]">
