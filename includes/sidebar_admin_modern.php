@@ -334,3 +334,10 @@ function toggleSidebar() {
     }
 }
 </script>
+
+<script>
+    // System-wide: Prevent form resubmission warning on refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
