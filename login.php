@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/includes/auth_functions.php';
 include __DIR__ . '/includes/db_connect.php';
+include __DIR__ . '/includes/system_settings.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
@@ -58,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Salba Montessori Management System</title>
-    <link rel="icon" type="image/jpeg" href="<?= getSystemLogo($conn) ?>">
+    <link rel="icon" type="image/jpeg" href="<?= BASE_URL . getSystemLogo($conn) ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/tailwind.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -70,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Header -->
         <div class="login-header">
             <div class="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-lg border border-slate-100">
-                <img src="<?= getSystemLogo($conn) ?>" alt="School Logo" class="w-full h-full object-contain">
+                <img src="<?= BASE_URL . getSystemLogo($conn) ?>" alt="School Logo" class="w-full h-full object-contain">
             </div>
             <h1 class="login-title">Salba Montessori School</h1>
             <p class="login-subtitle">Management System Portal</p>
