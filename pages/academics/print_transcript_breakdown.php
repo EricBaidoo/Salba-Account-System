@@ -123,7 +123,7 @@ if ($render_type === 'pdf') {
         .class-name { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
         .assessment-name { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; word-wrap: break-word; }
         th, td { border: 1.5px solid #000; padding: 8px 6px; font-size: 12px; }
         th { font-weight: bold; text-transform: uppercase; text-align: left; }
         .text-center { text-align: center; }
@@ -167,14 +167,16 @@ if ($render_type === 'pdf') {
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: 20%; vertical-align: top;">NAME OF STUDENT</th>
+                        <th rowspan="2" style="width: 25%; vertical-align: top;">NAME OF STUDENT</th>
                         <th colspan="<?= count($subjects) ?>" class="text-center">SCORE (OVER <?= $max_out_of ?: '—' ?>)</th>
-                        <th rowspan="2" style="vertical-align: bottom;" class="text-center">TOTAL.</th>
-                        <th rowspan="2" style="vertical-align: bottom;" class="text-center">POSITION</th>
+                        <th rowspan="2" style="width: 8%; vertical-align: bottom;" class="text-center">TOTAL.</th>
+                        <th rowspan="2" style="width: 8%; vertical-align: bottom;" class="text-center">POSITION</th>
                     </tr>
                     <tr>
-                        <?php foreach ($subjects as $subject): ?>
-                            <th class="text-center" style="font-size: 11px;"><?= htmlspecialchars($subject_abbreviations[$subject] ?? $subject) ?></th>
+                        <?php 
+                        $subject_width = count($subjects) > 0 ? (59 / count($subjects)) : 0;
+                        foreach ($subjects as $subject): ?>
+                            <th class="text-center" style="font-size: 11px; width: <?= $subject_width ?>%;"><?= htmlspecialchars($subject_abbreviations[$subject] ?? $subject) ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>

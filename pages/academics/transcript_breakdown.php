@@ -217,17 +217,19 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                         </div>
                     <?php else: ?>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full border-collapse text-sm">
+                            <table class="w-full border-collapse text-sm table-fixed">
                                 <thead>
                                     <tr>
-                                        <th rowspan="2" class="border border-slate-200 px-4 py-3 bg-slate-100 text-left text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Name of Student</th>
+                                        <th rowspan="2" style="width: 25%;" class="border border-slate-200 px-4 py-3 bg-slate-100 text-left text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Name of Student</th>
                                         <th colspan="<?= count($subjects) ?>" class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]">Score (Over <?= $max_out_of ?: '—' ?>)</th>
-                                        <th rowspan="2" class="border border-slate-200 px-4 py-3 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Total</th>
-                                        <th rowspan="2" class="border border-slate-200 px-4 py-3 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Position</th>
+                                        <th rowspan="2" style="width: 8%;" class="border border-slate-200 px-4 py-3 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Total</th>
+                                        <th rowspan="2" style="width: 8%;" class="border border-slate-200 px-4 py-3 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem] align-bottom">Position</th>
                                     </tr>
                                     <tr>
-                                        <?php foreach ($subjects as $subject): ?>
-                                            <th class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars($subject_abbreviations[$subject] ?? $subject) ?></th>
+                                        <?php 
+                                        $subject_width = count($subjects) > 0 ? (59 / count($subjects)) : 0;
+                                        foreach ($subjects as $subject): ?>
+                                            <th style="width: <?= $subject_width ?>%;" class="border border-slate-200 px-4 py-2 bg-slate-100 text-center text-slate-700 uppercase tracking-[0.1em] text-[0.7rem]"><?= htmlspecialchars($subject_abbreviations[$subject] ?? $subject) ?></th>
                                         <?php endforeach; ?>
                                     </tr>
                                 </thead>
