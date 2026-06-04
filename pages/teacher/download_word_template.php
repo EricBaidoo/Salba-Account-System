@@ -7,10 +7,10 @@ require '../../vendor/autoload.php';
 include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
 
-if (!is_logged_in()) {
+/*if (!is_logged_in()) {
     ob_end_clean();
     die("Unauthorized access.");
-}
+}*/
 
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
@@ -75,65 +75,33 @@ foreach ($fields as $label => $placeholder) {
     $table->addCell(6000)->addText($placeholder, 'ValueStyle');
 }
 
-// Set Headers for Download (Simple HTML-to-Word)
-$filename = "GES_Lesson_Note_Template_" . date('Ymd') . ".doc";
+// Save to a local temporary file inside the current directory to avoid permission issues
+$tempFile = __DIR__ . '/temp_word_' . md5(uniqid()) . '.docx';
+$objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+$objWriter->save($tempFile);
 
-ob_end_clean();
-header('Content-Type: application/msword');
+// Read the binary data
+$wordData = file_get_contents($tempFile);
+@unlink($tempFile);
+
+// Clear all other output buffers completely to prevent corruption
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Set Headers for Download (Native DOCX)
+$filename = "GES_Lesson_Note_Template_" . date('Ymd') . ".docx";
+
+// Serve the file securely
+header('Content-Description: File Transfer');
+header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Content-Transfer-Encoding: binary');
+header('Expires: 0');
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Pragma: public');
+header('Content-Length: ' . strlen($wordData));
 
-?>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset='utf-8'>
-<style>
-    table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
-    td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
-    .label { background-color: #eee; font-weight: bold; width: 30%; }
-</style>
-</head>
-<body>
-    <h2 style='text-align:center;'>GES LESSON NOTE TEMPLATE</h2>
-    <p style='text-align:center;'>Instructions: Fill in the right column. Do not change labels.</p>
-    <table>
-        <?php
-        $fields = [
-            'Week Number' => 'e.g. 1',
-            'Week Ending' => '2026-05-15',
-            'Day' => 'Monday',
-            'Subject' => 'ABACUS',
-            'Class' => 'Basic 1',
-            'Class Size' => '45',
-            'Duration' => '60 mins',
-            'Strand' => 'Number',
-            'Sub-Strand' => 'Fractions',
-            'Content Standard' => 'B1.1.1.1',
-            'Indicator' => 'B1.1.1.1.1',
-            'Lesson Number' => '1',
-            'Performance Indicator' => 'Learners can identify...',
-            'Core Competencies' => 'Communication, Collaboration',
-            'References' => 'Mathematics Curriculum p.12',
-            'TLM' => 'Flashcards, Counters',
-            'New Words' => 'Numerator, Denominator',
-            'Starter Activities' => 'Phase 1: Warm up...',
-            'Starter Resources' => 'Audio player',
-            'Starter Duration' => '10 mins',
-            'Learning Activities' => 'Phase 2: Main lesson...',
-            'Learning Resources' => 'Counters',
-            'Assessment' => 'Can they group items?',
-            'Learning Duration' => '40 mins',
-            'Reflection Activities' => 'Phase 3: Wrap up...',
-            'Reflection Resources' => 'None',
-            'Reflection Duration' => '10 mins',
-            'Homework' => 'Page 5 Workbook'
-        ];
-        foreach ($fields as $label => $val) {
-            echo "<tr><td class='label'>$label</td><td>$val</td></tr>";
-        }
-        ?>
-    </table>
-</body>
-</html>
-<?php
+echo $wordData;
 exit;
+?>

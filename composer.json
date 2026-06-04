@@ -2,6 +2,7 @@
     "require": {
         "mpdf/mpdf": "^8.2",
         "phpoffice/phpspreadsheet": "^5.7",
-        "phpoffice/phpword": "^1.4"
+        "phpoffice/phpword": "^1.4",
+        "smalot/pdfparser": "^2.12"
     }
 }

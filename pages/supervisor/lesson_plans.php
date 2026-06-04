@@ -34,6 +34,9 @@ foreach ($cols_to_check as $col => $def) {
     }
 }
 
+$teacher_id_get = isset($_GET['teacher_id']) ? intval($_GET['teacher_id']) : 0;
+$tid_query = $teacher_id_get > 0 ? "?teacher_id=" . $teacher_id_get : "";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
     $plan_id = intval($_POST['plan_id']);
     $status = $_POST['status']; // 'approved' or 'rejected'
@@ -43,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
         $stmt = $conn->prepare("UPDATE lesson_plans SET status = ?, supervisor_comments = ?, supervisor_id = ? WHERE id = ?");
         $stmt->bind_param("ssii", $status, $comments, $uid, $plan_id);
         if ($stmt->execute()) {
-            redirect('lesson_plans', 'success', "Lesson plan marked as " . strtoupper($status) . ".");
+            redirect("lesson_plans{$tid_query}", 'success', "Lesson plan marked as " . strtoupper($status) . ".");
         } else {
             set_flash('error', "Failed to update lesson plan.");
         }
@@ -55,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['revert_plan'])) {
     $stmt = $conn->prepare("UPDATE lesson_plans SET status = 'pending' WHERE id = ?");
     $stmt->bind_param("i", $plan_id);
     if ($stmt->execute()) {
-        redirect('lesson_plans', 'success', "Lesson plan status reverted to PENDING.");
+        redirect("lesson_plans{$tid_query}", 'success', "Lesson plan status reverted to PENDING.");
     } else {
         set_flash('error', "Failed to revert lesson plan status.");
     }
@@ -79,7 +82,89 @@ if ($search_f) {
 $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 $classes_res = $conn->query("SELECT DISTINCT class_name FROM lesson_plans WHERE class_name IS NOT NULL AND class_name != '' ORDER BY class_name ASC");
 
-// Fetch pending and reviewed plans
+// Determine Current Academic Year & Week
+$current_academic_year = getAcademicYear($conn);
+$current_week = 1;
+if (function_exists('getWeekNumberForDate')) {
+    $current_week = getWeekNumberForDate($conn, date('Y-m-d'));
+}
+
+// Mode Switch: Main Dashboard vs Teacher View
+$is_teacher_view = ($teacher_id_get > 0);
+
+if ($is_teacher_view) {
+    $filter_where .= " AND l.teacher_id = $teacher_id_get";
+    
+    // Fetch Teacher Name
+    $tname_query = $conn->query("SELECT COALESCE(sp.full_name, u.username) as teacher_name FROM users u LEFT JOIN staff_profiles sp ON u.id = sp.user_id WHERE u.id = $teacher_id_get");
+    $active_teacher_name = $tname_query->fetch_row()[0] ?? 'Unknown Teacher';
+    
+    // Filter classes to only those allocated to this teacher
+    $classes_res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $teacher_id_get AND year = '$current_academic_year' ORDER BY class_name ASC");
+} else {
+    // ---- EXPECTATIONS LOGIC ----
+    $expectations = [];
+    
+    // 1. Get Subject Teacher assignments
+    $sub_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY teacher_id");
+    if ($sub_res) { while($row = $sub_res->fetch_assoc()) { $expectations[$row['teacher_id']] = (int)$row['c']; } }
+    
+    // 2. Class Subject Counts
+    $class_total_subs = [];
+    $cs_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as total_subs FROM class_subjects GROUP BY class_name");
+    if ($cs_res) { while($row = $cs_res->fetch_assoc()) { $class_total_subs[$row['class_name']] = (int)$row['total_subs']; } }
+    
+    // 3. Subject Teacher assignments per class
+    $class_taken_subs = [];
+    $cs_taken_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as taken_subs FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY class_name");
+    if ($cs_taken_res) { while($row = $cs_taken_res->fetch_assoc()) { $class_taken_subs[$row['class_name']] = (int)$row['taken_subs']; } }
+    
+    // 4. Class Teacher Expectations
+    $ct_res = $conn->query("SELECT teacher_id, class_name FROM teacher_allocations WHERE year = '$current_academic_year' AND is_class_teacher = 1");
+    if ($ct_res) {
+        while($row = $ct_res->fetch_assoc()) {
+            $tid = $row['teacher_id'];
+            $cn = $row['class_name'];
+            $total = $class_total_subs[$cn] ?? 0;
+            $taken = $class_taken_subs[$cn] ?? 0;
+            $expected = max(0, $total - $taken);
+            if (!isset($expectations[$tid])) $expectations[$tid] = 0;
+            $expectations[$tid] += $expected;
+        }
+    }
+    
+    // 5. This Week's Actuals (from lesson_plans)
+    $actuals = [];
+    $act_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM lesson_plans WHERE week_number = $current_week GROUP BY teacher_id");
+    if ($act_res) { while($row = $act_res->fetch_assoc()) { $actuals[$row['teacher_id']] = (int)$row['c']; } }
+
+    // ---- MAIN DASHBOARD QUERIES ----
+    $total_facilitators = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'facilitator'")->fetch_row()[0];
+    
+    // Overall Rate (Facilitators who submitted ANY plan vs Total Facilitators)
+    $submitted_facilitators = $conn->query("SELECT COUNT(DISTINCT l.teacher_id) FROM lesson_plans l JOIN users u ON l.teacher_id = u.id WHERE u.role = 'facilitator'")->fetch_row()[0];
+    $overall_rate = $total_facilitators > 0 ? round(($submitted_facilitators / $total_facilitators) * 100) : 0;
+    
+    // This Week Rate (Total Actuals / Total Expectations)
+    $total_expected_this_week = array_sum($expectations);
+    $total_actual_this_week = array_sum($actuals);
+    $weekly_rate = $total_expected_this_week > 0 ? round(($total_actual_this_week / $total_expected_this_week) * 100) : 0;
+    
+    // Fetch Facilitator Folders (Only users with role = 'facilitator')
+    $folders_query = $conn->query("
+        SELECT u.id as teacher_id, COALESCE(sp.full_name, u.username) as teacher_name,
+               SUM(CASE WHEN l.status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+               SUM(CASE WHEN l.status IN ('approved', 'rejected') THEN 1 ELSE 0 END) as reviewed_count
+        FROM users u
+        LEFT JOIN staff_profiles sp ON u.id = sp.user_id
+        LEFT JOIN lesson_plans l ON u.id = l.teacher_id $filter_where
+        WHERE u.role = 'facilitator'
+        GROUP BY u.id, teacher_name
+        ORDER BY teacher_name ASC
+    ");
+}
+
+// Fetch pending and reviewed plans (used in both views, but filtered by teacher in Teacher View)
 $pending_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM lesson_plans l 
@@ -87,8 +172,22 @@ $pending_plans = $conn->query("
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status = 'pending' $filter_where
-    ORDER BY l.created_at ASC
+    ORDER BY teacher_name ASC, l.created_at ASC
 ");
+
+$grouped_pending = [];
+if ($pending_plans && $pending_plans->num_rows > 0) {
+    while ($p = $pending_plans->fetch_assoc()) {
+        $teacher = $p['teacher_name'];
+        if (!isset($grouped_pending[$teacher])) {
+            $grouped_pending[$teacher] = [
+                'teacher_id' => $p['teacher_id'],
+                'plans' => []
+            ];
+        }
+        $grouped_pending[$teacher]['plans'][] = $p;
+    }
+}
 
 $reviewed_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
@@ -115,18 +214,33 @@ $reviewed_plans = $conn->query("
     <?php include '../../includes/top_nav.php'; ?>
 
     <main class="min-h-screen p-4 md:p-8 pt-20 md:pt-24 relative">
-        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3 mb-6">
-            <i class="fas fa-file-signature text-green-500"></i> Supervisor's Approvals
-        </h1>
+        <div class="flex justify-between items-end mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-file-signature text-green-500"></i> 
+                <?php if($is_teacher_view): ?>
+                    <?= htmlspecialchars($active_teacher_name) ?>'s Lesson Plans
+                <?php else: ?>
+                    Supervisor's Approvals
+                <?php endif; ?>
+            </h1>
+            <?php if($is_teacher_view): ?>
+                <a href="lesson_plans" class="bg-gray-800 text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-900 transition flex items-center gap-2 shadow-lg shadow-gray-200">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            <?php endif; ?>
+        </div>
 
         <!-- Global Flash Messages handled by top_nav.php -->
 
         <!-- Filter Bar -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8">
             <form method="GET" class="flex flex-wrap items-center gap-4">
+                <?php if($is_teacher_view): ?>
+                    <input type="hidden" name="teacher_id" value="<?= $teacher_id_get ?>">
+                <?php endif; ?>
                 <div class="relative flex-1 min-w-[200px]">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                    <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by teacher, topic, class..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by topic, class..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold">
                 </div>
                 <div class="flex items-center gap-2">
                     <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</label>
@@ -146,16 +260,12 @@ $reviewed_plans = $conn->query("
                         <?php endfor; ?>
                     </select>
                 </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week Ending</label>
-                    <input type="date" name="date" value="<?= htmlspecialchars($date_f) ?>" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none transition-all text-sm font-bold">
-                </div>
                 <div class="flex gap-2">
                     <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition shadow-lg shadow-green-100">
                         Filter
                     </button>
                     <?php if($week_f || $date_f || $search_f || $class_f): ?>
-                        <a href="lesson_plans" class="bg-gray-100 text-gray-500 px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition flex items-center justify-center">
+                        <a href="lesson_plans<?= $is_teacher_view ? '?teacher_id='.$teacher_id_get : '' ?>" class="bg-gray-100 text-gray-500 px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition flex items-center justify-center">
                             Reset
                         </a>
                     <?php endif; ?>
@@ -163,103 +273,170 @@ $reviewed_plans = $conn->query("
             </form>
         </div>
 
-        <div class="space-y-8">
-            <!-- Pending Queue -->
-            <div>
-                <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-clock text-yellow-500"></i> Pending Review Queue (Principal / Headteacher / Supervisor)</h2>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <?php if($pending_plans && $pending_plans->num_rows > 0): while($p = $pending_plans->fetch_assoc()): ?>
-                        <div class="bg-white rounded-xl shadow-sm border border-yellow-200 p-6 flex flex-col justify-between">
-                            <div>
-                                <div class="flex justify-between items-start mb-4 border-b border-gray-100 pb-3">
-                                    <div>
-                                        <div class="text-sm font-bold text-gray-400 uppercase"><?= htmlspecialchars($p['class_name']) ?> | <?= htmlspecialchars($p['subject_name']) ?> (Week <?= $p['week_number'] ?>)</div>
-                                        <h3 class="text-xl font-bold text-gray-900 leading-tight"><?= htmlspecialchars($p['topic']) ?></h3>
-                                        <div class="flex items-center gap-3 mt-2">
-                                            <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                                                <i class="fas fa-eye"></i> View Note
-                                            </a>
-                                            <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 border-l border-gray-200 pl-3">
-                                                <i class="fas fa-file-pdf"></i> Download PDF
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <a href="staff_portfolio.php?user_id=<?= $p['teacher_id'] ?>" class="block text-sm font-bold bg-blue-50 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors">
-                                            <i class="fas fa-chalkboard-user"></i> Tr. <?= htmlspecialchars($p['teacher_name']) ?>
-                                        </a>
-                                        <div class="text-xs text-gray-400 mt-1"><?= date('M j, g:i a', strtotime($p['created_at'])) ?></div>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <details class="group bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
-                                        <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-white transition-all">
-                                            <span class="text-xs font-black text-indigo-700 uppercase tracking-widest flex items-center gap-2">
-                                                <i class="fas fa-file-invoice"></i> View Full Details
-                                            </span>
-                                            <i class="fas fa-chevron-down text-[0.625rem] text-gray-400 group-open:rotate-180 transition-transform"></i>
-                                        </summary>
-                                        <div class="px-4 pb-4 space-y-4">
-                                            <!-- Logistics -->
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[0.6875rem]">
-                                                <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Week Ending</span> <?= date('d M, Y', strtotime($p['week_ending'] ?? '')) ?></div>
-                                                <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Day</span> <?= htmlspecialchars($p['day_of_week'] ?? '-') ?></div>
-                                                <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Duration</span> <?= htmlspecialchars($p['duration'] ?? '-') ?></div>
-                                                <div class="p-2 bg-white rounded border border-gray-100"><span class="block font-black text-gray-400 uppercase">Class Size</span> <?= htmlspecialchars($p['class_size'] ?? '-') ?></div>
-                                            </div>
-                                            <!-- Curriculum -->
-                                            <div class="space-y-1 text-sm">
-                                                <div class="font-bold text-gray-800 tracking-tight">Strand: <span class="bg-gray-200 px-1 rounded font-medium"><?= htmlspecialchars($p['strand'] ?? '-') ?></span></div>
-                                                <div class="font-bold text-gray-800 tracking-tight">Sub-Strand: <span class="bg-gray-200 px-1 rounded font-medium"><?= htmlspecialchars($p['sub_strand'] ?? '-') ?></span></div>
-                                                <div class="mt-2 text-[0.6875rem] text-gray-500 font-bold uppercase tracking-widest">Content Standard</div>
-                                                <div class="bg-white p-2 border border-gray-100 rounded text-xs"><?= htmlspecialchars($p['content_standard'] ?? '-') ?></div>
-                                                <div class="mt-2 text-[0.6875rem] text-gray-500 font-bold uppercase tracking-widest">Indicator</div>
-                                                <div class="bg-white p-2 border border-gray-100 rounded text-xs"><?= htmlspecialchars($p['indicator'] ?? '-') ?></div>
-                                            </div>
-                                            <!-- Phases -->
-                                            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden text-[0.6875rem]">
-                                                <table class="w-full text-left border-collapse">
-                                                    <tr class="bg-gray-100"><th class="p-2 border border-gray-200">Phase</th><th class="p-2 border border-gray-200 text-center">Duration</th><th class="p-2 border border-gray-200">Activities</th></tr>
-                                                    <tr><td class="p-2 border border-gray-200 font-bold">Starter</td><td class="p-2 border border-gray-200 text-center"><?= htmlspecialchars($p['phase1_duration'] ?? '-') ?></td><td class="p-2 border border-gray-200"><?= htmlspecialchars($p['starter_activities'] ?? '-') ?></td></tr>
-                                                    <tr><td class="p-2 border border-gray-200 font-bold">New Learning</td><td class="p-2 border border-gray-200 text-center"><?= htmlspecialchars($p['phase2_duration'] ?? '-') ?></td><td class="p-2 border border-gray-200"><?= htmlspecialchars($p['learning_activities'] ?? '-') ?></td></tr>
-                                                    <tr><td class="p-2 border border-gray-200 font-bold">Reflection</td><td class="p-2 border border-gray-200 text-center"><?= htmlspecialchars($p['phase3_duration'] ?? '-') ?></td><td class="p-2 border border-gray-200"><?= htmlspecialchars($p['reflection_activities'] ?? '-') ?></td></tr>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </details>
-                                </div>
-                            </div>
-                            
-                            <form method="POST" class="bg-gray-50 border border-gray-200 p-4 rounded-lg flex flex-col gap-3">
-                                <input type="hidden" name="review_plan" value="1">
-                                <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                
-                                <textarea name="comments" rows="2" placeholder="Leave Principal's / Headteacher's / Supervisor's remarks for the teacher to see..." class="w-full px-3 py-2 border border-gray-300 rounded focus:border-green-500 text-sm"></textarea>
-                                
-                                <div class="flex gap-3">
-                                    <button type="submit" name="status" value="approved" class="flex-1 bg-green-600 text-white font-bold py-2 rounded shadow hover:bg-green-700 transition">Approve Plan</button>
-                                    <button type="submit" name="status" value="rejected" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 transition">Reject / Request Rev.</button>
-                                </div>
-                            </form>
-                        </div>
-                    <?php endwhile; else: ?>
-                        <div class="col-span-full bg-white p-12 text-center rounded-xl border border-gray-100 text-gray-400">
-                            <i class="fas fa-check-double text-4xl mb-3 text-gray-300"></i>
-                            <p class="font-medium">All caught up! No pending lesson plans to review.</p>
-                        </div>
-                    <?php endif; ?>
+        <?php if(!$is_teacher_view): ?>
+        <!-- MAIN DASHBOARD: STATS & FOLDERS -->
+        <div class="mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 text-gray-50 opacity-50">
+                        <i class="fas fa-chart-line text-[8rem]"></i>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-2xl relative z-10">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="text-sm font-black text-gray-400 uppercase tracking-widest">Overall Active Rate</div>
+                        <div class="text-3xl font-extrabold text-gray-900"><?= $overall_rate ?>%</div>
+                        <div class="text-xs font-bold text-gray-500"><?= $submitted_facilitators ?> of <?= $total_facilitators ?> facilitators have submitted plans</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 text-gray-50 opacity-50">
+                        <i class="fas fa-calendar-week text-[8rem]"></i>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-2xl relative z-10">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="text-sm font-black text-gray-400 uppercase tracking-widest">This Week (Week <?= $current_week ?>)</div>
+                        <div class="text-3xl font-extrabold text-gray-900"><?= $weekly_rate ?>%</div>
+                        <div class="text-xs font-bold text-gray-500"><?= $total_actual_this_week ?> submitted / <?= $total_expected_this_week ?> expected school-wide</div>
+                    </div>
                 </div>
             </div>
+
+            <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-folder-open text-indigo-500"></i> Facilitator Folders</h2>
             
-            <!-- Recent History -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <?php if($folders_query && $folders_query->num_rows > 0): while($tf = $folders_query->fetch_assoc()): 
+                    $t_id = $tf['teacher_id'];
+                    $t_exp = $expectations[$t_id] ?? 0;
+                    $t_act = $actuals[$t_id] ?? 0;
+                ?>
+                    <a href="?teacher_id=<?= $t_id ?>" class="block bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group relative">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <?php if($tf['pending_count'] > 0): ?>
+                                <span class="bg-orange-100 text-orange-700 font-black text-[0.625rem] px-2 py-1 rounded-full uppercase tracking-widest animate-pulse">
+                                    <?= $tf['pending_count'] ?> Pending
+                                </span>
+                            <?php else: ?>
+                                <span class="bg-gray-100 text-gray-500 font-black text-[0.625rem] px-2 py-1 rounded-full uppercase tracking-widest">
+                                    Queue Clear
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <h3 class="font-bold text-gray-900 text-lg leading-tight mb-3"><?= htmlspecialchars($tf['teacher_name']) ?></h3>
+                        
+                        <!-- Week Status -->
+                        <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[0.625rem] font-black text-gray-500 uppercase tracking-widest">Week <?= $current_week ?> Submissions</span>
+                                <span class="text-xs font-extrabold <?= $t_act >= $t_exp && $t_exp > 0 ? 'text-green-600' : 'text-gray-900' ?>"><?= $t_act ?> / <?= $t_exp ?></span>
+                            </div>
+                            <?php if($t_exp > 0): ?>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-1.5 rounded-full <?= $t_act >= $t_exp ? 'bg-green-500' : 'bg-indigo-500' ?>" style="width: <?= min(100, ($t_act / $t_exp) * 100) ?>%"></div>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-[0.625rem] text-gray-400 font-medium italic mt-1">No expected plans</div>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                <?php endwhile; else: ?>
+                    <div class="col-span-full bg-white p-12 text-center rounded-2xl border border-dashed border-gray-300 text-gray-400">
+                        <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+                        <p class="font-medium">No facilitators found in the system.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if($is_teacher_view || (!empty($grouped_pending))): ?>
+        <div class="space-y-8">
+            <!-- Pending Queue (Always shown in Teacher View, or on Main if we somehow skip the condition, but handled above) -->
+            <?php if($is_teacher_view): ?>
             <div>
-                <h2 class="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Recently Reviewed</h2>
+                <h2 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-clock text-yellow-500"></i> Pending Review Queue</h2>
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead class="bg-gray-50 font-bold text-gray-600 border-b border-gray-200">
                                 <tr>
-                                    <th class="py-3 px-4 whitespace-nowrap">Teacher</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">Class & Subject</th>
+                                    <th class="py-3 px-4 min-w-[200px]">Topic</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">Week</th>
+                                    <th class="py-3 px-4 text-right whitespace-nowrap">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <?php if (!empty($grouped_pending)): foreach ($grouped_pending as $teacher_name => $t_data): ?>
+                                    <!-- Lesson Plan Rows -->
+                                    <?php foreach ($t_data['plans'] as $p): ?>
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="py-4 px-4 align-top">
+                                                <div class="font-bold text-gray-800"><?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-xs text-gray-500 font-medium"><?= htmlspecialchars($p['subject_name']) ?></div>
+                                            </td>
+                                            <td class="py-4 px-4 align-top">
+                                                <div class="font-bold text-gray-900 text-base mb-1 leading-tight"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="flex items-center gap-3 text-xs">
+                                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                                        <i class="fas fa-eye"></i> View Note
+                                                    </a>
+                                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="text-red-600 hover:text-red-800 font-bold flex items-center gap-1">
+                                                        <i class="fas fa-file-pdf"></i> PDF
+                                                    </a>
+                                                </div>
+                                            </td>
+                                            <td class="py-4 px-4 align-top">
+                                                <span class="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded border border-gray-200">
+                                                    Week <?= $p['week_number'] ?>
+                                                </span>
+                                                <div class="text-[0.625rem] text-gray-400 mt-1 uppercase font-bold tracking-widest"><?= htmlspecialchars($p['duration'] ?? '-') ?></div>
+                                            </td>
+                                            <td class="py-4 px-4 align-top min-w-[250px]">
+                                                <form method="POST" class="flex flex-col gap-2">
+                                                    <input type="hidden" name="review_plan" value="1">
+                                                    <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                    <input type="text" name="comments" placeholder="Add remark..." class="w-full px-3 py-1.5 border border-gray-300 rounded text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none">
+                                                    <div class="flex gap-2">
+                                                        <button type="submit" name="status" value="approved" class="flex-1 bg-green-600 text-white font-bold text-xs py-1.5 rounded hover:bg-green-700 transition"><i class="fas fa-check mr-1"></i> Approve</button>
+                                                        <button type="submit" name="status" value="rejected" class="flex-1 bg-red-600 text-white font-bold text-xs py-1.5 rounded hover:bg-red-700 transition"><i class="fas fa-times mr-1"></i> Reject</button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endforeach; else: ?>
+                                    <tr>
+                                        <td colspan="4" class="py-12 text-center bg-gray-50/50">
+                                            <i class="fas fa-check-double text-4xl mb-3 text-gray-300 block"></i>
+                                            <span class="font-bold text-gray-400">All caught up! No pending lesson plans.</span>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Recent History -->
+            <div>
+                <h2 class="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Recently Reviewed <?= $is_teacher_view ? "for this Teacher" : "Across All Teachers" ?></h2>
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-50 font-bold text-gray-600 border-b border-gray-200">
+                                <tr>
+                                    <?php if(!$is_teacher_view): ?>
+                                        <th class="py-3 px-4 whitespace-nowrap">Teacher</th>
+                                    <?php endif; ?>
                                     <th class="py-3 px-4 whitespace-nowrap">Class & Subject</th>
                                     <th class="py-3 px-4 whitespace-nowrap">Topic</th>
                                     <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
@@ -270,11 +447,13 @@ $reviewed_plans = $conn->query("
                             <tbody class="divide-y divide-gray-100">
                                 <?php if($reviewed_plans && $reviewed_plans->num_rows > 0): while($rp = $reviewed_plans->fetch_assoc()): ?>
                                     <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="py-3 px-4 font-semibold text-gray-800 whitespace-nowrap">
-                                            <a href="staff_portfolio.php?user_id=<?= $rp['teacher_id'] ?>" class="text-indigo-600 hover:underline">
-                                                <?= htmlspecialchars($rp['username']) ?>
-                                            </a>
-                                        </td>
+                                        <?php if(!$is_teacher_view): ?>
+                                            <td class="py-3 px-4 font-semibold text-gray-800 whitespace-nowrap">
+                                                <a href="?teacher_id=<?= $rp['teacher_id'] ?>" class="text-indigo-600 hover:underline">
+                                                    <?= htmlspecialchars($rp['username']) ?>
+                                                </a>
+                                            </td>
+                                        <?php endif; ?>
                                         <td class="py-3 px-4 text-gray-600 whitespace-nowrap"><?= htmlspecialchars($rp['class_name']) ?> | <?= htmlspecialchars($rp['subject_name']) ?></td>
                                         <td class="py-3 px-4 font-medium text-gray-800 min-w-[200px]"><?= htmlspecialchars($rp['topic']) ?></td>
                                         <td class="py-3 px-4 text-center whitespace-nowrap">
@@ -301,7 +480,7 @@ $reviewed_plans = $conn->query("
                                     </tr>
                                 <?php endwhile; else: ?>
                                     <tr>
-                                        <td colspan="6" class="py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No recently reviewed plans</td>
+                                        <td colspan="<?= $is_teacher_view ? 5 : 6 ?>" class="py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No recently reviewed plans</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -310,7 +489,7 @@ $reviewed_plans = $conn->query("
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </main>
 </body>
 </html>
-

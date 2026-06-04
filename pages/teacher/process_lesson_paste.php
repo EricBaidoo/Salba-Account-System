@@ -63,18 +63,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
             $value = trim($parts[1]);
         } else {
             // If no separator, the line might just start with a keyword
-            $label = $line;
+            $label = trim($line);
             $value = ''; // We'll hope the next line has the value or ignore
         }
             
+        // We want to match only if the label STARTS with the keyword, to prevent matching random words in a sentence.
+        $matched = false;
         foreach ($keywords as $key => $matches) {
+            if ($matched) break;
             foreach ($matches as $m) {
-                if (stripos($label, $m) !== false) {
-                    // If we only have a label and no value, try to find the value in the rest of the line
+                // Check if the label starts with the keyword (case-insensitive)
+                if (stripos($label, $m) === 0) {
+                    // If we only have a label and no value, try to extract value from the rest of the line
                     if (empty($value)) {
-                        $value = trim(str_ireplace($m, '', $label), ": \t");
+                        $value = trim(substr($label, strlen($m)), ": \t-");
                     }
                     $currentData[$key] = $value;
+                    $matched = true;
                     break;
                 }
             }
@@ -107,14 +112,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
         
         $stmt = $conn->prepare($sql);
         $week_num = intval($currentData['week_num'] ?? 1); 
-        $topic = $currentData['sub_strand'];
+        $topic = substr($currentData['sub_strand'], 0, 255);
         $obj = ''; 
+        
+        $c_class = substr($currentData['class'], 0, 50);
+        $c_day = substr($currentData['day'], 0, 50);
+        $c_dur = substr($currentData['duration'], 0, 50);
+        $c_strand = substr($currentData['strand'], 0, 255);
+        $c_substrand = substr($currentData['sub_strand'], 0, 255);
+        $c_csize = substr($currentData['class_size'], 0, 50);
+        $c_lesnum = substr($currentData['lesson_num'], 0, 50);
+        
+        $parsed_date = strtotime($currentData['week_ending']);
+        $c_week_ending = $parsed_date ? date('Y-m-d', $parsed_date) : null;
         
         $stmt->bind_param(
             "isiisssssssisssssssssssssssssssss",
-            $uid, $currentData['class'], $subject_id, $week_num, $topic, $obj,
-            $currentData['week_ending'], $currentData['day'], $currentData['duration'], $currentData['strand'], $currentData['sub_strand'], $currentData['class_size'],
-            $currentData['content_standard'], $currentData['indicator'], $currentData['lesson_num'], $currentData['perf_ind'], $currentData['core_comp'],
+            $uid, $c_class, $subject_id, $week_num, $topic, $obj,
+            $c_week_ending, $c_day, $c_dur, $c_strand, $c_substrand, $c_csize,
+            $currentData['content_standard'], $currentData['indicator'], $c_lesnum, $currentData['perf_ind'], $currentData['core_comp'],
             $currentData['refs'], $currentData['tlm'], $currentData['new_words'], $currentData['s_act'], $currentData['s_res'],
             $currentData['l_act'], $currentData['l_res'], $currentData['l_ass'],
             $currentData['r_act'], $currentData['r_res'], $currentData['homework'], $current_term, $current_year,

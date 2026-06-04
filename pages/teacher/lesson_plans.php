@@ -291,27 +291,19 @@ if ($_SESSION['role'] === 'admin') {
                 <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                     <i class="fas fa-bolt text-indigo-500"></i> Quick Import Tools
                 </h3>
-                <div class="flex flex-wrap gap-4">
-                    <a href="../../assets/templates/GES_Lesson_Note_Template.xlsx" class="text-[0.625rem] text-slate-400 hover:text-emerald-400 font-black uppercase tracking-widest transition flex items-center gap-2" download>
-                        <i class="fas fa-file-excel"></i> Excel Template
-                    </a>
-                    <a href="download_word_template.php" class="text-[0.625rem] text-slate-400 hover:text-blue-400 font-black uppercase tracking-widest transition flex items-center gap-2">
-                        <i class="fas fa-file-word"></i> Word Template
-                    </a>
-                </div>
             </div>
             <div class="p-6 md:p-8">
                 <div class="flex flex-col lg:flex-row items-center gap-6">
                     <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex flex-col sm:flex-row items-center gap-4">
                         <div class="flex-1 w-full relative group">
-                            <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                            <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc,.pdf" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
                             <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-slate-400 group-hover:bg-slate-100/50 transition-all">
                                 <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600 flex-shrink-0">
                                     <i class="fas fa-cloud-arrow-up text-lg"></i>
                                 </div>
                                 <div class="text-left">
-                                    <div class="text-[0.625rem] text-slate-400 font-black uppercase tracking-widest mb-0.5">Upload Draft</div>
-                                    <div class="text-sm font-bold text-slate-600 truncate max-w-[150px] sm:max-w-none">Drop file here or click</div>
+                                    <div class="text-[0.625rem] text-slate-400 font-black uppercase tracking-widest mb-0.5">Upload Draft (.xlsx, .rtf, .docx, .pdf)</div>
+                                    <div class="text-sm font-bold text-slate-600 truncate max-w-[150px] sm:max-w-none">Drop EXCEL, RTF, WORD, or PDF here</div>
                                 </div>
                             </div>
                         </div>
@@ -319,47 +311,19 @@ if ($_SESSION['role'] === 'admin') {
                             Import <i class="fas fa-arrow-right text-slate-400"></i>
                         </button>
                     </form>
-
-                    <div class="h-px w-full lg:h-10 lg:w-px bg-slate-100"></div>
-
-                    <button onclick="document.getElementById('pasteModal').classList.remove('hidden')" class="w-full lg:w-auto h-20 px-10 bg-white text-slate-800 border-2 border-slate-200 font-black rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] active:scale-95 shadow-lg shadow-slate-100">
-                        <i class="fas fa-paste text-lg text-slate-400"></i>
-                        <div class="text-left">
-                            <p class="">Paste Content</p>
-                            <p class="text-[0.625rem] text-slate-400 opacity-70">Direct Method</p>
-                        </div>
-                    </button>
                 </div>
-            </div>
-
-            <!-- Paste Modal -->
-            <div id="pasteModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-2xl rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                    <div class="p-6 md:p-8 bg-gradient-to-r from-slate-800 to-slate-900 text-white relative overflow-hidden">
-                        <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                        <div class="flex justify-between items-center relative z-10">
-                            <div>
-                                <h3 class="text-lg md:text-xl font-black uppercase tracking-tighter">Paste Lesson Note</h3>
-                                <p class="text-slate-400 text-[0.625rem] md:text-xs mt-1 font-bold">Transfer data directly from Word</p>
-                            </div>
-                            <button onclick="document.getElementById('pasteModal').classList.add('hidden')" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                
+                <div class="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Download Templates:</span>
+                    <div class="flex items-center gap-3">
+                        <a href="download_template.php?type=excel" class="text-[0.625rem] text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl font-black uppercase tracking-[0.1em] transition flex items-center gap-2 shadow-sm">
+                            <i class="fas fa-file-excel"></i> Excel Template
+                        </a>
+                        <a href="download_template.php?type=word" class="text-[0.625rem] text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl font-black uppercase tracking-[0.1em] transition flex items-center gap-2 shadow-sm">
+                            <i class="fas fa-file-word"></i> Word Template
+                        </a>
                     </div>
-                    <form action="process_lesson_paste.php" method="POST" class="p-6 md:p-8">
-                        <textarea name="pasted_text" rows="10" required placeholder="Paste your lesson note text here..." class="w-full p-4 md:p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-slate-800 outline-none transition-all font-mono text-sm mb-6" spellcheck="false"></textarea>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button type="submit" class="flex-1 bg-slate-800 text-white font-black py-4 md:py-5 rounded-2xl hover:bg-slate-900 transition flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs shadow-xl shadow-slate-200">
-                                <i class="fas fa-wand-magic-sparkles text-slate-400"></i> Process & Import
-                            </button>
-                            <button type="button" onclick="document.getElementById('pasteModal').classList.add('hidden')" class="px-8 bg-slate-50 text-slate-400 font-bold py-4 md:py-5 rounded-2xl hover:bg-slate-100 transition uppercase tracking-widest text-xs border border-slate-100">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
                 </div>
-            </div>
         </div>
 
         <!-- Row 2: Main Form (Full Width) -->
@@ -379,6 +343,15 @@ if ($_SESSION['role'] === 'admin') {
             
             <form method="POST" class="p-6 md:p-10 space-y-12">
                     <input type="hidden" name="existing_plan_id" value="<?= $edit_id ?>">
+
+                    <?php if($edit_id): ?>
+                        <div class="mb-8 p-6 bg-indigo-50 border-2 border-indigo-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top">
+                            <div>
+                                <h3 class="text-indigo-800 font-black text-lg flex items-center gap-2"><i class="fas fa-file-import text-indigo-500"></i> Review Your Imported Draft</h3>
+                                <p class="text-indigo-600 text-sm font-bold mt-1">Your uploaded document was successfully parsed! Please review the pre-filled fields below, make any necessary changes, and click Submit at the bottom.</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Block 1: Header Grid -->
                     <div>

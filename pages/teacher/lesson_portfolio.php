@@ -15,14 +15,24 @@ $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 // Filters
 $week_f = intval($_GET['week'] ?? 0);
 $date_f = $_GET['date'] ?? '';
+$class_f = $_GET['class'] ?? '';
 $search_f = trim($_GET['search'] ?? '');
 
 $where = "l.teacher_id = $user_id";
 if ($week_f) $where .= " AND l.week_number = $week_f";
 if ($date_f) $where .= " AND l.week_ending = '" . $conn->real_escape_string($date_f) . "'";
+if ($class_f) $where .= " AND l.class_name = '" . $conn->real_escape_string($class_f) . "'";
 if ($search_f) {
     $s = $conn->real_escape_string($search_f);
-    $where .= " AND (l.topic LIKE '%$s%' OR l.sub_strand LIKE '%$s%' OR s.name LIKE '%$s%')";
+    $where .= " AND (l.topic LIKE '%$s%' OR l.sub_strand LIKE '%$s%' OR s.name LIKE '%$s%' OR l.class_name LIKE '%$s%')";
+}
+
+// Fetch Teacher's Allocated Classes for Filter
+$current_academic_year = getAcademicYear($conn);
+$teacher_classes_res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $user_id AND year = '$current_academic_year' ORDER BY class_name ASC");
+$teacher_classes = [];
+if ($teacher_classes_res) {
+    while($r = $teacher_classes_res->fetch_assoc()) $teacher_classes[] = $r['class_name'];
 }
 
 // Stats (Filtered)
@@ -61,6 +71,21 @@ $rejected = getPlans($conn, $where, 'rejected');
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.portfolio-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.portfolio-tab-btn').forEach(el => {
+                el.classList.remove('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+                el.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
+            });
+            
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-50');
+            activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'bg-indigo-50');
+        }
+    </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
@@ -119,12 +144,23 @@ $rejected = getPlans($conn, $where, 'rejected');
         </div>
 
         <!-- Filter Bar -->
-        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-10 flex flex-wrap items-center gap-4">
+        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 mb-10">
             <form class="flex flex-wrap items-center gap-4 w-full">
                 <div class="relative flex-1 min-w-[200px]">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300"></i>
                     <input type="text" name="search" value="<?= htmlspecialchars($search_f) ?>" placeholder="Search by topic or subject..." class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold">
                 </div>
+                
+                <div class="flex items-center gap-2">
+                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Class</label>
+                    <select name="class" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[120px]">
+                        <option value="">All Classes</option>
+                        <?php foreach($teacher_classes as $tc): ?>
+                            <option value="<?= htmlspecialchars($tc) ?>" <?= $class_f === $tc ? 'selected' : '' ?>><?= htmlspecialchars($tc) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="flex items-center gap-2">
                     <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</label>
                     <select name="week" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold appearance-none min-w-[100px]">
@@ -134,14 +170,11 @@ $rejected = getPlans($conn, $where, 'rejected');
                         <?php endfor; ?>
                     </select>
                 </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week Ending</label>
-                    <input type="date" name="date" value="<?= htmlspecialchars($date_f) ?>" class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold">
-                </div>
+                
                 <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
                     Filter
                 </button>
-                <?php if($week_f || $date_f || $search_f): ?>
+                <?php if($week_f || $class_f || $search_f): ?>
                     <a href="lesson_portfolio" class="text-[0.625rem] font-black text-gray-400 uppercase hover:text-red-500 transition tracking-widest">Clear All</a>
                 <?php endif; ?>
             </form>
@@ -150,187 +183,221 @@ $rejected = getPlans($conn, $where, 'rejected');
         <!-- Dashboard Content -->
         <div class="space-y-12">
             
-            <!-- Rejected Section -->
-            <?php if($rejected && $rejected->num_rows > 0): ?>
-            <section>
-                <h3 class="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Rejected / Needs Revision
-                </h3>
-                <div class="bg-white rounded-3xl border border-red-100 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-red-50/30 border-b border-red-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-red-50">
-                                <?php while($p = $rejected->fetch_assoc()): ?>
-                                    <tr class="hover:bg-red-50/20 transition-colors group">
-                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-red-600">Wk <?= $p['week_number'] ?></span></td>
-                                        <td class="px-6 py-4 min-w-[250px]">
-                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                            <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4 min-w-[300px]">
-                                            <div class="p-3 bg-red-50/50 rounded-xl border border-red-100/50">
-                                                <p class="text-xs font-bold text-red-800 italic leading-relaxed">"<?= htmlspecialchars($p['supervisor_comments'] ?: 'No specific comments provided. Please review and resubmit.') ?>"</p>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-right whitespace-nowrap">
-                                            <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
-                                                <i class="fas fa-edit"></i> Fix & Resubmit
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-            <?php endif; ?>
-
-            <!-- Drafts Section -->
-            <?php if($drafts && $drafts->num_rows > 0): ?>
-            <section>
-                <h3 class="text-xs font-black text-indigo-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                    <span class="w-1 h-4 bg-indigo-500 rounded-full"></span> My Drafts
-                </h3>
-                <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-gray-50/50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Last Modified</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <?php while($p = $drafts->fetch_assoc()): ?>
-                                    <tr class="hover:bg-gray-50/50 transition-colors group">
-                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
-                                        <td class="px-6 py-4 min-w-[300px]">
-                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                            <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
-                                        <td class="px-6 py-4 text-right whitespace-nowrap">
-                                            <div class="flex justify-end gap-2">
-                                                <a href="lesson_plans?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a>
-                                                <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
-                                                    <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                                    <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-            <?php endif; ?>
-
-            <!-- Pending Section -->
-            <?php if($pending && $pending->num_rows > 0): ?>
-            <section>
-                <h3 class="text-xs font-black text-yellow-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                    <span class="w-1 h-4 bg-yellow-500 rounded-full"></span> Submitted (Awaiting Review)
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <?php while($p = $pending->fetch_assoc()): ?>
-                        <div class="bg-white rounded-3xl border border-gray-100 p-6 hover:shadow-xl transition-all group">
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-[0.625rem] font-black uppercase">Week <?= $p['week_number'] ?></span>
-                                <div class="flex gap-2">
-                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition"><i class="fas fa-eye text-xs"></i></a>
-                                    <form method="POST" action="lesson_plans" onsubmit="return confirm('Unsubmit this plan back to drafts?');">
-                                        <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
-                                        <button type="submit" name="unsubmit_plan" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-yellow-600 transition">
-                                            <i class="fas fa-rotate-left text-xs"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            <h4 class="font-black text-gray-900 leading-tight mb-2 truncate"><?= htmlspecialchars($p['topic']) ?></h4>
-                            <div class="flex items-center gap-2 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">
-                                <i class="fas fa-book text-indigo-400"></i> <?= htmlspecialchars($p['subject_name']) ?>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
-                                <span class="text-[0.625rem] font-bold text-gray-300"><?= date('M j, Y', strtotime($p['created_at'])) ?></span>
-                                <span class="flex items-center gap-1.5 text-[0.625rem] font-black text-yellow-600 uppercase">
-                                    <i class="fas fa-spinner fa-spin"></i> In Queue
-                                </span>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                </div>
-            </section>
-            <?php endif; ?>
-
-            <!-- Approved Section -->
-            <section>
-                <h3 class="text-xs font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                    <span class="w-1 h-4 bg-emerald-500 rounded-full"></span> Approved Notes Archive
-                </h3>
-                <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-gray-50/50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Wk</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic & Subject</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Approved On</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
-                                    <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <?php if($approved && $approved->num_rows > 0): while($p = $approved->fetch_assoc()): ?>
-                                    <tr class="hover:bg-emerald-50/20 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600"><?= $p['week_number'] ?></span></td>
-                                        <td class="px-6 py-4 min-w-[250px]">
-                                            <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                            <div class="text-[0.5625rem] font-black text-indigo-400 uppercase tracking-widest mt-0.5"><?= htmlspecialchars($p['subject_name']) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
-                                        <td class="px-6 py-4 min-w-[200px]">
-                                            <?php if($p['supervisor_comments']): ?>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 italic leading-relaxed" title="<?= htmlspecialchars($p['supervisor_comments']) ?>">
-                                                    "<?= htmlspecialchars($p['supervisor_comments']) ?>"
-                                                </div>
-                                            <?php else: ?>
-                                                <span class="text-[0.625rem] font-bold text-gray-300 italic">No remarks</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-right whitespace-nowrap">
-                                            <div class="flex justify-end gap-2">
-                                                <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition"><i class="fas fa-eye text-xs"></i></a>
-                                                <a href="print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition"><i class="fas fa-file-pdf text-xs"></i></a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; else: ?>
+            <!-- PRIORITY ZONE: Rejected & Drafts -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <!-- Rejected Section -->
+                <?php if($rejected && $rejected->num_rows > 0): ?>
+                <section>
+                    <h3 class="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
+                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Needs Revision (<?= $stats['rejected'] ?>)
+                    </h3>
+                    <div class="bg-white rounded-3xl border border-red-100 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-red-50/30 border-b border-red-100">
                                     <tr>
-                                        <td colspan="5" class="px-6 py-12 text-center text-gray-300 font-bold text-xs uppercase tracking-widest">No approved plans found in this view</td>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Week</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-red-600 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
                                     </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="divide-y divide-red-50">
+                                    <?php while($p = $rejected->fetch_assoc()): ?>
+                                        <tr class="hover:bg-red-50/20 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-red-600">Wk <?= $p['week_number'] ?></span></td>
+                                            <td class="px-6 py-4 min-w-[250px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            </td>
+                                            <td class="px-6 py-4 min-w-[300px]">
+                                                <div class="p-3 bg-red-50/50 rounded-xl border border-red-100/50">
+                                                    <p class="text-xs font-bold text-red-800 italic leading-relaxed">"<?= htmlspecialchars($p['supervisor_comments'] ?: 'No specific comments provided. Please review and resubmit.') ?>"</p>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
+                                                    <i class="fas fa-edit"></i> Fix & Resubmit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                </section>
+                <?php endif; ?>
+
+                <!-- Drafts Section -->
+                <?php if($drafts && $drafts->num_rows > 0): ?>
+                <section>
+                    <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span> Active Drafts (<?= $stats['draft'] ?>)
+                    </h3>
+                    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Last Modified</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    <?php while($p = $drafts->fetch_assoc()): ?>
+                                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
+                                            <td class="px-6 py-4 min-w-[300px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            </td>
+                                            <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                <div class="flex justify-end gap-2">
+                                                    <a href="lesson_plans?edit=<?= $p['id'] ?>" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </a>
+                                                    <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
+                                                        <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                        <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                <?php endif; ?>
+            </div>
+
+            <hr class="border-gray-200/60 my-8">
+
+            <!-- SUBMITTED ARCHIVE (TABS) -->
+            <section class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                
+                <!-- Tab Headers -->
+                <div class="flex border-b border-gray-100 bg-gray-50/50">
+                    <button type="button" id="btn-tab-pending" onclick="switchTab('tab-pending')" class="portfolio-tab-btn flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-hourglass-half"></i> Pending Review (<?= $stats['pending'] ?>)
+                    </button>
+                    <button type="button" id="btn-tab-approved" onclick="switchTab('tab-approved')" class="portfolio-tab-btn flex-1 py-4 text-xs font-black uppercase tracking-widest border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-check-double"></i> Approved Archive (<?= $stats['approved'] ?>)
+                    </button>
                 </div>
+
+                <!-- Tab: Pending Review -->
+                <div id="tab-pending" class="portfolio-tab-content p-6">
+                    <?php if($pending && $pending->num_rows > 0): ?>
+                        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Week</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic / Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Submitted On</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    <?php while($p = $pending->fetch_assoc()): ?>
+                                        <tr class="hover:bg-yellow-50/20 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-yellow-600">Wk <?= $p['week_number'] ?></span></td>
+                                            <td class="px-6 py-4 min-w-[300px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            </td>
+                                            <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-[0.625rem] font-black uppercase tracking-widest">
+                                                    <i class="fas fa-spinner fa-spin"></i> In Queue
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                <div class="flex justify-end gap-2">
+                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                    <form method="POST" action="lesson_plans" onsubmit="return confirm('Unsubmit this plan back to drafts?');">
+                                                        <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
+                                                        <button type="submit" name="unsubmit_plan" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-yellow-600 transition" title="Unsubmit">
+                                                            <i class="fas fa-rotate-left text-xs"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="py-12 text-center text-gray-400">
+                            <i class="fas fa-inbox text-4xl mb-3 text-gray-200"></i>
+                            <p class="font-bold text-sm uppercase tracking-widest">No plans pending review</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Tab: Approved Archive -->
+                <div id="tab-approved" class="portfolio-tab-content p-6 hidden">
+                    <?php if($approved && $approved->num_rows > 0): ?>
+                        <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50/50 border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Wk</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Topic & Subject</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Approved On</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Supervisor Remark</th>
+                                        <th class="px-6 py-4 text-[0.625rem] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    <?php while($p = $approved->fetch_assoc()): ?>
+                                        <tr class="hover:bg-emerald-50/20 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600">Wk <?= $p['week_number'] ?></span></td>
+                                            <td class="px-6 py-4 min-w-[250px]">
+                                                <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                            </td>
+                                            <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
+                                            <td class="px-6 py-4 min-w-[200px]">
+                                                <?php if($p['supervisor_comments']): ?>
+                                                    <div class="text-[0.625rem] font-bold text-gray-400 italic leading-relaxed" title="<?= htmlspecialchars($p['supervisor_comments']) ?>">
+                                                        "<?= htmlspecialchars($p['supervisor_comments']) ?>"
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="text-[0.625rem] font-bold text-gray-300 italic">No remarks</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                <div class="flex justify-end gap-2">
+                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-red-500 transition" title="Download PDF"><i class="fas fa-file-pdf text-xs"></i></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="py-12 text-center text-gray-400">
+                            <i class="fas fa-archive text-4xl mb-3 text-gray-200"></i>
+                            <p class="font-bold text-sm uppercase tracking-widest">No approved plans yet</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
             </section>
+
 
         </div>
     </main>
