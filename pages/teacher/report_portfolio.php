@@ -22,7 +22,7 @@ if ($week_f) $where .= " AND l.week_number = $week_f";
 if ($class_f) $where .= " AND l.class_name = '" . $conn->real_escape_string($class_f) . "'";
 if ($search_f) {
     $s = $conn->real_escape_string($search_f);
-    $where .= " AND (s.name LIKE '%$s%' OR l.class_name LIKE '%$s%')";
+    $where .= " AND l.class_name LIKE '%$s%'";
 }
 
 // Fetch Teacher's Allocated Classes for Filter
@@ -35,7 +35,7 @@ if ($teacher_classes_res) {
 
 // Stats (Filtered)
 $stats = ['draft' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
-$st_res = $conn->query("SELECT l.status, COUNT(*) as count FROM weekly_reports l LEFT JOIN subjects s ON l.subject_id = s.id WHERE $where GROUP BY l.status");
+$st_res = $conn->query("SELECT status, COUNT(*) as count FROM weekly_reports l WHERE $where GROUP BY status");
 if ($st_res) {
     while($r = $st_res->fetch_assoc()) $stats[$r['status']] = $r['count'];
 }
