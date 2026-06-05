@@ -25,6 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt = $conn->prepare("DELETE FROM class_subjects WHERE class_name = ?");
         $stmt->bind_param("s", $mapped_class);
         $stmt->execute();
+        
+        // Remove orphaned Subject Teacher allocations
+        if (empty($sub_ids)) {
+            $stmt_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE class_name = ? AND is_subject_teacher = 1 AND subject_id IS NOT NULL AND subject_id > 0");
+            $stmt_ta->bind_param("s", $mapped_class);
+            $stmt_ta->execute();
+        } else {
+            $sub_ids_clean = array_map('intval', $sub_ids);
+            $sub_ids_str = implode(',', $sub_ids_clean);
+            $stmt_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE class_name = ? AND is_subject_teacher = 1 AND subject_id NOT IN ($sub_ids_str) AND subject_id IS NOT NULL AND subject_id > 0");
+            $stmt_ta->bind_param("s", $mapped_class);
+            $stmt_ta->execute();
+        }
+
         if (!empty($sub_ids)) {
             $insert_stmt = $conn->prepare("INSERT INTO class_subjects (class_name, subject_id) VALUES (?, ?)");
             foreach($sub_ids as $sid) {
@@ -33,6 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $insert_stmt->execute();
             }
             $success = count($sub_ids)." subjects mapped to ".htmlspecialchars($mapped_class)."!";
+        } else {
+            $success = "All subjects removed from ".htmlspecialchars($mapped_class)."!";
         }
     }
 }
@@ -73,6 +89,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_subject') {
     $subject_id = intval($_POST['subject_id'] ?? 0);
     if ($subject_id > 0) {
+        // Cascade delete from class_subjects
+        $del_cs = $conn->prepare("DELETE FROM class_subjects WHERE subject_id = ?");
+        $del_cs->bind_param("i", $subject_id);
+        $del_cs->execute();
+        
+        // Cascade delete from teacher_allocations
+        $del_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE subject_id = ?");
+        $del_ta->bind_param("i", $subject_id);
+        $del_ta->execute();
+
         $del = $conn->prepare("DELETE FROM subjects WHERE id = ?");
         $del->bind_param("i", $subject_id);
         if ($del->execute()) {
