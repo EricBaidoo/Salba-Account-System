@@ -80,7 +80,11 @@ if ($search_f) {
 }
 
 $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
-$classes_res = $conn->query("SELECT DISTINCT class_name FROM lesson_plans WHERE class_name IS NOT NULL AND class_name != '' ORDER BY class_name ASC");
+$classes_res = $conn->query("SELECT name as class_name FROM classes ORDER BY name ASC");
+// Fallback if classes table is empty but we still want to show something
+if ($classes_res && $classes_res->num_rows === 0) {
+    $classes_res = $conn->query("SELECT DISTINCT class as class_name FROM students WHERE status='active' AND class IS NOT NULL AND class != '' ORDER BY class ASC");
+}
 
 // Determine Current Academic Year & Week
 $current_academic_year = getAcademicYear($conn);
