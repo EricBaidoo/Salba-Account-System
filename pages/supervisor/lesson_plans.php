@@ -149,18 +149,36 @@ if ($is_teacher_view) {
     // ---- EXPECTATIONS LOGIC ----
     $expectations = [];
     
-    // 1. Get Subject Teacher assignments
-    $sub_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY teacher_id");
+    // 1. Get Subject Teacher assignments (must JOIN subjects to ensure subject actually exists, matching Teacher View)
+    $sub_res = $conn->query("
+        SELECT ta.teacher_id, COUNT(ta.id) as c 
+        FROM teacher_allocations ta 
+        JOIN subjects s ON ta.subject_id = s.id 
+        WHERE ta.year = '$current_academic_year' AND ta.is_subject_teacher = 1 
+        GROUP BY ta.teacher_id
+    ");
     if ($sub_res) { while($row = $sub_res->fetch_assoc()) { $expectations[$row['teacher_id']] = (int)$row['c']; } }
     
     // 2. Class Subject Counts
     $class_total_subs = [];
-    $cs_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as total_subs FROM class_subjects GROUP BY class_name");
+    $cs_res = $conn->query("
+        SELECT cs.class_name, COUNT(DISTINCT cs.subject_id) as total_subs 
+        FROM class_subjects cs 
+        JOIN subjects s ON cs.subject_id = s.id 
+        GROUP BY cs.class_name
+    ");
     if ($cs_res) { while($row = $cs_res->fetch_assoc()) { $class_total_subs[$row['class_name']] = (int)$row['total_subs']; } }
     
-    // 3. Subject Teacher assignments per class
+    // 3. Subject Teacher assignments per class (ONLY count subjects that are actually mapped to the class!)
     $class_taken_subs = [];
-    $cs_taken_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as taken_subs FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY class_name");
+    $cs_taken_res = $conn->query("
+        SELECT ta.class_name, COUNT(DISTINCT ta.subject_id) as taken_subs 
+        FROM teacher_allocations ta 
+        JOIN class_subjects cs ON ta.class_name = cs.class_name AND ta.subject_id = cs.subject_id 
+        JOIN subjects s ON ta.subject_id = s.id
+        WHERE ta.year = '$current_academic_year' AND ta.is_subject_teacher = 1 
+        GROUP BY ta.class_name
+    ");
     if ($cs_taken_res) { while($row = $cs_taken_res->fetch_assoc()) { $class_taken_subs[$row['class_name']] = (int)$row['taken_subs']; } }
     
     // 4. Class Teacher Expectations
