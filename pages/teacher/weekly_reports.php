@@ -361,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                 <button type="submit" name="save_draft" class="px-8 py-3.5 bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition shadow-xl shadow-gray-200">
                     <i class="fas fa-save mr-2"></i> Save Draft
                 </button>
-                <button type="submit" name="submit_report" class="px-8 py-3.5 bg-teal-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-teal-700 transition shadow-xl shadow-teal-200">
+                <button type="submit" name="submit_report" class="px-8 py-3.5 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-indigo-700 transition shadow-xl shadow-indigo-200">
                     <i class="fas fa-paper-plane mr-2"></i> Submit for Review
                 </button>
             </div>

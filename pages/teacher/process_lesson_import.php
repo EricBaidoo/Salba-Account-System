@@ -237,6 +237,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
             throw new Exception("Unsupported file type.");
         }
 
+        // PRE-VALIDATE CLASS AND SUBJECT
+        foreach ($allData as &$data) {
+            $class_name = trim($data['class'] ?? '');
+            if (!empty($class_name)) {
+                $c_res = $conn->query("SELECT name FROM classes WHERE name LIKE '%" . $conn->real_escape_string($class_name) . "%' LIMIT 1");
+                if ($c_res && $c_res->num_rows > 0) {
+                    $data['class'] = $c_res->fetch_assoc()['name']; // Use exact official name
+                } else {
+                    throw new Exception("Invalid Class Name detected in document: '" . htmlspecialchars($class_name) . "'. Please check your document and ensure it exactly matches an official class name (e.g. Basic 1).");
+                }
+            } else {
+                throw new Exception("Missing Class Name in document. Please ensure 'Class:' is clearly labeled.");
+            }
+            
+            $subject_name = trim($data['subject'] ?? '');
+            if (!empty($subject_name)) {
+                $s_res = $conn->query("SELECT name FROM subjects WHERE name LIKE '%" . $conn->real_escape_string($subject_name) . "%' LIMIT 1");
+                if ($s_res && $s_res->num_rows > 0) {
+                    $data['subject'] = $s_res->fetch_assoc()['name']; // Use exact official name
+                } else {
+                    throw new Exception("Invalid Subject Name detected in document: '" . htmlspecialchars($subject_name) . "'. Please check your document and ensure it exactly matches an official subject name.");
+                }
+            } else {
+                throw new Exception("Missing Subject Name in document. Please ensure 'Subject:' is clearly labeled.");
+            }
+        }
+        unset($data);
+
         // SAVE ALL EXTRACTED DATA
         $last_id = 0;
         foreach ($allData as $data) {

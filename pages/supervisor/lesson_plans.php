@@ -177,7 +177,7 @@ if ($is_teacher_view) {
         JOIN subjects s ON cs.subject_id = s.id 
         GROUP BY cs.class_name
     ");
-    if ($cs_res) { while($row = $cs_res->fetch_assoc()) { $class_total_subs[$row['class_name']] = (int)$row['total_subs']; } }
+    if ($cs_res) { while($row = $cs_res->fetch_assoc()) { $class_total_subs[strtoupper(trim($row['class_name']))] = (int)$row['total_subs']; } }
     
     // 3. Subject Teacher assignments per class (ONLY count subjects that are actually mapped to the class!)
     $class_taken_subs = [];
@@ -189,14 +189,14 @@ if ($is_teacher_view) {
         WHERE ta.year = '$current_academic_year' AND ta.is_subject_teacher = 1 
         GROUP BY ta.class_name
     ");
-    if ($cs_taken_res) { while($row = $cs_taken_res->fetch_assoc()) { $class_taken_subs[$row['class_name']] = (int)$row['taken_subs']; } }
+    if ($cs_taken_res) { while($row = $cs_taken_res->fetch_assoc()) { $class_taken_subs[strtoupper(trim($row['class_name']))] = (int)$row['taken_subs']; } }
     
     // 4. Class Teacher Expectations
     $ct_res = $conn->query("SELECT teacher_id, class_name FROM teacher_allocations WHERE year = '$current_academic_year' AND is_class_teacher = 1");
     if ($ct_res) {
         while($row = $ct_res->fetch_assoc()) {
             $tid = $row['teacher_id'];
-            $cn = $row['class_name'];
+            $cn = strtoupper(trim($row['class_name']));
             $total = $class_total_subs[$cn] ?? 0;
             $taken = $class_taken_subs[$cn] ?? 0;
             $expected = max(0, $total - $taken);
@@ -245,8 +245,7 @@ if ($is_teacher_view) {
         FROM users u
         LEFT JOIN staff_profiles sp ON u.id = sp.user_id
         LEFT JOIN lesson_plans l ON u.id = l.teacher_id $filter_where
-        LEFT JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
-        WHERE u.role = 'facilitator' AND (l.id IS NULL OR cs.class_name IS NOT NULL)
+        WHERE u.role = 'facilitator'
         GROUP BY u.id, teacher_name
         ORDER BY teacher_name ASC
     ");
@@ -256,8 +255,9 @@ if ($is_teacher_view) {
 $pending_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM lesson_plans l 
-    JOIN subjects s ON l.subject_id = s.id 
-    JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+    LEFT JOIN subjects s ON l.subject_id = s.id 
+    LEFT JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+    LEFT JOIN teacher_allocations ta ON l.teacher_id = ta.teacher_id AND l.class_name = ta.class_name AND (ta.is_class_teacher = 1 OR ta.subject_id = l.subject_id)
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status = 'pending' $filter_where
@@ -281,8 +281,9 @@ if ($pending_plans && $pending_plans->num_rows > 0) {
 $reviewed_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM lesson_plans l 
-    JOIN subjects s ON l.subject_id = s.id 
-    JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+    LEFT JOIN subjects s ON l.subject_id = s.id 
+    LEFT JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+    LEFT JOIN teacher_allocations ta ON l.teacher_id = ta.teacher_id AND l.class_name = ta.class_name AND (ta.is_class_teacher = 1 OR ta.subject_id = l.subject_id)
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status IN ('approved', 'rejected') $filter_where

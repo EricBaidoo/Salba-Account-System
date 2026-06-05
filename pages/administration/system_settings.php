@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // School Identity
-        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_term'];
+        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_semester'];
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 if (setSystemSetting($conn, $field, $_POST[$field], $updated_by)) $update_count++;
@@ -154,15 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Semester Duration
-    if (isset($_POST['action']) && $_POST['action'] === 'save_semester_structure') {
-        $weeks = intval($_POST['weeks_per_semester']);
-        if ($weeks > 0 && $weeks < 53) {
-            setSystemSetting($conn, 'weeks_per_term', $weeks, $updated_by);
-            $success_message .= "Semester duration updated. ";
-        }
-    }
-
     // School Calendar logic
     if (isset($_POST['action']) && $_POST['action'] === 'add_calendar_event') {
         $c_date = $_POST['event_date']; $c_type = $_POST['event_type']; $c_desc = trim($_POST['description']);
@@ -198,7 +189,7 @@ $ontime_limit = getSystemSetting($conn, 'attendance_ontime_limit', '07:00');
 $att_lat = getSystemSetting($conn, 'attendance_lat', '5.5786875');
 $att_lng = getSystemSetting($conn, 'attendance_lng', '-0.2911875');
 $att_radius = getSystemSetting($conn, 'attendance_radius', '300');
-$weeks_per_semester = intval(getSystemSetting($conn, 'weeks_per_term', 12));
+$weeks_per_semester = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 
 $semester_dictionary = [];
 $dict_res = $conn->query("SELECT * FROM academic_semester_dictionary ORDER BY display_order ASC, id ASC");
@@ -333,7 +324,7 @@ for ($i = -2; $i <= 5; $i++) {
                                     </div>
                                     <div>
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-3">Duration (Weeks)</label>
-                                        <input type="number" name="weeks_per_term" value="<?= $weeks_per_semester ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-black text-gray-800 outline-none transition-all shadow-sm">
+                                        <input type="number" name="weeks_per_semester" value="<?= $weeks_per_semester ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-blue-500 focus:bg-white rounded-2xl font-black text-gray-800 outline-none transition-all shadow-sm">
                                     </div>
                                     <div>
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-3">Year Format</label>

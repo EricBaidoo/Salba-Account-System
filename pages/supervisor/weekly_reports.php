@@ -57,7 +57,10 @@ if ($search_f) {
 }
 
 $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
-$classes_res = $conn->query("SELECT DISTINCT class_name FROM weekly_reports WHERE class_name IS NOT NULL AND class_name != '' ORDER BY class_name ASC");
+$classes_res = $conn->query("SELECT name as class_name FROM classes ORDER BY name ASC");
+if ($classes_res && $classes_res->num_rows === 0) {
+    $classes_res = $conn->query("SELECT DISTINCT class as class_name FROM students WHERE status='active' AND class IS NOT NULL AND class != '' ORDER BY class ASC");
+}
 
 // Determine Current Academic Year & Week
 $current_academic_year = getAcademicYear($conn);
@@ -104,37 +107,22 @@ if ($is_teacher_view) {
     // ---- EXPECTATIONS LOGIC ----
     $expectations = [];
     
-    // 1. Get Subject Teacher assignments
-    $sub_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY teacher_id");
-    if ($sub_res) { while($row = $sub_res->fetch_assoc()) { $expectations[$row['teacher_id']] = (int)$row['c']; } }
-    
-    // 2. Class Subject Counts
-    $class_total_subs = [];
-    $cs_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as total_subs FROM class_subjects GROUP BY class_name");
-    if ($cs_res) { while($row = $cs_res->fetch_assoc()) { $class_total_subs[$row['class_name']] = (int)$row['total_subs']; } }
-    
-    // 3. Subject Teacher assignments per class
-    $class_taken_subs = [];
-    $cs_taken_res = $conn->query("SELECT class_name, COUNT(DISTINCT subject_id) as taken_subs FROM teacher_allocations WHERE year = '$current_academic_year' AND is_subject_teacher = 1 GROUP BY class_name");
-    if ($cs_taken_res) { while($row = $cs_taken_res->fetch_assoc()) { $class_taken_subs[$row['class_name']] = (int)$row['taken_subs']; } }
-    
-    // 4. Class Teacher Expectations
-    $ct_res = $conn->query("SELECT teacher_id, class_name FROM teacher_allocations WHERE year = '$current_academic_year' AND is_class_teacher = 1");
-    if ($ct_res) {
-        while($row = $ct_res->fetch_assoc()) {
-            $tid = $row['teacher_id'];
-            $cn = $row['class_name'];
-            $total = $class_total_subs[$cn] ?? 0;
-            $taken = $class_taken_subs[$cn] ?? 0;
-            $expected = max(0, $total - $taken);
-            if (!isset($expectations[$tid])) $expectations[$tid] = 0;
-            $expectations[$tid] += $expected;
-        }
+    // 1. Get Teacher Assignments (One report expected per assigned class, matching Teacher View)
+    $sub_res = $conn->query("
+        SELECT teacher_id, COUNT(DISTINCT class_name) as c 
+        FROM teacher_allocations 
+        WHERE year = '$current_academic_year' 
+        GROUP BY teacher_id
+    ");
+    if ($sub_res) { 
+        while($row = $sub_res->fetch_assoc()) { 
+            $expectations[$row['teacher_id']] = (int)$row['c']; 
+        } 
     }
     
     // 5. This Week's Actuals (from weekly_reports)
     $actuals = [];
-    $act_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM weekly_reports WHERE week_number = $current_week GROUP BY teacher_id");
+    $act_res = $conn->query("SELECT teacher_id, COUNT(DISTINCT class_name) as c FROM weekly_reports WHERE week_number = $current_week AND status != 'draft' GROUP BY teacher_id");
     if ($act_res) { while($row = $act_res->fetch_assoc()) { $actuals[$row['teacher_id']] = (int)$row['c']; } }
 
     // ---- MAIN DASHBOARD QUERIES ----
@@ -143,13 +131,21 @@ if ($is_teacher_view) {
     // This Week expectations needed for cumulative calculation
     $total_expected_this_week = array_sum($expectations);
     
-    // Overall Rate (Cumulative Submitted up to current week / Cumulative Expected)
-    $cumulative_expected = $total_expected_this_week * $current_week;
-    $cumulative_submitted = $conn->query("SELECT COUNT(*) FROM weekly_reports WHERE week_number > 0 AND week_number <= $current_week AND status != 'draft'")->fetch_row()[0] ?? 0;
+    // Overall Rate (Cumulative Submitted up to completed weeks / Cumulative Expected)
+    // We evaluate up to the completed week (current_week - 1) to avoid penalizing the active rate for an incomplete week.
+    $completed_weeks = max(1, $current_week - 1);
+    $cumulative_expected = $total_expected_this_week * $completed_weeks;
+    
+    // Count distinct submissions per teacher, class, and week to avoid double counting
+    $cumulative_submitted_query = $conn->query("
+        SELECT COUNT(DISTINCT CONCAT(teacher_id, '-', class_name, '-', week_number))
+        FROM weekly_reports 
+        WHERE week_number > 0 AND week_number <= $completed_weeks AND status != 'draft'
+    ");
+    $cumulative_submitted = $cumulative_submitted_query ? ($cumulative_submitted_query->fetch_row()[0] ?? 0) : 0;
     $overall_rate = $cumulative_expected > 0 ? round(($cumulative_submitted / $cumulative_expected) * 100) : 0;
     
     // This Week Rate (Total Actuals / Total Expectations)
-    $total_expected_this_week = array_sum($expectations);
     $total_actual_this_week = array_sum($actuals);
     $weekly_rate = $total_expected_this_week > 0 ? round(($total_actual_this_week / $total_expected_this_week) * 100) : 0;
     
@@ -161,7 +157,8 @@ if ($is_teacher_view) {
         FROM users u
         LEFT JOIN staff_profiles sp ON u.id = sp.user_id
         LEFT JOIN weekly_reports l ON u.id = l.teacher_id $filter_where
-        WHERE u.role = 'facilitator'
+        LEFT JOIN teacher_allocations ta ON l.teacher_id = ta.teacher_id AND l.class_name COLLATE utf8mb4_unicode_ci = ta.class_name COLLATE utf8mb4_unicode_ci
+        WHERE u.role = 'facilitator' AND (l.id IS NULL OR ta.id IS NOT NULL)
         GROUP BY u.id, teacher_name
         ORDER BY teacher_name ASC
     ");
@@ -171,6 +168,7 @@ if ($is_teacher_view) {
 $pending_reports = $conn->query("
     SELECT l.*, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM weekly_reports l 
+    JOIN teacher_allocations ta ON l.teacher_id = ta.teacher_id AND l.class_name COLLATE utf8mb4_unicode_ci = ta.class_name COLLATE utf8mb4_unicode_ci
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status = 'pending' $filter_where
@@ -194,6 +192,7 @@ if ($pending_reports && $pending_reports->num_rows > 0) {
 $reviewed_reports = $conn->query("
     SELECT l.*, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM weekly_reports l 
+    JOIN teacher_allocations ta ON l.teacher_id = ta.teacher_id AND l.class_name COLLATE utf8mb4_unicode_ci = ta.class_name COLLATE utf8mb4_unicode_ci
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status IN ('approved', 'rejected') $filter_where
@@ -427,7 +426,7 @@ $reviewed_reports = $conn->query("
                                                         <a href="../teacher/print_weekly_report?id=<?= $p['id'] ?>&view=html" target="_blank" class="h-9 px-4 bg-gray-100 text-gray-600 rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-gray-200 transition">
                                                             <i class="fas fa-eye"></i> Preview
                                                         </a>
-                                                        <button type="button" onclick="openReviewModal(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes($p['class_name'])) ?>', <?= $p['week_number'] ?>)" class="h-9 px-4 bg-teal-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-teal-700 transition shadow-lg shadow-teal-100">
+                                                        <button type="button" onclick="openReviewModal(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes($p['class_name'])) ?>', <?= $p['week_number'] ?>)" class="h-9 px-4 bg-indigo-600 text-white rounded-xl flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
                                                             <i class="fas fa-clipboard-check"></i> Evaluate
                                                         </button>
                                                     </div>

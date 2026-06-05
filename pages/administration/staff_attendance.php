@@ -173,7 +173,7 @@ $sum_week = $_GET['s_week'] ?? ''; // Format: Week X (Start Date)
 $sem_start_str = getSystemSetting($conn, 'semester_start_date', date('Y-m-01'));
 $sem_end_str = getSystemSetting($conn, 'semester_end_date', date('Y-m-t'));
 $sem_start = new DateTime($sem_start_str);
-$weeks_total = intval(getSystemSetting($conn, 'weeks_per_term', 12));
+$weeks_total = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 
 $range_start = null;
 $range_end = null;
