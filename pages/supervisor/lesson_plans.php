@@ -137,7 +137,13 @@ if ($is_teacher_view) {
     // 3. Submitted Actuals
     $actual_list = [];
     $w = $week_f ?: $current_week;
-    $act_res = $conn->query("SELECT l.class_name, s.name as subject_name FROM lesson_plans l LEFT JOIN subjects s ON l.subject_id = s.id WHERE l.teacher_id = $teacher_id_get AND l.week_number = $w AND l.status != 'draft'");
+    $act_res = $conn->query("
+        SELECT l.class_name, s.name as subject_name 
+        FROM lesson_plans l 
+        JOIN subjects s ON l.subject_id = s.id 
+        JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+        WHERE l.teacher_id = $teacher_id_get AND l.week_number = $w AND l.status != 'draft'
+    ");
     if ($act_res) {
         while($r = $act_res->fetch_assoc()) {
             $actual_list[] = trim($r['class_name']) . ' - ' . trim($r['subject_name'] ?? '');
@@ -197,7 +203,13 @@ if ($is_teacher_view) {
     
     // 5. This Week's Actuals (from lesson_plans)
     $actuals = [];
-    $act_res = $conn->query("SELECT teacher_id, COUNT(*) as c FROM lesson_plans WHERE week_number = $current_week GROUP BY teacher_id");
+    $act_res = $conn->query("
+        SELECT l.teacher_id, COUNT(l.id) as c 
+        FROM lesson_plans l 
+        JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+        WHERE l.week_number = $current_week 
+        GROUP BY l.teacher_id
+    ");
     if ($act_res) { while($row = $act_res->fetch_assoc()) { $actuals[$row['teacher_id']] = (int)$row['c']; } }
 
     // ---- MAIN DASHBOARD QUERIES ----
@@ -208,7 +220,12 @@ if ($is_teacher_view) {
     
     // Overall Rate (Cumulative Submitted up to current week / Cumulative Expected)
     $cumulative_expected = $total_expected_this_week * $current_week;
-    $cumulative_submitted = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE week_number > 0 AND week_number <= $current_week")->fetch_row()[0] ?? 0;
+    $cumulative_submitted = $conn->query("
+        SELECT COUNT(*) 
+        FROM lesson_plans l 
+        JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+        WHERE l.week_number > 0 AND l.week_number <= $current_week
+    ")->fetch_row()[0] ?? 0;
     $overall_rate = $cumulative_expected > 0 ? round(($cumulative_submitted / $cumulative_expected) * 100) : 0;
     
     // This Week Rate (Total Actuals / Total Expectations)
@@ -224,7 +241,8 @@ if ($is_teacher_view) {
         FROM users u
         LEFT JOIN staff_profiles sp ON u.id = sp.user_id
         LEFT JOIN lesson_plans l ON u.id = l.teacher_id $filter_where
-        WHERE u.role = 'facilitator'
+        LEFT JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
+        WHERE u.role = 'facilitator' AND (l.id IS NULL OR cs.class_name IS NOT NULL)
         GROUP BY u.id, teacher_name
         ORDER BY teacher_name ASC
     ");
@@ -235,6 +253,7 @@ $pending_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM lesson_plans l 
     JOIN subjects s ON l.subject_id = s.id 
+    JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status = 'pending' $filter_where
@@ -259,6 +278,7 @@ $reviewed_plans = $conn->query("
     SELECT l.*, s.name as subject_name, u.username, COALESCE(sp.full_name, u.username) as teacher_name
     FROM lesson_plans l 
     JOIN subjects s ON l.subject_id = s.id 
+    JOIN class_subjects cs ON l.class_name = cs.class_name AND l.subject_id = cs.subject_id
     JOIN users u ON l.teacher_id = u.id 
     LEFT JOIN staff_profiles sp ON u.id = sp.user_id
     WHERE l.status IN ('approved', 'rejected') $filter_where
