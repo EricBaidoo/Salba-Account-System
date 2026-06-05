@@ -175,6 +175,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 
+// 7. Process Add Custom Field
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_custom_field') {
+    $schema_type = $_POST['schema_type'];
+    $new_label = trim($_POST['new_field_label']);
+    
+    if ($new_label) {
+        $safe_key = 'custom_' . preg_replace('/[^a-z0-9]+/', '_', strtolower($new_label));
+        // Add random string to avoid collisions if same label
+        $safe_key .= '_' . substr(md5(uniqid()), 0, 4);
+        
+        // Fetch current schema
+        $current_schema_raw = getSystemSetting($conn, $schema_type, '');
+        $current_schema = $current_schema_raw ? json_decode($current_schema_raw, true) : [];
+        
+        // Append new
+        $current_schema[$safe_key] = [
+            'label' => $new_label,
+            'helper' => '',
+            'hidden' => false
+        ];
+        
+        setSystemSetting($conn, $schema_type, json_encode($current_schema), $_SESSION['username']);
+        $success = "New custom field added successfully!";
+    }
+}
+
+// 6. Process Form Builder Schemas
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_form_schema') {
+    $schema_type = $_POST['schema_type'];
+    $schema_data = [];
+    
+    foreach ($_POST['schema'] as $key => $values) {
+        $schema_data[$key] = [
+            'label' => trim($values['label'] ?? ''),
+            'helper' => trim($values['helper'] ?? ''),
+            'hidden' => isset($values['hidden']) ? true : false
+        ];
+    }
+    
+    setSystemSetting($conn, $schema_type, json_encode($schema_data), $_SESSION['username']);
+    $success = "Form Builder Schema saved successfully!";
+}
+
 // Refetch DB values for UI rendering
 $global_oa = floatval(getSystemSetting($conn, 'term_oa_weight', 30));
 $global_ex = floatval(getSystemSetting($conn, 'term_exam_weight', 70));
@@ -203,6 +246,52 @@ if ($c_meta_res) {
     }
 }
 
+
+// Fetch Form Builder Schemas
+$weekly_report_defaults = [
+    'topics_covered' => ['label' => 'Topics Covered (Summary)', 'helper' => 'Briefly list the specific topics or subtopics taught this week.', 'hidden' => false],
+    'overall_performance' => ['label' => 'Overall Class Performance', 'helper' => '', 'hidden' => false],
+    'struggling_students' => ['label' => 'Struggling Students & Intervention Plans', 'helper' => 'List students who fell behind and specific steps taken.', 'hidden' => false],
+    'excelling_students' => ['label' => 'Excelling Students & Enrichment', 'helper' => 'List students who mastered the content quickly.', 'hidden' => false],
+    'differentiation_strategies' => ['label' => 'Differentiation Strategies Used', 'helper' => 'How did you adapt the lesson for different learners?', 'hidden' => false],
+    'tlm_usage' => ['label' => 'Teaching & Learning Materials (TLMs)', 'helper' => 'What physical or digital tools did you use?', 'hidden' => false],
+    'general_behavior' => ['label' => 'General Class Behavior', 'helper' => 'Describe the overall mood and engagement.', 'hidden' => false],
+    'discipline_issues' => ['label' => 'Discipline Issues & Actions Taken', 'helper' => 'Detail any behavioral incidents and actions taken.', 'hidden' => false],
+    'attendance_concerns' => ['label' => 'Attendance Concerns', 'helper' => 'List students with frequent absences.', 'hidden' => false],
+    'parents_contacted' => ['label' => 'Parents Contacted This Week', 'helper' => 'Which parents did you speak to and why?', 'hidden' => false],
+    'co_curricular_activities' => ['label' => 'Co-curricular Duties & Activities', 'helper' => 'What non-academic duties did you perform?', 'hidden' => false],
+    'challenges_faced' => ['label' => 'Challenges Faced', 'helper' => 'What obstacles hindered your teaching?', 'hidden' => false],
+    'self_reflection' => ['label' => 'Teacher Self-Reflection', 'helper' => 'What worked? What needs a new approach?', 'hidden' => false],
+    'support_required' => ['label' => 'Support / Resources Required', 'helper' => '', 'hidden' => false],
+    'next_week_focus' => ['label' => 'Focus For Next Week', 'helper' => 'What are your primary goals for next week?', 'hidden' => false]
+];
+
+$lesson_plan_defaults = [
+    'content_standard' => ['label' => 'Content Standard', 'helper' => '', 'hidden' => false],
+    'indicator' => ['label' => 'Indicator', 'helper' => '', 'hidden' => false],
+    'lesson_number' => ['label' => 'Lesson Number', 'helper' => '', 'hidden' => false],
+    'performance_indicator' => ['label' => 'Performance Indicator', 'helper' => '', 'hidden' => false],
+    'core_competencies' => ['label' => 'Core Competencies', 'helper' => '', 'hidden' => false],
+    'references' => ['label' => 'References', 'helper' => '', 'hidden' => false],
+    'new_words' => ['label' => 'New Words', 'helper' => '', 'hidden' => false],
+    'starter_activities' => ['label' => 'Learner Activities (Starter)', 'helper' => '', 'hidden' => false],
+    'starter_resources' => ['label' => 'Resources (Starter)', 'helper' => '', 'hidden' => false],
+    'learning_activities' => ['label' => 'Learner Activities (Development)', 'helper' => '', 'hidden' => false],
+    'learning_assessment' => ['label' => 'Evaluation / Assessment Queries', 'helper' => '', 'hidden' => false],
+    'tlm' => ['label' => 'Teaching & Learning Materials (TLMs)', 'helper' => '', 'hidden' => false],
+    'reflection_activities' => ['label' => 'Learner Reflection & Closure', 'helper' => '', 'hidden' => false],
+    'homework' => ['label' => 'Homework / Assignment', 'helper' => '', 'hidden' => false]
+];
+
+$wr_schema_raw = getSystemSetting($conn, 'weekly_report_form_schema', '');
+$lp_schema_raw = getSystemSetting($conn, 'lesson_plan_form_schema', '');
+
+$wr_schema = $wr_schema_raw ? json_decode($wr_schema_raw, true) : $weekly_report_defaults;
+$lp_schema = $lp_schema_raw ? json_decode($lp_schema_raw, true) : $lesson_plan_defaults;
+
+// Ensure new columns exist in decoded schema by merging with defaults
+foreach ($weekly_report_defaults as $k => $v) { if (!isset($wr_schema[$k])) $wr_schema[$k] = $v; }
+foreach ($lesson_plan_defaults as $k => $v) { if (!isset($lp_schema[$k])) $lp_schema[$k] = $v; }
 
 // Fetch dynamic levels from dictionary
 $dynamic_levels = [];
@@ -350,6 +439,27 @@ if($dl_res) {
                             <div class="mt-2 text-[0.625rem] text-gray-400 font-bold uppercase" id="math_indicator">Adding to OA Bucket. Available space: <?= $remaining_oa ?>.</div>
                         </form>
                         
+                                                <div class="mt-8 pt-8 border-t border-gray-200">
+                            <h4 class="text-sm font-black text-indigo-900 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-indigo-500"></i> Create New Custom Field</h4>
+                            <p class="text-xs text-gray-500 mb-4">Add a completely new question/field to the form. It will automatically appear at the bottom of the Teacher's screen.</p>
+                            
+                            <form method="POST" class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 flex flex-col md:flex-row items-end gap-4">
+                                <input type="hidden" name="action" value="add_custom_field">
+                                <div class="flex-1 w-full">
+                                    <label class="block text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest mb-2">Target Form</label>
+                                    <select name="schema_type" class="w-full px-4 py-3 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                                        <option value="weekly_report_form_schema">Weekly Reports</option>
+                                        <option value="lesson_plan_form_schema">Lesson Plans</option>
+                                    </select>
+                                </div>
+                                <div class="flex-[2] w-full">
+                                    <label class="block text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest mb-2">New Field Label / Question</label>
+                                    <input type="text" name="new_field_label" required placeholder="e.g. 'Parent Feedback' or 'Extra Notes'" class="w-full px-4 py-3 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                                </div>
+                                <button type="submit" class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-lg shadow-lg hover:bg-indigo-700 transition">Add Field</button>
+                            </form>
+                        </div>
+
                         <script>
                             // Simple UI helper to show remaining math space based on checkbox
                             const chk = document.getElementById('is_exam_chk');
@@ -480,6 +590,134 @@ if($dl_res) {
                                 </div>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                                <!-- Form Builder UI -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-8 py-5 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+                        <h3 class="font-extrabold text-gray-900 flex items-center gap-2 text-sm uppercase tracking-wider">
+                            <i class="fas fa-hammer text-indigo-500"></i> Dynamic Form Builder
+                        </h3>
+                    </div>
+                    <div class="p-8">
+                        <p class="text-xs text-gray-500 font-bold mb-6">Customize the questions, helper text, and visibility of fields on the Teacher Forms.</p>
+                        
+                        <div class="mb-6 border-b border-gray-200">
+                            <ul class="flex flex-wrap -mb-px text-sm font-bold text-center" id="formTabs">
+                                <li class="mr-2" role="presentation">
+                                    <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-indigo-600 hover:border-indigo-300 border-indigo-600 text-indigo-600" id="wr-tab" data-target="#wr-content" type="button" role="tab">Weekly Reports</button>
+                                </li>
+                                <li class="mr-2" role="presentation">
+                                    <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-indigo-600 hover:border-indigo-300" id="lp-tab" data-target="#lp-content" type="button" role="tab">Lesson Plans</button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div id="wr-content" class="tab-content">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="save_form_schema">
+                                <input type="hidden" name="schema_type" value="weekly_report_form_schema">
+                                <div class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-4">
+                                    <?php foreach($wr_schema as $key => $data): ?>
+                                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest">Database Field: <?= $key ?></div>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="schema[<?= $key ?>][hidden]" value="1" <?= $data['hidden'] ? 'checked' : '' ?> class="rounded text-red-500 focus:ring-red-500">
+                                                <span class="text-xs font-bold text-gray-600">Hide Field</span>
+                                            </label>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-1">Display Label</label>
+                                                <input type="text" name="schema[<?= $key ?>][label]" value="<?= htmlspecialchars($data['label']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-1">Helper Text (Instruction)</label>
+                                                <input type="text" name="schema[<?= $key ?>][helper]" value="<?= htmlspecialchars($data['helper']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <button type="submit" class="mt-6 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-indigo-700 transition">Save Weekly Report Schema</button>
+                            </form>
+                        </div>
+                        
+                        <div id="lp-content" class="tab-content hidden">
+                            <form method="POST">
+                                <input type="hidden" name="action" value="save_form_schema">
+                                <input type="hidden" name="schema_type" value="lesson_plan_form_schema">
+                                <div class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-4">
+                                    <?php foreach($lp_schema as $key => $data): ?>
+                                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest">Database Field: <?= $key ?></div>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" name="schema[<?= $key ?>][hidden]" value="1" <?= $data['hidden'] ? 'checked' : '' ?> class="rounded text-red-500 focus:ring-red-500">
+                                                <span class="text-xs font-bold text-gray-600">Hide Field</span>
+                                            </label>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-1">Display Label</label>
+                                                <input type="text" name="schema[<?= $key ?>][label]" value="<?= htmlspecialchars($data['label']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-1">Helper Text (Instruction)</label>
+                                                <input type="text" name="schema[<?= $key ?>][helper]" value="<?= htmlspecialchars($data['helper']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <button type="submit" class="mt-6 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-indigo-700 transition">Save Lesson Plan Schema</button>
+                            </form>
+                        </div>
+                        
+                                                <div class="mt-8 pt-8 border-t border-gray-200">
+                            <h4 class="text-sm font-black text-indigo-900 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-indigo-500"></i> Create New Custom Field</h4>
+                            <p class="text-xs text-gray-500 mb-4">Add a completely new question/field to the form. It will automatically appear at the bottom of the Teacher's screen.</p>
+                            
+                            <form method="POST" class="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100 flex flex-col md:flex-row items-end gap-4">
+                                <input type="hidden" name="action" value="add_custom_field">
+                                <div class="flex-1 w-full">
+                                    <label class="block text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest mb-2">Target Form</label>
+                                    <select name="schema_type" class="w-full px-4 py-3 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                                        <option value="weekly_report_form_schema">Weekly Reports</option>
+                                        <option value="lesson_plan_form_schema">Lesson Plans</option>
+                                    </select>
+                                </div>
+                                <div class="flex-[2] w-full">
+                                    <label class="block text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest mb-2">New Field Label / Question</label>
+                                    <input type="text" name="new_field_label" required placeholder="e.g. 'Parent Feedback' or 'Extra Notes'" class="w-full px-4 py-3 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                                </div>
+                                <button type="submit" class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-lg shadow-lg hover:bg-indigo-700 transition">Add Field</button>
+                            </form>
+                        </div>
+
+                        <script>
+                            const tabs = document.querySelectorAll('#formTabs button');
+                            const contents = document.querySelectorAll('.tab-content');
+                            
+                            tabs.forEach(tab => {
+                                tab.addEventListener('click', () => {
+                                    // Reset tabs
+                                    tabs.forEach(t => {
+                                        t.classList.remove('border-indigo-600', 'text-indigo-600');
+                                        t.classList.add('border-transparent');
+                                    });
+                                    // Hide all content
+                                    contents.forEach(c => c.classList.add('hidden'));
+                                    
+                                    // Activate selected tab
+                                    tab.classList.add('border-indigo-600', 'text-indigo-600');
+                                    tab.classList.remove('border-transparent');
+                                    document.querySelector(tab.dataset.target).classList.remove('hidden');
+                                });
+                            });
+                        </script>
                     </div>
                 </div>
 
