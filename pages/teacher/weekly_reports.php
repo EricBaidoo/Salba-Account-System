@@ -78,6 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || 
     $challenges_faced = trim($_POST['challenges_faced'] ?? '');
     $support_required = implode(',', $_POST['support_required'] ?? []);
     $next_week_focus = trim($_POST['next_week_focus'] ?? '');
+    
+    $differentiation_strategies = trim($_POST['differentiation_strategies'] ?? '');
+    $excelling_students = trim($_POST['excelling_students'] ?? '');
+    $tlm_usage = trim($_POST['tlm_usage'] ?? '');
+    $self_reflection = trim($_POST['self_reflection'] ?? '');
+    $co_curricular_activities = trim($_POST['co_curricular_activities'] ?? '');
 
     if ($class_name) {
         if ($report_id > 0) {
@@ -85,13 +91,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || 
                 class_name=?, week_ending=?, week_number=?, academic_term=?, academic_year=?, status=?,
                 topics_covered=?, assessments_conducted=?, overall_performance=?, struggling_students=?,
                 general_behavior=?, discipline_issues=?, attendance_concerns=?, parents_contacted=?,
-                challenges_faced=?, support_required=?, next_week_focus=?
+                challenges_faced=?, support_required=?, next_week_focus=?,
+                differentiation_strategies=?, excelling_students=?, tlm_usage=?, self_reflection=?, co_curricular_activities=?
                 WHERE id=? AND teacher_id=?");
-            $stmt->bind_param("ssissssssssssssssii", 
+            $stmt->bind_param("ssisssssssssssssssssssii", 
                 $class_name, $week_ending, $week_number, $current_term, $current_year, $action_status,
                 $topics_covered, $assessments_conducted, $overall_performance, $struggling_students,
                 $general_behavior, $discipline_issues, $attendance_concerns, $parents_contacted,
-                $challenges_faced, $support_required, $next_week_focus, $report_id, $uid
+                $challenges_faced, $support_required, $next_week_focus,
+                $differentiation_strategies, $excelling_students, $tlm_usage, $self_reflection, $co_curricular_activities,
+                $report_id, $uid
             );
             if ($stmt->execute()) {
                 redirect('report_portfolio', 'success', "Report successfully " . ($action_status == 'draft' ? "saved as draft." : "submitted."));
@@ -103,13 +112,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || 
                 teacher_id, class_name, week_ending, week_number, academic_term, academic_year, status,
                 topics_covered, assessments_conducted, overall_performance, struggling_students,
                 general_behavior, discipline_issues, attendance_concerns, parents_contacted,
-                challenges_faced, support_required, next_week_focus
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ississssssssssssss", 
+                challenges_faced, support_required, next_week_focus,
+                differentiation_strategies, excelling_students, tlm_usage, self_reflection, co_curricular_activities
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ississsssssssssssssssssss", 
                 $uid, $class_name, $week_ending, $week_number, $current_term, $current_year, $action_status,
                 $topics_covered, $assessments_conducted, $overall_performance, $struggling_students,
                 $general_behavior, $discipline_issues, $attendance_concerns, $parents_contacted,
-                $challenges_faced, $support_required, $next_week_focus
+                $challenges_faced, $support_required, $next_week_focus,
+                $differentiation_strategies, $excelling_students, $tlm_usage, $self_reflection, $co_curricular_activities
             );
             if ($stmt->execute()) {
                 redirect('report_portfolio', 'success', "Report successfully " . ($action_status == 'draft' ? "saved as draft." : "submitted."));
@@ -160,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
     <?php endif; ?>
 
     <?php if(isset($_GET['draft_imported'])): ?>
-        <div class="max-w-5xl mx-auto px-4 md:px-8 pt-24 mb-2">
+        <div class="max-w-full mx-auto px-4 md:px-8 pt-24 mb-2">
             <div class="bg-teal-600 text-white p-5 rounded-2xl flex items-center justify-between shadow-xl shadow-teal-200 border-2 border-teal-500 animate-pulse">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl backdrop-blur-sm">
@@ -176,11 +187,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
         </div>
     <?php endif; ?>
 
-    <main class="max-w-5xl mx-auto p-4 md:p-8 <?= !isset($_GET['draft_imported']) ? 'pt-24' : '' ?>">
+    <main class="max-w-full mx-auto p-4 md:p-8 <?= !isset($_GET['draft_imported']) ? 'pt-24' : '' ?>">
         
         <div class="flex justify-between items-end mb-8">
             <div>
-                <a href="report_portfolio" class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest hover:text-teal-600 transition flex items-center gap-2 mb-2">
+                <a href="report_portfolio" class="text-sm font-black text-slate-900 uppercase tracking-widest hover:text-teal-600 transition flex items-center gap-2 mb-2">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
                 <h1 class="text-4xl font-black text-gray-900 tracking-tight">
@@ -205,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
             <div class="mb-8 p-6 bg-red-50 border border-red-200 rounded-3xl relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-5 text-red-600"><i class="fas fa-comment-dots text-[8rem]"></i></div>
                 <div class="relative z-10">
-                    <div class="text-[0.625rem] font-black text-red-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <div class="text-sm font-black text-red-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                         <i class="fas fa-user-tie"></i> Supervisor Remarks
                     </div>
                     <p class="text-red-900 font-bold italic leading-relaxed text-sm">"<?= nl2br(htmlspecialchars($edit_data['supervisor_comments'])) ?>"</p>
@@ -219,12 +230,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
             <!-- Core Info -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-teal-500"></div>
-                <h2 class="text-xs font-black text-teal-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <h2 class="text-base font-black text-teal-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     <i class="fas fa-info-circle"></i> Core Information
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Class</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Class <span class="text-red-500">*</span></label>
                         <select name="class_name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
                             <option value="">Select Class...</option>
                             <?php foreach($teacher_classes as $tc): ?>
@@ -234,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     </div>
                     <!-- Removed Subject Dropdown -->
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Week Number</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Week Number <span class="text-red-500">*</span></label>
                         <select name="week_number" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
                             <?php for($i=1; $i<=$total_weeks; $i++): ?>
                                 <option value="<?= $i ?>" <?= getVal('week_number') == $i ? 'selected' : '' ?>>Week <?= $i ?></option>
@@ -242,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Week Ending (Friday Date)</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Week Ending (Friday Date) <span class="text-red-500">*</span></label>
                         <input type="date" name="week_ending" value="<?= getVal('week_ending') ?>" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
                     </div>
                 </div>
@@ -251,22 +262,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
             <!-- 1. Academic Coverage & Performance -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-                <h2 class="text-xs font-black text-indigo-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <h2 class="text-base font-black text-indigo-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     1. Academic Coverage & Performance
                 </h2>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Topics Covered (Summary)</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Topics Covered (Summary) <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Briefly list the specific topics or subtopics taught this week. What were the core learning objectives?</p>
                         <textarea name="topics_covered" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('topics_covered') ?></textarea>
                     </div>
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Assessments Conducted & General Performance</label>
-                        <textarea name="assessments_conducted" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('assessments_conducted') ?></textarea>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Assessments Conducted & General Performance <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Did you give a quiz, test, or project? Mention the type of assessment and the general outcome.</p>
+                        <textarea name="assessments_conducted" required class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('assessments_conducted') ?></textarea>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Overall Class Performance</label>
-                            <select name="overall_performance" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold">
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Overall Class Performance <span class="text-red-500">*</span></label>
+                            <select name="overall_performance" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold">
                                 <option value="">Select Rating...</option>
                                 <?php $ratings = ['Excellent', 'Very Good', 'Good', 'Fair', 'Poor']; foreach($ratings as $r): ?>
                                     <option value="<?= $r ?>" <?= getVal('overall_performance') === $r ? 'selected' : '' ?>><?= $r ?></option>
@@ -274,9 +287,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Struggling Students & Intervention Plans</label>
-                            <textarea name="struggling_students" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('struggling_students') ?></textarea>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Struggling Students & Intervention Plans <span class="text-red-500">*</span></label>
+                            <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">List students who fell behind and the specific steps you are taking to help them.</p>
+                            <textarea name="struggling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('struggling_students') ?></textarea>
                         </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Excelling Students & Enrichment <span class="text-red-500">*</span></label>
+                            <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">List students who mastered the content quickly and how you plan to challenge them further.</p>
+                            <textarea name="excelling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('excelling_students') ?></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Differentiation Strategies Used <span class="text-red-500">*</span></label>
+                            <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">How did you adapt the lesson for different learners? (e.g., visual aids, group work)</p>
+                            <textarea name="differentiation_strategies" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('differentiation_strategies') ?></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Teaching & Learning Materials (TLMs) <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">What physical or digital tools did you use? (e.g., Smartboard, lab equipment, charts)</p>
+                        <textarea name="tlm_usage" required placeholder="E.g., Smartboard, physical models, online tools..." class="w-full h-16 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('tlm_usage') ?></textarea>
                     </div>
                 </div>
             </div>
@@ -284,53 +315,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
             <!-- 2. Classroom Management & Behavior -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                <h2 class="text-xs font-black text-blue-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <h2 class="text-base font-black text-blue-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     2. Classroom Management & Behavior
                 </h2>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">General Class Behavior</label>
-                        <textarea name="general_behavior" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('general_behavior') ?></textarea>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">General Class Behavior <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Describe the overall mood and engagement. Were they attentive, restless, or talkative?</p>
+                        <textarea name="general_behavior" required class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('general_behavior') ?></textarea>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Discipline Issues & Actions Taken</label>
-                            <textarea name="discipline_issues" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('discipline_issues') ?></textarea>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Discipline Issues & Actions Taken <span class="text-red-500">*</span></label>
+                            <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Detail any behavioral incidents, who was involved, and the action taken.</p>
+                            <textarea name="discipline_issues" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('discipline_issues') ?></textarea>
                         </div>
                         <div>
-                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Attendance Concerns</label>
-                            <textarea name="attendance_concerns" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('attendance_concerns') ?></textarea>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Attendance Concerns <span class="text-red-500">*</span></label>
+                            <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">List students with frequent absences or persistent lateness. Is there a pattern?</p>
+                            <textarea name="attendance_concerns" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('attendance_concerns') ?></textarea>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. Parent Engagement -->
+            <!-- 3. Parent Engagement & Co-Curricular -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                <h2 class="text-xs font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                    3. Parent Engagement
+                <h2 class="text-base font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                    3. Engagement & Duties
                 </h2>
-                <div>
-                    <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Parents Contacted This Week (Who and Why?)</label>
-                    <textarea name="parents_contacted" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('parents_contacted') ?></textarea>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Parents Contacted This Week (Who and Why?) <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Which parents did you speak to? Was it for a positive reason or a concern?</p>
+                        <textarea name="parents_contacted" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('parents_contacted') ?></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Co-curricular Duties & Activities <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">What non-academic duties did you perform? (e.g., club meetings, break duty)</p>
+                        <textarea name="co_curricular_activities" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('co_curricular_activities') ?></textarea>
+                    </div>
                 </div>
             </div>
 
             <!-- 4. Challenges & Support -->
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-                <h2 class="text-xs font-black text-rose-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                <h2 class="text-base font-black text-rose-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     4. Teacher's Challenges & Needs
                 </h2>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Challenges Faced</label>
-                        <textarea name="challenges_faced" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('challenges_faced') ?></textarea>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Challenges Faced <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">What obstacles hindered your teaching? (e.g., time constraints, noisy environment)</p>
+                        <textarea name="challenges_faced" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('challenges_faced') ?></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Teacher Self-Reflection (What worked? What didn't?) <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">Think critically: What specific strategy worked perfectly? What needs a new approach?</p>
+                        <textarea name="self_reflection" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('self_reflection') ?></textarea>
                     </div>
                     
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Support / Resources Required</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Support / Resources Required</label>
                         <?php
                         $support_arr = array_map('trim', explode(',', getVal('support_required')));
                         $support_options = [
@@ -343,22 +391,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                             <?php foreach($support_options as $opt): ?>
                                 <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-rose-50 transition border border-transparent hover:border-rose-100">
                                     <input type="checkbox" name="support_required[]" value="<?= $opt ?>" <?= in_array($opt, $support_arr) ? 'checked' : '' ?> class="w-4 h-4 text-rose-600 rounded">
-                                    <span class="text-sm font-bold text-gray-700"><?= $opt ?></span>
+                                    <span class="text-sm font-bold text-slate-900"><?= $opt ?></span>
                                 </label>
                             <?php endforeach; ?>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Focus For Next Week</label>
-                        <textarea name="next_week_focus" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('next_week_focus') ?></textarea>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Focus For Next Week <span class="text-red-500">*</span></label>
+                        <p class="text-[0.8rem] text-slate-600 mb-2 leading-relaxed">What are your primary goals? Are you starting a new topic or reviewing material?</p>
+                        <textarea name="next_week_focus" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('next_week_focus') ?></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- Floating Action Bar -->
             <div class="fixed bottom-0 left-0 md:left-64 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 flex justify-center gap-4 z-40 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-                <button type="submit" name="save_draft" class="px-8 py-3.5 bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition shadow-xl shadow-gray-200">
+                <button type="submit" name="save_draft" formnovalidate class="px-8 py-3.5 bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-900 transition shadow-xl shadow-gray-200">
                     <i class="fas fa-save mr-2"></i> Save Draft
                 </button>
                 <button type="submit" name="submit_report" class="px-8 py-3.5 bg-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-indigo-700 transition shadow-xl shadow-indigo-200">
@@ -378,14 +427,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                         <div class="w-10 h-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-lg"><i class="fas fa-file-import"></i></div>
                         Import Report
                     </h2>
-                    <button onclick="document.getElementById('importModal').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"><i class="fas fa-times"></i></button>
+                    <button onclick="document.getElementById('importModal').classList.add('hidden')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-slate-600 hover:bg-gray-200 transition"><i class="fas fa-times"></i></button>
                 </div>
                 
-                <p class="text-sm text-gray-500 font-medium mb-6">Select the Class for this report, then upload your completed Word document (.docx). The system will automatically extract your data.</p>
+                <p class="text-sm text-slate-600 font-medium mb-6">Select the Class for this report, then upload your completed Word document (.docx). The system will automatically extract your data.</p>
                 
                 <form action="process_report_import" method="POST" enctype="multipart/form-data" class="space-y-5">
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Class</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Class <span class="text-red-500">*</span></label>
                         <select name="upload_class_name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all text-sm font-bold">
                             <option value="">Select Class...</option>
                             <?php foreach($teacher_classes as $tc): ?>
@@ -395,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     </div>
                     <!-- Removed Subject Dropdown -->
                     <div>
-                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Week Number</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Week Number <span class="text-red-500">*</span></label>
                         <select name="upload_week_number" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all text-sm font-bold">
                             <?php for($i=1; $i<=$total_weeks; $i++): ?>
                                 <option value="<?= $i ?>">Week <?= $i ?></option>
@@ -407,7 +456,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                         <input type="file" name="report_file" accept=".docx" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         <i class="fas fa-cloud-upload-alt text-4xl text-teal-400 mb-3 group-hover:-translate-y-1 transition-transform"></i>
                         <p class="text-sm font-bold text-teal-800">Drag & Drop your .docx file here</p>
-                        <p class="text-[0.625rem] font-black text-teal-600/60 uppercase tracking-widest mt-1">or click to browse</p>
+                        <p class="text-sm font-black text-teal-600/60 uppercase tracking-widest mt-1">or click to browse</p>
                     </div>
                     
                     <button type="submit" class="w-full mt-4 bg-teal-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-teal-700 transition shadow-xl shadow-teal-100 flex justify-center items-center gap-2">
@@ -415,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     </button>
                     
                     <div class="text-center mt-4">
-                        <a href="download_report_template" class="text-[0.625rem] font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-widest transition flex items-center justify-center gap-1">
+                        <a href="download_report_template" class="text-sm font-black text-indigo-500 hover:text-indigo-700 uppercase tracking-widest transition flex items-center justify-center gap-1">
                             <i class="fas fa-download"></i> Download Blank Template
                         </a>
                     </div>

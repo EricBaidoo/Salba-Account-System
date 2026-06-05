@@ -46,6 +46,12 @@ $challenges_faced = $p['challenges_faced'] ?? '';
 $support_required = explode(',', $p['support_required'] ?? '');
 $next_week_focus = $p['next_week_focus'] ?? '';
 
+$differentiation_strategies = $p['differentiation_strategies'] ?? '';
+$excelling_students = $p['excelling_students'] ?? '';
+$tlm_usage = $p['tlm_usage'] ?? '';
+$self_reflection = $p['self_reflection'] ?? '';
+$co_curricular_activities = $p['co_curricular_activities'] ?? '';
+
 if (isset($_GET['view']) && $_GET['view'] == 'html') {
     $render_type = 'html';
 } else {
@@ -144,6 +150,13 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <td style="width: 50%"><span class="label">Overall Class Performance:</span><br><span style="font-size: 13px; font-weight: bold;"><?= htmlspecialchars($overall_performance) ?></span></td>
                 <td style="width: 50%"><span class="label">Struggling Students & Intervention:</span><br><?= nl2br(htmlspecialchars($struggling_students)) ?></td>
             </tr>
+            <tr>
+                <td style="width: 50%"><span class="label">Excelling Students & Enrichment:</span><br><?= nl2br(htmlspecialchars($excelling_students)) ?></td>
+                <td style="width: 50%"><span class="label">Differentiation Strategies:</span><br><?= nl2br(htmlspecialchars($differentiation_strategies)) ?></td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="label">Teaching & Learning Materials (TLMs):</span><br><?= nl2br(htmlspecialchars($tlm_usage)) ?></td>
+            </tr>
         </table>
 
         <h3>2. Classroom Management & Behavior</h3>
@@ -157,20 +170,22 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
-        <h3>3. Parent Engagement</h3>
+        <h3>3. Engagement & Duties</h3>
         <table class="box-table">
             <tr>
-                <td><span class="label">Parents Contacted This Week (Who and Why?):</span><br><?= nl2br(htmlspecialchars($parents_contacted)) ?></td>
+                <td style="width: 50%"><span class="label">Parents Contacted This Week (Who and Why?):</span><br><?= nl2br(htmlspecialchars($parents_contacted)) ?></td>
+                <td style="width: 50%"><span class="label">Co-curricular Duties & Activities:</span><br><?= nl2br(htmlspecialchars($co_curricular_activities)) ?></td>
             </tr>
         </table>
 
         <h3>4. Teacher's Challenges & Needs</h3>
         <table class="box-table">
             <tr>
-                <td colspan="2"><span class="label">Challenges Faced:</span><br><?= nl2br(htmlspecialchars($challenges_faced)) ?></td>
+                <td style="width: 50%"><span class="label">Challenges Faced:</span><br><?= nl2br(htmlspecialchars($challenges_faced)) ?></td>
+                <td style="width: 50%"><span class="label">Teacher Self-Reflection:</span><br><?= nl2br(htmlspecialchars($self_reflection)) ?></td>
             </tr>
             <tr>
-                <td style="width: 50%"><span class="label">Support / Resources Required:</span><br><?= htmlspecialchars(implode(', ', array_filter(array_map('trim', $support_req)))) ?></td>
+                <td style="width: 50%"><span class="label">Support / Resources Required:</span><br><?= htmlspecialchars(implode(', ', array_filter(array_map('trim', $support_required)))) ?></td>
                 <td style="width: 50%"><span class="label">Focus For Next Week:</span><br><?= nl2br(htmlspecialchars($next_week_focus)) ?></td>
             </tr>
         </table>
