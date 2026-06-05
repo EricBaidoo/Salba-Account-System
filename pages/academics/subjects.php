@@ -26,17 +26,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt->bind_param("s", $mapped_class);
         $stmt->execute();
         
-        // Remove orphaned Subject Teacher allocations
+        // Remove orphaned Subject Teacher allocations and lesson plans
         if (empty($sub_ids)) {
             $stmt_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE class_name = ? AND is_subject_teacher = 1 AND subject_id IS NOT NULL AND subject_id > 0");
             $stmt_ta->bind_param("s", $mapped_class);
             $stmt_ta->execute();
+            
+            $stmt_lp = $conn->prepare("DELETE FROM lesson_plans WHERE class_name = ? AND subject_id IS NOT NULL AND subject_id > 0");
+            $stmt_lp->bind_param("s", $mapped_class);
+            $stmt_lp->execute();
         } else {
             $sub_ids_clean = array_map('intval', $sub_ids);
             $sub_ids_str = implode(',', $sub_ids_clean);
             $stmt_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE class_name = ? AND is_subject_teacher = 1 AND subject_id NOT IN ($sub_ids_str) AND subject_id IS NOT NULL AND subject_id > 0");
             $stmt_ta->bind_param("s", $mapped_class);
             $stmt_ta->execute();
+            
+            $stmt_lp = $conn->prepare("DELETE FROM lesson_plans WHERE class_name = ? AND subject_id NOT IN ($sub_ids_str) AND subject_id IS NOT NULL AND subject_id > 0");
+            $stmt_lp->bind_param("s", $mapped_class);
+            $stmt_lp->execute();
         }
 
         if (!empty($sub_ids)) {
@@ -98,6 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $del_ta = $conn->prepare("DELETE FROM teacher_allocations WHERE subject_id = ?");
         $del_ta->bind_param("i", $subject_id);
         $del_ta->execute();
+        
+        // Cascade delete from lesson_plans
+        $del_lp = $conn->prepare("DELETE FROM lesson_plans WHERE subject_id = ?");
+        $del_lp->bind_param("i", $subject_id);
+        $del_lp->execute();
 
         $del = $conn->prepare("DELETE FROM subjects WHERE id = ?");
         $del->bind_param("i", $subject_id);
