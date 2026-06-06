@@ -215,6 +215,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-user-graduate"></i>
             <span>Student Registry</span>
         </a>
+        <a href="<?= nav_link($base_path, 'administration/parents/view_parents') ?>" class="nav-item <?= nav_active('view_parents', $current_page) ?>">
+            <i class="fas fa-users-viewfinder"></i>
+            <span>Parents Directory</span>
+        </a>
         <a href="<?= nav_link($base_path, 'administration/students/add_student_form') ?>" class="nav-item <?= nav_active('add_student_form', $current_page) ?>">
             <i class="fas fa-user-plus"></i>
             <span>New Enrollment</span>

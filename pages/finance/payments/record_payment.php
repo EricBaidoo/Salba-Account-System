@@ -199,23 +199,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $current_balance = floatval($bal_res['bal'] ?? 0);
                     $bal_stmt->close();
                     
-                    // Fetch student and parent info
+                    // Fetch ALL linked parents
                     $stu_stmt = $conn->prepare("
                         SELECT s.first_name, s.last_name, p.title, p.last_name as p_last_name, p.phone
                         FROM students s 
                         LEFT JOIN student_parents sp ON s.id = sp.student_id 
-                        LEFT JOIN parents p ON sp.parent_id = p.id AND p.is_primary = 1
-                        WHERE s.id = ? LIMIT 1
+                        LEFT JOIN parents p ON sp.parent_id = p.id
+                        WHERE s.id = ? AND p.phone IS NOT NULL AND p.phone != ''
                     ");
                     $stu_stmt->bind_param("i", $student_id);
                     $stu_stmt->execute();
-                    $stu_res = $stu_stmt->get_result()->fetch_assoc();
-                    $stu_stmt->close();
+                    $stu_res = $stu_stmt->get_result();
                     
-                    if ($stu_res && !empty($stu_res['phone'])) {
-                        $student_name = trim($stu_res['first_name'] . ' ' . $stu_res['last_name']);
-                        $parent_title = !empty($stu_res['title']) ? $stu_res['title'] : '';
-                        $parent_name = trim($parent_title . ' ' . $stu_res['p_last_name']);
+                    while ($parent_data = $stu_res->fetch_assoc()) {
+                        $student_name = trim($parent_data['first_name'] . ' ' . $parent_data['last_name']);
+                        $parent_title = !empty($parent_data['title']) ? $parent_data['title'] : '';
+                        $parent_name = trim($parent_title . ' ' . $parent_data['p_last_name']);
                         
                         $vars = [
                             '{student_name}' => $student_name,
@@ -225,8 +224,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             '{term}' => $semester
                         ];
                         
-                        send_sms_from_template($conn, $tpl_id, $stu_res['phone'], $vars);
+                        send_sms_from_template($conn, $tpl_id, $parent_data['phone'], $vars);
                     }
+                    $stu_stmt->close();
                 }
             }
             // --- END AUTOMATION WIRING ---

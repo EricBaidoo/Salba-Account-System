@@ -50,6 +50,28 @@ $queries = [
         `status` VARCHAR(50) NULL,
         `api_response` TEXT,
         `sent_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    )",
+    "parents table" => "CREATE TABLE IF NOT EXISTS `parents` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `title` VARCHAR(50) NULL,
+        `first_name` VARCHAR(100) NOT NULL,
+        `last_name` VARCHAR(100) NOT NULL,
+        `relationship` VARCHAR(50) NULL,
+        `phone` VARCHAR(100) NULL,
+        `email` VARCHAR(100) NULL,
+        `address` TEXT NULL,
+        `is_primary` TINYINT(1) DEFAULT 0,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    )",
+    "student_parents table" => "CREATE TABLE IF NOT EXISTS `student_parents` (
+        `student_id` INT NOT NULL,
+        `parent_id` INT NOT NULL,
+        `relationship` VARCHAR(50) NULL,
+        `is_primary` TINYINT(1) DEFAULT 0,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`student_id`, `parent_id`),
+        FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE,
+        FOREIGN KEY (`parent_id`) REFERENCES `parents`(`id`) ON DELETE CASCADE
     )"
 ];
 
@@ -76,6 +98,38 @@ if ($check && $check->num_rows > 0) {
         echo "<div style='color: red; margin-bottom: 10px;'>❌ Error adding <strong>title</strong> column: " . $conn->error . "</div>";
         $all_success = false;
     }
+}
+
+// Ensure 'phone' column can hold multiple comma-separated numbers safely (increase length to 100)
+$sql = "ALTER TABLE `parents` MODIFY `phone` VARCHAR(100) NULL";
+if ($conn->query($sql)) {
+    echo "<div style='color: green; margin-bottom: 10px;'>✅ Successfully verified <strong>phone</strong> column length in parents table.</div>";
+} else {
+    echo "<div style='color: red; margin-bottom: 10px;'>❌ Error modifying <strong>phone</strong> column: " . $conn->error . "</div>";
+    $all_success = false;
+}
+
+// Make student fields optional
+$alter_students_queries = [
+    "ALTER TABLE `students` MODIFY `date_of_birth` DATE NULL",
+    "ALTER TABLE `students` MODIFY `parent_contact` VARCHAR(50) NULL",
+    "ALTER TABLE `students` MODIFY `address` TEXT NULL",
+    "ALTER TABLE `students` MODIFY `place_of_birth` VARCHAR(100) NULL",
+    "ALTER TABLE `students` MODIFY `emergency_contact` VARCHAR(50) NULL",
+    "ALTER TABLE `students` MODIFY `photo_path` VARCHAR(255) NULL",
+    "ALTER TABLE `students` MODIFY `landmark` VARCHAR(100) NULL",
+    "ALTER TABLE `students` MODIFY `date_admitted` DATE NULL",
+    "ALTER TABLE `students` MODIFY `previous_school` VARCHAR(150) NULL"
+];
+
+foreach ($alter_students_queries as $sql) {
+    if (!$conn->query($sql)) {
+        echo "<div style='color: red; margin-bottom: 10px;'>❌ Error making student field optional: " . $conn->error . "</div>";
+        $all_success = false;
+    }
+}
+if ($all_success) {
+    echo "<div style='color: green; margin-bottom: 10px;'>✅ Successfully made student fields optional in the students table.</div>";
 }
 
 echo "<hr style='border:0; border-top:1px solid #eee; margin:20px 0;'>";

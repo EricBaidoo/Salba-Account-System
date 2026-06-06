@@ -76,82 +76,95 @@ if (!empty($admin_phone)) {
 // ---------------------------------------------------------
 // TASK 2: OVERDUE FEE REMINDERS
 // ---------------------------------------------------------
-log_cron_activity("Executing Task: Overdue Fee Reminders...");
-$trigger_overdue = getSystemSetting($conn, 'trigger_overdue', '0');
+log_cron_activity("Executing Task: Overdue Fee Reminders");
+$trigger_overdue = getSystemSetting($conn, 'trigger_overdue_fee', '0');
 if ($trigger_overdue === '1') {
-    $tpl_id = (int)getSystemSetting($conn, 'template_overdue', '0');
+    $tpl_id = (int)getSystemSetting($conn, 'template_overdue_fee', '0');
     if ($tpl_id > 0) {
-        $count = 0;
-        // Find overdue fees. We group by student_id to send one summary SMS instead of one per fee.
-        $stmt = $conn->query("
-            SELECT sf.student_id, SUM(sf.amount - sf.amount_paid) as bal, s.first_name, s.last_name, p.title, p.last_name as p_last_name, p.phone
-            FROM student_fees sf
-            JOIN students s ON sf.student_id = s.id
-            LEFT JOIN student_parents sp ON s.id = sp.student_id 
-            LEFT JOIN parents p ON sp.parent_id = p.id AND p.is_primary = 1
-            WHERE sf.status = 'overdue' OR (sf.status IN ('pending', 'due') AND sf.due_date < CURDATE() AND (sf.amount - sf.amount_paid) > 0)
-            GROUP BY sf.student_id
-        ");
-        if ($stmt) {
-            while ($row = $stmt->fetch_assoc()) {
-                if (!empty($row['phone'])) {
-                    $vars = [
-                        '{student_name}' => trim($row['first_name'] . ' ' . $row['last_name']),
-                        '{parent_name}' => trim(($row['title'] ? $row['title'] . ' ' : '') . $row['p_last_name']),
-                        '{balance}' => number_format($row['bal'], 2),
-                        '{amount}' => '0.00', // not applicable here
-                        '{term}' => getSystemSetting($conn, 'current_semester', '')
-                    ];
-                    send_sms_from_template($conn, $tpl_id, $row['phone'], $vars);
-                    $count++;
-                }
+        $overdue_sql = "
+            SELECT 
+                s.id as student_id,
+                s.first_name, s.last_name,
+                p.title, p.last_name as p_last_name, p.phone as parent_contact,
+                SUM(f.amount - f.amount_paid) as total_overdue
+            FROM student_fees f
+            JOIN students s ON f.student_id = s.id
+            JOIN student_parents sp ON s.id = sp.student_id
+            JOIN parents p ON sp.parent_id = p.id
+            WHERE f.status = 'overdue'
+              AND p.phone IS NOT NULL AND p.phone != ''
+            GROUP BY s.id, p.id
+            HAVING total_overdue > 0
+        ";
+        $overdue_res = $conn->query($overdue_sql);
+        
+        $count_overdue = 0;
+        if ($overdue_res && $overdue_res->num_rows > 0) {
+            while ($row = $overdue_res->fetch_assoc()) {
+                $student_name = trim($row['first_name'] . ' ' . $row['last_name']);
+                $parent_title = !empty($row['title']) ? $row['title'] : '';
+                $parent_name = trim($parent_title . ' ' . $row['p_last_name']);
+                
+                $vars = [
+                    '{student_name}' => $student_name,
+                    '{parent_name}' => $parent_name,
+                    '{balance}' => number_format($row['total_overdue'], 2)
+                ];
+                send_sms_from_template($conn, $tpl_id, $row['parent_contact'], $vars);
+                $count_overdue++;
             }
         }
-        log_cron_activity("Overdue Reminders sent: $count");
+        log_cron_activity("Overdue Fees Task Completed: Sent $count_overdue SMS reminders.");
     } else {
-        log_cron_activity("Skipped: No template selected for Overdue Fees.");
+        log_cron_activity("Overdue Fees Task Skipped: Template not configured.");
     }
 } else {
-    log_cron_activity("Skipped: Overdue Fees trigger is disabled.");
+    log_cron_activity("Overdue Fees Task Skipped: Trigger is disabled.");
 }
 
 // ---------------------------------------------------------
-// TASK 3: BIRTHDAY WISHES
+// TASK 3: HAPPY BIRTHDAY WISHES
 // ---------------------------------------------------------
-log_cron_activity("Executing Task: Birthday Wishes...");
+log_cron_activity("Executing Task: Happy Birthday Wishes");
 $trigger_bday = getSystemSetting($conn, 'trigger_birthday', '0');
 if ($trigger_bday === '1') {
     $tpl_id = (int)getSystemSetting($conn, 'template_birthday', '0');
     if ($tpl_id > 0) {
-        $count = 0;
-        $stmt = $conn->query("
-            SELECT s.first_name, s.last_name, p.title, p.last_name as p_last_name, p.phone
+        $today_md = date('m-d');
+        $bday_sql = "
+            SELECT 
+                s.first_name, s.last_name,
+                p.title, p.last_name as p_last_name, p.phone as parent_contact
             FROM students s
-            LEFT JOIN student_parents sp ON s.id = sp.student_id 
-            LEFT JOIN parents p ON sp.parent_id = p.id AND p.is_primary = 1
-            WHERE MONTH(s.date_of_birth) = MONTH(CURDATE()) AND DAY(s.date_of_birth) = DAY(CURDATE()) AND s.status = 'active'
-        ");
-        if ($stmt) {
-            while ($row = $stmt->fetch_assoc()) {
-                if (!empty($row['phone'])) {
-                    $vars = [
-                        '{student_name}' => trim($row['first_name'] . ' ' . $row['last_name']),
-                        '{parent_name}' => trim(($row['title'] ? $row['title'] . ' ' : '') . $row['p_last_name']),
-                        '{balance}' => '0.00',
-                        '{amount}' => '0.00',
-                        '{term}' => ''
-                    ];
-                    send_sms_from_template($conn, $tpl_id, $row['phone'], $vars);
-                    $count++;
-                }
+            JOIN student_parents sp ON s.id = sp.student_id
+            JOIN parents p ON sp.parent_id = p.id
+            WHERE DATE_FORMAT(s.date_of_birth, '%m-%d') = '$today_md'
+              AND s.status = 'active'
+              AND p.phone IS NOT NULL AND p.phone != ''
+        ";
+        $bday_res = $conn->query($bday_sql);
+        
+        $count_bday = 0;
+        if ($bday_res && $bday_res->num_rows > 0) {
+            while ($row = $bday_res->fetch_assoc()) {
+                $student_name = trim($row['first_name'] . ' ' . $row['last_name']);
+                $parent_title = !empty($row['title']) ? $row['title'] : '';
+                $parent_name = trim($parent_title . ' ' . $row['p_last_name']);
+                
+                $vars = [
+                    '{student_name}' => $student_name,
+                    '{parent_name}' => $parent_name
+                ];
+                send_sms_from_template($conn, $tpl_id, $row['parent_contact'], $vars);
+                $count_bday++;
             }
         }
-        log_cron_activity("Birthday Wishes sent: $count");
+        log_cron_activity("Birthday Wishes Task Completed: Sent $count_bday SMS wishes.");
     } else {
-        log_cron_activity("Skipped: No template selected for Birthdays.");
+        log_cron_activity("Birthday Wishes Task Skipped: Template not configured.");
     }
 } else {
-    log_cron_activity("Skipped: Birthday Wishes trigger is disabled.");
+    log_cron_activity("Birthday Wishes Task Skipped: Trigger is disabled.");
 }
 
 log_cron_activity("=== CRON JOB FINISHED ===");

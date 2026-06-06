@@ -9,11 +9,35 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit;
 }
 
+// Ensure new columns exist in the students table
+$columns_to_add = [
+    'address' => 'TEXT NULL',
+    'place_of_birth' => 'VARCHAR(255) NULL',
+    'emergency_contact' => 'VARCHAR(100) NULL',
+    'photo_path' => 'VARCHAR(255) NULL',
+    'landmark' => 'VARCHAR(255) NULL',
+    'date_admitted' => 'DATE NULL',
+    'previous_school' => 'VARCHAR(255) NULL'
+];
+foreach ($columns_to_add as $col => $type) {
+    $check = $conn->query("SHOW COLUMNS FROM `students` LIKE '$col'");
+    if ($check && $check->num_rows === 0) {
+        $conn->query("ALTER TABLE `students` ADD COLUMN `$col` $type");
+    }
+}
+
 // Fetch all classes for the class dropdown
 $classes_result = $conn->query("SELECT name FROM classes ORDER BY id ASC");
 $class_options = [];
 while ($row = $classes_result->fetch_assoc()) {
     $class_options[] = $row['name'];
+}
+
+// Fetch all parents for the select dropdowns
+$parents_result = $conn->query("SELECT id, title, first_name, last_name, phone FROM parents ORDER BY last_name ASC, first_name ASC");
+$parents_list = [];
+while ($row = $parents_result->fetch_assoc()) {
+    $parents_list[] = $row;
 }
 ?>
 <!DOCTYPE html>
@@ -24,7 +48,22 @@ while ($row = $classes_result->fetch_assoc()) {
     <title>Student Enrollment - Administration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .section-card { background: white; border-radius: 1rem; border: 0.0625rem solid #f0f0f5; box-shadow: 0 0.0625rem 0.25rem rgba(0,0,0,0.04); }
+        .section-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.125rem 1.5rem; border-bottom: 0.0625rem solid #f5f5fa; }
+        .section-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.625rem; display: flex; align-items: center; justify-content: center; font-size: 0.9375rem; flex-shrink: 0; }
+        .field-label { display: block; font-size: 0.6875rem; font-weight: 700; color: #8b8fa8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.375rem; }
+        .field-input { width: 100%; padding: 0.625rem 0.875rem; border: 0.09375rem solid #e8e8f0; border-radius: 0.625rem; font-size: 0.875rem; font-weight: 500; color: #1f2937; background: #fafafa; transition: all 0.2s; outline: none; }
+        .field-input:focus { border-color: #6366f1; background: white; box-shadow: 0 0 0 0.1875rem rgba(99,102,241,0.08); }
+        .field-input::placeholder { color: #c4c6d5; font-weight: 400; }
+        select.field-input { cursor: pointer; }
+        .photo-upload { width: 6.875rem; height: 8.125rem; border: 0.15625rem dashed #d1d5db; border-radius: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; overflow: hidden; background: #f8f9fc; }
+        .photo-upload:hover { border-color: #6366f1; background: #f0f0ff; }
+        .photo-preview { width: 100%; height: 100%; object-fit: cover; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
@@ -39,316 +78,269 @@ while ($row = $classes_result->fetch_assoc()) {
                 </a>
             </div>
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                    <i class="fas fa-user-plus text-blue-600"></i> Student Enrollment
+                <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <i class="fas fa-user-plus text-indigo-600"></i> Student Enrollment
                 </h1>
-                <p class="text-gray-500 mt-2 text-sm">
-                    Add new students to the school system individually or via bulk upload.
+                <p class="text-gray-500 mt-2 font-medium">
+                    Complete the student's biographical, parent, and admission details.
                 </p>
             </div>
         </div>
 
-        <div class="p-8">
+        <div class="p-8 max-w-6xl mx-auto">
             
-            <!-- Method Selection -->
-            <div class="flex gap-4 mb-8">
-                <button type="button" onclick="selectMethod('single')" id="btnSingle" class="flex-1 bg-white border-2 border-blue-600 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer shadow-sm relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600" id="indicatorSingle"></div>
-                    <i class="fas fa-user text-3xl text-blue-600 group-hover:scale-110 transition-transform"></i>
-                    <div class="text-center">
-                        <h3 class="font-bold text-gray-900">Single Student</h3>
-                        <p class="text-sm text-gray-500 mt-1">Enroll one student manually</p>
-                    </div>
-                </button>
+            <?php if (isset($_SESSION['flash_error'])): ?>
+                <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl mb-6 flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                    <span class="text-sm font-medium"><?= htmlspecialchars($_SESSION['flash_error']) ?></span>
+                </div>
+                <?php unset($_SESSION['flash_error']); ?>
+            <?php endif; ?>
+
+            <form action="add_student" method="POST" enctype="multipart/form-data" class="space-y-6">
                 
-                <button type="button" onclick="selectMethod('bulk')" id="btnBulk" class="flex-1 bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer hover:border-blue-300 hover:shadow-md group">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-transparent" id="indicatorBulk"></div>
-                    <i class="fas fa-users text-3xl text-gray-400 group-hover:text-green-500 group-hover:scale-110 transition-all"></i>
-                    <div class="text-center">
-                        <h3 class="font-bold text-gray-900">Bulk Upload</h3>
-                        <p class="text-sm text-gray-500 mt-1">Import via CSV file</p>
+                <!-- ── SECTION 1: Personal Information ─────────────────── -->
+                <div class="section-card overflow-hidden">
+                    <div class="section-header">
+                        <div class="section-icon bg-indigo-100">
+                            <i class="fas fa-user text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-gray-900 text-base">Personal Information</h2>
+                            <p class="text-xs text-gray-400 font-medium">Student's basic biographical identity</p>
+                        </div>
                     </div>
-                </button>
-            </div>
-
-            <!-- Single Student Form -->
-            <div id="singleSection" class="block">
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden max-w-3xl">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <h5 class="font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-user-edit text-blue-500"></i> New Student Details
-                        </h5>
-                    </div>
-                    
-                    <form action="add_student" method="POST" id="studentForm" class="p-6">
-                        <!-- Required Information -->
-                        <div class="mb-8">
-                            <h6 class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i class="fas fa-star"></i> Required Information
-                            </h6>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="first_name" name="first_name" required
-                                           class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
-                                           placeholder="e.g. John">
-                                </div>
-                                <div>
-                                    <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="last_name" name="last_name" required
-                                           class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
-                                           placeholder="e.g. Doe">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label for="class" class="block text-sm font-semibold text-gray-700 mb-1">Class / Grade <span class="text-red-500">*</span></label>
-                                    <select id="class" name="class" required
-                                            class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors appearance-none">
-                                        <option value="">Select Class/Grade...</option>
-                                        <?php 
-                                        $classesList = ['Creche','Nursery 1','Nursery 2','KG 1','KG 2','Basic 1','Basic 2','Basic 3','Basic 4','Basic 5','Basic 6','Basic 7'];
-                                        foreach($classesList as $c): 
-                                        ?>
-                                            <option value="<?php echo $c; ?>"><?php echo $c; ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Optional Information -->
-                        <div class="mb-8">
-                            <h6 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i class="fas fa-info-circle"></i> Additional Information <span class="font-normal normal-case">(Optional)</span>
-                            </h6>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label for="date_of_birth" class="block text-sm font-semibold text-gray-700 mb-1">Date of Birth</label>
-                                    <input type="date" id="date_of_birth" name="date_of_birth"
-                                           class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors">
-                                </div>
-                                <div>
-                                    <label for="parent_contact" class="block text-sm font-semibold text-gray-700 mb-1">Parent Contact</label>
-                                    <input type="text" id="parent_contact" name="parent_contact"
-                                           class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
-                                           placeholder="Phone number or email">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-6 border-t border-gray-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                            <p class="text-xs text-gray-500">
-                                <i class="fas fa-asterisk text-red-500 mr-1"></i> Required fields
-                            </p>
-                            <div class="flex gap-3">
-                                <button type="reset" class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                                    Clear Form
-                                </button>
-                                <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-200 transition-all flex items-center gap-2">
-                                    <i class="fas fa-check"></i> Enroll Student
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Bulk Upload Form -->
-            <div id="bulkSection" class="hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <div class="lg:col-span-8">
-                        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                                <h5 class="font-bold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-upload text-green-500"></i> Import CSV Data
-                                </h5>
-                            </div>
-                            <form action="bulk_upload_students" method="POST" enctype="multipart/form-data" id="bulkUploadForm" class="p-6">
-                                <div class="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center bg-gray-50 hover:bg-gray-100 hover:border-green-400 transition-colors cursor-pointer group" id="uploadArea">
-                                    <i class="fas fa-cloud-upload-alt text-5xl text-gray-300 group-hover:text-green-500 transition-colors mb-4 block"></i>
-                                    <h5 class="text-lg font-bold text-gray-800 mb-1">Click or drag CSV file here</h5>
-                                    <p class="text-sm text-gray-500 mb-4">Only .csv files are supported</p>
-                                    
-                                    <button type="button" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg shadow-sm group-hover:border-green-300">
-                                        Browse Files
-                                    </button>
-                                    <input type="file" id="csvFile" name="csvFile" accept=".csv" class="hidden" required>
-                                </div>
-                                
-                                <div id="fileInfo" class="mt-4 hidden animate-fade-in">
-                                    <div class="p-4 bg-green-50 border border-green-200 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-                                                <i class="fas fa-file-csv text-xl"></i>
-                                            </div>
-                                            <div>
-                                                <div id="fileName" class="font-bold text-gray-800 text-sm"></div>
-                                                <div id="fileSize" class="text-xs text-gray-500 mt-0.5"></div>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="w-8 h-8 rounded-full hover:bg-green-100 flex items-center justify-center text-gray-500 transition-colors" onclick="clearFile()">
-                                            <i class="fas fa-times"></i>
-                                        </button>
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <!-- Photo Upload -->
+                            <div class="flex-shrink-0">
+                                <label class="field-label mb-2">Passport Picture</label>
+                                <label for="photo_input" class="photo-upload group cursor-pointer" id="photo_label">
+                                    <img id="photo_preview" class="photo-preview hidden">
+                                    <div id="photo_placeholder" class="flex flex-col items-center justify-center text-center p-2">
+                                        <i class="fas fa-camera text-2xl text-gray-300 mb-2 group-hover:text-indigo-400 transition"></i>
+                                        <span class="text-[0.625rem] text-gray-400 font-bold group-hover:text-indigo-500">Click to upload</span>
                                     </div>
-                                </div>
-
-                                <div class="mt-6 pt-6 border-t border-gray-100">
-                                    <button type="submit" class="w-full px-5 py-3 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 shadow-sm shadow-green-200 transition-all flex items-center justify-center gap-2">
-                                        <i class="fas fa-cloud-upload-alt"></i> Process Upload
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- CSV Information Side Panel -->
-                    <div class="lg:col-span-4">
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-4">
-                            <h6 class="font-bold text-blue-900 mb-2 flex items-center gap-2 text-sm">
-                                <i class="fas fa-info-circle text-blue-600"></i> Setup Instructions
-                            </h6>
-                            <ul class="space-y-2 text-sm text-blue-800 list-disc pl-4 marker:text-blue-400">
-                                <li>The first row must contain exactly these headers: <code class="font-bold">first_name, last_name, class, date_of_birth, parent_contact</code></li>
-                                <li><strong>Required fields:</strong> first_name, last_name, class</li>
-                                <li><strong>Date format:</strong> YYYY-MM-DD (e.g. 2015-05-12)</li>
-                            </ul>
-                            <div class="mt-4 pt-4 border-t border-blue-200">
-                                <button type="button" id="downloadTemplate" class="w-full px-4 py-2 bg-white text-blue-700 border border-blue-200 font-medium text-sm rounded-lg hover:bg-blue-600 hover:text-white transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                    <i class="fas fa-download"></i> Download Template
-                                </button>
+                                </label>
+                                <input type="file" name="photo" id="photo_input" accept=".jpg,.jpeg,.png,.webp" class="sr-only" onchange="previewPhoto(event)">
                             </div>
-                        </div>
-                        
-                        <div class="bg-white border text-sm border-gray-100 rounded-xl p-0 overflow-hidden shadow-sm">
-                            <div class="bg-gray-50 px-4 py-3 border-b border-gray-100 font-bold text-gray-700">Sample Format</div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead class="text-xs text-gray-500 uppercase bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-2 font-mono">first_name</th>
-                                            <th class="px-4 py-2 font-mono">class</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100 text-gray-600">
-                                        <tr>
-                                            <td class="px-4 py-2">John</td>
-                                            <td class="px-4 py-2">Basic 1</td>
-                                        </tr>
-                                        <tr class="bg-gray-50/50">
-                                            <td class="px-4 py-2">Jane</td>
-                                            <td class="px-4 py-2">KG 1</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+
+                            <!-- Fields -->
+                            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div>
+                                    <label class="field-label">First Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="first_name" class="field-input" placeholder="e.g. John" required>
+                                </div>
+                                <div>
+                                    <label class="field-label">Last Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="last_name" class="field-input" placeholder="e.g. Doe" required>
+                                </div>
+                                <div>
+                                    <label class="field-label">Date of Birth</label>
+                                    <input type="date" name="date_of_birth" class="field-input">
+                                </div>
+                                <div class="lg:col-span-2">
+                                    <label class="field-label">Place of Birth</label>
+                                    <input type="text" name="place_of_birth" class="field-input" placeholder="City or Hospital of birth">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <!-- ── SECTION 2: Academic Details ─────────────────── -->
+                <div class="section-card overflow-hidden">
+                    <div class="section-header">
+                        <div class="section-icon bg-blue-100">
+                            <i class="fas fa-graduation-cap text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-gray-900 text-base">Admission Details</h2>
+                            <p class="text-xs text-gray-400 font-medium">Placement and academic history</p>
+                        </div>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div>
+                            <label class="field-label">Class / Grade <span class="text-red-500">*</span></label>
+                            <select name="class" class="field-input" required>
+                                <option value="">-- Select Class --</option>
+                                <?php foreach($class_options as $c): ?>
+                                    <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Date Admitted</label>
+                            <input type="date" name="date_admitted" class="field-input">
+                        </div>
+                        <div>
+                            <label class="field-label">Previous School (if any)</label>
+                            <input type="text" name="previous_school" class="field-input" placeholder="Name of previous institution">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 3: Address & Emergency ─────────────────── -->
+                <div class="section-card overflow-hidden">
+                    <div class="section-header">
+                        <div class="section-icon bg-green-100">
+                            <i class="fas fa-map-marker-alt text-green-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-gray-900 text-base">Address & Emergency</h2>
+                            <p class="text-xs text-gray-400 font-medium">Residential location and emergency contacts</p>
+                        </div>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="field-label">Place of Stay (Address)</label>
+                            <textarea name="address" rows="2" class="field-input" placeholder="Full residential address" style="resize:none;"></textarea>
+                        </div>
+                        <div>
+                            <label class="field-label">Landmark (Famous Location)</label>
+                            <input type="text" name="landmark" class="field-input" placeholder="Nearest landmark to residence">
+                        </div>
+                        <div>
+                            <label class="field-label">Emergency Contact</label>
+                            <input type="tel" name="emergency_contact" class="field-input" placeholder="Name and Phone Number">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 4: Parents Information ─────────────────── -->
+                <div class="section-card overflow-hidden">
+                    <div class="section-header">
+                        <div class="section-icon bg-purple-100">
+                            <i class="fas fa-users text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-gray-900 text-base">Parents Information</h2>
+                            <p class="text-xs text-gray-400 font-medium">Names and contacts for the Communication Engine</p>
+                        </div>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Mother -->
+                        <div class="bg-purple-50 p-5 rounded-xl border border-purple-100 space-y-4">
+                            <h3 class="font-bold text-sm text-purple-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-female"></i> Mother's Details
+                            </h3>
+                            <div>
+                                <label class="field-label text-purple-700">Link Existing Mother</label>
+                                <select name="existing_mother_id" class="field-input bg-purple-50 border-purple-200 focus:border-purple-500" onchange="toggleMotherFields(this.value)">
+                                    <option value="">-- Add New Mother Profile --</option>
+                                    <?php foreach($parents_list as $p): ?>
+                                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars(trim($p['title'].' '.$p['first_name'].' '.$p['last_name'])) ?> (<?= htmlspecialchars($p['phone']) ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div id="new_mother_section" class="space-y-4 pt-3 border-t border-purple-200/60">
+                                <div>
+                                    <label class="field-label">New Mother's Full Name</label>
+                                    <input type="text" name="mother_name" id="mother_name" class="field-input" placeholder="e.g. Jane Doe">
+                                </div>
+                                <div>
+                                    <label class="field-label">New Mother's Contact</label>
+                                    <input type="tel" name="mother_contact" id="mother_contact" class="field-input" placeholder="Phone number for SMS">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Father -->
+                        <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 space-y-4">
+                            <h3 class="font-bold text-sm text-indigo-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-male"></i> Father's Details
+                            </h3>
+                            <div>
+                                <label class="field-label text-indigo-700">Link Existing Father</label>
+                                <select name="existing_father_id" class="field-input bg-indigo-50 border-indigo-200 focus:border-indigo-500" onchange="toggleFatherFields(this.value)">
+                                    <option value="">-- Add New Father Profile --</option>
+                                    <?php foreach($parents_list as $p): ?>
+                                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars(trim($p['title'].' '.$p['first_name'].' '.$p['last_name'])) ?> (<?= htmlspecialchars($p['phone']) ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div id="new_father_section" class="space-y-4 pt-3 border-t border-indigo-200/60">
+                                <div>
+                                    <label class="field-label">New Father's Full Name</label>
+                                    <input type="text" name="father_name" id="father_name" class="field-input" placeholder="e.g. John Doe">
+                                </div>
+                                <div>
+                                    <label class="field-label">New Father's Contact</label>
+                                    <input type="tel" name="father_contact" id="father_contact" class="field-input" placeholder="Phone number for SMS">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Bar -->
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center justify-between sticky bottom-4">
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-asterisk text-red-500 mr-1"></i> Fields marked with red are required.
+                    </p>
+                    <div class="flex gap-3">
+                        <button type="reset" class="px-6 py-2.5 text-sm font-bold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                            Clear
+                        </button>
+                        <button type="submit" class="px-8 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-sm transition-all flex items-center gap-2">
+                            <i class="fas fa-check"></i> Enroll Student
+                        </button>
+                    </div>
+                </div>
+
+            </form>
         </div>
-
     </main>
 
     <script>
-        function selectMethod(method) {
-            const btnSingle = document.getElementById('btnSingle');
-            const btnBulk = document.getElementById('btnBulk');
-            const indSingle = document.getElementById('indicatorSingle');
-            const indBulk = document.getElementById('indicatorBulk');
-            const secSingle = document.getElementById('singleSection');
-            const secBulk = document.getElementById('bulkSection');
-
-            // Reset all
-            btnSingle.className = 'flex-1 bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer hover:border-blue-300 hover:shadow-md group relative overflow-hidden';
-            btnBulk.className   = 'flex-1 bg-white border border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer hover:border-green-300 hover:shadow-md group relative overflow-hidden';
-            indSingle.className = 'absolute top-0 left-0 w-full h-1 bg-transparent';
-            indBulk.className   = 'absolute top-0 left-0 w-full h-1 bg-transparent';
+        function toggleMotherFields(val) {
+            const section = document.getElementById('new_mother_section');
+            const nameInput = document.getElementById('mother_name');
+            const contactInput = document.getElementById('mother_contact');
             
-            // Icon colors
-            btnSingle.querySelector('i').className = 'fas fa-user text-3xl text-gray-400 group-hover:text-blue-500 group-hover:scale-110 transition-all';
-            btnBulk.querySelector('i').className   = 'fas fa-users text-3xl text-gray-400 group-hover:text-green-500 group-hover:scale-110 transition-all';
-
-            secSingle.style.display = 'none';
-            secBulk.style.display = 'none';
-
-            // Set active
-            if (method === 'single') {
-                btnSingle.classList.remove('border-gray-200', 'hover:border-blue-300');
-                btnSingle.classList.add('border-2', 'border-blue-600', 'shadow-sm');
-                indSingle.className = 'absolute top-0 left-0 w-full h-1 bg-blue-600';
-                btnSingle.querySelector('i').className = 'fas fa-user text-3xl text-blue-600 group-hover:scale-110 transition-transform';
-                secSingle.style.display = 'block';
+            if (val !== "") {
+                section.style.opacity = '0.5';
+                section.style.pointerEvents = 'none';
+                nameInput.required = false;
+                contactInput.required = false;
+                nameInput.value = '';
+                contactInput.value = '';
             } else {
-                btnBulk.classList.remove('border-gray-200', 'hover:border-green-300');
-                btnBulk.classList.add('border-2', 'border-green-600', 'shadow-sm');
-                indBulk.className = 'absolute top-0 left-0 w-full h-1 bg-green-600';
-                btnBulk.querySelector('i').className = 'fas fa-users text-3xl text-green-600 group-hover:scale-110 transition-transform';
-                secBulk.style.display = 'block';
+                section.style.opacity = '1';
+                section.style.pointerEvents = 'auto';
+                nameInput.required = true;
+                contactInput.required = true;
             }
         }
 
-        // Drag and Drop functionality
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('csvFile');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileSize = document.getElementById('fileSize');
-
-        if (uploadArea && fileInput) {
-            uploadArea.addEventListener('click', () => fileInput.click());
-
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('bg-green-50', 'border-green-400');
-            });
-
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('bg-green-50', 'border-green-400');
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('bg-green-50', 'border-green-400');
-                const files = e.dataTransfer.files;
-                if (files.length > 0 && files[0].type === 'text/csv') {
-                    fileInput.files = files;
-                    displayFileInfo(files[0]);
-                } else {
-                    alert('Please drop a valid .csv file.');
-                }
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    displayFileInfo(e.target.files[0]);
-                }
-            });
+        function toggleFatherFields(val) {
+            const section = document.getElementById('new_father_section');
+            const nameInput = document.getElementById('father_name');
+            const contactInput = document.getElementById('father_contact');
+            
+            if (val !== "") {
+                section.style.opacity = '0.5';
+                section.style.pointerEvents = 'none';
+                nameInput.value = '';
+                contactInput.value = '';
+            } else {
+                section.style.opacity = '1';
+                section.style.pointerEvents = 'auto';
+            }
         }
 
-        function displayFileInfo(file) {
-            fileName.textContent = file.name;
-            fileSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
-            fileInfo.classList.remove('hidden');
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('photo_preview');
+                const placeholder = document.getElementById('photo_placeholder');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
         }
-
-        function clearFile() {
-            fileInput.value = '';
-            fileInfo.classList.add('hidden');
-        }
-
-        document.getElementById('downloadTemplate').addEventListener('click', function(e) {
-            e.preventDefault();
-            const csvContent = "first_name,last_name,class,date_of_birth,parent_contact\nJohn,Doe,Basic 1,2015-05-12,0801234567\nJane,Smith,KG 1,,jane@email.com\nMichael,Johnson,Basic 7,2012-03-20,\nSarah,Williams,Nursery 1,2018-09-15,0809876543\nDavid,Brown,Basic 5,2014-01-10,david.parent@gmail.com";
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.hidden = true;
-            a.href = url;
-            a.download = 'student_template.csv';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        });
     </script>
 </body>
 </html>

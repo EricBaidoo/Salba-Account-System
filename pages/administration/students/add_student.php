@@ -13,36 +13,110 @@ $success_data = $_SESSION['last_student_registered'] ?? null;
 unset($_SESSION['last_student_registered']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $first_name = trim($_POST['first_name'] ?? '');
-    $last_name = trim($_POST['last_name'] ?? '');
-    $class = trim($_POST['class'] ?? '');
-    $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-    $parent_contact = !empty($_POST['parent_contact']) ? trim($_POST['parent_contact']) : null;
+    $first_name        = trim($_POST['first_name'] ?? '');
+    $last_name         = trim($_POST['last_name'] ?? '');
+    $class             = trim($_POST['class'] ?? '');
+    $date_of_birth     = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+    $place_of_birth    = trim($_POST['place_of_birth'] ?? '');
+    $date_admitted     = !empty($_POST['date_admitted']) ? $_POST['date_admitted'] : null;
+    $previous_school   = trim($_POST['previous_school'] ?? '');
+    $address           = trim($_POST['address'] ?? '');
+    $landmark          = trim($_POST['landmark'] ?? '');
+    $emergency_contact = trim($_POST['emergency_contact'] ?? '');
+    
+    // Parent Info
+    $existing_mother_id = $_POST['existing_mother_id'] ?? '';
+    $mother_name    = trim($_POST['mother_name'] ?? '');
+    $mother_contact = trim($_POST['mother_contact'] ?? '');
+    
+    $existing_father_id = $_POST['existing_father_id'] ?? '';
+    $father_name    = trim($_POST['father_name'] ?? '');
+    $father_contact = trim($_POST['father_contact'] ?? '');
+
+    // For backwards compatibility on old forms/lists, use the first available contact as the student's primary contact
+    $parent_contact_fallback = !empty($mother_contact) ? $mother_contact : (!empty($father_contact) ? $father_contact : $emergency_contact);
 
     if (empty($first_name) || empty($last_name) || empty($class)) {
         $_SESSION['flash_error'] = "Required fields are missing.";
         header('Location: add_student_form');
         exit;
-    } else {
-        $stmt = $conn->prepare("INSERT INTO students (first_name, last_name, class, date_of_birth, parent_contact, status) VALUES (?, ?, ?, ?, ?, 'active')");
-        $stmt->bind_param("sssss", $first_name, $last_name, $class, $date_of_birth, $parent_contact);
-        
-        if ($stmt->execute()) {
-            $student_id = $conn->insert_id;
-            $_SESSION['last_student_registered'] = [
-                'id' => $student_id,
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'class' => $class
-            ];
-            log_activity($conn, 'Admissions', "New student enrolled: $first_name $last_name (#$student_id)");
-            header('Location: add_student');
-            exit;
-        } else {
-            $_SESSION['flash_error'] = "Database error: " . $stmt->error;
-            header('Location: add_student_form');
-            exit;
+    }
+
+    // Photo Upload
+    $photo_path = '';
+    if (!empty($_FILES['photo']['name'])) {
+        $upload_dir = '../../../assets/uploads/students/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+        if (in_array($ext, ['jpg','jpeg','png','webp'])) {
+            $filename = 'student_' . time() . '_' . rand(100,999) . '.' . $ext;
+            move_uploaded_file($_FILES['photo']['tmp_name'], $upload_dir . $filename);
+            $photo_path = 'assets/uploads/students/' . $filename;
         }
+    }
+
+    try {
+        $conn->begin_transaction();
+
+        // 1. Insert Student
+        $stmt = $conn->prepare("INSERT INTO students (first_name, last_name, class, date_of_birth, parent_contact, status, address, place_of_birth, emergency_contact, photo_path, landmark, date_admitted, previous_school) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssssssss", $first_name, $last_name, $class, $date_of_birth, $parent_contact_fallback, $address, $place_of_birth, $emergency_contact, $photo_path, $landmark, $date_admitted, $previous_school);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Student Insert Error: " . $stmt->error);
+        }
+        $student_id = $conn->insert_id;
+        $stmt->close();
+
+        // 2. Handle Mother
+        $primary_set = false;
+        if (!empty($existing_mother_id)) {
+            $link_m = $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, " . intval($existing_mother_id) . ", 'Mother')");
+        } elseif (!empty($mother_name)) {
+            $is_primary = (!empty($mother_contact) && !$primary_set) ? 1 : 0;
+            if ($is_primary) $primary_set = true;
+            
+            $m_stmt = $conn->prepare("INSERT INTO parents (title, first_name, last_name, phone, address, is_primary) VALUES ('Mrs.', '', ?, ?, ?, ?)");
+            $m_stmt->bind_param("sssi", $mother_name, $mother_contact, $address, $is_primary);
+            $m_stmt->execute();
+            $mother_id = $conn->insert_id;
+            $m_stmt->close();
+
+            $link_m = $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, $mother_id, 'Mother')");
+        }
+
+        // 3. Handle Father
+        if (!empty($existing_father_id)) {
+            $link_f = $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, " . intval($existing_father_id) . ", 'Father')");
+        } elseif (!empty($father_name)) {
+            $is_primary = (!empty($father_contact) && !$primary_set) ? 1 : 0;
+            
+            $f_stmt = $conn->prepare("INSERT INTO parents (title, first_name, last_name, phone, address, is_primary) VALUES ('Mr.', '', ?, ?, ?, ?)");
+            $f_stmt->bind_param("sssi", $father_name, $father_contact, $address, $is_primary);
+            $f_stmt->execute();
+            $father_id = $conn->insert_id;
+            $f_stmt->close();
+
+            $link_f = $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, $father_id, 'Father')");
+        }
+
+        $conn->commit();
+
+        $_SESSION['last_student_registered'] = [
+            'id' => $student_id,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'class' => $class
+        ];
+        log_activity($conn, 'Admissions', "New student enrolled: $first_name $last_name (#$student_id)");
+        header('Location: add_student');
+        exit;
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['flash_error'] = $e->getMessage();
+        header('Location: add_student_form');
+        exit;
     }
 }
 ?>
