@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || 
                 differentiation_strategies=?, excelling_students=?, tlm_usage=?, self_reflection=?, co_curricular_activities=?,
                 custom_fields=?
                 WHERE id=? AND teacher_id=?");
-            $stmt->bind_param("ssissssssssssssssssssssssii", 
+            $stmt->bind_param("ssissssssssssssssssssssii", 
                 $class_name, $week_ending, $week_number, $current_term, $current_year, $action_status,
                 $topics_covered, $assessments_conducted, $overall_performance, $struggling_students,
                 $general_behavior, $discipline_issues, $attendance_concerns, $parents_contacted,
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || 
                 differentiation_strategies, excelling_students, tlm_usage, self_reflection, co_curricular_activities,
                 custom_fields
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ississssssssssssssssssssss", 
+            $stmt->bind_param("ississssssssssssssssssss", 
                 $uid, $class_name, $week_ending, $week_number, $current_term, $current_year, $action_status,
                 $topics_covered, $assessments_conducted, $overall_performance, $struggling_students,
                 $general_behavior, $discipline_issues, $attendance_concerns, $parents_contacted,
@@ -282,21 +282,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     <i class="fas fa-info-circle"></i> Core Information
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <?php if (!$wr_schema['topics_covered']['hidden']): ?>
-<?php if (!$wr_schema['struggling_students']['hidden']): ?>
-<?php if (!$wr_schema['excelling_students']['hidden']): ?>
-<?php if (!$wr_schema['differentiation_strategies']['hidden']): ?>
-<?php if (!$wr_schema['tlm_usage']['hidden']): ?>
-<?php if (!$wr_schema['general_behavior']['hidden']): ?>
-<?php if (!$wr_schema['discipline_issues']['hidden']): ?>
-<?php if (!$wr_schema['attendance_concerns']['hidden']): ?>
-<?php if (!$wr_schema['parents_contacted']['hidden']): ?>
-<?php if (!$wr_schema['co_curricular_activities']['hidden']): ?>
-<?php if (!$wr_schema['challenges_faced']['hidden']): ?>
-<?php if (!$wr_schema['self_reflection']['hidden']): ?>
-<?php if (!$wr_schema['next_week_focus']['hidden']): ?>
-<div>
-    <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2"><?= htmlspecialchars($wr_schema['next_week_focus']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['self_reflection']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['challenges_faced']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['co_curricular_activities']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['parents_contacted']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['attendance_concerns']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['discipline_issues']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['general_behavior']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['tlm_usage']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['differentiation_strategies']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['excelling_students']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['struggling_students']['label']) ?><?php if(strpos('<?= htmlspecialchars($wr_schema['topics_covered']['label']) ?><?php if(strpos('Class <span class="text-red-500">*</span></label>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Class <span class="text-red-500">*</span></label>
                         <select name="class_name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
                             <option value="">Select Class...</option>
                             <?php foreach($teacher_classes as $tc): ?>
@@ -304,7 +291,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <!-- Removed Subject Dropdown -->
                     <div>
                         <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Week Number <span class="text-red-500">*</span></label>
                         <select name="week_number" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 outline-none transition-all text-sm font-bold">
@@ -327,49 +313,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     1. Academic Coverage & Performance
                 </h2>
                 <div class="space-y-6">
+                    <?php if (!$wr_schema['topics_covered']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Topics Covered (Summary) <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['topics_covered']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['topics_covered']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="topics_covered" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('topics_covered') ?></textarea>
-</div>
-<?php endif; ?>
-                    <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Assessments Conducted & General Performance <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['struggling_students']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['struggling_students']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="struggling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('struggling_students') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['topics_covered']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['topics_covered']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['topics_covered']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="topics_covered" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('topics_covered') ?></textarea>
                     </div>
+                    <?php endif; ?>
+
+                    <?php if (!$wr_schema['assessments_conducted']['hidden']): ?>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['assessments_conducted']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['assessments_conducted']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['assessments_conducted']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="assessments_conducted" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('assessments_conducted') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!$wr_schema['overall_performance']['hidden']): ?>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['overall_performance']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['overall_performance']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['overall_performance']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="overall_performance" required class="w-full h-16 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('overall_performance') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <?php if (!$wr_schema['struggling_students']['hidden']): ?>
                         <div>
-                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Excelling Students & Enrichment <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['excelling_students']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['excelling_students']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="excelling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('excelling_students') ?></textarea>
-</div>
-<?php endif; ?>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['struggling_students']['label']) ?> <span class="text-red-500">*</span></label>
+                            <?php if(!empty($wr_schema['struggling_students']['helper'])): ?>
+                                <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['struggling_students']['helper']) ?></p>
+                            <?php endif; ?>
+                            <textarea name="struggling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('struggling_students') ?></textarea>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!$wr_schema['excelling_students']['hidden']): ?>
                         <div>
-                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Differentiation Strategies Used <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['differentiation_strategies']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['differentiation_strategies']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="differentiation_strategies" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('differentiation_strategies') ?></textarea>
-</div>
-<?php endif; ?>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['excelling_students']['label']) ?> <span class="text-red-500">*</span></label>
+                            <?php if(!empty($wr_schema['excelling_students']['helper'])): ?>
+                                <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['excelling_students']['helper']) ?></p>
+                            <?php endif; ?>
+                            <textarea name="excelling_students" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('excelling_students') ?></textarea>
+                        </div>
+                        <?php endif; ?>
                     </div>
+
+                    <?php if (!$wr_schema['differentiation_strategies']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Teaching & Learning Materials (TLMs) <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['tlm_usage']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['tlm_usage']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="tlm_usage" required placeholder="E.g., Smartboard, physical models, online tools..." class="w-full h-16 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('tlm_usage') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['differentiation_strategies']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['differentiation_strategies']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['differentiation_strategies']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="differentiation_strategies" required placeholder="If none, type 'None'" class="w-full h-12 p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('differentiation_strategies') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!$wr_schema['tlm_usage']['hidden']): ?>
+                    <div>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['tlm_usage']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['tlm_usage']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['tlm_usage']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="tlm_usage" required placeholder="E.g., Smartboard, physical models, online tools..." class="w-full h-16 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all resize-none"><?= getVal('tlm_usage') ?></textarea>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -380,31 +394,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     2. Classroom Management & Behavior
                 </h2>
                 <div class="space-y-6">
+                    <?php if (!$wr_schema['general_behavior']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">General Class Behavior <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['general_behavior']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['general_behavior']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="general_behavior" required class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('general_behavior') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['general_behavior']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['general_behavior']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['general_behavior']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="general_behavior" required class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('general_behavior') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <?php if (!$wr_schema['discipline_issues']['hidden']): ?>
                         <div>
-                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Discipline Issues & Actions Taken <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['discipline_issues']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['discipline_issues']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="discipline_issues" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('discipline_issues') ?></textarea>
-</div>
-<?php endif; ?>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['discipline_issues']['label']) ?> <span class="text-red-500">*</span></label>
+                            <?php if(!empty($wr_schema['discipline_issues']['helper'])): ?>
+                                <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['discipline_issues']['helper']) ?></p>
+                            <?php endif; ?>
+                            <textarea name="discipline_issues" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('discipline_issues') ?></textarea>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!$wr_schema['attendance_concerns']['hidden']): ?>
                         <div>
-                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Attendance Concerns <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['attendance_concerns']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['attendance_concerns']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="attendance_concerns" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('attendance_concerns') ?></textarea>
-</div>
-<?php endif; ?>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['attendance_concerns']['label']) ?> <span class="text-red-500">*</span></label>
+                            <?php if(!empty($wr_schema['attendance_concerns']['helper'])): ?>
+                                <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['attendance_concerns']['helper']) ?></p>
+                            <?php endif; ?>
+                            <textarea name="attendance_concerns" required placeholder="If none, type 'None'" class="w-full h-20 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"><?= getVal('attendance_concerns') ?></textarea>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -416,22 +435,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     3. Engagement & Duties
                 </h2>
                 <div class="space-y-6">
+                    <?php if (!$wr_schema['parents_contacted']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Parents Contacted This Week (Who and Why?) <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['parents_contacted']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['parents_contacted']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="parents_contacted" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('parents_contacted') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['parents_contacted']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['parents_contacted']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['parents_contacted']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="parents_contacted" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('parents_contacted') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!$wr_schema['co_curricular_activities']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Co-curricular Duties & Activities <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['co_curricular_activities']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['co_curricular_activities']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="co_curricular_activities" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('co_curricular_activities') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['co_curricular_activities']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['co_curricular_activities']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['co_curricular_activities']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="co_curricular_activities" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all resize-none"><?= getVal('co_curricular_activities') ?></textarea>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -442,25 +464,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                     4. Teacher's Challenges & Needs
                 </h2>
                 <div class="space-y-6">
+                    <?php if (!$wr_schema['challenges_faced']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Challenges Faced <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['challenges_faced']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['challenges_faced']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="challenges_faced" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('challenges_faced') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['challenges_faced']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['challenges_faced']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['challenges_faced']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="challenges_faced" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('challenges_faced') ?></textarea>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!$wr_schema['self_reflection']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Teacher Self-Reflection (What worked? What didn't?) <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['self_reflection']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['self_reflection']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="self_reflection" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('self_reflection') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['self_reflection']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['self_reflection']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['self_reflection']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="self_reflection" required placeholder="If none, type 'None'" class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('self_reflection') ?></textarea>
+                    </div>
+                    <?php endif; ?>
                     
+                    <?php if (!$wr_schema['support_required']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Support / Resources Required</label>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2"><?= htmlspecialchars($wr_schema['support_required']['label']) ?></label>
                         <?php
                         $support_arr = array_map('trim', explode(',', getVal('support_required')));
                         $support_options = [
@@ -478,17 +504,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                             <?php endforeach; ?>
                         </div>
                     </div>
+                    <?php endif; ?>
 
+                    <?php if (!$wr_schema['next_week_focus']['hidden']): ?>
                     <div>
-                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Focus For Next Week <span class="text-red-500">*</span>', '<span') !== false) { echo ' <span class="text-red-500">*</span>'; } ?></label>
-    <?php if(!empty($wr_schema['next_week_focus']['helper'])): ?>
-        <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['next_week_focus']['helper']) ?></p>
-    <?php endif; ?>
-    <textarea name="next_week_focus" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('next_week_focus') ?></textarea>
-</div>
-<?php endif; ?>
+                        <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($wr_schema['next_week_focus']['label']) ?> <span class="text-red-500">*</span></label>
+                        <?php if(!empty($wr_schema['next_week_focus']['helper'])): ?>
+                            <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($wr_schema['next_week_focus']['helper']) ?></p>
+                        <?php endif; ?>
+                        <textarea name="next_week_focus" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-rose-500/10 outline-none transition-all resize-none"><?= getVal('next_week_focus') ?></textarea>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
+
+            <?php
+            // Extract custom fields from schema
+            $custom_schema_fields = [];
+            foreach ($wr_schema as $key => $field) {
+                if (strpos($key, 'custom_') === 0 && empty($field['hidden'])) {
+                    $custom_schema_fields[$key] = $field;
+                }
+            }
+            ?>
+            <?php if (!empty($custom_schema_fields)): ?>
+            <!-- Custom Fields Vault -->
+            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-fuchsia-500"></div>
+                <h2 class="text-base font-black text-fuchsia-600 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                    <i class="fas fa-plus-circle"></i> Additional Details
+                </h2>
+                <div class="space-y-6">
+                    <?php foreach ($custom_schema_fields as $key => $field): ?>
+                        <div>
+                            <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-1"><?= htmlspecialchars($field['label']) ?> <span class="text-red-500">*</span></label>
+                            <?php if(!empty($field['helper'])): ?>
+                                <p class="text-xs text-slate-500 italic mb-2"><?= htmlspecialchars($field['helper']) ?></p>
+                            <?php endif; ?>
+                            <textarea name="<?= htmlspecialchars($key) ?>" required class="w-full h-24 p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-fuchsia-500/10 outline-none transition-all resize-none"><?= getCustomVal($key) ?></textarea>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- Floating Action Bar -->
             <div class="fixed bottom-0 left-0 md:left-64 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 flex justify-center gap-4 z-40 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
