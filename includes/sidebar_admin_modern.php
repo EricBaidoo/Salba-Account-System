@@ -285,11 +285,27 @@ if (!function_exists('nav_active')) {
         </a>
 
         <!-- COMMUNICATION -->
-        <div class="nav-group-label">Engagement</div>
+        <div class="nav-group-label">Communication</div>
 
+        <a href="<?= nav_link($base_path, 'communication/dashboard') ?>" class="nav-item <?= nav_active('dashboard', $current_page) ?>">
+            <i class="fas fa-tower-broadcast"></i>
+            <span>Communication Hub</span>
+        </a>
         <a href="<?= nav_link($base_path, 'communication/announcements/view_announcements') ?>" class="nav-item <?= nav_active('view_announcements', $current_page) ?>">
             <i class="fas fa-bullhorn"></i>
             <span>Announcements</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'communication/messages/view_messages') ?>" class="nav-item <?= nav_active('view_messages', $current_page) ?>">
+            <i class="fas fa-envelope-open-text"></i>
+            <span>Internal Messages</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'communication/messages/external_messages') ?>" class="nav-item <?= nav_active('external_messages', $current_page) ?>">
+            <i class="fas fa-satellite-dish"></i>
+            <span>External Broadcasts</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'communication/settings') ?>" class="nav-item <?= nav_active('settings', $current_page) ?>">
+            <i class="fas fa-satellite-dish"></i>
+            <span>Comm Settings</span>
         </a>
     </nav>
 

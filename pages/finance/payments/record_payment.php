@@ -185,6 +185,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $conn->commit();
 
+            // --- AUTOMATION WIRING: INSTANT PAYMENT RECEIPT ---
+            include_once '../../../includes/sms_gateway.php';
+            $trigger_payment = getSystemSetting($conn, 'trigger_payment', '0');
+            if ($trigger_payment === '1') {
+                $tpl_id = (int)getSystemSetting($conn, 'template_payment', '0');
+                if ($tpl_id > 0) {
+                    // Fetch total unpaid balance
+                    $bal_stmt = $conn->prepare("SELECT SUM(amount - amount_paid) as bal FROM student_fees WHERE student_id = ? AND status != 'paid' AND status != 'cancelled'");
+                    $bal_stmt->bind_param("i", $student_id);
+                    $bal_stmt->execute();
+                    $bal_res = $bal_stmt->get_result()->fetch_assoc();
+                    $current_balance = floatval($bal_res['bal'] ?? 0);
+                    $bal_stmt->close();
+                    
+                    // Fetch student and parent info
+                    $stu_stmt = $conn->prepare("
+                        SELECT s.first_name, s.last_name, p.title, p.last_name as p_last_name, p.phone
+                        FROM students s 
+                        LEFT JOIN student_parents sp ON s.id = sp.student_id 
+                        LEFT JOIN parents p ON sp.parent_id = p.id AND p.is_primary = 1
+                        WHERE s.id = ? LIMIT 1
+                    ");
+                    $stu_stmt->bind_param("i", $student_id);
+                    $stu_stmt->execute();
+                    $stu_res = $stu_stmt->get_result()->fetch_assoc();
+                    $stu_stmt->close();
+                    
+                    if ($stu_res && !empty($stu_res['phone'])) {
+                        $student_name = trim($stu_res['first_name'] . ' ' . $stu_res['last_name']);
+                        $parent_title = !empty($stu_res['title']) ? $stu_res['title'] : '';
+                        $parent_name = trim($parent_title . ' ' . $stu_res['p_last_name']);
+                        
+                        $vars = [
+                            '{student_name}' => $student_name,
+                            '{parent_name}' => $parent_name,
+                            '{amount}' => number_format($amount, 2),
+                            '{balance}' => number_format($current_balance, 2),
+                            '{term}' => $semester
+                        ];
+                        
+                        send_sms_from_template($conn, $tpl_id, $stu_res['phone'], $vars);
+                    }
+                }
+            }
+            // --- END AUTOMATION WIRING ---
+
             echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>Payment recorded and allocated successfully!";
             if ($amount != $remaining) {
                 echo "<br>Updated student fee records.";

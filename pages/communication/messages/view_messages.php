@@ -65,7 +65,12 @@ $s = $conn->prepare("SELECT * FROM messages WHERE sender=? ORDER BY sent_at DESC
 if ($s) { $s->bind_param('s', $current_user); $s->execute(); $sent = $s->get_result()->fetch_all(MYSQLI_ASSOC); $s->close(); }
 
 // Mark unread as read
-$conn->prepare("UPDATE messages SET is_read=1 WHERE recipient=? AND is_read=0")?->execute();
+$upd = $conn->prepare("UPDATE messages SET is_read=1 WHERE recipient=? AND is_read=0");
+if ($upd) {
+    $upd->bind_param('s', $current_user);
+    $upd->execute();
+    $upd->close();
+}
 
 // Other users list for the recipient dropdown
 $users = [];
