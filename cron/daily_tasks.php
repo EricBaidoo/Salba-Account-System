@@ -9,9 +9,12 @@
 
 // 1. SECURITY CHECK
 $cron_token = "SECRET_SALBA_2026"; // Change this in production
-if (!isset($_GET['token']) || $_GET['token'] !== $cron_token) {
-    http_response_code(403);
-    die("Forbidden: Invalid Cron Token.");
+// Allow if running from Hostinger's PHP command line, OR if the correct web token is provided
+if (php_sapi_name() !== 'cli') {
+    if (!isset($_GET['token']) || $_GET['token'] !== $cron_token) {
+        http_response_code(403);
+        die("Forbidden: Invalid Cron Token.");
+    }
 }
 
 // Ensure it's not run multiple times quickly by locking or just allowing it
