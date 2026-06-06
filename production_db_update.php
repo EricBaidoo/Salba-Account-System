@@ -22,26 +22,30 @@ $columns_to_add = [
     'excelling_students' =>         'TEXT',
     'tlm_usage' =>                  'TEXT',
     'self_reflection' =>            'TEXT',
-    'co_curricular_activities' =>   'TEXT'
+    'co_curricular_activities' =>   'TEXT',
+    'custom_fields' =>              'TEXT'
 ];
 
-$table = 'weekly_reports';
+$tables = ['weekly_reports', 'lesson_plans'];
 $all_success = true;
 
-foreach ($columns_to_add as $col => $type) {
-    // Check if column already exists
-    $check = $conn->query("SHOW COLUMNS FROM `$table` LIKE '$col'");
-    
-    if ($check && $check->num_rows > 0) {
-        echo "<div style='color: #666; margin-bottom: 10px;'>ℹ️ Column <strong>$col</strong> already exists. Skipping.</div>";
-    } else {
-        // Add the column
-        $sql = "ALTER TABLE `$table` ADD `$col` $type";
-        if ($conn->query($sql)) {
-            echo "<div style='color: green; margin-bottom: 10px;'>✅ Successfully added <strong>$col</strong></div>";
+foreach ($tables as $table) {
+    echo "<h3>Table: $table</h3>";
+    foreach ($columns_to_add as $col => $type) {
+        // Check if column already exists
+        $check = $conn->query("SHOW COLUMNS FROM `$table` LIKE '$col'");
+        
+        if ($check && $check->num_rows > 0) {
+            echo "<div style='color: #666; margin-bottom: 10px;'>ℹ️ Column <strong>$col</strong> already exists in $table. Skipping.</div>";
         } else {
-            echo "<div style='color: red; margin-bottom: 10px;'>❌ Error adding <strong>$col</strong>: " . $conn->error . "</div>";
-            $all_success = false;
+            // Add the column
+            $sql = "ALTER TABLE `$table` ADD `$col` $type";
+            if ($conn->query($sql)) {
+                echo "<div style='color: green; margin-bottom: 10px;'>✅ Successfully added <strong>$col</strong> to $table</div>";
+            } else {
+                echo "<div style='color: red; margin-bottom: 10px;'>❌ Error adding <strong>$col</strong> to $table: " . $conn->error . "</div>";
+                $all_success = false;
+            }
         }
     }
 }
