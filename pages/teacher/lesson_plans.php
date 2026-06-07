@@ -71,6 +71,12 @@ $current_year = getAcademicYear($conn);
 $total_weeks = intval(getSystemSetting($conn, 'weeks_per_semester', 12));
 
 // Handle Unsubmit / Deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_plan'])) {
     $plan_id = intval($_POST['plan_id'] ?? 0);
     $check = $conn->query("SELECT status FROM lesson_plans WHERE id = $plan_id AND teacher_id = $uid");
@@ -295,6 +301,7 @@ if ($_SESSION['role'] === 'admin') {
             <div class="p-6 md:p-8">
                 <div class="flex flex-col lg:flex-row items-center gap-6">
                     <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex flex-col sm:flex-row items-center gap-4">
+                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="flex-1 w-full relative group">
                             <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc,.pdf" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
                             <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-slate-400 group-hover:bg-slate-100/50 transition-all">
@@ -342,6 +349,7 @@ if ($_SESSION['role'] === 'admin') {
             </div>
             
             <form method="POST" class="p-6 md:p-10 space-y-12">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <input type="hidden" name="existing_plan_id" value="<?= $edit_id ?>">
 
                     <?php if($edit_id): ?>

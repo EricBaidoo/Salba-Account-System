@@ -42,6 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
     $status = $_POST['status']; // 'approved' or 'rejected'
     $comments = trim($_POST['comments']);
     
+    // Server-side check: Locked by Admin
+    $check_admin = $conn->query("SELECT admin_id FROM lesson_plans WHERE id = $plan_id")->fetch_row()[0] ?? null;
+    if ($check_admin !== null) {
+        redirect("lesson_plans{$tid_query}", 'error', "This lesson plan is locked by Admin and cannot be modified.");
+    }
+    
     if (in_array($status, ['approved', 'rejected'])) {
         $stmt = $conn->prepare("UPDATE lesson_plans SET status = ?, supervisor_comments = ?, supervisor_id = ? WHERE id = ?");
         $stmt->bind_param("ssii", $status, $comments, $uid, $plan_id);
@@ -55,6 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_plan'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['revert_plan'])) {
     $plan_id = intval($_POST['plan_id']);
+    
+    // Server-side check: Locked by Admin
+    $check_admin = $conn->query("SELECT admin_id FROM lesson_plans WHERE id = $plan_id")->fetch_row()[0] ?? null;
+    if ($check_admin !== null) {
+        redirect("lesson_plans{$tid_query}", 'error', "This lesson plan is locked by Admin and cannot be modified.");
+    }
+    
     $stmt = $conn->prepare("UPDATE lesson_plans SET status = 'pending' WHERE id = ?");
     $stmt->bind_param("i", $plan_id);
     if ($stmt->execute()) {
@@ -579,12 +592,18 @@ $reviewed_plans = $conn->query("
                                         <td class="py-3 px-4 text-gray-500 italic max-w-xs truncate" title="<?= htmlspecialchars($rp['supervisor_comments']) ?>"><?= htmlspecialchars($rp['supervisor_comments']) ?></td>
                                         <td class="py-3 px-4 text-right whitespace-nowrap">
                                             <div class="flex items-center gap-4 justify-end">
-                                                <form method="POST" onsubmit="return confirm('Revert this plan back to PENDING queue?');" class="inline">
-                                                    <input type="hidden" name="plan_id" value="<?= $rp['id'] ?>">
-                                                    <button type="submit" name="revert_plan" class="text-[0.625rem] font-black uppercase tracking-widest text-gray-400 hover:text-orange-600 transition-colors flex items-center gap-1">
-                                                        <i class="fas fa-rotate-left"></i> Revert
-                                                    </button>
-                                                </form>
+                                                 <?php if (!empty($rp['admin_id'])): ?>
+                                                     <span class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded" title="Locked by Admin">
+                                                         <i class="fas fa-lock"></i> Locked
+                                                     </span>
+                                                 <?php else: ?>
+                                                     <form method="POST" onsubmit="return confirm('Revert this plan back to PENDING queue?');" class="inline">
+                                                         <input type="hidden" name="plan_id" value="<?= $rp['id'] ?>">
+                                                         <button type="submit" name="revert_plan" class="text-[0.625rem] font-black uppercase tracking-widest text-gray-400 hover:text-orange-600 transition-colors flex items-center gap-1">
+                                                             <i class="fas fa-rotate-left"></i> Revert
+                                                         </button>
+                                                     </form>
+                                                 <?php endif; ?>
                                                 <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1">
                                                     <i class="fas fa-file-pdf"></i> View / PDF
                                                 </a>

@@ -202,6 +202,27 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tbody>
         </table>
 
+        <?php if(!empty($p['supervisor_comments']) || !empty($p['admin_comments'])): ?>
+        <table class="box-table" style="margin-top: 15px;">
+            <?php if(!empty($p['supervisor_comments'])): ?>
+            <tr>
+                <td style="background-color: #fef2f2; border-color: #fca5a5; padding: 8px;">
+                    <span class="label" style="color: #dc2626;">Supervisor Remarks:</span><br>
+                    <span style="color: #991b1b; font-style: italic; font-weight: bold;">"<?= $n('supervisor_comments') ?>"</span>
+                </td>
+            </tr>
+            <?php endif; ?>
+            <?php if(!empty($p['admin_comments'])): ?>
+            <tr>
+                <td style="background-color: #eff6ff; border-color: #bfdbfe; padding: 8px;">
+                    <span class="label" style="color: #2563eb;">Admin Remarks:</span><br>
+                    <span style="color: #1e3a8a; font-style: italic; font-weight: bold;">"<?= $n('admin_comments') ?>"</span>
+                </td>
+            </tr>
+            <?php endif; ?>
+        </table>
+        <?php endif; ?>
+
         <div class="footer">
             <table class="footer-table">
                 <tr>

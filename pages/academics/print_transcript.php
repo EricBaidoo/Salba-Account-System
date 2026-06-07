@@ -18,7 +18,7 @@ if ($render_type === 'pdf' && ($_SESSION['role'] ?? '') !== 'admin') {
 }
 
 $id = intval($_GET['student'] ?? ($_GET['id'] ?? 0));
-$selected_class = $_GET['class'] ?? '';
+$selected_class = $conn->real_escape_string($_GET['class'] ?? '');
 if (!$id) die("Invalid Student ID.");
 
 $current_year = getAcademicYear($conn);

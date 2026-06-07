@@ -56,8 +56,8 @@ if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'supervisor') {
     }
 }
 
-$selected_class = $_GET['class'] ?? ($allocated_classes[0] ?? '');
-$selected_date = $_GET['date'] ?? date('Y-m-d');
+$selected_class = $conn->real_escape_string($_GET['class'] ?? ($allocated_classes[0] ?? ''));
+$selected_date = $conn->real_escape_string($_GET['date'] ?? date('Y-m-d'));
 $selected_week = getWeekNumberForDate($conn, $selected_date);
 
 // Handle Week Number Update (Initialization)

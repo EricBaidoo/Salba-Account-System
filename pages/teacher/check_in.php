@@ -81,6 +81,12 @@ foreach ($flash_messages as $fm) {
 // "Just clocked in" = checked in, not out, and a success flash was just set
 $just_checked_in = $already_checked_in && !$already_checked_out && $flash_success !== null;
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array($_POST['action'], ['geocheckin', 'geocheckout'])) {
     $is_checkout = $_POST['action'] === 'geocheckout';
     
@@ -282,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
 
                     <div class="mt-12">
                         <form id="checkInForm" method="POST">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <input type="hidden" name="action" value="geocheckout">
                             <input type="hidden" name="lat" id="lat" value="0">
                             <input type="hidden" name="lng" id="lng" value="0">
@@ -329,6 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
 
                     <div class="mt-12">
                         <form id="checkInForm" method="POST">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <input type="hidden" name="action" value="geocheckin">
                             <input type="hidden" name="lat" id="lat" value="0">
                             <input type="hidden" name="lng" id="lng" value="0">
@@ -375,6 +383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && in_array
                 <?php if($_SESSION['role'] === 'admin'): ?>
                     <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
                         <form method="POST">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <input type="hidden" name="action" value="<?= ($already_checked_in && !$already_checked_out) ? 'geocheckout' : 'geocheckin' ?>">
                             <input type="hidden" name="lat" value="<?= $school_lat ?>">
                             <input type="hidden" name="lng" value="<?= $school_lng ?>">

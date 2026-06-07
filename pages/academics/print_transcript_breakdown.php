@@ -15,8 +15,8 @@ if ($render_type === 'pdf' && ($_SESSION['role'] ?? '') !== 'admin') {
     die('Institutional Security: PDF generation is restricted to the Administrative role. Please use the digital preview only.');
 }
 
-$selected_class = $_GET['class'] ?? '';
-$selected_assessment = $_GET['assessment_type'] ?? '';
+$selected_class = $conn->real_escape_string($_GET['class'] ?? '');
+$selected_assessment = $conn->real_escape_string($_GET['assessment_type'] ?? '');
 if (!$selected_class || !$selected_assessment) {
     die('Missing required class or assessment selection.');
 }

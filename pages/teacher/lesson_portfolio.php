@@ -314,6 +314,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
                                                     <form method="POST" action="lesson_plans" onsubmit="return confirm('Delete this draft permanently?');">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                         <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
                                                         <button type="submit" name="delete_plan" class="w-9 h-9 border border-gray-100 text-gray-400 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition">
                                                             <i class="fas fa-trash-alt"></i>
@@ -378,6 +379,7 @@ $rejected = getPlans($conn, $where, 'rejected');
                                                 <div class="flex justify-end gap-2">
                                                     <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
                                                     <form method="POST" action="lesson_plans" onsubmit="return confirm('Unsubmit this plan back to drafts?');">
+                                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                         <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
                                                         <button type="submit" name="unsubmit_plan" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-yellow-600 transition" title="Unsubmit">
                                                             <i class="fas fa-rotate-left text-xs"></i>

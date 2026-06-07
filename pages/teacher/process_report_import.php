@@ -32,6 +32,9 @@ function getWordText($phpWord) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['report_file'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
     $file = $_FILES['report_file'];
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $tmpPath = $file['tmp_name'];

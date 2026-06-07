@@ -46,6 +46,9 @@ $keywords = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
     $file = $_FILES['lesson_file'];
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $tmpPath = $file['tmp_name'];
@@ -119,7 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                     if ($zip->open($tmpPath) === TRUE) {
                         if (($index = $zip->locateName('word/document.xml')) !== false) {
                             $data = $zip->getFromIndex($index);
-                            $data = str_replace(['</w:p>', '</w:tc>'], ["\n", "\t"], $data);
+                            $data = str_replace(
+                                ['</w:p>', '</w:tc>', '</w:tr>', '<w:br/>', '<w:br>', '<w:cr/>', '<w:cr>', '<w:tab/>'], 
+                                ["\n", "\t", "\n", "\n", "\n", "\n", "\n", "\t"], 
+                                $data
+                            );
                             $rawText = strip_tags($data);
                         }
                         $zip->close();
@@ -164,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
             $lines = explode("\n", $rawText);
             
             $currentData = [];
+            $singleLineKeys = ['class', 'subject', 'duration', 'strand', 'sub_strand', 'lesson_num', 'week_num', 'week_ending', 'day', 'class_size', 's_dur', 'l_dur', 'r_dur'];
             $currentKey = null;
             
             foreach ($lines as $line) {
@@ -207,7 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                         }
                         
                         if (!empty($valueToSet)) {
-                            $currentData[$currentKey] = empty($currentData[$currentKey]) ? $valueToSet : $currentData[$currentKey] . "\n" . $valueToSet;
+                            $glue = in_array($currentKey, $singleLineKeys) ? ' ' : "\n";
+                            $currentData[$currentKey] = empty($currentData[$currentKey]) ? $valueToSet : $currentData[$currentKey] . $glue . $valueToSet;
                         }
                         $matched = true;
                         break;
@@ -217,7 +226,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 // If this line did NOT match any keyword, but we have an active $currentKey, 
                 // append it to the current key's value. This catches multi-line descriptions and table cell values.
                 if (!$matched && $currentKey !== null) {
-                    $currentData[$currentKey] = empty($currentData[$currentKey]) ? $line : $currentData[$currentKey] . "\n" . $line;
+                    $glue = in_array($currentKey, $singleLineKeys) ? ' ' : "\n";
+                    $currentData[$currentKey] = empty($currentData[$currentKey]) ? $line : $currentData[$currentKey] . $glue . $line;
                 }
             }
 
@@ -237,10 +247,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
             throw new Exception("Unsupported file type.");
         }
 
+        // Helper to deduplicate repeated words or phrases (e.g. "English Language English Language" -> "English Language")
+        $clean_repeated = function($str) {
+            $str = trim($str);
+            $clean_str = preg_replace('/\s+/', ' ', $str);
+            $words = explode(' ', $clean_str);
+            $w_count = count($words);
+            if ($w_count > 1) {
+                for ($len = 1; $len <= floor($w_count / 2); $len++) {
+                    if ($w_count % $len === 0) {
+                        $slice = array_slice($words, 0, $len);
+                        $phrase = implode(' ', $slice);
+                        $repeats = $w_count / $len;
+                        $reconstructed = implode(' ', array_fill(0, $repeats, $phrase));
+                        if (strcasecmp($clean_str, $reconstructed) === 0) {
+                            return $phrase;
+                        }
+                    }
+                }
+            }
+            return $str;
+        };
+
         // PRE-VALIDATE CLASS AND SUBJECT
         foreach ($allData as &$data) {
+            // Clean up all single-line fields to deduplicate repeated phrases (e.g. "60mins 60mins" -> "60mins")
+            $singleLineKeys = ['class', 'subject', 'duration', 'strand', 'sub_strand', 'lesson_num', 'week_num', 'week_ending', 'day', 'class_size', 's_dur', 'l_dur', 'r_dur'];
+            foreach ($singleLineKeys as $slk) {
+                if (isset($data[$slk])) {
+                    $data[$slk] = $clean_repeated($data[$slk]);
+                }
+            }
+
             $class_name = trim($data['class'] ?? '');
             if (!empty($class_name)) {
+                // Map short forms (e.g. B7, b7, B 7, b 7 to Basic 7)
+                if (preg_match('/^[Bb]\s*([1-9])$/', $class_name, $matches)) {
+                    $class_name = 'Basic ' . $matches[1];
+                } elseif (preg_match('/^[Kk][Gg]\s*([1-2])$/', $class_name, $matches)) {
+                    $class_name = 'KG ' . $matches[1];
+                } elseif (preg_match('/^[Nn]ursery\s*([1-2])$/i', $class_name, $matches)) {
+                    $class_name = 'Nursery ' . $matches[1];
+                }
+                
                 $c_res = $conn->query("SELECT name FROM classes WHERE name LIKE '%" . $conn->real_escape_string($class_name) . "%' LIMIT 1");
                 if ($c_res && $c_res->num_rows > 0) {
                     $data['class'] = $c_res->fetch_assoc()['name']; // Use exact official name
@@ -357,7 +406,13 @@ function getWordText($element) {
     if ($element instanceof \PhpOffice\PhpWord\PhpWord) {
         foreach ($element->getSections() as $section) {
             foreach ($section->getElements() as $el) {
-                $text .= getWordText($el);
+                $elText = getWordText($el);
+                if ($elText !== '') {
+                    $text .= $elText;
+                    if (substr($elText, -1) !== "\n") {
+                        $text .= "\n";
+                    }
+                }
             }
         }
         return $text;
@@ -366,10 +421,17 @@ function getWordText($element) {
     if ($element instanceof \PhpOffice\PhpWord\Element\Table) {
         foreach ($element->getRows() as $row) {
             foreach ($row->getCells() as $cell) {
+                $cellText = '';
                 foreach ($cell->getElements() as $el) {
-                    $text .= getWordText($el);
+                    $elText = getWordText($el);
+                    if ($elText !== '') {
+                        $cellText .= $elText;
+                        if (substr($elText, -1) !== "\n" && substr($elText, -1) !== "\t") {
+                            $cellText .= "\n";
+                        }
+                    }
                 }
-                $text .= "\t";
+                $text .= $cellText . "\t";
             }
             $text .= "\n";
         }
@@ -387,7 +449,13 @@ function getWordText($element) {
         $text .= "\n";
     } elseif (method_exists($element, 'getElements')) {
         foreach ($element->getElements() as $child) {
-            $text .= getWordText($child);
+            $childText = getWordText($child);
+            if ($childText !== '') {
+                $text .= $childText;
+                if (substr($childText, -1) !== "\n") {
+                    $text .= "\n";
+                }
+            }
         }
     } elseif (method_exists($element, 'getText')) {
         $text = $element->getText() . "\n";

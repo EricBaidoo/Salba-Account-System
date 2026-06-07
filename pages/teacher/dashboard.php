@@ -23,20 +23,20 @@ $photo = $profile['photo_path'] ?? '';
 // Fetch Stats
 $class_count = $conn->query("SELECT COUNT(DISTINCT class_name) FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year'")->fetch_row()[0];
 $student_count = $conn->query("SELECT COUNT(id) FROM students WHERE class COLLATE utf8mb4_unicode_ci IN (SELECT DISTINCT class_name COLLATE utf8mb4_unicode_ci FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year') AND status='active'")->fetch_row()[0];
-$lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id = $uid AND status='approved'")->fetch_row()[0];
-$approved_reports = $conn->query("SELECT COUNT(*) FROM weekly_reports WHERE teacher_id = $uid AND status='approved'")->fetch_row()[0] ?? 0;
+$lesson_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE teacher_id = $uid AND academic_year = '$current_year' AND status IN ('pending', 'approved')")->fetch_row()[0] ?? 0;
+$approved_reports = $conn->query("SELECT COUNT(*) FROM weekly_reports WHERE teacher_id = $uid AND academic_year = '$current_year' AND status IN ('pending', 'approved')")->fetch_row()[0] ?? 0;
 
 // Fetch Notifications for Needs Revision and Approved with Comments
 $notifications = [];
 
 // Lesson Plans
-$lp_notifs = $conn->query("SELECT id, week_number, class_name, status, supervisor_comments, 'lesson_plan' as type FROM lesson_plans WHERE teacher_id = $uid AND ((status = 'rejected') OR (status = 'approved' AND supervisor_comments IS NOT NULL AND TRIM(supervisor_comments) != '')) ORDER BY updated_at DESC LIMIT 5");
+$lp_notifs = $conn->query("SELECT id, week_number, class_name, status, supervisor_comments, admin_comments, 'lesson_plan' as type FROM lesson_plans WHERE teacher_id = $uid AND ((status = 'rejected') OR (status = 'approved' AND (supervisor_comments IS NOT NULL AND TRIM(supervisor_comments) != '' OR admin_comments IS NOT NULL AND TRIM(admin_comments) != ''))) ORDER BY updated_at DESC LIMIT 5");
 if ($lp_notifs) {
     while($r = $lp_notifs->fetch_assoc()) $notifications[] = $r;
 }
 
 // Weekly Reports
-$wr_notifs = $conn->query("SELECT id, week_number, class_name, status, supervisor_comments, 'weekly_report' as type FROM weekly_reports WHERE teacher_id = $uid AND ((status = 'rejected') OR (status = 'approved' AND supervisor_comments IS NOT NULL AND TRIM(supervisor_comments) != '')) ORDER BY updated_at DESC LIMIT 5");
+$wr_notifs = $conn->query("SELECT id, week_number, class_name, status, supervisor_comments, admin_comments, 'weekly_report' as type FROM weekly_reports WHERE teacher_id = $uid AND ((status = 'rejected') OR (status = 'approved' AND (supervisor_comments IS NOT NULL AND TRIM(supervisor_comments) != '' OR admin_comments IS NOT NULL AND TRIM(admin_comments) != ''))) ORDER BY updated_at DESC LIMIT 5");
 if ($wr_notifs) {
     while($r = $wr_notifs->fetch_assoc()) $notifications[] = $r;
 }
@@ -201,9 +201,18 @@ if ($wr_notifs) {
                                         </div>
                                     </div>
                                     <div class="ml-7">
-                                        <div class="bg-white rounded-lg p-3 text-xs text-slate-600 border border-slate-200 shadow-sm mb-3">
-                                            "<?= htmlspecialchars($n['supervisor_comments']) ?>"
-                                        </div>
+                                         <?php if (!empty($n['supervisor_comments'])): ?>
+                                             <div class="bg-slate-50 rounded-lg p-2.5 text-xs text-slate-600 border border-slate-100 mb-2">
+                                                 <span class="font-bold text-[9px] text-slate-400 uppercase block mb-1">Supervisor Remarks</span>
+                                                 "<?= htmlspecialchars($n['supervisor_comments']) ?>"
+                                             </div>
+                                         <?php endif; ?>
+                                         <?php if (!empty($n['admin_comments'])): ?>
+                                             <div class="bg-indigo-50/50 rounded-lg p-2.5 text-xs text-slate-700 border border-indigo-100 mb-2">
+                                                 <span class="font-bold text-[9px] text-indigo-500 uppercase block mb-1">Admin Remarks</span>
+                                                 "<?= htmlspecialchars($n['admin_comments']) ?>"
+                                             </div>
+                                         <?php endif; ?>
                                         <a href="<?= $link ?>" class="text-xs font-bold text-primary-600 hover:text-primary-800">
                                             <?= $is_rejected ? 'Resolve Issue &rarr;' : 'View Details &rarr;' ?>
                                         </a>

@@ -27,8 +27,8 @@ if ($user_role === 'admin' || $user_role === 'supervisor') {
     }
 }
 
-$selected_class = $_GET['class'] ?? ($allocated_classes[0] ?? '');
-$selected_assessment = $_GET['assessment_type'] ?? '';
+$selected_class = $conn->real_escape_string($_GET['class'] ?? ($allocated_classes[0] ?? ''));
+$selected_assessment = $conn->real_escape_string($_GET['assessment_type'] ?? '');
 
 // Fetch available assessment types for the class
 $available_assessments = [];

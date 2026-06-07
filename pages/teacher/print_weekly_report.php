@@ -201,6 +201,17 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         </table>
         <?php endif; ?>
 
+        <?php if(!empty($p['admin_comments'])): ?>
+        <table class="box-table">
+            <tr>
+                <td style="background-color: #eff6ff; border-color: #bfdbfe;">
+                    <span class="label" style="color: #2563eb;">Admin Remarks:</span><br>
+                    <span style="color: #1e3a8a; font-weight: bold; font-style: italic;">"<?= $n('admin_comments') ?>"</span>
+                </td>
+            </tr>
+        </table>
+        <?php endif; ?>
+
         <div class="footer">
             <table class="footer-table">
                 <tr>

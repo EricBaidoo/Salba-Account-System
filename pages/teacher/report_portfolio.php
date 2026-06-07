@@ -338,6 +338,7 @@ $rejected = getReports($conn, $where, 'rejected');
                             Continue Editing <i class="fas fa-arrow-right"></i>
                         </a>
                         <form method="POST" action="weekly_reports" onsubmit="return confirm('Delete this draft permanently?');">
+                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                             <input type="hidden" name="report_id" value="<?= $p['id'] ?>">
                             <button type="submit" name="delete_report" class="w-10 h-10 rounded-[1rem] bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-colors">
                                 <i class="fas fa-trash-alt"></i>
@@ -382,6 +383,7 @@ $rejected = getReports($conn, $where, 'rejected');
                                     Preview
                                 </a>
                                 <form method="POST" action="weekly_reports" class="flex-1" onsubmit="return confirm('Unsubmit this report back to drafts?');">
+                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                     <input type="hidden" name="report_id" value="<?= $p['id'] ?>">
                                     <button type="submit" name="unsubmit_report" class="w-full py-3 border-2 border-slate-100 text-slate-500 rounded-[1rem] text-center text-[0.65rem] font-black uppercase tracking-[0.2em] hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 transition-colors">
                                         Unsubmit

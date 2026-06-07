@@ -251,9 +251,9 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-table-list"></i>
             <span>Class Broadsheet</span>
         </a>
-        <a href="<?= nav_link($base_path, 'supervisor/weekly_reports') ?>" class="nav-item <?= nav_active('weekly_reports', $current_page) ?>">
-            <i class="fas fa-clipboard-check"></i>
-            <span>Weekly Reports</span>
+        <a href="<?= nav_link($base_path, 'academics/teacher_reports') ?>" class="nav-item <?= nav_active('teacher_reports', $current_page) ?>">
+            <i class="fas fa-paste"></i>
+            <span>Teacher Reports</span>
         </a>
 
         <!-- FINANCE HUB -->

@@ -73,7 +73,7 @@ if ($user_role === 'admin' || $user_role === 'supervisor') {
     $res = $conn->query("SELECT DISTINCT class_name FROM teacher_allocations WHERE teacher_id = $uid AND year = '$current_year'");
     while($r = $res->fetch_assoc()) $allocated_classes[] = $r['class_name'];
 }
-$selected_class = $_GET['class'] ?? ($allocated_classes[0] ?? '');
+$selected_class = $conn->real_escape_string($_GET['class'] ?? ($allocated_classes[0] ?? ''));
 
 $students = [];
 if ($selected_class) {

@@ -91,6 +91,12 @@ if ($tc_res) {
 // }
 
 // Handle Form Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['submit_report']) || isset($_POST['save_draft']))) {
     $action_status = isset($_POST['save_draft']) ? 'draft' : 'pending';
     $report_id = intval($_POST['existing_report_id'] ?? 0);
@@ -273,6 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
         <?php endif; ?>
 
         <form method="POST" action="weekly_reports" id="reportForm" class="space-y-8">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="hidden" name="existing_report_id" value="<?= $edit_id ?>">
             
             <!-- Core Info -->
@@ -576,6 +583,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unsubmit_report'])) {
                 <p class="text-sm text-slate-600 font-medium mb-6">Select the Class for this report, then upload your completed Word document (.docx). The system will automatically extract your data.</p>
                 
                 <form action="process_report_import" method="POST" enctype="multipart/form-data" class="space-y-5">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <div>
                         <label class="block text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Class <span class="text-red-500">*</span></label>
                         <select name="upload_class_name" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all text-sm font-bold">

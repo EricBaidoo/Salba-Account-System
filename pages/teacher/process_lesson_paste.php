@@ -13,6 +13,9 @@ $current_term = getSystemSetting($conn, 'current_semester', '1');
 $current_year = getSystemSetting($conn, 'current_academic_year', date('Y') . '/' . (date('Y')+1));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
+        die('Security Check Failed: Invalid or missing CSRF token.');
+    }
     $text = $_POST['pasted_text'];
     $lines = explode("\n", $text);
     
@@ -48,6 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
     ];
 
     $currentData = [];
+    $currentKey = null;
+    $singleLineKeys = ['class', 'subject', 'duration', 'strand', 'sub_strand', 'lesson_num', 'week_num', 'week_ending', 'day', 'class_size', 's_dur', 'l_dur', 'r_dur'];
+
     foreach ($lines as $line) {
         $line = trim($line);
         if (empty($line)) continue;
@@ -74,15 +80,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
             foreach ($matches as $m) {
                 // Check if the label starts with the keyword (case-insensitive)
                 if (stripos($label, $m) === 0) {
+                    $currentKey = $key;
                     // If we only have a label and no value, try to extract value from the rest of the line
                     if (empty($value)) {
                         $value = trim(substr($label, strlen($m)), ": \t-");
                     }
-                    $currentData[$key] = $value;
+                    if (!empty($value)) {
+                        $glue = in_array($currentKey, $singleLineKeys) ? ' ' : "\n";
+                        $currentData[$currentKey] = empty($currentData[$currentKey]) ? $value : $currentData[$currentKey] . $glue . $value;
+                    }
                     $matched = true;
                     break;
                 }
             }
+        }
+
+        // If this line did NOT match any keyword, but we have an active $currentKey, 
+        // append it to the current key's value. This catches multi-line descriptions and table cell values.
+        if (!$matched && $currentKey !== null) {
+            $glue = in_array($currentKey, $singleLineKeys) ? ' ' : "\n";
+            $currentData[$currentKey] = empty($currentData[$currentKey]) ? $line : $currentData[$currentKey] . $glue . $line;
         }
     }
 
@@ -92,11 +109,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
             if (!isset($currentData[$key])) $currentData[$key] = '';
         }
 
+        // Helper to deduplicate repeated words or phrases (e.g. "English Language English Language" -> "English Language")
+        $clean_repeated = function($str) {
+            $str = trim($str);
+            $clean_str = preg_replace('/\s+/', ' ', $str);
+            $words = explode(' ', $clean_str);
+            $w_count = count($words);
+            if ($w_count > 1) {
+                for ($len = 1; $len <= floor($w_count / 2); $len++) {
+                    if ($w_count % $len === 0) {
+                        $slice = array_slice($words, 0, $len);
+                        $phrase = implode(' ', $slice);
+                        $repeats = $w_count / $len;
+                        $reconstructed = implode(' ', array_fill(0, $repeats, $phrase));
+                        if (strcasecmp($clean_str, $reconstructed) === 0) {
+                            return $phrase;
+                        }
+                    }
+                }
+            }
+            return $str;
+        };
+
+        // Clean up all single-line fields to deduplicate repeated phrases (e.g. "60mins 60mins" -> "60mins")
+        $singleLineKeys = ['class', 'subject', 'duration', 'strand', 'sub_strand', 'lesson_num', 'week_num', 'week_ending', 'day', 'class_size', 's_dur', 'l_dur', 'r_dur'];
+        foreach ($singleLineKeys as $slk) {
+            if (isset($currentData[$slk])) {
+                $currentData[$slk] = $clean_repeated($currentData[$slk]);
+            }
+        }
+
         // Subject ID resolution
         $subject_name = trim($currentData['subject']);
         $subject_id = 0;
         if ($subject_name) {
-            $res = $conn->query("SELECT id FROM subjects WHERE name LIKE '%$subject_name%' LIMIT 1");
+            $res = $conn->query("SELECT id FROM subjects WHERE name LIKE '%" . $conn->real_escape_string($subject_name) . "%' LIMIT 1");
             if ($res && $res->num_rows > 0) $subject_id = $res->fetch_assoc()['id'];
         }
 
@@ -115,7 +162,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pasted_text'])) {
         $topic = substr($currentData['sub_strand'], 0, 255);
         $obj = ''; 
         
-        $c_class = substr($currentData['class'], 0, 50);
+        $class_name = trim($currentData['class'] ?? '');
+        if (!empty($class_name)) {
+            // Map short forms (e.g. B7 -> Basic 7)
+            if (preg_match('/^[Bb]\s*([1-9])$/', $class_name, $matches)) {
+                $class_name = 'Basic ' . $matches[1];
+            } elseif (preg_match('/^[Kk][Gg]\s*([1-2])$/', $class_name, $matches)) {
+                $class_name = 'KG ' . $matches[1];
+            } elseif (preg_match('/^[Nn]ursery\s*([1-2])$/i', $class_name, $matches)) {
+                $class_name = 'Nursery ' . $matches[1];
+            }
+        }
+        $c_class = substr($class_name, 0, 50);
         $c_day = substr($currentData['day'], 0, 50);
         $c_dur = substr($currentData['duration'], 0, 50);
         $c_strand = substr($currentData['strand'], 0, 255);

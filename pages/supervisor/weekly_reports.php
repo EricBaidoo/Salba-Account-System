@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_report'])) {
     $status = $_POST['status']; // 'approved' or 'rejected'
     $comments = trim($_POST['comments']);
     
+    // Server-side check: Superseded by Admin
+    $check_admin = $conn->query("SELECT admin_id FROM weekly_reports WHERE id = $report_id")->fetch_row()[0] ?? null;
+    if ($check_admin !== null) {
+        redirect("weekly_reports{$tid_query}", 'error', "This report is locked by Admin and cannot be modified.");
+    }
+    
     if (in_array($status, ['approved', 'rejected'])) {
         $stmt = $conn->prepare("UPDATE weekly_reports SET status = ?, supervisor_comments = ?, supervisor_id = ? WHERE id = ?");
         $stmt->bind_param("ssii", $status, $comments, $uid, $report_id);
@@ -34,6 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_report'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['revert_report'])) {
     $report_id = intval($_POST['report_id']);
+    
+    // Server-side check: Superseded by Admin
+    $check_admin = $conn->query("SELECT admin_id FROM weekly_reports WHERE id = $report_id")->fetch_row()[0] ?? null;
+    if ($check_admin !== null) {
+        redirect("weekly_reports{$tid_query}", 'error', "This report is locked by Admin and cannot be modified.");
+    }
+    
     $stmt = $conn->prepare("UPDATE weekly_reports SET status = 'pending' WHERE id = ?");
     $stmt->bind_param("i", $report_id);
     if ($stmt->execute()) {
@@ -515,12 +528,18 @@ $reviewed_reports = $conn->query("
                                                 <a href="../teacher/print_weekly_report?id=<?= $r['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center hover:bg-gray-200 hover:text-gray-900 transition" title="View Document">
                                                     <i class="fas fa-file-alt"></i>
                                                 </a>
-                                                <form method="POST" action="" onsubmit="return confirm('Revert status to pending? This will allow you to review it again.');">
-                                                    <input type="hidden" name="report_id" value="<?= $r['id'] ?>">
-                                                    <button type="submit" name="revert_report" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:bg-yellow-50 hover:text-yellow-600 transition" title="Revert to Pending">
-                                                        <i class="fas fa-rotate-left text-xs"></i>
-                                                    </button>
-                                                </form>
+                                                <?php if (!empty($r['admin_id'])): ?>
+                                                    <span class="inline-flex h-9 px-3 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl items-center gap-1 text-[0.6rem] font-bold uppercase tracking-widest" title="Locked by Admin">
+                                                        <i class="fas fa-lock"></i> Locked by Admin
+                                                    </span>
+                                                <?php else: ?>
+                                                    <form method="POST" action="" onsubmit="return confirm('Revert status to pending? This will allow you to review it again.');">
+                                                        <input type="hidden" name="report_id" value="<?= $r['id'] ?>">
+                                                        <button type="submit" name="revert_report" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:bg-yellow-50 hover:text-yellow-600 transition" title="Revert to Pending">
+                                                            <i class="fas fa-rotate-left text-xs"></i>
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
