@@ -9,28 +9,122 @@ $student_id = 0;
 $student_name = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $student_id = intval($_POST['student_id'] ?? 0);
-    $first_name = trim($_POST['first_name'] ?? '');
-    $last_name = trim($_POST['last_name'] ?? '');
-    $class = trim($_POST['class'] ?? '');
-    $status = trim($_POST['status'] ?? '');
-    $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-    $parent_contact = !empty($_POST['parent_contact']) ? trim($_POST['parent_contact']) : null;
+    $student_id        = intval($_POST['student_id'] ?? 0);
+    $first_name        = trim($_POST['first_name'] ?? '');
+    $last_name         = trim($_POST['last_name'] ?? '');
+    $class             = trim($_POST['class'] ?? '');
+    $status            = trim($_POST['status'] ?? 'active');
+    $date_of_birth     = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+    $place_of_birth    = trim($_POST['place_of_birth'] ?? '');
+    $date_admitted     = !empty($_POST['date_admitted']) ? $_POST['date_admitted'] : null;
+    $previous_school   = trim($_POST['previous_school'] ?? '');
+    $address           = trim($_POST['address'] ?? '');
+    $landmark          = trim($_POST['landmark'] ?? '');
+    $emergency_contact = trim($_POST['emergency_contact'] ?? '');
+
+    // Parent Info
+    $existing_mother_id = $_POST['existing_mother_id'] ?? '';
+    $mother_name        = trim($_POST['mother_name'] ?? '');
+    $mother_contact     = trim($_POST['mother_contact'] ?? '');
+    
+    $existing_father_id = $_POST['existing_father_id'] ?? '';
+    $father_name        = trim($_POST['father_name'] ?? '');
+    $father_contact     = trim($_POST['father_contact'] ?? '');
 
     if (empty($first_name) || empty($last_name) || empty($class) || empty($status)) {
         $error = "Required fields are missing.";
     } else {
-        $stmt = $conn->prepare("UPDATE students SET first_name = ?, last_name = ?, class = ?, status = ?, date_of_birth = ?, parent_contact = ? WHERE id = ?");
-        $stmt->bind_param("ssssssi", $first_name, $last_name, $class, $status, $date_of_birth, $parent_contact, $student_id);
-        
-        if ($stmt->execute()) {
+        // Fetch current photo_path and parent_contact fallback
+        $photo_path = '';
+        $parent_contact_fallback = '';
+        $curr_res = $conn->query("SELECT photo_path, parent_contact FROM students WHERE id = $student_id");
+        if ($curr_res && $curr_row = $curr_res->fetch_assoc()) {
+            $photo_path = $curr_row['photo_path'];
+            $parent_contact_fallback = $curr_row['parent_contact'];
+        }
+
+        // Set parent contact fallback if new ones are typed
+        if (!empty($mother_contact)) {
+            $parent_contact_fallback = $mother_contact;
+        } elseif (!empty($father_contact)) {
+            $parent_contact_fallback = $father_contact;
+        } elseif (!empty($emergency_contact)) {
+            $parent_contact_fallback = $emergency_contact;
+        }
+
+        // Photo Upload Handling
+        if (!empty($_FILES['photo']['name'])) {
+            $upload_dir = '../../../assets/uploads/students/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+            $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg','jpeg','png','webp'])) {
+                $filename = 'student_' . time() . '_' . rand(100,999) . '.' . $ext;
+                if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_dir . $filename)) {
+                    // Remove old photo if exists
+                    if (!empty($photo_path) && file_exists('../../../' . $photo_path)) {
+                        @unlink('../../../' . $photo_path);
+                    }
+                    $photo_path = 'assets/uploads/students/' . $filename;
+                }
+            }
+        }
+
+        try {
+            $conn->begin_transaction();
+
+            // 1. Update Student Profile
+            $stmt = $conn->prepare("UPDATE students SET first_name = ?, last_name = ?, class = ?, status = ?, date_of_birth = ?, parent_contact = ?, address = ?, place_of_birth = ?, emergency_contact = ?, photo_path = ?, landmark = ?, date_admitted = ?, previous_school = ? WHERE id = ?");
+            $stmt->bind_param("sssssssssssssi", $first_name, $last_name, $class, $status, $date_of_birth, $parent_contact_fallback, $address, $place_of_birth, $emergency_contact, $photo_path, $landmark, $date_admitted, $previous_school, $student_id);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Student Update Error: " . $stmt->error);
+            }
+            $stmt->close();
+
+            // 2. Clear Old Parent-Student Mother/Father Links
+            $conn->query("DELETE FROM student_parents WHERE student_id = $student_id AND relationship IN ('Mother', 'Father')");
+
+            // 3. Handle Mother Mappings
+            $primary_set = false;
+            if (!empty($existing_mother_id)) {
+                $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, " . intval($existing_mother_id) . ", 'Mother')");
+            } elseif (!empty($mother_name)) {
+                $is_primary = (!empty($mother_contact) && !$primary_set) ? 1 : 0;
+                if ($is_primary) $primary_set = true;
+                
+                $m_stmt = $conn->prepare("INSERT INTO parents (title, first_name, last_name, phone, address, is_primary) VALUES ('Mrs.', '', ?, ?, ?, ?)");
+                $m_stmt->bind_param("sssi", $mother_name, $mother_contact, $address, $is_primary);
+                $m_stmt->execute();
+                $mother_id = $conn->insert_id;
+                $m_stmt->close();
+
+                $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, $mother_id, 'Mother')");
+            }
+
+            // 4. Handle Father Mappings
+            if (!empty($existing_father_id)) {
+                $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, " . intval($existing_father_id) . ", 'Father')");
+            } elseif (!empty($father_name)) {
+                $is_primary = (!empty($father_contact) && !$primary_set) ? 1 : 0;
+                
+                $f_stmt = $conn->prepare("INSERT INTO parents (title, first_name, last_name, phone, address, is_primary) VALUES ('Mr.', '', ?, ?, ?, ?)");
+                $f_stmt->bind_param("sssi", $father_name, $father_contact, $address, $is_primary);
+                $f_stmt->execute();
+                $father_id = $conn->insert_id;
+                $f_stmt->close();
+
+                $conn->query("INSERT INTO student_parents (student_id, parent_id, relationship) VALUES ($student_id, $father_id, 'Father')");
+            }
+
+            $conn->commit();
             $success = true;
             $student_name = "$first_name $last_name";
             log_activity($conn, 'Admissions', "Updated student profile: $student_name (#$student_id)");
-        } else {
-            $error = "Database error: " . $stmt->error;
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            $error = "Transaction failed: " . $e->getMessage();
         }
-        $stmt->close();
     }
 } else {
     header('Location: view_students');

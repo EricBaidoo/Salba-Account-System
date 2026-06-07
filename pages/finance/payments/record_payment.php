@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             '{term}' => $semester
                         ];
                         
-                        send_sms_from_template($conn, $tpl_id, $parent_data['phone'], $vars);
+                        send_sms_from_template($tpl_id, $parent_data['phone'], $vars);
                     }
                     $stu_stmt->close();
                 }

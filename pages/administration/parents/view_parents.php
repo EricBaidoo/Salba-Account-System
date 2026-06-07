@@ -19,6 +19,14 @@ $query = "
     ORDER BY p.id DESC
 ";
 $result = $conn->query($query);
+
+// Helper to extract initials
+function getInitials($first_name, $last_name) {
+    $f = function_exists('mb_substr') ? mb_substr(trim($first_name ?? ''), 0, 1) : substr(trim($first_name ?? ''), 0, 1);
+    $l = function_exists('mb_substr') ? mb_substr(trim($last_name ?? ''), 0, 1) : substr(trim($last_name ?? ''), 0, 1);
+    $initials = strtoupper($f . $l);
+    return !empty($initials) ? $initials : 'P';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,11 +42,83 @@ $result = $conn->query($query);
     <link rel="stylesheet" href="../../../assets/css/style.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.25rem 0.75rem; margin-left: 0.5rem; outline: none;
+        
+        /* Premium custom sorting arrow styling */
+        table.dataTable thead th {
+            position: relative;
+            background-image: none !important;
+            cursor: pointer;
         }
-        .dataTables_wrapper .dataTables_filter input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
-        .dataTables_wrapper .dataTables_length select { border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.25rem 2rem 0.25rem 0.75rem; }
+        table.dataTable thead th::after {
+            content: "\f0dc";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        table.dataTable thead th.sorting_asc::after {
+            content: "\f0de";
+            color: #4f46e5;
+        }
+        table.dataTable thead th.sorting_desc::after {
+            content: "\f0dd";
+            color: #4f46e5;
+        }
+        
+        /* Custom DataTables Pagination Styling */
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border: 0.0625rem solid #e2e8f0 !important;
+            border-radius: 0.75rem !important;
+            background: #ffffff !important;
+            color: #4b5563 !important;
+            padding: 0.5rem 0.875rem !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s !important;
+            box-shadow: 0 0.0625rem 0.125rem 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #f9fafb !important;
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #4f46e5 !important;
+            color: #ffffff !important;
+            border-color: #4f46e5 !important;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 0 2px 4px -1px rgba(79, 70, 229, 0.06) !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #4338ca !important;
+            color: #ffffff !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            background: #f9fafb !important;
+            color: #9ca3af !important;
+            border-color: #f3f4f6 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6 !important;
+        }
+        .dataTables_wrapper .dataTables_info {
+            color: #6b7280 !important;
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -47,24 +127,31 @@ $result = $conn->query($query);
 
     <main class="admin-main-content lg:ml-72 min-h-screen">
         <!-- Header -->
-        <div class="bg-white border-b border-gray-100 px-8 py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-                    <i class="fas fa-users text-indigo-600"></i> Parents Directory
-                </h1>
-                <p class="text-gray-500 mt-2 font-medium">
-                    Manage all parents, guardians, and their linked children.
-                </p>
+        <div class="bg-white border-b border-gray-100 px-8 py-6">
+            <div class="flex items-center gap-3 mb-4">
+                <a href="../dashboard" class="text-gray-400 hover:text-indigo-600 transition-colors flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-                <a href="add_parent.php" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                        <i class="fas fa-users text-indigo-600"></i> Parents Directory
+                    </h1>
+                    <p class="text-gray-500 mt-2 font-medium">
+                        Manage all parents, guardians, and their linked children.
+                    </p>
+                </div>
+            <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full sm:w-auto">
+                <a href="add_parent.php" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all">
                     <i class="fas fa-user-plus text-indigo-600"></i> New Parent
                 </a>
-                <a href="../students/add_student_form.php" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all">
+                <a href="../students/add_student_form.php" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all">
                     <i class="fas fa-plus"></i> New Student
                 </a>
             </div>
         </div>
+    </div>
 
         <div class="p-8">
             <?php if (isset($_SESSION['success_msg'])): ?>
@@ -79,9 +166,40 @@ $result = $conn->query($query);
                 </div>
                 <?php unset($_SESSION['error_msg']); ?>
             <?php endif; ?>
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="p-6">
-                    <table id="parentsTable" class="w-full text-left text-sm text-gray-600">
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-6 md:p-8">
+                <!-- Custom DataTables Filters Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <div class="relative w-full sm:w-80">
+                        <input type="text" 
+                               id="customSearchInput" 
+                               placeholder="Search parents..." 
+                               class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm shadow-sm font-medium" 
+                               autocomplete="off">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <i class="fas fa-search text-xs"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                        <label class="text-xs font-black text-gray-400 uppercase tracking-wider">Show</label>
+                        <div class="relative">
+                            <select id="customLengthSelect" class="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-3 pr-8 py-2 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm appearance-none cursor-pointer shadow-sm font-bold">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-gray-400 text-[10px]">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <span class="text-xs font-black text-gray-400 uppercase tracking-wider">entries</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl">
+                    <table id="parentsTable" class="w-full text-left text-sm text-gray-600 divide-y divide-gray-100">
                         <thead class="bg-gray-50 text-gray-900 text-xs uppercase font-bold tracking-wider">
                             <tr>
                                 <th class="px-6 py-4 rounded-tl-xl">Parent Name</th>
@@ -91,47 +209,85 @@ $result = $conn->query($query);
                                 <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-100 bg-white">
                             <?php if ($result && $result->num_rows > 0): ?>
-                                <?php while ($row = $result->fetch_assoc()): ?>
-                                    <tr class="hover:bg-indigo-50/30 transition-colors">
-                                        <td class="px-6 py-4 font-bold text-gray-900 flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                                <?= strtoupper(substr($row['last_name'] ?: $row['first_name'] ?: 'P', 0, 1)) ?>
-                                            </div>
-                                            <div>
-                                                <?= htmlspecialchars(trim($row['title'] . ' ' . $row['first_name'] . ' ' . $row['last_name'])) ?>
-                                                <?php if($row['is_primary']): ?>
-                                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-bold bg-green-100 text-green-800" title="Receives SMS Notifications">SMS</span>
-                                                <?php endif; ?>
+                                <?php while ($row = $result->fetch_assoc()): 
+                                    // Generate distinct aesthetic color scheme per row initials
+                                    $name_hash = crc32($row['first_name'] . ' ' . $row['last_name']);
+                                    $bg_colors = [
+                                        'bg-indigo-50 text-indigo-700 border-indigo-100',
+                                        'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                        'bg-violet-50 text-violet-700 border-violet-100',
+                                        'bg-amber-50 text-amber-700 border-amber-100',
+                                        'bg-rose-50 text-rose-700 border-rose-100',
+                                        'bg-sky-50 text-sky-700 border-sky-100',
+                                        'bg-teal-50 text-teal-700 border-teal-100',
+                                        'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-100'
+                                    ];
+                                    $avatar_color = $bg_colors[$name_hash % count($bg_colors)];
+                                    $initials = getInitials($row['first_name'], $row['last_name']);
+                                ?>
+                                    <tr class="hover:bg-indigo-50/20 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-gray-900">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-9 h-9 rounded-xl border flex items-center justify-center font-black text-xs flex-shrink-0 <?= $avatar_color ?>">
+                                                    <?= $initials ?>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="leading-tight"><?= htmlspecialchars(trim($row['title'] . ' ' . $row['first_name'] . ' ' . $row['last_name'])) ?></span>
+                                                    <?php if($row['is_primary']): ?>
+                                                        <span class="mt-1 self-start inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100" title="Receives SMS Notifications">
+                                                            <i class="fas fa-comment-sms text-[8px]"></i> SMS Enabled
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4">
-                                            <?= htmlspecialchars($row['phone'] ?: 'N/A') ?>
+                                        <td class="px-6 py-4 font-semibold text-gray-700">
+                                            <?php if($row['phone']): ?>
+                                                <span class="flex items-center gap-1.5 whitespace-nowrap">
+                                                    <i class="fas fa-phone text-slate-400 text-xs"></i>
+                                                    <?= htmlspecialchars($row['phone']) ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400 italic">N/A</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4">
                                             <?php if ($row['linked_students']): ?>
-                                                <div class="flex flex-wrap gap-1">
+                                                <div class="flex flex-wrap gap-1.5">
                                                     <?php foreach(explode(', ', $row['linked_students']) as $child): ?>
-                                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold"><?= htmlspecialchars($child) ?></span>
+                                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/50 text-indigo-700 rounded-lg text-xs font-semibold border border-indigo-100/30 whitespace-nowrap">
+                                                            <i class="fas fa-graduation-cap text-[10px] text-indigo-400"></i>
+                                                            <?= htmlspecialchars($child) ?>
+                                                        </span>
                                                     <?php endforeach; ?>
                                                 </div>
                                             <?php else: ?>
-                                                <span class="text-gray-400 italic text-xs">No children linked</span>
+                                                <span class="inline-flex items-center gap-1 text-gray-400 italic text-xs font-medium">
+                                                    <i class="fas fa-users-slash text-[10px]"></i> No children linked
+                                                </span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="px-6 py-4 text-xs">
-                                            <?= htmlspecialchars($row['address'] ?: 'N/A') ?>
+                                        <td class="px-6 py-4 text-xs font-medium text-gray-600 max-w-xs truncate" title="<?= htmlspecialchars($row['address'] ?? '') ?>">
+                                            <?php if($row['address']): ?>
+                                                <span class="flex items-center gap-1.5">
+                                                    <i class="fas fa-map-marker-alt text-slate-400 text-xs flex-shrink-0"></i>
+                                                    <span class="truncate"><?= htmlspecialchars($row['address']) ?></span>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400 italic">N/A</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <a href="edit_parent.php?id=<?= $row['id'] ?>" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-                                                    Edit
+                                            <div class="flex items-center justify-end gap-2.5">
+                                                <a href="edit_parent.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center hover:shadow-md hover:shadow-indigo-100 transition-all duration-200" title="Edit Profile">
+                                                    <i class="fas fa-user-edit text-xs"></i>
                                                 </a>
                                                 <form method="POST" action="delete_parent.php" onsubmit="return confirm('Are you sure you want to delete this parent? This will unlink them from any children.');" class="inline-block">
                                                     <input type="hidden" name="parent_id" value="<?= $row['id'] ?>">
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 font-bold text-xs px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                                                        Delete
+                                                    <button type="submit" class="w-8 h-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center hover:shadow-md hover:shadow-red-100 transition-all duration-200" title="Delete Parent">
+                                                        <i class="fas fa-trash-alt text-xs"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -150,17 +306,29 @@ $result = $conn->query($query);
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#parentsTable').DataTable({
+            var table = $('#parentsTable').DataTable({
                 pageLength: 25,
+                dom: 'rtip', // Hide default DataTables search box and entries select
+                ordering: true,
+                info: true,
+                paging: true,
                 language: {
-                    search: "",
-                    searchPlaceholder: "Search parents..."
-                },
-                dom: '<"flex flex-col md:flex-row justify-between items-center mb-4"lf>rt<"flex flex-col md:flex-row justify-between items-center mt-4"ip>'
+                    paginate: {
+                        previous: "<i class='fas fa-chevron-left'></i>",
+                        next: "<i class='fas fa-chevron-right'></i>"
+                    }
+                }
             });
-            // Tailwind styling for DataTable
-            $('.dataTables_filter input').addClass('bg-gray-50 text-sm');
-            $('.dataTables_length select').addClass('bg-gray-50 text-sm');
+
+            // Bind Custom Search Input
+            $('#customSearchInput').on('input', function() {
+                table.search(this.value).draw();
+            });
+
+            // Bind Custom Length Dropdown
+            $('#customLengthSelect').on('change', function() {
+                table.page.len(parseInt(this.value)).draw();
+            });
         });
     </script>
 </body>

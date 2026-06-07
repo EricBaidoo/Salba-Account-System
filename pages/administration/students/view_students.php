@@ -15,25 +15,28 @@ $param_types = '';
 
 if ($status_filter) {
     if ($status_filter === 'active') {
-        $where_conditions[] = "status = 'active'";
+        $where_conditions[] = "s.status = 'active'";
     } else {
-        $where_conditions[] = "status = 'inactive'";
+        $where_conditions[] = "s.status = 'inactive'";
     }
 }
 
 if (!empty($class_filter)) {
-    $where_conditions[] = "LOWER(TRIM(class)) = LOWER(TRIM(?))";
+    $where_conditions[] = "LOWER(TRIM(s.class)) = LOWER(TRIM(?))";
     $params[] = $class_filter;
     $param_types .= 's';
 }
 
 if (!empty($search)) {
-    $where_conditions[] = "(first_name LIKE ? OR last_name LIKE ? OR parent_contact LIKE ?)";
+    $where_conditions[] = "(s.first_name LIKE ? OR s.last_name LIKE ? OR s.parent_contact LIKE ? OR p.first_name LIKE ? OR p.last_name LIKE ? OR p.phone LIKE ?)";
     $search_param = "%$search%";
     $params[] = $search_param;
     $params[] = $search_param;
     $params[] = $search_param;
-    $param_types .= 'sss';
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $param_types .= 'ssssss';
 }
 
 $where_clause = '';
@@ -41,7 +44,16 @@ if (!empty($where_conditions)) {
     $where_clause = 'WHERE ' . implode(' AND ', $where_conditions);
 }
 
-$query = "SELECT * FROM students $where_clause ORDER BY id DESC";
+$query = "
+    SELECT s.*, 
+           GROUP_CONCAT(DISTINCT CONCAT(p.first_name, ' ', p.last_name, ' (', p.phone, ')') SEPARATOR ', ') as linked_parent_contacts
+    FROM students s
+    LEFT JOIN student_parents sp ON s.id = sp.student_id
+    LEFT JOIN parents p ON sp.parent_id = p.id
+    $where_clause
+    GROUP BY s.id
+    ORDER BY s.id DESC
+";
 $stmt = $conn->prepare($query);
 
 if (!empty($params)) {
@@ -244,7 +256,10 @@ while ($row = $class_result->fetch_assoc()) {
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    <?php echo htmlspecialchars($row['parent_contact'] ?? '—'); ?>
+                                    <?php 
+                                    $contact_display = !empty($row['linked_parent_contacts']) ? $row['linked_parent_contacts'] : ($row['parent_contact'] ?? '—');
+                                    echo htmlspecialchars($contact_display); 
+                                    ?>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">

@@ -14,16 +14,15 @@ $recipients = [];
 // Determine SQL condition based on audience
 $condition = "";
 if ($audience === 'all_parents') {
-    $condition = "status = 'active'";
+    $condition = "s.status = 'active'";
 } elseif ($audience === 'nursery_parents') {
-    $condition = "status = 'active' AND class LIKE '%Nursery%'";
+    $condition = "s.status = 'active' AND s.class LIKE '%Nursery%'";
 } elseif ($audience === 'primary_parents') {
-    $condition = "status = 'active' AND (class LIKE '%Primary%' OR class LIKE '%Basic%')";
+    $condition = "s.status = 'active' AND (s.class LIKE '%Primary%' OR s.class LIKE '%Basic%')";
 } elseif ($audience === 'jhs_parents') {
-    $condition = "status = 'active' AND class LIKE '%JHS%'";
+    $condition = "s.status = 'active' AND s.class LIKE '%JHS%'";
 } elseif ($audience === 'debtors') {
-    // For simplicity, just return active students if we don't have the exact debtors logic here yet
-    $condition = "status = 'active'";
+    $condition = "s.status = 'active'";
 } else {
     echo json_encode(['recipients' => []]);
     exit;
@@ -31,7 +30,19 @@ if ($audience === 'all_parents') {
 
 header('Content-Type: application/json');
 try {
-    $query = "SELECT first_name, last_name, class, parent_contact FROM students WHERE $condition LIMIT 100";
+    $query = "
+        SELECT s.first_name, s.last_name, s.class, 
+               COALESCE(
+                   (SELECT p.phone FROM parents p 
+                    JOIN student_parents sp ON p.id = sp.parent_id 
+                    WHERE sp.student_id = s.id 
+                    ORDER BY sp.is_primary DESC, sp.id ASC LIMIT 1), 
+                   s.parent_contact
+               ) as parent_contact 
+        FROM students s 
+        WHERE $condition 
+        LIMIT 100
+    ";
     $result = $conn->query($query);
 
     if ($result) {

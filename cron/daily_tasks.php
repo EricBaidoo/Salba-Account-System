@@ -56,6 +56,8 @@ if (!empty($admin_phone)) {
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             $response = curl_exec($ch);
             curl_close($ch);
             
@@ -113,7 +115,7 @@ if ($trigger_overdue === '1') {
                     '{parent_name}' => $parent_name,
                     '{balance}' => number_format($row['total_overdue'], 2)
                 ];
-                send_sms_from_template($conn, $tpl_id, $row['parent_contact'], $vars);
+                send_sms_from_template($tpl_id, $row['parent_contact'], $vars);
                 $count_overdue++;
             }
         }
@@ -158,7 +160,7 @@ if ($trigger_bday === '1') {
                     '{student_name}' => $student_name,
                     '{parent_name}' => $parent_name
                 ];
-                send_sms_from_template($conn, $tpl_id, $row['parent_contact'], $vars);
+                send_sms_from_template($tpl_id, $row['parent_contact'], $vars);
                 $count_bday++;
             }
         }
