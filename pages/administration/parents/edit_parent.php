@@ -133,7 +133,13 @@ if ($linked_students_res) {
     <main class="admin-main-content lg:ml-72 min-h-screen">
         <div class="bg-white border-b border-gray-100 px-8 py-6 flex justify-between items-center">
             <div>
-                <a href="view_parents.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 mb-2 inline-block"><i class="fas fa-arrow-left mr-1"></i> Back to Directory</a>
+                <div class="flex items-center gap-2 text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">
+                    <a href="../dashboard" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Dashboard</a>
+                    <span>/</span>
+                    <a href="view_parents.php" class="hover:text-indigo-600 transition-colors">Parents Directory</a>
+                    <span>/</span>
+                    <span class="text-indigo-600">Edit Profile</span>
+                </div>
                 <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
                     <i class="fas fa-user-edit text-indigo-600"></i> Edit Parent Profile
                 </h1>

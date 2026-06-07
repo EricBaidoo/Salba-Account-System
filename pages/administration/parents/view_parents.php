@@ -142,13 +142,27 @@ function getInitials($first_name, $last_name) {
                         Manage all parents, guardians, and their linked children.
                     </p>
                 </div>
-            <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full sm:w-auto">
-                <a href="add_parent.php" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all">
-                    <i class="fas fa-user-plus text-indigo-600"></i> New Parent
-                </a>
-                <a href="../students/add_student_form.php" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all">
-                    <i class="fas fa-plus"></i> New Student
-                </a>
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mt-4 md:mt-0 w-full xl:w-auto flex-1 xl:justify-end">
+                <!-- Search Bar moved to top header -->
+                <div class="relative w-full xl:w-[400px] max-w-lg">
+                    <input type="text" 
+                           id="customSearchInput" 
+                           placeholder="Search parents by name, phone, or email..." 
+                           class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-3 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm shadow-sm font-medium" 
+                           autocomplete="off">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search text-sm"></i>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <a href="add_parent.php" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap">
+                        <i class="fas fa-user-plus text-indigo-600"></i> New Parent
+                    </a>
+                    <a href="../students/add_student_form.php" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all whitespace-nowrap">
+                        <i class="fas fa-plus"></i> New Student
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -169,17 +183,8 @@ function getInitials($first_name, $last_name) {
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-6 md:p-8">
                 <!-- Custom DataTables Filters Header -->
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-                    <div class="relative w-full sm:w-80">
-                        <input type="text" 
-                               id="customSearchInput" 
-                               placeholder="Search parents..." 
-                               class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm shadow-sm font-medium" 
-                               autocomplete="off">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                            <i class="fas fa-search text-xs"></i>
-                        </div>
-                    </div>
+                <div class="flex flex-col sm:flex-row justify-end items-center gap-4 mb-6">
+                    <!-- Search input was moved to top header -->
                     
                     <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                         <label class="text-xs font-black text-gray-400 uppercase tracking-wider">Show</label>

@@ -162,9 +162,9 @@ while ($row = $class_result->fetch_assoc()) {
                             Search Students
                         </label>
                         <div class="relative">
-                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" name="search" class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
-                                   placeholder="Name or contact info..." value="<?php echo htmlspecialchars($search); ?>">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" name="search" class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium transition-all shadow-sm" 
+                                   placeholder="Search by student name, parent name, or contact number..." value="<?php echo htmlspecialchars($search); ?>" autocomplete="off">
                         </div>
                     </div>
                     
@@ -256,10 +256,23 @@ while ($row = $class_result->fetch_assoc()) {
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    <?php 
-                                    $contact_display = !empty($row['linked_parent_contacts']) ? $row['linked_parent_contacts'] : ($row['parent_contact'] ?? '—');
-                                    echo htmlspecialchars($contact_display); 
-                                    ?>
+                                    <?php if (!empty($row['linked_parent_contacts'])): ?>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <?php foreach(explode(', ', $row['linked_parent_contacts']) as $parent): ?>
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-100 whitespace-nowrap">
+                                                    <i class="fas fa-user-tie text-[10px] text-emerald-500"></i>
+                                                    <?= htmlspecialchars($parent) ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php elseif (!empty($row['parent_contact'])): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-600 rounded-lg text-xs font-semibold border border-gray-200 whitespace-nowrap">
+                                            <i class="fas fa-phone text-[10px] text-gray-400"></i>
+                                            <?= htmlspecialchars($row['parent_contact']) ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-gray-400 italic text-xs font-medium">N/A</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
