@@ -178,17 +178,89 @@ if ($st_res) {
 $month_names = [1=>"January", 2=>"February", 3=>"March", 4=>"April", 5=>"May", 6=>"June", 7=>"July", 8=>"August", 9=>"September", 10=>"October", 11=>"November", 12=>"December"];
 $display_month = $month_names[$current_month_num];
 
-// Quick Actions Configuration
-$actions = [
-    ['href'=>'students/view_students.php',   'icon'=>'fa-users-viewfinder', 'color'=>'blue',   'title'=>'Students',  'desc'=>'Manage enrollments'],
-    ['href'=>'staff/view_staff.php',         'icon'=>'fa-id-card',           'color'=>'purple', 'title'=>'Staff',    'desc'=>'View & manage faculty'],
-    ['href'=>'staff_attendance.php',         'icon'=>'fa-map-location-dot',  'color'=>'emerald','title'=>'Attendance',   'desc'=>'Monitor daily check-ins'],
-    ['href'=>'system_settings.php',          'icon'=>'fa-sliders-h',         'color'=>'orange', 'title'=>'Settings',   'desc'=>'Configure the system'],
-    ['href'=>'../../pages/academics/teacher_reports.php','icon'=>'fa-paste','color'=>'indigo','title'=>'Teacher Reports',  'desc'=>'Review lessons & weekly reports'],
-    ['href'=>'../../pages/academics/transcript_breakdown.php','icon'=>'fa-table-list','color'=>'emerald','title'=>'Class Broadsheet',  'desc'=>'View student performance broadsheets'],
-    ['href'=>'../../pages/communication/dashboard.php',  'icon'=>'fa-tower-broadcast',  'color'=>'rose',  'title'=>'Communication',    'desc'=>'Announcements & internal messages'],
-    ['href'=>'../../pages/finance/dashboard.php',  'icon'=>'fa-wallet',          'color'=>'teal',  'title'=>'Finance',    'desc'=>'Go to financial portal'],
-    ['href'=>'staff_appraisals.php',  'icon'=>'fa-clipboard-check', 'color'=>'blue',  'title'=>'Staff Appraisals', 'desc'=>'Finalize evaluations'],
+// Quick Actions Configuration (Aligned to academics layout cards)
+$admin_features = [
+    [
+        'icon' => 'fa-user-graduate', 'color' => 'blue',
+        'title' => 'Student Registry', 'desc' => 'Manage active student enrollments, profiles, and class allocations.',
+        'links' => [
+            ['label' => 'View Registry', 'href' => 'students/view_students.php'],
+            ['label' => 'New Enrollment', 'href' => 'students/add_student_form.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-id-card', 'color' => 'purple',
+        'title' => 'Faculty Directory', 'desc' => 'View authorized personnel profiles and recruit new staff members.',
+        'links' => [
+            ['label' => 'View Directory', 'href' => 'staff/view_staff.php'],
+            ['label' => 'New Recruitment', 'href' => 'staff/add_staff.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-clock-rotate-left', 'color' => 'emerald',
+        'title' => 'Staff Attendance', 'desc' => 'Monitor daily clock-in compliance, check-in details, and overrides.',
+        'links' => [
+            ['label' => 'Attendance Hub', 'href' => 'staff_attendance.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-wallet', 'color' => 'teal',
+        'title' => 'Financial Oversight', 'desc' => 'Track trimester expected invoices, receipts, and accounting ledgers.',
+        'links' => [
+            ['label' => 'Finance Board', 'href' => '../../pages/finance/dashboard.php'],
+            ['label' => 'Accounting Ledger', 'href' => '../../pages/finance/accounting/index.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-clipboard-check', 'color' => 'blue',
+        'title' => 'Staff Appraisals', 'desc' => 'Perform evaluations, finalize ratings, and review personnel appraisals.',
+        'links' => [
+            ['label' => 'Staff Appraisals', 'href' => 'staff_appraisals.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-tower-broadcast', 'color' => 'rose',
+        'title' => 'Communication Hub', 'desc' => 'Broadcast school announcements, system notices, and parent messages.',
+        'links' => [
+            ['label' => 'Communication Hub', 'href' => '../../pages/communication/dashboard.php'],
+            ['label' => 'Announcements', 'href' => '../../pages/communication/announcements/view_announcements.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-sliders', 'color' => 'orange',
+        'title' => 'System Settings', 'desc' => 'Configure parameters, calendars, and attendance threshold coordinates.',
+        'links' => [
+            ['label' => 'System Settings', 'href' => 'system_settings.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-fingerprint', 'color' => 'slate',
+        'title' => 'Audit Trail', 'desc' => 'Examine institutional logs, security activities, and history.',
+        'links' => [
+            ['label' => 'View Audit Logs', 'href' => 'audit_logs.php'],
+        ]
+    ],
+    [
+        'icon' => 'fa-book-open', 'color' => 'indigo',
+        'title' => 'Academic Reports', 'desc' => 'Review teacher weekly logs, performance broadsheets, and lesson plans.',
+        'links' => [
+            ['label' => 'Class Broadsheet', 'href' => '../../pages/academics/transcript_breakdown.php'],
+            ['label' => 'Teacher Reports', 'href' => '../../pages/academics/teacher_reports.php'],
+        ]
+    ]
+];
+
+$palettes = [
+    'yellow'  => ['bg-amber-50',   'text-amber-600',   'border-amber-200/50'],
+    'green'   => ['bg-emerald-50', 'text-emerald-600', 'border-emerald-200/50'],
+    'blue'    => ['bg-blue-50',    'text-blue-600',    'border-blue-200/50'],
+    'indigo'  => ['bg-indigo-50',  'text-indigo-600',  'border-indigo-200/50'],
+    'purple'  => ['bg-purple-50',  'text-purple-600',  'border-purple-200/50'],
+    'orange'  => ['bg-orange-50',  'text-orange-600',  'border-orange-200/50'],
+    'rose'    => ['bg-rose-50',    'text-rose-600',    'border-rose-200/50'],
+    'emerald' => ['bg-emerald-50', 'text-emerald-600', 'border-emerald-200/50'],
+    'teal'    => ['bg-teal-50',    'text-teal-600',    'border-teal-200/50'],
+    'slate'   => ['bg-slate-100',  'text-slate-600',   'border-slate-200/50'],
 ];
 ?>
 <!DOCTYPE html>
@@ -249,10 +321,10 @@ $actions = [
     <main class="lg:ml-72 min-h-screen pb-12 transition-all duration-300">
         
         <!-- Animated Background Header -->
-        <div class="relative bg-gradient-to-br from-primary-900 via-blue-800 to-indigo-900 pt-16 md:pt-20 pb-24 overflow-hidden">
+        <div class="relative bg-gradient-to-br from-indigo-900 via-purple-800 to-slate-900 pt-16 md:pt-20 pb-24 overflow-hidden">
             <div class="absolute inset-0 bg-[url('../../assets/images/pattern-light.svg')] opacity-10"></div>
-            <div class="absolute -right-20 -top-20 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-            <div class="absolute -left-20 top-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-delay: 2s;"></div>
+            <div class="absolute -right-20 -top-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+            <div class="absolute -left-20 top-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-delay: 2s;"></div>
             
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -266,7 +338,7 @@ $actions = [
                             </span>
                         </div>
                         <h1 class="text-3xl md:text-4xl font-extrabold text-white font-display tracking-tight drop-shadow-sm">System Overview</h1>
-                        <p class="text-blue-100 mt-2 max-w-2xl text-sm md:text-base">Real-time insights across academics, finance, and human resources.</p>
+                        <p class="text-indigo-100 mt-2 max-w-2xl text-sm md:text-base">Real-time insights across academics, finance, and human resources.</p>
                     </div>
                 </div>
             </div>
@@ -274,23 +346,19 @@ $actions = [
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 relative z-20 space-y-6">
             
-            <!-- AT A GLANCE STATS ROW -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <!-- AT A GLANCE METRICS ROW -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 <!-- Students -->
                 <div class="glass-card rounded-2xl p-5 stat-card-hover transition-all duration-300 relative overflow-hidden group">
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform"></div>
                     <div class="flex justify-between items-start relative z-10">
                         <div>
                             <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Students</p>
-                            <h3 class="text-3xl font-extrabold font-display text-slate-800"><?= number_format($active_students) ?></h3>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800"><?= number_format($active_students) ?></h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl shadow-inner border border-blue-200">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-inner border border-blue-200">
                             <i class="fas fa-user-graduate"></i>
                         </div>
-                    </div>
-                    <div class="mt-4 flex items-center gap-2 text-xs font-semibold">
-                        <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded"><?= $unique_classes ?> Classes</span>
-                        <span class="text-slate-400">Enrolled globally</span>
                     </div>
                 </div>
 
@@ -299,50 +367,68 @@ $actions = [
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform"></div>
                     <div class="flex justify-between items-start relative z-10">
                         <div>
-                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Today's Attendance</p>
-                            <h3 class="text-3xl font-extrabold font-display text-slate-800"><?= $attendance_rate ?>%</h3>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Attendance Rate</p>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800"><?= $attendance_rate ?>%</h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-inner border border-emerald-200">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg shadow-inner border border-emerald-200">
                             <i class="fas fa-clipboard-user"></i>
                         </div>
                     </div>
-                    <div class="mt-4 w-full bg-slate-100 rounded-full h-1.5">
-                        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: <?= $attendance_rate ?>%"></div>
-                    </div>
                 </div>
 
-                <!-- Finance -->
+                <!-- Collection Rate -->
                 <div class="glass-card rounded-2xl p-5 stat-card-hover transition-all duration-300 relative overflow-hidden group">
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-110 transition-transform"></div>
                     <div class="flex justify-between items-start relative z-10">
                         <div>
-                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Term Collection</p>
-                            <h3 class="text-3xl font-extrabold font-display text-slate-800"><?= $collection_rate ?>%</h3>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Collection Rate</p>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800"><?= $collection_rate ?>%</h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl shadow-inner border border-purple-200">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg shadow-inner border border-purple-200">
                             <i class="fas fa-wallet"></i>
                         </div>
                     </div>
-                    <div class="mt-4 flex justify-between text-xs font-semibold">
-                        <span class="text-slate-500">Collected: <span class="text-purple-600">GH₵<?= number_format($total_payments) ?></span></span>
-                    </div>
                 </div>
 
-                <!-- Staff -->
+                <!-- Active Faculty -->
                 <div class="glass-card rounded-2xl p-5 stat-card-hover transition-all duration-300 relative overflow-hidden group">
                     <div class="absolute -right-6 -top-6 w-24 h-24 bg-orange-50 rounded-full group-hover:scale-110 transition-transform"></div>
                     <div class="flex justify-between items-start relative z-10">
                         <div>
-                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Faculty</p>
-                            <h3 class="text-3xl font-extrabold font-display text-slate-800"><?= $total_users ?></h3>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Faculty</p>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800"><?= $total_users ?></h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl shadow-inner border border-orange-200">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-lg shadow-inner border border-orange-200">
                             <i class="fas fa-users-gear"></i>
                         </div>
                     </div>
-                    <div class="mt-4 flex items-center gap-2 text-[0.65rem] font-bold text-slate-400 uppercase">
-                        <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600"><?= $total_admins ?> Admins</span>
-                        <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600"><?= $total_staff_users ?> Staff</span>
+                </div>
+
+                <!-- Pending Plans -->
+                <div class="glass-card rounded-2xl p-5 stat-card-hover transition-all duration-300 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-50 rounded-full group-hover:scale-110 transition-transform"></div>
+                    <div class="flex justify-between items-start relative z-10">
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Plans</p>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800"><?= number_format($lp_stats['pending']) ?></h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg shadow-inner border border-indigo-200">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Term Expenses -->
+                <div class="glass-card rounded-2xl p-5 stat-card-hover transition-all duration-300 relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 rounded-full group-hover:scale-110 transition-transform"></div>
+                    <div class="flex justify-between items-start relative z-10">
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Trimester Cost</p>
+                            <h3 class="text-2xl font-extrabold font-display text-slate-800">GH₵<?= number_format($total_expenses) ?></h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg shadow-inner border border-rose-200">
+                            <i class="fas fa-receipt"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -429,7 +515,47 @@ $actions = [
                 </div>
             </div>
 
-            <!-- LOWER GRID -->
+            <!-- Feature Cards Section -->
+            <div class="space-y-4">
+                <div>
+                    <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-bolt text-indigo-500"></i> Administration Management
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <?php
+                    foreach ($admin_features as $f):
+                        $color = $f['color'];
+                        [$iconBg, $iconColor, $borderColor] = $palettes[$color] ?? $palettes['indigo'];
+                    ?>
+                    <div class="glass-card rounded-2xl border border-slate-200/60 p-5 stat-card-hover hover:border-slate-300 transition-all duration-300 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 <?= $iconBg ?> <?= $iconColor ?> rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner border <?= $borderColor ?>">
+                                    <i class="fas <?= $f['icon'] ?> text-base"></i>
+                                </div>
+                                <h3 class="font-extrabold font-display text-slate-800 text-base"><?= htmlspecialchars($f['title']) ?></h3>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-400 leading-relaxed mb-4"><?= htmlspecialchars($f['desc']) ?></p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <?php foreach ($f['links'] as $i => $link): ?>
+                            <a href="<?= htmlspecialchars($link['href']) ?>"
+                               class="text-[0.7rem] font-bold px-3 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 shadow-sm
+                                      <?= $i === 0
+                                          ? "{$iconBg} {$iconColor} hover:opacity-90 border {$borderColor}"
+                                          : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/50'; ?>">
+                                <?= htmlspecialchars($link['label']) ?>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- LOWER ROW (Progress Tracker & Celebrations) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Class Progress Tracker -->
                 <div class="glass-card rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-2 flex flex-col overflow-hidden">
@@ -449,97 +575,75 @@ $actions = [
                                     <th class="px-6 py-3">Attendance Progress</th>
                                     <th class="px-6 py-3 text-right">Action</th>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-50">
-                                <?php if(empty($class_progress)): ?>
-                                    <tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 text-xs font-semibold">No active classes found.</td></tr>
-                                <?php else: foreach($class_progress as $cname => $data): 
-                                    $att_total = $data['total_students'];
-                                    $att_marked = $data['attendance_marked'];
-                                    $att_pct = $att_total > 0 ? round(($att_marked / $att_total) * 100) : 0;
-                                    
-                                    $color = 'orange';
-                                    if ($att_pct == 100) $color = 'emerald';
-                                    elseif ($att_pct == 0) $color = 'rose';
-                                ?>
-                                <tr class="hover:bg-slate-50/50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="font-bold text-slate-800"><?= htmlspecialchars($cname) ?></div>
-                                        <div class="text-[0.65rem] text-slate-400 font-semibold"><?= $att_total ?> Enrolled</div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center justify-between text-[0.65rem] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-                                            <span><?= $att_marked ?> / <?= $att_total ?> Present</span>
-                                            <span class="text-<?= $color ?>-600"><?= $att_pct ?>%</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-1.5">
-                                            <div class="bg-<?= $color ?>-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $att_pct ?>%"></div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a href="../academics/attendance.php?class=<?= urlencode($cname) ?>&action=entry" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="Mark Attendance">
-                                            <i class="fas fa-clipboard-check text-xs"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                              </thead>
+                              <tbody class="divide-y divide-slate-50">
+                                  <?php if(empty($class_progress)): ?>
+                                      <tr><td colspan="3" class="px-6 py-8 text-center text-slate-400 text-xs font-semibold">No active classes found.</td></tr>
+                                  <?php else: foreach($class_progress as $cname => $data): 
+                                      $att_total = $data['total_students'];
+                                      $att_marked = $data['attendance_marked'];
+                                      $att_pct = $att_total > 0 ? round(($att_marked / $att_total) * 100) : 0;
+                                      
+                                      $color = 'orange';
+                                      if ($att_pct == 100) $color = 'emerald';
+                                      elseif ($att_pct == 0) $color = 'rose';
+                                  ?>
+                                  <tr class="hover:bg-slate-50/50 transition-colors">
+                                      <td class="px-6 py-4">
+                                          <div class="font-bold text-slate-800"><?= htmlspecialchars($cname) ?></div>
+                                          <div class="text-[0.65rem] text-slate-400 font-semibold"><?= $att_total ?> Enrolled</div>
+                                      </td>
+                                      <td class="px-6 py-4">
+                                          <div class="flex items-center justify-between text-[0.65rem] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                                              <span><?= $att_marked ?> / <?= $att_total ?> Present</span>
+                                              <span class="text-<?= $color ?>-600"><?= $att_pct ?>%</span>
+                                          </div>
+                                          <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                              <div class="bg-<?= $color ?>-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $att_pct ?>%"></div>
+                                          </div>
+                                      </td>
+                                      <td class="px-6 py-4 text-right">
+                                          <a href="../academics/attendance.php?class=<?= urlencode($cname) ?>&action=entry" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="Mark Attendance">
+                                              <i class="fas fa-clipboard-check text-xs"></i>
+                                          </a>
+                                      </td>
+                                  </tr>
+                                  <?php endforeach; endif; ?>
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
 
-                <!-- Combined Quick Actions & Celebrations -->
-                <div class="flex flex-col gap-6">
-                    <!-- Quick Actions Grid -->
-                    <div class="glass-card rounded-3xl p-6 shadow-sm border border-slate-200/60">
-                        <h2 class="text-sm font-extrabold font-display text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-bolt text-amber-500"></i> Quick Actions
-                        </h2>
-                        <div class="grid grid-cols-2 gap-3">
-                            <?php foreach($actions as $a): 
-                                $colorClass = "bg-{$a['color']}-50 text-{$a['color']}-600 border-{$a['color']}-100 group-hover:bg-{$a['color']}-500 group-hover:text-white";
-                            ?>
-                            <a href="<?= $a['href'] ?>" class="p-3 rounded-2xl border border-slate-100 bg-white shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 group flex flex-col gap-2 relative overflow-hidden">
-                                <div class="w-8 h-8 rounded-lg <?= $colorClass ?> flex items-center justify-center transition-colors shadow-inner">
-                                    <i class="fas <?= $a['icon'] ?> text-sm"></i>
-                                </div>
-                                <h3 class="font-bold text-slate-800 text-xs leading-tight group-hover:text-<?= $a['color'] ?>-600 transition-colors"><?= $a['title'] ?></h3>
-                            </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Celebrations Mini -->
-                    <div class="glass-card rounded-3xl p-6 shadow-sm border border-slate-200/60 flex-1 flex flex-col bg-gradient-to-b from-white to-pink-50/30">
-                        <h2 class="text-sm font-extrabold font-display text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-cake-candles text-pink-500"></i> Birthdays in <?= substr($display_month, 0, 3) ?>
-                        </h2>
-                        <div class="flex-1 overflow-y-auto max-h-[150px] custom-scrollbar pr-2 space-y-2">
-                            <?php 
-                            $all_b = array_merge($student_birthdays, $staff_birthdays);
-                            usort($all_b, fn($a, $b) => $a['day'] <=> $b['day']);
-                            if(empty($all_b)): 
-                            ?>
-                                <p class="text-xs text-slate-400 font-medium text-center italic mt-4">No birthdays this month.</p>
-                            <?php else: foreach($all_b as $b): ?>
-                                <div class="flex items-center gap-3 p-2 rounded-xl <?= $b['is_today'] ? 'bg-pink-50 border border-pink-100 shadow-sm' : 'hover:bg-slate-50' ?> transition-colors">
-                                    <div class="w-9 h-9 rounded-lg flex flex-col items-center justify-center text-[0.55rem] font-black <?= $b['is_today'] ? 'bg-pink-500 text-white animate-pulse shadow-md shadow-pink-200' : 'bg-slate-100 text-slate-500 border border-slate-200' ?>">
-                                        <span class="uppercase opacity-70"><?= substr($display_month, 0, 3) ?></span>
-                                        <span class="text-sm leading-none"><?= $b['day'] ?></span>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-xs font-bold text-slate-800 truncate <?= $b['is_today'] ? 'text-pink-600' : '' ?>">
-                                            <?= htmlspecialchars($b['name']) ?>
-                                            <?php if($b['is_today']) echo '<i class="fas fa-star text-amber-400 ml-1"></i>'; ?>
-                                        </h4>
-                                        <p class="text-[0.6rem] text-slate-400 font-semibold truncate"><?= htmlspecialchars($b['info']) ?></p>
-                                    </div>
-                                </div>
-                            <?php endforeach; endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                  <!-- Celebrations Mini -->
+                  <div class="glass-card rounded-3xl p-6 shadow-sm border border-slate-200/60 flex flex-col bg-gradient-to-b from-white to-pink-50/30">
+                      <h2 class="text-sm font-extrabold font-display text-slate-800 mb-4 flex items-center gap-2">
+                          <i class="fas fa-cake-candles text-pink-500"></i> Birthdays in <?= substr($display_month, 0, 3) ?>
+                      </h2>
+                      <div class="flex-1 overflow-y-auto max-h-[350px] custom-scrollbar pr-2 space-y-2">
+                          <?php 
+                          $all_b = array_merge($student_birthdays, $staff_birthdays);
+                          usort($all_b, fn($a, $b) => $a['day'] <=> $b['day']);
+                          if(empty($all_b)): 
+                          ?>
+                              <p class="text-xs text-slate-400 font-medium text-center italic mt-4">No birthdays this month.</p>
+                          <?php else: foreach($all_b as $b): ?>
+                              <div class="flex items-center gap-3 p-2 rounded-xl <?= $b['is_today'] ? 'bg-pink-50 border border-pink-100 shadow-sm' : 'hover:bg-slate-50' ?> transition-colors">
+                                  <div class="w-9 h-9 rounded-lg flex flex-col items-center justify-center text-[0.55rem] font-black <?= $b['is_today'] ? 'bg-pink-500 text-white animate-pulse shadow-md shadow-pink-200' : 'bg-slate-100 text-slate-500 border border-slate-200' ?>">
+                                      <span class="uppercase opacity-70"><?= substr($display_month, 0, 3) ?></span>
+                                      <span class="text-sm leading-none"><?= $b['day'] ?></span>
+                                  </div>
+                                  <div class="flex-1 min-w-0">
+                                      <h4 class="text-xs font-bold text-slate-800 truncate <?= $b['is_today'] ? 'text-pink-600' : '' ?>">
+                                          <?= htmlspecialchars($b['name']) ?>
+                                          <?php if($b['is_today']) echo '<i class="fas fa-star text-amber-400 ml-1"></i>'; ?>
+                                      </h4>
+                                      <p class="text-[0.6rem] text-slate-400 font-semibold truncate"><?= htmlspecialchars($b['info']) ?></p>
+                                  </div>
+                              </div>
+                          <?php endforeach; endif; ?>
+                      </div>
+                  </div>
+              </div>
 
         </div>
     </main>
