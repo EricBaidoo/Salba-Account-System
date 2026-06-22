@@ -117,6 +117,23 @@ if ($selected_class && in_array($selected_class, $allocated_classes)) {
     while($row = $res->fetch_assoc()) $students[] = $row;
 }
 
+// Check if register is marked for this class/date/semester/year
+$is_register_marked = false;
+if ($selected_class && in_array($selected_class, $allocated_classes)) {
+    $c_stmt = $conn->prepare("
+        SELECT COUNT(a.id) as c 
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
+        WHERE s.class = ? AND a.attendance_date = ? AND a.semester = ? AND a.academic_year = ?
+    ");
+    if ($c_stmt) {
+        $c_stmt->bind_param("ssss", $selected_class, $selected_date, $current_semester, $current_year);
+        $c_stmt->execute();
+        $is_register_marked = ((int)$c_stmt->get_result()->fetch_assoc()['c'] > 0);
+        $c_stmt->close();
+    }
+}
+
 $view_mode = $_GET['mode'] ?? 'daily';
 $tracker_data = [];
 $tracker_dates = [];
@@ -387,6 +404,24 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <input type="hidden" name="class_name" value="<?= htmlspecialchars($selected_class) ?>">
                         <input type="hidden" name="attendance_date" value="<?= $selected_date ?>">
                         <input type="hidden" name="week_val" value="<?= $selected_week ?>">
+                        
+                        <!-- Register Status Banner -->
+                        <div class="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-none border <?= $is_register_marked ? 'bg-emerald-50/50 border-emerald-100 text-emerald-800' : 'bg-amber-50/50 border-amber-100 text-amber-800' ?>">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-none flex items-center justify-center flex-shrink-0 <?= $is_register_marked ? 'bg-emerald-100 text-emerald-600 border border-emerald-200' : 'bg-amber-100 text-amber-600 border border-amber-200' ?>">
+                                    <i class="fas <?= $is_register_marked ? 'fa-clipboard-check' : 'fa-circle-exclamation' ?> text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-wider leading-none mb-1"><?= $is_register_marked ? 'Register Marked' : 'Register Not Saved Yet' ?></p>
+                                    <p class="text-[11px] font-medium opacity-90 leading-tight"><?= $is_register_marked ? 'Active records are stored and saved in the system database.' : 'Currently showing default presence choices. You must click "Save Register" to log it.' ?></p>
+                                </div>
+                            </div>
+                            <?php if ($is_register_marked): ?>
+                                <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-none border border-emerald-200 whitespace-nowrap">ACTIVE RECORD</span>
+                            <?php else: ?>
+                                <span class="text-[9px] font-black uppercase bg-amber-100 text-amber-700 px-2.5 py-1 rounded-none border border-amber-200 whitespace-nowrap">PENDING SUBMISSION</span>
+                            <?php endif; ?>
+                        </div>
                         
                         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-8 overflow-x-auto">
                             <table class="w-full text-left min-w-[62.5rem]">

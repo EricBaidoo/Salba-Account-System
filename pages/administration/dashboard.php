@@ -122,17 +122,29 @@ if ($c_res) {
         $class_progress[$row['class']] = [
             'total_students' => (int)$row['student_count'],
             'attendance_marked' => 0,
+            'is_marked' => false
         ];
     }
 }
-$att_res = $conn->prepare("SELECT s.class, COUNT(DISTINCT a.student_id) as marked_count FROM attendance a JOIN students s ON a.student_id = s.id WHERE a.attendance_date = ? AND s.status='active' AND LOWER(a.status) = 'present' GROUP BY s.class");
+
+// Fetch both marked count (total records) and present count in one query
+$att_res = $conn->prepare("
+    SELECT s.class, 
+           COUNT(a.id) as total_records, 
+           SUM(CASE WHEN LOWER(a.status) = 'present' THEN 1 ELSE 0 END) as present_count 
+    FROM attendance a 
+    JOIN students s ON a.student_id = s.id 
+    WHERE a.attendance_date = ? AND s.status='active' 
+    GROUP BY s.class
+");
 if ($att_res) {
     $att_res->bind_param('s', $today);
     $att_res->execute();
     $res = $att_res->get_result();
     while ($row = $res->fetch_assoc()) {
         if (isset($class_progress[$row['class']])) {
-            $class_progress[$row['class']]['attendance_marked'] = (int)$row['marked_count'];
+            $class_progress[$row['class']]['attendance_marked'] = (int)$row['present_count'];
+            $class_progress[$row['class']]['is_marked'] = ((int)$row['total_records'] > 0);
         }
     }
     $att_res->close();
@@ -142,13 +154,7 @@ if ($att_res) {
 $absentees_by_class = [];
 foreach ($class_progress as $cname => $cdata) {
     $absentees_by_class[$cname] = [];
-    
-    // Check if attendance was marked at all for this class on this date
-    $marked_check_stmt = $conn->prepare("SELECT COUNT(*) as c FROM attendance a JOIN students s ON a.student_id = s.id WHERE s.class = ? AND a.attendance_date = ?");
-    $marked_check_stmt->bind_param('ss', $cname, $selected_date);
-    $marked_check_stmt->execute();
-    $is_marked = (int)$marked_check_stmt->get_result()->fetch_assoc()['c'] > 0;
-    $marked_check_stmt->close();
+    $is_marked = $cdata['is_marked'];
     
     if (!$is_marked) {
         $absentees_by_class[$cname] = [
@@ -185,6 +191,7 @@ foreach ($class_progress as $cname => $cdata) {
         ];
     }
 }
+
 
 // --- 5. CELEBRATORY BIRTHDAYS ---
 $student_birthdays = [];
@@ -637,22 +644,44 @@ $palettes = [
                                       $att_pct = $att_total > 0 ? round(($att_marked / $att_total) * 100) : 0;
                                       
                                       $color = 'orange';
-                                      if ($att_pct == 100) $color = 'emerald';
-                                      elseif ($att_pct == 0) $color = 'rose';
+                                      if (!$data['is_marked']) {
+                                          $color = 'slate';
+                                      } elseif ($att_pct == 100) {
+                                          $color = 'emerald';
+                                      } elseif ($att_pct == 0) {
+                                          $color = 'rose';
+                                      }
                                   ?>
                                   <tr class="hover:bg-slate-50/50 transition-colors">
                                       <td class="px-6 py-4">
-                                          <div class="font-bold text-slate-800"><?= htmlspecialchars($cname) ?></div>
+                                          <div class="flex items-center gap-2 mb-1">
+                                              <div class="font-bold text-slate-800"><?= htmlspecialchars($cname) ?></div>
+                                              <?php if ($data['is_marked']): ?>
+                                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-none text-[0.55rem] font-black bg-emerald-50 text-emerald-600 border border-emerald-200/50">MARKED</span>
+                                              <?php else: ?>
+                                                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-none text-[0.55rem] font-black bg-slate-50 text-slate-400 border border-slate-200/50">NOT MARKED</span>
+                                              <?php endif; ?>
+                                          </div>
                                           <div class="text-[0.65rem] text-slate-400 font-semibold"><?= $att_total ?> Enrolled</div>
                                       </td>
                                       <td class="px-6 py-4">
-                                          <div class="flex items-center justify-between text-[0.65rem] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-                                              <span><?= $att_marked ?> / <?= $att_total ?> Present</span>
-                                              <span class="text-<?= $color ?>-600"><?= $att_pct ?>%</span>
-                                          </div>
-                                          <div class="w-full bg-slate-100 rounded-full h-1.5">
-                                              <div class="bg-<?= $color ?>-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $att_pct ?>%"></div>
-                                          </div>
+                                          <?php if ($data['is_marked']): ?>
+                                              <div class="flex items-center justify-between text-[0.65rem] font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+                                                  <span><?= $att_marked ?> / <?= $att_total ?> Present</span>
+                                                  <span class="text-<?= $color ?>-600"><?= $att_pct ?>%</span>
+                                              </div>
+                                              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                                  <div class="bg-<?= $color ?>-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $att_pct ?>%"></div>
+                                              </div>
+                                          <?php else: ?>
+                                              <div class="flex items-center justify-between text-[0.65rem] font-bold uppercase tracking-widest text-slate-400 mb-1.5">
+                                                  <span>Pending Roll Call</span>
+                                                  <span class="text-slate-400">0%</span>
+                                              </div>
+                                              <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                                  <div class="bg-slate-200 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                              </div>
+                                          <?php endif; ?>
                                       </td>
                                       <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
                                           <button type="button" onclick="viewAbsentees('<?= htmlspecialchars($cname) ?>')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 hover:text-red-700 transition-all shadow-sm" title="View Absent Students">
