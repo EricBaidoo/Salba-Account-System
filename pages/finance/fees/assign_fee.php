@@ -298,205 +298,183 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fee Assignment Result - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Fee Assignment Result | Salba Montessori</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="stylesheet" href="../../../assets/css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="max-w-7xl mx-auto">
-            <a class="navbar-brand" href="../dashboard.php">
-                <i class="fas fa-graduation-cap mr-2"></i>
-                <strong>Salba Montessori</strong>
-            </a>
-            <div class="navbar-nav ml-auto">
-                <a class="nav-link" href="../dashboard.php">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+    <?php include '../../../includes/sidebar.php'; ?>
+
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_fees.php" class="hover:text-blue-600 transition-colors">Fee Management</a>
+                <span>/</span>
+                <span class="text-blue-600">Assignment Result</span>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-tasks text-emerald-600"></i> Fee Assignment Status
+                    </h1>
+                </div>
+                <a href="assign_fee_form.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Back to Assignments
                 </a>
             </div>
         </div>
-    </nav>
 
-    <div class="max-w-7xl mx-auto mt-5">
-        <div class="flex flex-wrap justify-center">
-            <div class="col-lg-8">
-                <?php if ($success): ?>
-                    <!-- Success Message -->
-                    <div class="bg-white rounded shadow border-success shadow-lg">
-                        <div class="bg-white rounded shadow-header bg-success text-white">
-                            <h4 class="mb-">
-                                <i class="fas fa-check-circle mr-2"></i>
-                                Fee Assignment Successful
-                            </h4>
+        <div class="px-6 max-w-4xl mx-auto">
+            <?php if ($success): ?>
+                <!-- Success Message -->
+                <div class="bg-white rounded-xl border border-emerald-200 shadow-sm overflow-hidden mb-6">
+                    <div class="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-center gap-3 text-emerald-700">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <h4 class="font-bold text-lg m-0">Fee Assignment Successful</h4>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-money-bill-wave mr-2"></i>Fee Information</h6>
+                                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                    <strong class="text-sm text-slate-800 block mb-1"><?php echo htmlspecialchars($fee_info['name']); ?></strong>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-700"><?php echo ucfirst(str_replace('_', ' ', $fee_info['fee_type'])); ?></span>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-users mr-2"></i>Assignment Summary</h6>
+                                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 text-sm">
+                                    <?php if ($assignment_type === 'individual'): ?>
+                                        <strong class="text-slate-800 block mb-1">Individual Assignment</strong>
+                                        <span class="text-slate-600">
+                                            <?php echo isset($total_successful_assignments) ? $total_successful_assignments : 1; ?> fee assignment(s) to 1 student
+                                        </span>
+                                    <?php elseif ($assignment_type === 'multi-student'): ?>
+                                        <strong class="text-slate-800 block mb-1">Multi-Student Assignment</strong>
+                                        <span class="text-slate-600">
+                                            <?php echo isset($total_successful_assignments) ? $total_successful_assignments : count($assigned_students); ?> total fee assignments to <?php echo count($assigned_students); ?> selected students
+                                        </span>
+                                    <?php else: ?>
+                                        <strong class="text-slate-800 block mb-1">Class Assignment</strong>
+                                        <span class="text-slate-600">
+                                            <?php echo isset($total_successful_assignments) ? $total_successful_assignments : count($assigned_students); ?> total fee assignments to <?php echo count($assigned_students); ?> students
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-white rounded shadow-body">
-                            <div class="flex flex-wrap">
-                                <div class="md:col-span-6">
-                                    <h6><i class="fas fa-money-bill-wave mr-2"></i>Fee Information</h6>
-                                    <div class="bg-white rounded shadow bg-light mb-">
-                                        <div class="bg-white rounded shadow-body">
-                                            <strong><?php echo htmlspecialchars($fee_info['name']); ?></strong><br>
-                                            <span class="badge bg-secondary"><?php echo ucfirst(str_replace('_', ' ', $fee_info['fee_type'])); ?></span>
+
+                        <!-- Assigned Students -->
+                        <div class="mb-6">
+                            <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-list mr-2"></i>Assigned Students</h6>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <?php foreach ($assigned_students as $index => $student): ?>
+                                    <?php if ($index < 8): ?>
+                                        <div class="bg-white border border-slate-200 rounded-lg p-3">
+                                            <strong class="text-sm text-slate-800 truncate block"><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></strong>
+                                            <span class="text-xs text-slate-500"><?php echo htmlspecialchars($student['class']); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                                <?php if (count($assigned_students) > 8): ?>
+                                    <div class="col-span-full">
+                                        <p class="text-sm text-slate-500 font-medium"><i class="fas fa-info-circle mr-1"></i>And <?php echo (count($assigned_students) - 8); ?> more students...</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-calendar mr-2"></i>Assignment Details</h6>
+                                <ul class="space-y-2 text-sm text-slate-700">
+                                    <li><strong class="text-slate-800">Due Date:</strong> <?php echo date('F j, Y', strtotime($due_date)); ?></li>
+                                    <?php if (!empty($semester)): ?>
+                                        <li><strong class="text-slate-800">Semester:</strong> <?php echo htmlspecialchars($semester); ?></li>
+                                    <?php endif; ?>
+                                    <?php if (!empty($academic_year)): ?>
+                                        <li><strong class="text-slate-800">Academic Year:</strong> <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?></li>
+                                    <?php endif; ?>
+                                    <li><strong class="text-slate-800">Assigned:</strong> <?php echo date('F j, Y \a\t g:i A'); ?></li>
+                                    <li><strong class="text-slate-800">Status:</strong> <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Pending Payment</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <?php if (!empty($notes)): ?>
+                                    <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="fas fa-sticky-note mr-2"></i>Notes</h6>
+                                    <div class="p-4 bg-slate-50 text-slate-700 text-sm rounded border border-slate-200">
+                                        <?php echo nl2br(htmlspecialchars($notes)); ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($all_assignment_errors)): ?>
+                                    <h6 class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-4 mb-3"><i class="fas fa-exclamation-circle mr-2 text-amber-600"></i>Skipped Assignments</h6>
+                                    <div class="p-4 bg-amber-50 text-amber-700 text-sm rounded border border-amber-200">
+                                        <ul class="list-disc pl-4 space-y-1 mb-2">
+                                            <?php foreach ($all_assignment_errors as $err): ?>
+                                                <li><?php echo htmlspecialchars($err); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <div class="mt-2 text-xs text-amber-600 opacity-80">
+                                            <strong>Tip:</strong> For missing fee amounts, edit the fee and ensure every class has a configured amount. For already assigned fees, check the student's assignments.
                                         </div>
                                     </div>
-                                </div>
-                                <div class="md:col-span-6">
-                                    <h6><i class="fas fa-users mr-2"></i>Assignment Summary</h6>
-                                    <div class="bg-white rounded shadow bg-light mb-">
-                                        <div class="bg-white rounded shadow-body">
-                                            <?php if ($assignment_type === 'individual'): ?>
-                                                <strong>Individual Assignment</strong><br>
-                                                <span class="text-gray-600">
-                                                    <?php echo isset($total_successful_assignments) ? $total_successful_assignments : 1; ?> fee assignment(s) to 1 student
-                                                </span>
-                                            <?php elseif ($assignment_type === 'multi-student'): ?>
-                                                <strong>Multi-Student Assignment</strong><br>
-                                                <span class="text-gray-600">
-                                                    <?php echo isset($total_successful_assignments) ? $total_successful_assignments : count($assigned_students); ?> total fee assignments to <?php echo count($assigned_students); ?> selected students
-                                                </span>
-                                            <?php else: ?>
-                                                <strong>Class Assignment</strong><br>
-                                                <span class="text-gray-600">
-                                                    <?php echo isset($total_successful_assignments) ? $total_successful_assignments : count($assigned_students); ?> total fee assignments to <?php echo count($assigned_students); ?> students
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Assigned Students -->
-                            <div class="mb-">
-                                <h6><i class="fas fa-list mr-2"></i>Assigned Students</h6>
-                                <div class="flex flex-wrap">
-                                    <?php foreach ($assigned_students as $index => $student): ?>
-                                        <?php if ($index < 8): // Show max 8 students directly ?>
-                                            <div class="col-md-3 col-sm-6 mb-">
-                                                <div class="bg-white rounded shadow bg-light">
-                                                    <div class="bg-white rounded shadow-body p-2">
-                                                        <small>
-                                                            <strong><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></strong><br>
-                                                            <span class="text-gray-600"><?php echo htmlspecialchars($student['class']); ?></span>
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endif; ?>
-                                    <?php endforeach; ?>
-                                    <?php if (count($assigned_students) > 8): ?>
-                                        <div class="col-12">
-                                            <p class="text-gray-600"><i class="fas fa-info-circle mr-1"></i>And <?php echo (count($assigned_students) - 8); ?> more students...</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-wrap">
-                                <div class="md:col-span-6">
-                                    <h6><i class="fas fa-calendar mr-2"></i>Assignment Details</h6>
-                                    <ul class="list-unstyled">
-                                        <li><strong>Due Date:</strong> <?php echo date('F j, Y', strtotime($due_date)); ?></li>
-                                        <?php if (!empty($semester)): ?>
-                                            <li><strong>Semester:</strong> <?php echo htmlspecialchars($semester); ?></li>
-                                        <?php endif; ?>
-                                        <?php if (!empty($academic_year)): ?>
-                                            <li><strong>Academic Year:</strong> <?php echo htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)); ?></li>
-                                        <?php endif; ?>
-                                        <li><strong>Assigned:</strong> <?php echo date('F j, Y \a\t g:i A'); ?></li>
-                                        <li><strong>Status:</strong> <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Pending Payment</span></li>
-                                    </ul>
-                                </div>
-                                <div class="md:col-span-6">
-                                    <?php if (!empty($notes)): ?>
-                                        <h6><i class="fas fa-sticky-note mr-2"></i>Notes</h6>
-                                        <div class="p-4 bg-gray-100 text-gray-700 rounded border border-gray-200">
-                                            <?php echo nl2br(htmlspecialchars($notes)); ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($all_assignment_errors)): ?>
-                                        <h6 class="mt-4"><i class="fas fa-exclamation-circle mr-2 text-red-600"></i>Skipped Assignments</h6>
-                                        <div class="p-4 bg-yellow-100 text-yellow-700 rounded border border-yellow-200">
-                                            <ul class="mb-">
-                                                <?php foreach ($all_assignment_errors as $err): ?>
-                                                    <li><?php echo htmlspecialchars($err); ?></li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                            <div class="mt-2 small text-gray-600">
-                                                <strong>Tip:</strong> For missing fee amounts, edit the fee and ensure every class has a configured amount. For already assigned fees, check the student's assignments.
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <!-- Quick Actions -->
-                            <div class="grid gap-2 md:flex md:justify-center mt-4">
-                                <a href="record_payment_form.php?student_id=<?php echo $student_info['id']; ?>&fee_id=<?php echo $fee_info['id']; ?>&semester=<?php echo urlencode($semester); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                                    <i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Record Payment Now
-                                </a>
-                                <a href="assign_fee_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    <i class="fas fa-plus mr-2"></i>Assign Another Fee
-                                </a>
-                                <a href="view_assigned_fees.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary">
-                                    <i class="fas fa-eye mr-2"></i>View All Assignments
-                                </a>
+                                <?php endif; ?>
                             </div>
                         </div>
-                    </div>
 
-                <?php else: ?>
-                    <!-- Error Message -->
-                    <div class="bg-white rounded shadow border-danger">
-                        <div class="bg-white rounded shadow-header bg-danger text-white">
-                            <h4 class="mb-">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                Assignment Failed
-                            </h4>
-                        </div>
-                        <div class="bg-white rounded shadow-body">
-                            <div class="p-4 bg-red-100 text-red-700 rounded border border-red-200">
-                                <strong>Error:</strong> <?php echo htmlspecialchars($error_message); ?>
-                            </div>
-                            
-                            <div class="grid gap-2 md:flex md:justify-center">
-                                <a href="assign_fee_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    <i class="fas fa-arrow-left mr-2"></i>Back to Assignment Form
+                        <!-- Quick Actions -->
+                        <div class="flex flex-wrap items-center gap-3 mt-8 pt-6 border-t border-slate-100">
+                            <?php if ($assignment_type === 'individual' && isset($student_info['id'])): ?>
+                                <a href="../payments/record_payment_form.php?student_id=<?php echo $student_info['id']; ?>&fee_id=<?php echo $fee_info['id']; ?>&semester=<?php echo urlencode($semester); ?>&academic_year=<?php echo urlencode($academic_year); ?>" class="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-all">
+                                    <i class="fas fa-money-bill-wave mr-2"></i>Record Payment Now
                                 </a>
-                                <a href="../dashboard.php" class="px-4 py-2 bg-gray-600 text-white rounded">
-                                    <i class="fas fa-home mr-2"></i>Go to Dashboard
-                                </a>
-                            </div>
+                            <?php endif; ?>
+                            <a href="assign_fee_form.php" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-all">
+                                <i class="fas fa-plus mr-2"></i>Assign Another Fee
+                            </a>
+                            <a href="view_assigned_fees.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all">
+                                <i class="fas fa-eye mr-2"></i>View All Assignments
+                            </a>
                         </div>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Navigation Links -->
-                <div class="text-center mt-4">
-                    <div class="px-3 py-2 rounded-group" role="group">
-                        <a href="../dashboard.php" class="px-4 py-2 border border-gray-300 rounded">
-                            <i class="fas fa-home mr-2"></i>Dashboard
-                        </a>
-                        <a href="../../administration/students/view_students.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-primary">
-                            <i class="fas fa-users mr-2"></i>Students
-                        </a>
-                        <a href="view_fees.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-success">
-                            <i class="fas fa-money-bill-wave mr-2"></i>Fees
-                        </a>
-                        <a href="../payments/view_payments.php" class="px-3 py-2 rounded px-3 py-2 rounded-outline-info">
-                            <i class="fas fa-credit-bg-white rounded shadow mr-2"></i>Payments
-                        </a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    </body>
+            <?php else: ?>
+                <!-- Error Message -->
+                <div class="bg-white rounded-xl border border-rose-200 shadow-sm overflow-hidden mb-6">
+                    <div class="bg-rose-50 px-6 py-4 border-b border-rose-100 flex items-center gap-3 text-rose-700">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                        <h4 class="font-bold text-lg m-0">Assignment Failed</h4>
+                    </div>
+                    <div class="p-6">
+                        <div class="p-4 bg-rose-50 text-rose-700 rounded border border-rose-200 mb-6">
+                            <strong>Error:</strong> <?php echo htmlspecialchars($error_message); ?>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <a href="assign_fee_form.php" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-all">
+                                <i class="fas fa-arrow-left mr-2"></i>Back to Form
+                            </a>
+                            <a href="../dashboard.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all">
+                                <i class="fas fa-home mr-2"></i>Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+        </div>
+    </main>
+</body>
 </html>

@@ -32,64 +32,70 @@ if ($classes_result) {
         .type-card.active .icon-circle { background-color: #10b981; color: white; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
-                    Asset Configuration
-                </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Add New <span class="text-emerald-600">Fee Structure</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Define institutional revenue tranches and allocation rules.</p>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_fees.php" class="hover:text-blue-600 transition-colors">Fee Management</a>
+                <span>/</span>
+                <span class="text-blue-600">Create Fee</span>
             </div>
-            <div>
-                <a href="view_fees.php" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none inline-block">
-                    <i class="fas fa-arrow-left mr-2"></i> Cancel & Return
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-emerald-600"></i> Add New Fee Structure
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Define institutional revenue tranches and allocation rules.</p>
+                </div>
+                <a href="view_fees.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Cancel & Return
                 </a>
             </div>
-        </header>
+        </div>
 
-        <form action="process_fee.php" method="POST" id="feeForm" class="max-w-4xl">
+        <div class="px-6">
+
+        <form action="process_fee.php" method="POST" id="feeForm" class="max-w-4xl space-y-6">
             <!-- Part 1: Classification & Naming -->
-            <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-10">
-                <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-                    01. Classification & Identity <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
+            <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+                    <i class="fas fa-tag text-slate-400"></i> Classification & Identity
                 </h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                    <div onclick="selectType('fixed')" id="card-fixed" class="type-card bg-slate-50 p-6 rounded-3xl active">
-                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
-                            <i class="fas fa-money-bill-check text-xl"></i>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div onclick="selectType('fixed')" id="card-fixed" class="type-card bg-slate-50 border border-slate-200 p-5 rounded-xl active cursor-pointer hover:border-emerald-300">
+                        <div class="icon-circle w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 mb-3 shadow-sm transition-all">
+                            <i class="fas fa-money-bill-wave"></i>
                         </div>
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Fixed Amount</h4>
-                        <p class="text-[0.625rem] text-slate-400 font-bold">Same value for all students</p>
+                        <h4 class="text-sm font-bold text-slate-800 mb-1">Fixed Amount</h4>
+                        <p class="text-xs text-slate-500 font-medium">Same value for all students</p>
                     </div>
-                    <div onclick="selectType('class_based')" id="card-class_based" class="type-card bg-slate-50 p-6 rounded-3xl">
-                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
-                            <i class="fas fa-school text-xl"></i>
+                    <div onclick="selectType('class_based')" id="card-class_based" class="type-card bg-slate-50 border border-slate-200 p-5 rounded-xl cursor-pointer hover:border-emerald-300">
+                        <div class="icon-circle w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 mb-3 shadow-sm transition-all">
+                            <i class="fas fa-users-class"></i>
                         </div>
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Class-Based</h4>
-                        <p class="text-[0.625rem] text-slate-400 font-bold">Varied by academic level</p>
+                        <h4 class="text-sm font-bold text-slate-800 mb-1">Class-Based</h4>
+                        <p class="text-xs text-slate-500 font-medium">Varied by academic level</p>
                     </div>
-                    <div onclick="selectType('category')" id="card-category" class="type-card bg-slate-50 p-6 rounded-3xl">
-                        <div class="icon-circle w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 mb-4 shadow-sm transition-all">
-                            <i class="fas fa-tags text-xl"></i>
+                    <div onclick="selectType('category')" id="card-category" class="type-card bg-slate-50 border border-slate-200 p-5 rounded-xl cursor-pointer hover:border-emerald-300">
+                        <div class="icon-circle w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 mb-3 shadow-sm transition-all">
+                            <i class="fas fa-layer-group"></i>
                         </div>
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Categorical</h4>
-                        <p class="text-[0.625rem] text-slate-400 font-bold">Assigned to specific groups</p>
+                        <h4 class="text-sm font-bold text-slate-800 mb-1">Categorical</h4>
+                        <p class="text-xs text-slate-500 font-medium">Assigned to specific groups</p>
                     </div>
                 </div>
 
                 <input type="hidden" name="fee_type" id="fee_type_input" value="fixed">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Official Fee Name</label>
-                        <select name="fee_name" id="fee_name_select" onchange="handleCustomName()" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all">
+                        <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Official Fee Name</label>
+                        <select name="fee_name" id="fee_name_select" onchange="handleCustomName()" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium text-slate-900 appearance-none transition-all">
                             <option value="">Select template...</option>
                             <option value="Tuition Fee">Tuition Fee</option>
                             <option value="Development Levy">Development Levy</option>
@@ -100,29 +106,29 @@ if ($classes_result) {
                         </select>
                     </div>
                     <div id="customNameGroup" class="hidden">
-                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Custom Identifier</label>
-                        <input type="text" name="custom_fee_name" id="custom_fee_name" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 transition-all" placeholder="Enter custom name...">
+                        <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Custom Identifier</label>
+                        <input type="text" name="custom_fee_name" id="custom_fee_name" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium text-slate-900 transition-all" placeholder="Enter custom name...">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Detailed Description (Optional)</label>
-                        <textarea name="description" rows="2" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-3xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-bold text-slate-700 transition-all" placeholder="Explain the purpose of this fee..."></textarea>
+                        <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Detailed Description (Optional)</label>
+                        <textarea name="description" rows="2" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-medium text-slate-900 transition-all" placeholder="Explain the purpose of this fee..."></textarea>
                     </div>
                 </div>
             </section>
 
             <!-- Part 2: Monetary Configuration -->
-            <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm mb-12">
-                <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-                    02. Monetary Configuration <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
+            <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+                    <i class="fas fa-coins text-slate-400"></i> Monetary Configuration
                 </h3>
 
                 <!-- Fixed Amount Context -->
                 <div id="section-fixed" class="amount-section">
                     <div class="max-w-xs">
-                        <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Global Fixed Amount (GHS)</label>
+                        <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Global Fixed Amount (GHS)</label>
                         <div class="relative">
-                            <input type="number" step="0.01" name="fixed_amount" class="w-full px-12 py-5 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xl font-black text-emerald-900 transition-all">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black">₵</span>
+                            <input type="number" step="0.01" name="fixed_amount" class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-lg font-bold text-slate-900 transition-all">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">₵</span>
                         </div>
                     </div>
                 </div>
@@ -130,18 +136,18 @@ if ($classes_result) {
                 <!-- Class-Based Context -->
                 <div id="section-class_based" class="amount-section hidden">
                     <div class="flex justify-between items-center mb-6">
-                        <p class="text-xs font-bold text-slate-500">Define unique amounts for specific academic levels.</p>
-                        <button type="button" onclick="applyTuitionPreset()" class="text-[0.5625rem] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl transition-all hover:bg-emerald-100">Apply Standard Tuitions</button>
+                        <p class="text-sm font-medium text-slate-600">Define unique amounts for specific academic levels.</p>
+                        <button type="button" onclick="applyTuitionPreset()" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-lg transition-all hover:bg-emerald-100 flex items-center gap-2"><i class="fas fa-magic"></i> Apply Standard Tuitions</button>
                     </div>
-                    <div class="space-y-8">
+                    <div class="space-y-6">
                         <?php foreach ($class_groups as $level => $classes): ?>
-                            <div>
-                                <h5 class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-4"><?= htmlspecialchars($level) ?> Stream</h5>
-                                <div class="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="bg-slate-50 p-5 rounded-lg border border-slate-200">
+                                <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2"><?= htmlspecialchars($level) ?> Stream</h5>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     <?php foreach ($classes as $class): ?>
                                         <div class="relative">
-                                            <input type="number" step="0.01" name="class_amounts[<?= htmlspecialchars($class) ?>]" placeholder="<?= htmlspecialchars($class) ?>" class="w-full px-10 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-black text-slate-700">
-                                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xs">₵</span>
+                                            <input type="number" step="0.01" name="class_amounts[<?= htmlspecialchars($class) ?>]" placeholder="<?= htmlspecialchars($class) ?>" class="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">₵</span>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -154,11 +160,11 @@ if ($classes_result) {
                 <div id="section-category" class="amount-section hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <?php foreach ($fee_categories as $cid => $cname): ?>
-                            <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <span class="flex-1 text-[0.625rem] font-black text-slate-600 uppercase tracking-tight"><?= htmlspecialchars($cname) ?></span>
-                                <div class="relative w-32">
-                                    <input type="number" step="0.01" name="category_amounts[<?= $cid ?>]" class="w-full px-8 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-black text-slate-900">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-[0.625rem]">₵</span>
+                            <div class="flex items-center justify-between bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <span class="text-sm font-bold text-slate-800 tracking-tight"><?= htmlspecialchars($cname) ?></span>
+                                <div class="relative w-40">
+                                    <input type="number" step="0.01" name="category_amounts[<?= $cid ?>]" class="w-full pl-8 pr-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none text-sm font-semibold text-slate-900" placeholder="Amount">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">₵</span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -166,21 +172,22 @@ if ($classes_result) {
                 </div>
             </section>
 
-            <div class="bg-slate-900 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl shadow-slate-900/20">
-                <div class="flex items-center gap-6">
-                    <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/20">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-500 text-lg shadow-sm">
                         <i class="fas fa-check-double"></i>
                     </div>
                     <div>
-                        <h3 class="text-white font-black text-sm uppercase tracking-[0.1em]">Ready for Validation</h3>
-                        <p class="text-slate-400 text-xs font-medium">Fee configuration will be locked upon submission.</p>
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Ready for Validation</h3>
+                        <p class="text-slate-500 text-xs mt-0.5">Fee configuration will be locked upon submission.</p>
                     </div>
                 </div>
-                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.6875rem] uppercase tracking-[0.2em] px-10 py-5 rounded-2xl shadow-xl transition-all h-fit active:scale-95 leading-none">
-                    Initialize Fee Structure
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                    <i class="fas fa-save"></i> Initialize Fee Structure
                 </button>
             </div>
         </form>
+        </div>
 
         <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
             Institutional Asset Node &middot; Salba Oversight &middot; v9.5.0

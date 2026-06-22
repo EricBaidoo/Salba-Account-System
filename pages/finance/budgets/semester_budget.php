@@ -51,10 +51,9 @@ $is_locked = $semester_budget && isset($semester_budget['status']) && $semester_
 
 // Financial Projections (Income)
 $income_items = [];
+$total_waivers_budget = 0;
 $fees_result = $conn->query("SELECT id, name FROM fees ORDER BY name ASC");
 while ($fee = $fees_result->fetch_assoc()) {
-    $row = ['category' => $fee['name']];
-    
     // Budgeted = Total Assigned Bills
     $assigned_query = "SELECT COALESCE(SUM(sf.amount), 0) as total 
                       FROM student_fees sf 
@@ -63,7 +62,15 @@ while ($fee = $fees_result->fetch_assoc()) {
                       AND sf.semester = '{$conn->real_escape_string($current_term)}' 
                       AND sf.academic_year = '{$conn->real_escape_string($academic_year)}'
                       AND s.status = 'active'";
-    $row['amount'] = (float)$conn->query($assigned_query)->fetch_assoc()['total'];
+    $amt = (float)$conn->query($assigned_query)->fetch_assoc()['total'];
+    
+    if ($fee['name'] === 'Waivers & Scholarships') {
+        $total_waivers_budget = abs($amt);
+        continue; // Skip adding to normal income streams
+    }
+
+    $row = ['category' => $fee['name']];
+    $row['amount'] = $amt;
     
     // Actual = Payments Collected
     require_once '../../../includes/semester_helpers.php';
@@ -95,12 +102,12 @@ while ($category = $categories_result->fetch_assoc()) {
 }
 
 // Totals
-$total_income_budget = array_sum(array_column($income_items, 'amount'));
+$total_income_budget = array_sum(array_column($income_items, 'amount')); // Gross
 $total_income_actual = array_sum(array_column($income_items, 'actual'));
 $total_expense_budget = array_sum(array_column($expense_items, 'amount'));
 $total_expense_actual = array_sum(array_column($expense_items, 'actual'));
 
-$net_budgeted = $total_income_budget - $total_expense_budget;
+$net_budgeted = ($total_income_budget - $total_waivers_budget) - $total_expense_budget;
 $net_actual = $total_income_actual - $total_expense_actual;
 ?>
 <!DOCTYPE html>
@@ -182,25 +189,37 @@ $net_actual = $total_income_actual - $total_expense_actual;
         <!-- Snapshot Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             <!-- Income Snapshot -->
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-money-bill-trend-up text-6xl text-emerald-600"></i>
                 </div>
-                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Projected Revenue</p>
-                <h2 class="text-3xl font-black text-slate-900 mb-4">GHS <?= number_format($total_income_budget, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-emerald-50 text-emerald-600 w-fit px-3 py-1 rounded-full">
+                <p class="text-[0.55rem] font-black text-slate-400 uppercase tracking-widest mb-1">Gross Projected Revenue</p>
+                <h2 class="text-2xl font-black text-slate-900 mb-2">GHS <?= number_format($total_income_budget, 2) ?></h2>
+                <div class="flex items-center gap-2 text-[0.55rem] font-bold bg-emerald-50 text-emerald-600 w-fit px-3 py-1 rounded-full">
                     <i class="fas fa-circle-check"></i> From Active Bills
                 </div>
             </div>
 
+            <!-- Waivers Snapshot -->
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+                    <i class="fas fa-hand-holding-dollar text-6xl text-pink-600"></i>
+                </div>
+                <p class="text-[0.55rem] font-black text-slate-400 uppercase tracking-widest mb-1">Projected Waivers</p>
+                <h2 class="text-2xl font-black text-slate-900 mb-2">GHS <?= number_format($total_waivers_budget, 2) ?></h2>
+                <div class="flex items-center gap-2 text-[0.55rem] font-bold bg-pink-50 text-pink-600 w-fit px-3 py-1 rounded-full">
+                    <i class="fas fa-tags"></i> Contra-Revenue
+                </div>
+            </div>
+
             <!-- Expense Snapshot -->
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-500">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
                     <i class="fas fa-receipt text-6xl text-rose-600"></i>
                 </div>
-                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Target Expenditure</p>
-                <h2 class="text-3xl font-black text-slate-900 mb-4">GHS <?= number_format($total_expense_budget, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-rose-50 text-rose-600 w-fit px-3 py-1 rounded-full">
+                <p class="text-[0.55rem] font-black text-slate-400 uppercase tracking-widest mb-1">Target Expenditure</p>
+                <h2 class="text-2xl font-black text-slate-900 mb-2">GHS <?= number_format($total_expense_budget, 2) ?></h2>
+                <div class="flex items-center gap-2 text-[0.55rem] font-bold bg-rose-50 text-rose-600 w-fit px-3 py-1 rounded-full">
                     <i class="fas fa-compass"></i> Estimates Applied
                 </div>
             </div>

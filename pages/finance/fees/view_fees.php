@@ -55,29 +55,35 @@ $cy = getAcademicYear($conn);
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header Section -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
-                    Fee Infrastructure
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <span class="text-blue-600">Fee Management</span>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-layer-group text-indigo-600"></i> Structured Receivables
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Define fee categories, manage tiered pricing, and oversee assignment logic.</p>
                 </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Structured <span class="text-indigo-600">Receivables</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Define fee categories, managed tiered pricing, and oversee assignment logic.</p>
+                <div class="flex items-center gap-3">
+                    <a href="assign_fee_form.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i class="fas fa-user-plus text-slate-400"></i> Assign Fee
+                    </a>
+                    <a href="add_fee_form.php" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 shadow-sm transition-all flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Create Fee
+                    </a>
+                </div>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="add_fee_form.php" class="bg-indigo-600 text-white font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-[1.02] transition-all active:scale-95 leading-none">
-                    <i class="fas fa-plus mr-2"></i> Create Fee
-                </a>
-                <a href="assign_fee_form.php" class="bg-white text-indigo-600 border border-indigo-100 font-black text-xs uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-indigo-50 hover:border-indigo-200 transition-all leading-none">
-                    <i class="fas fa-user-plus mr-2"></i> Assign Fee
-                </a>
-            </div>
-        </header>
+        </div>
+
+        <div class="px-6">
 
         <!-- Stats Overview -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
@@ -222,8 +228,10 @@ $cy = getAcademicYear($conn);
             <?php endif; ?>
         </div>
 
+        </div>
+
         <!-- Footer Nav -->
-        <div class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <div class="mt-12 mx-6 py-6 border-t border-slate-200 flex justify-between items-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
             <span>Salba Montessori &middot; Fee Architecture &middot; v9.5.0</span>
             <div class="flex gap-6">
                 <a href="view_assigned_fees.php" class="hover:text-indigo-600 transition-colors">Active Assignments</a>

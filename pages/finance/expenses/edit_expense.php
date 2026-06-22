@@ -51,92 +51,92 @@ while($c = $cat_result->fetch_assoc()) $categories[] = $c;
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
-<body class="text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
-                    Expenditure Registry
-                </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Revise <span class="text-rose-600">Outflow</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Updating institutional spending parameters for audit accuracy.</p>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_expenses.php" class="hover:text-blue-600 transition-colors">Institutional Expenses</a>
+                <span>/</span>
+                <span class="text-blue-600">Revise Outflow</span>
             </div>
-            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
-                <i class="fas fa-arrow-left mr-2"></i> Return to Ledger
-            </a>
-        </header>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-edit text-rose-600"></i> Revise Outflow
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Updating institutional spending parameters for audit accuracy.</p>
+                </div>
+                <a href="view_expenses.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Return to Ledger
+                </a>
+            </div>
+        </div>
 
-        <div class="max-w-3xl">
+        <div class="px-6 max-w-4xl">
             <?php if ($success): ?>
-                <div class="mb-10 bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex items-center gap-4 text-emerald-800 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <p class="font-bold text-sm tracking-tight"><?= $success ?></p>
+                <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm flex gap-3 items-center shadow-sm">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="font-medium"><?= $success ?></span>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-10">
+            <form method="POST" class="space-y-6">
                 <!-- Data Hub -->
-                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden group">
-                     <div class="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                        <i class="fas fa-receipt text-8xl text-rose-600"></i>
+                <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
+                        <i class="fas fa-receipt text-6xl text-rose-600"></i>
                     </div>
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Institutional Spending Node</h3>
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2"><i class="fas fa-sliders-h text-slate-400"></i> Institutional Spending Node</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Functional Category</label>
-                                <select name="category_id" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 appearance-none transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Functional Category</label>
+                                <select name="category_id" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 appearance-none transition-all">
                                     <?php foreach ($categories as $cat): ?>
                                         <option value="<?= $cat['id'] ?>" <?= ($exp['category_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verified Amount (GHS)</label>
-                                <input type="number" step="0.01" name="amount" value="<?= $exp['amount'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Verified Amount (GHS)</label>
+                                <input type="number" step="0.01" name="amount" value="<?= $exp['amount'] ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-bold text-slate-900 outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 transition-all">
                             </div>
                         </div>
-                        <div class="space-y-8">
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Transaction Date</label>
-                                <input type="date" name="expense_date" value="<?= $exp['expense_date'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Transaction Date</label>
+                                <input type="date" name="expense_date" value="<?= $exp['expense_date'] ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 transition-all">
                             </div>
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Operational Logic / Notes</label>
-                                <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all"><?= htmlspecialchars($exp['description']) ?></textarea>
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Operational Logic / Notes</label>
+                                <textarea name="description" rows="2" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 transition-all"><?= htmlspecialchars($exp['description']) ?></textarea>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- Action Bar -->
-                <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800 shadow-2xl flex flex-wrap items-center justify-between gap-6">
-                    <div class="flex items-center gap-5">
-                        <div class="w-14 h-14 bg-rose-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-rose-600/20">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-rose-500 text-lg shadow-sm">
                             <i class="fas fa-shield-check"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-[0.2em] text-rose-400">Registry Sync Authorized</h4>
-                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating institutional spending ledger.</p>
+                            <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Registry Sync Authorized</h4>
+                            <p class="text-slate-500 text-xs font-medium mt-0.5 italic">Recalibrating institutional spending ledger.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-rose-600/20 active:scale-95 leading-none h-fit">
-                        Sync Expenditure Node
+                    <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2">
+                        <i class="fas fa-save"></i> Sync Expenditure Node
                     </button>
                 </div>
             </form>
         </div>
-
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
-            Salba Montessori &middot; Institutional Audit Registry &middot; v9.5.0
-        </footer>
     </main>
 </body>
 </html>

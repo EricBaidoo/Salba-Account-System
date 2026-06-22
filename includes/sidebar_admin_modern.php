@@ -227,6 +227,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-clock-rotate-left"></i>
             <span>Staff Attendance Hub</span>
         </a>
+        <a href="<?= nav_link($base_path, 'administration/staff_appraisals') ?>" class="nav-item <?= nav_active('staff_appraisals', $current_page) ?>">
+            <i class="fas fa-clipboard-check"></i>
+            <span>Staff Appraisals</span>
+        </a>
 
         <!-- ACADEMIC CENTER -->
         <div class="nav-group-label">Academics</div>
@@ -262,6 +266,18 @@ if (!function_exists('nav_active')) {
         <a href="<?= nav_link($base_path, 'finance/dashboard') ?>" class="nav-item <?= nav_active('dashboard', $current_page) ?>">
             <i class="fas fa-wallet"></i>
             <span>Finance Board</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/accounting/index') ?>" class="nav-item <?= nav_active('index', $current_page) && strpos($_SERVER['REQUEST_URI'], 'accounting') !== false ? 'active' : '' ?>">
+            <i class="fas fa-book-journal-whills"></i>
+            <span>Accounting Ledger</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/petty_cash/index') ?>" class="nav-item <?= nav_active('index', $current_page) && strpos($_SERVER['REQUEST_URI'], 'petty_cash') !== false ? 'active' : '' ?>">
+            <i class="fas fa-wallet"></i>
+            <span>Petty Cash</span>
+        </a>
+        <a href="<?= nav_link($base_path, 'finance/waivers/index') ?>" class="nav-item <?= nav_active('index', $current_page) && strpos($_SERVER['REQUEST_URI'], 'waivers') !== false ? 'active' : '' ?>">
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span>Waivers & Scholarships</span>
         </a>
         <a href="<?= nav_link($base_path, 'finance/fees/view_fees') ?>" class="nav-item <?= nav_active('view_fees', $current_page) ?>">
             <i class="fas fa-file-invoice"></i>

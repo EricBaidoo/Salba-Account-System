@@ -24,6 +24,7 @@ $photo = $profile['photo_path'] ?? '';
 $pending_plans = $conn->query("SELECT COUNT(*) FROM lesson_plans WHERE status='pending'")->fetch_row()[0];
 $active_classes = $conn->query("SELECT COUNT(DISTINCT class) FROM students WHERE status='active'")->fetch_row()[0];
 $total_students = $conn->query("SELECT COUNT(*) FROM students WHERE status='active'")->fetch_row()[0];
+$pending_appraisals = $conn->query("SELECT COUNT(*) FROM appraisals WHERE status='pending_supervisor'")->fetch_row()[0] ?? 0;
 
 // Total Staff Today
 $today = date('Y-m-d');
@@ -64,7 +65,7 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
 
         <div class="max-w-6xl mx-auto p-4 md:p-10 -mt-6 md:-mt-10">
             <!-- Stats Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                         <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Pending Approvals</div>
@@ -85,6 +86,13 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <i class="fas fa-users-viewfinder text-purple-500 opacity-40"></i>
                     </div>
                     <div class="text-5xl font-black text-gray-900"><?= $total_students ?></div>
+                </div>
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 group hover:border-indigo-500 transition-all">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
+                        <div class="text-[0.625rem] font-black text-gray-400 uppercase tracking-widest">Appraisals Pending</div>
+                        <i class="fas fa-clipboard-check text-blue-500 opacity-40"></i>
+                    </div>
+                    <div class="text-5xl font-black text-gray-900"><?= $pending_appraisals ?></div>
                 </div>
             </div>
 
@@ -168,6 +176,17 @@ $staff_today = $conn->query("SELECT COUNT(DISTINCT user_id) FROM staff_attendanc
                         <div>
                             <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Weekly Reports</h3>
                             <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2">Evaluate Reports</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card: Staff Appraisals -->
+                <a href="<?= BASE_URL ?>pages/supervisor/staff_appraisals.php" class="relative group bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:border-blue-300 transition-all duration-500 overflow-hidden text-center">
+                    <div class="flex flex-col items-center gap-4 relative z-10">
+                        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-all"><i class="fas fa-clipboard-check"></i></div>
+                        <div>
+                            <h3 class="text-lg font-black text-gray-900 leading-none tracking-tight">Staff Appraisals</h3>
+                            <p class="text-[0.5625rem] font-black text-gray-400 uppercase tracking-widest mt-2"><?= $pending_appraisals ?> Pending</p>
                         </div>
                     </div>
                 </a>

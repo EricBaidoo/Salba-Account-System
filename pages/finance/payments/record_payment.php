@@ -4,6 +4,7 @@ include '../../../includes/auth_check.php';
 require_finance_write();
 include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
+include_once '../../../includes/accounting_engine.php';
 
 // Ensure receipt numbers are unique; generate when missing
 function ensureUniqueReceiptNo(mysqli $conn, string $receipt_no): string {
@@ -79,6 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if ($stmt->execute()) {
+            $payment_id = $conn->insert_id;
+            
+            // Auto Journal Entry
+            $desc = "General Payment RCPT: $receipt_no - $description";
+            record_journal_entry($conn, $payment_date, 'Payment', $payment_id, $desc, [
+                ['account_code' => '1000', 'debit' => $amount, 'credit' => 0], // DR Cash
+                ['account_code' => '4100', 'debit' => 0, 'credit' => $amount]  // CR Misc Revenue
+            ]);
+
             echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>General payment recorded successfully!</div>";
         } else {
             echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Error: " . $stmt->error . "</div>";
@@ -184,6 +194,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fees_stmt->close();
 
             $conn->commit();
+
+            // Auto Journal Entry (Student Payment)
+            $desc = "Student Payment RCPT: $receipt_no - $description";
+            record_journal_entry($conn, $payment_date, 'Payment', $payment_id, $desc, [
+                ['account_code' => '1000', 'debit' => $amount, 'credit' => 0], // DR Cash
+                ['account_code' => '1200', 'debit' => 0, 'credit' => $amount]  // CR Accounts Rec
+            ]);
 
             // --- AUTOMATION WIRING: INSTANT PAYMENT RECEIPT ---
             include_once '../../../includes/sms_gateway.php';

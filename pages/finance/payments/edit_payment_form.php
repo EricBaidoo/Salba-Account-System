@@ -84,98 +84,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
-<body class="text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
-                    Audit Node
-                </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Adjust <span class="text-emerald-600">Remittance</span></h1>
-                <div class="mt-3 flex items-center gap-3">
-                    <span class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Student:</span>
-                    <span class="text-xs font-black text-slate-700 uppercase"><?= htmlspecialchars($payment['student_name']) ?></span>
-                </div>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_payments.php" class="hover:text-blue-600 transition-colors">Payment Ledger</a>
+                <span>/</span>
+                <span class="text-blue-600">Adjust Remittance</span>
             </div>
-            <a href="../reports/student_balance_details.php?id=<?= $payment['student_id'] ?>" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
-                <i class="fas fa-arrow-left mr-2"></i> Exit Audit
-            </a>
-        </header>
-
-        <div class="max-w-3xl">
-            <?php if ($success): ?>
-                <div class="mb-10 bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex items-center gap-4 text-emerald-800 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <i class="fas fa-check"></i>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-edit text-emerald-600"></i> Adjust Remittance
+                    </h1>
+                    <div class="mt-2 flex items-center gap-2 text-sm text-slate-600">
+                        <span class="font-semibold text-slate-800">Student:</span>
+                        <span><?= htmlspecialchars($payment['student_name']) ?></span>
                     </div>
-                    <p class="font-bold text-sm tracking-tight"><?= $success ?></p>
+                </div>
+                <a href="../reports/student_balance_details.php?id=<?= $payment['student_id'] ?>" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Exit Audit
+                </a>
+            </div>
+        </div>
+
+        <div class="px-6 max-w-4xl">
+            <?php if ($success): ?>
+                <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm flex gap-3 items-center shadow-sm">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="font-medium"><?= $success ?></span>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-10">
+            <form method="POST" class="space-y-6">
                 <!-- Parameters Hub -->
-                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Fiscal Parameters</h3>
+                <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2"><i class="fas fa-sliders-h text-slate-400"></i> Fiscal Parameters</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Remittance Value (GHS)</label>
-                                <input type="number" step="0.01" name="amount" value="<?= $payment['amount'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
-                                <p class="text-[0.5625rem] text-slate-400 mt-2 font-medium italic">* Allocation weights will be proportionally updated.</p>
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Remittance Value (GHS)</label>
+                                <input type="number" step="0.01" name="amount" value="<?= $payment['amount'] ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold text-emerald-600 outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                                <p class="text-[10px] text-slate-500 mt-1 font-medium italic">* Allocation weights will be proportionally updated.</p>
                             </div>
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Verification Date</label>
-                                <input type="date" name="payment_date" value="<?= $payment['payment_date'] ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Verification Date</label>
+                                <input type="date" name="payment_date" value="<?= $payment['payment_date'] ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                             </div>
                         </div>
-                        <div class="space-y-8">
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Receipt No</label>
-                                <input type="text" name="receipt_no" value="<?= htmlspecialchars($payment['receipt_no'] ?: '') ?>" placeholder="e.g. REC-1001" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Institutional Receipt No</label>
+                                <input type="text" name="receipt_no" value="<?= htmlspecialchars($payment['receipt_no'] ?: '') ?>" placeholder="e.g. REC-1001" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                             </div>
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Administrative Logic / Description</label>
-                                <textarea name="description" rows="1" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-indigo-500 transition-all"><?= htmlspecialchars($payment['description'] ?: '') ?></textarea>
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Administrative Logic / Description</label>
+                                <textarea name="description" rows="2" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all"><?= htmlspecialchars($payment['description'] ?: '') ?></textarea>
                             </div>
                         </div>
                     </div>
                 </section>
 
                 <!-- Warning Zone -->
-                <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 flex items-start gap-4">
-                    <i class="fas fa-triangle-exclamation text-amber-500 mt-1"></i>
+                <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 flex items-start gap-3">
+                    <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5"></i>
                     <div>
-                        <h4 class="text-[0.625rem] font-black text-amber-700 uppercase tracking-widest mb-1">Fiscal Re-balancing Awareness</h4>
-                        <p class="text-[0.5625rem] font-medium text-amber-600 leading-relaxed italic">Modifying the aggregate remittance value will automatically re-allocate portions to assigned student fees based on existing proportionality. Ensure student account integrity after synchronization.</p>
+                        <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">Fiscal Re-balancing Awareness</h4>
+                        <p class="text-xs font-medium text-amber-700 leading-relaxed italic">Modifying the aggregate remittance value will automatically re-allocate portions to assigned student fees based on existing proportionality. Ensure student account integrity after synchronization.</p>
                     </div>
                 </div>
 
                 <!-- Action Bar -->
-                <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800 shadow-2xl flex flex-wrap items-center justify-between gap-6">
-                    <div class="flex items-center gap-5">
-                        <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-xl">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-500 text-lg shadow-sm">
                             <i class="fas fa-shield-check"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Parameter Sync Authorized</h4>
-                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none italic">Recalibrating student ledger balances.</p>
+                            <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Parameter Sync Authorized</h4>
+                            <p class="text-slate-500 text-xs font-medium mt-0.5 italic">Recalibrating student ledger balances.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-emerald-600/20 active:scale-95 leading-none h-fit">
-                        Sync Remittance Node
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-all shadow-sm flex items-center gap-2">
+                        <i class="fas fa-save"></i> Sync Remittance Node
                     </button>
                 </div>
             </form>
         </div>
-
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
-            Salba Montessori &middot; Financial Audit Node &middot; v9.5.0
-        </footer>
     </main>
 </body>
 </html>

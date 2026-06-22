@@ -84,63 +84,58 @@ if (!in_array($default_academic_year, $year_options, true)) {
 <body class="bg-[#F8FAFC] text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
     
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10">
-        <!-- Breadcrumbs & Nav -->
-        <nav class="flex items-center justify-between mb-12">
-            <div class="flex items-center gap-4">
-                <a href="../dashboard.php" class="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_semester_bills.php" class="hover:text-blue-600 transition-colors">Billing Center</a>
+                <span>/</span>
+                <span class="text-blue-600">Billing Initialization</span>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Finance Hub</p>
-                    <h4 class="text-sm font-bold text-slate-700">Billing Initialization</h4>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-file-invoice text-emerald-600"></i> Prepare Semester Bills
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Initialize the billing cycle by selecting fee categories to append to student ledgers.</p>
                 </div>
+                <a href="view_semester_bills.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-times text-slate-400"></i> Cancel
+                </a>
             </div>
-            <a href="view_semester_bills.php" class="bg-white px-6 py-2.5 rounded-xl shadow-sm border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2">
-                <i class="fas fa-file-invoice text-emerald-500"></i> Open Billing Center
-            </a>
-        </nav>
-
-        <!-- Main Header -->
-        <header class="mb-12 relative">
-            <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-4">
-                <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
-                Billing Preparation
-            </div>
-            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Prepare <span class="text-emerald-600">Semester Bills</span></h1>
-            <p class="text-slate-500 mt-2 font-medium max-w-2xl">Initialize the billing cycle by selecting specific fee categories to be appended to student ledgers for the active term.</p>
-        </header>
+        </div>
 
         <form method="POST" action="process_semester_bills.php" id="billingForm">
             
             <!-- Context Selection Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                <div class="lg:col-span-2 space-y-8">
+            <div class="px-6 grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                <div class="lg:col-span-2 space-y-6">
                     <!-- Basic Configurations -->
-                    <div class="glass-card p-10 rounded-[2.5rem] shadow-sm">
-                        <div class="flex items-center gap-4 mb-8">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg border border-emerald-100">
                                 <i class="fas fa-sliders"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-black text-slate-900">Target Session</h3>
-                                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Define the temporal context for this bill</p>
+                                <h3 class="text-lg font-semibold text-slate-900">Target Session</h3>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Define the temporal context for this bill</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                            <div class="md:col-span-4">
-                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Semester</label>
-                                <select name="semester" id="semester" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Semester</label>
+                                <select name="semester" id="semester" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-4 py-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium appearance-none" required>
                                     <option value="">Select Semester</option>
                                     <option value="First Semester" <?= getCurrentSemester($conn) === 'First Semester' ? 'selected' : '' ?>>First Semester</option>
                                     <option value="Second Semester" <?= getCurrentSemester($conn) === 'Second Semester' ? 'selected' : '' ?>>Second Semester</option>
                                     <option value="Third Semester" <?= getCurrentSemester($conn) === 'Third Semester' ? 'selected' : '' ?>>Third Semester</option>
                                 </select>
                             </div>
-                            <div class="md:col-span-4">
-                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Academic Year</label>
-                                <select name="academic_year" id="academic_year" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all appearance-none" required>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Academic Year</label>
+                                <select name="academic_year" id="academic_year" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-4 py-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium appearance-none" required>
                                     <?php foreach ($year_options as $yr): ?>
                                         <option value="<?= htmlspecialchars($yr) ?>" <?= ($yr === $default_academic_year) ? 'selected' : '' ?>>
                                             <?= htmlspecialchars(formatAcademicYearDisplay($conn, $yr)) ?>
@@ -148,20 +143,20 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="md:col-span-4">
-                                <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Deadline Date</label>
-                                <input type="date" name="due_date" id="due_date" class="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" required>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Deadline Date</label>
+                                <input type="date" name="due_date" id="due_date" class="w-full bg-white border border-slate-300 text-slate-900 rounded-lg px-4 py-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium" required>
                             </div>
                         </div>
                     </div>
 
                     <!-- Fee Selection Area -->
                     <div>
-                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-                            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                                Available Fee Categories <span class="w-12 h-[0.0625rem] bg-slate-200"></span>
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+                            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-3">
+                                Available Fee Categories <span class="w-8 h-px bg-slate-200"></span>
                             </h3>
-                            <button type="button" onclick="selectAllFees()" class="text-[0.625rem] font-black text-emerald-600 uppercase tracking-widest hover:bg-emerald-50 px-3 py-1 rounded-full transition-all">Select All</button>
+                            <button type="button" onclick="selectAllFees()" class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider hover:bg-emerald-50 px-2 py-1 rounded transition-all border border-emerald-200">Select All</button>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -171,34 +166,34 @@ if (!in_array($default_academic_year, $year_options, true)) {
                                 $isFixed = ($fee['fee_type'] === 'fixed');
                                 $colorClass = $isFixed ? 'emerald' : 'indigo';
                             ?>
-                            <div class="fee-card glass-card p-6 rounded-[2.5rem] cursor-pointer hover:border-emerald-500/50 transition-all duration-300 relative group" data-fee-id="<?= $fee['id'] ?>">
-                                <div class="flex justify-between items-start mb-4">
+                            <div class="fee-card bg-white p-5 rounded-xl border border-slate-200 cursor-pointer hover:border-emerald-400 transition-all duration-300 relative group shadow-sm" data-fee-id="<?= $fee['id'] ?>">
+                                <div class="flex justify-between items-start mb-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-<?= $colorClass ?>-50 text-<?= $colorClass ?>-600 flex items-center justify-center text-lg">
+                                        <div class="w-8 h-8 rounded-lg bg-<?= $colorClass ?>-50 text-<?= $colorClass ?>-600 flex items-center justify-center text-sm border border-<?= $colorClass ?>-100">
                                             <i class="fas fa-<?= $isFixed ? 'bookmark' : 'tags' ?>"></i>
                                         </div>
                                         <div>
-                                            <h5 class="text-sm font-black text-slate-900 leading-tight"><?= htmlspecialchars($fee['name']) ?></h5>
-                                            <span class="text-[0.5625rem] font-black uppercase tracking-widest text-slate-400"><?= strtoupper($fee['fee_type']) ?></span>
+                                            <h5 class="text-sm font-semibold text-slate-900 leading-tight"><?= htmlspecialchars($fee['name']) ?></h5>
+                                            <span class="text-[10px] font-medium uppercase tracking-wider text-slate-500"><?= strtoupper($fee['fee_type']) ?></span>
                                         </div>
                                     </div>
-                                    <div class="check-icon opacity-0 transform scale-50 transition-all duration-300 text-emerald-500 text-xl">
+                                    <div class="check-icon opacity-0 transform scale-50 transition-all duration-300 text-emerald-500 text-lg">
                                         <i class="fas fa-check-circle"></i>
                                     </div>
                                 </div>
-                                <div class="flex items-baseline gap-1 mt-6">
-                                    <span class="text-xs font-bold text-slate-400">GHS</span>
-                                    <span class="text-2xl font-black text-slate-900 tracking-tight">
+                                <div class="flex items-baseline gap-1 mt-4">
+                                    <span class="text-xs font-medium text-slate-500">GHS</span>
+                                    <span class="text-xl font-bold text-slate-900 tracking-tight">
                                         <?= $isFixed ? number_format($fee['amount'], 2) : '---' ?>
                                     </span>
                                     <?php if (!$isFixed): ?>
-                                        <span class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest ml-1">Tiered Rate</span>
+                                        <span class="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider ml-1">Tiered Rate</span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($fee['amount_details']): ?>
-                                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 overflow-hidden">
-                                        <i class="fas fa-info-circle text-[0.625rem] text-slate-300"></i>
-                                        <p class="text-[0.5625rem] text-slate-400 font-bold uppercase tracking-widest truncate">
+                                    <div class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 overflow-hidden">
+                                        <i class="fas fa-info-circle text-[10px] text-slate-400"></i>
+                                        <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider truncate">
                                             <?= htmlspecialchars($fee['amount_details']) ?>
                                         </p>
                                     </div>
@@ -211,42 +206,42 @@ if (!in_array($default_academic_year, $year_options, true)) {
 
                 <!-- Right Sidebar: Filters & Summary -->
                 <div class="lg:col-span-1 space-y-6">
-                    <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-                        <div class="absolute top-0 right-0 p-8 opacity-10">
-                            <i class="fas fa-users text-8xl"></i>
+                    <div class="bg-slate-900 rounded-xl p-6 text-white relative overflow-hidden shadow-lg border border-slate-800">
+                        <div class="absolute top-0 right-0 p-6 opacity-10">
+                            <i class="fas fa-users text-6xl"></i>
                         </div>
                         <div class="relative z-10">
-                            <h3 class="text-lg font-black mb-6">Audience Filter</h3>
-                            <label class="block text-[0.625rem] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Apply Process To:</label>
+                            <h3 class="text-base font-semibold mb-4">Audience Filter</h3>
+                            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Apply Process To:</label>
                             
-                            <select name="class_filter" id="class_filter" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none mb-6">
-                                <option value="all" class="text-slate-900">Entire Active Population</option>
+                            <select name="class_filter" id="class_filter" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all appearance-none mb-6">
+                                <option value="all">Entire Active Population</option>
                                 <?php while ($class = $classes_result->fetch_assoc()): ?>
-                                    <option value="<?= htmlspecialchars($class['name']) ?>" class="text-slate-900"><?= htmlspecialchars($class['name']) ?></option>
+                                    <option value="<?= htmlspecialchars($class['name']) ?>"><?= htmlspecialchars($class['name']) ?></option>
                                 <?php endwhile; ?>
                             </select>
 
-                            <div class="space-y-4 pt-6 border-t border-white/10">
+                            <div class="space-y-3 pt-4 border-t border-slate-800">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold text-slate-400">Mode</span>
-                                    <span class="text-xs font-black uppercase tracking-widest text-emerald-400">Bulk Execution</span>
+                                    <span class="text-xs text-slate-400">Mode</span>
+                                    <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Bulk Execution</span>
                                 </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-xs font-bold text-slate-400">Selected Fees</span>
-                                    <span id="summaryFeeCount" class="font-black">0</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-slate-400">Selected Fees</span>
+                                    <span id="summaryFeeCount" class="text-sm font-bold">0</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="glass-card p-6 rounded-[2rem] border-dashed border-slate-200">
-                        <div class="flex gap-4 items-start">
-                            <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0">
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0 border border-blue-200">
                                 <i class="fas fa-shield-halved"></i>
                             </div>
                             <div>
-                                <h5 class="text-sm font-bold text-slate-900 mb-1">Integrity Policy</h5>
-                                <p class="text-xs text-slate-500 font-medium leading-relaxed">System will skip duplicates. Arrears will be calculated and appended automatically based on current student balances.</p>
+                                <h5 class="text-sm font-semibold text-blue-900 mb-1">Integrity Policy</h5>
+                                <p class="text-xs text-blue-800 leading-relaxed">System skips duplicates. Arrears will be calculated and appended automatically based on current student balances.</p>
                             </div>
                         </div>
                     </div>
@@ -256,23 +251,23 @@ if (!in_array($default_academic_year, $year_options, true)) {
             <input type="hidden" name="selected_fees" id="selected_fees_input" value="">
             
             <!-- Sticky Execution Bar -->
-            <div id="executionBar" class="fixed bottom-10 left-[22rem] right-10 bg-white shadow-2xl shadow-indigo-500/20 border border-slate-100 p-6 rounded-3xl transform translate-y-32 transition-transform duration-500 z-50 flex items-center justify-between">
-                <div class="flex items-center gap-6">
-                    <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl shadow-xl shadow-slate-900/20">
+            <div id="executionBar" class="fixed bottom-6 left-6 lg:left-80 right-6 bg-white shadow-lg border border-slate-200 p-4 rounded-xl transform translate-y-32 transition-transform duration-500 z-50 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-lg shadow-sm">
                         <i class="fas fa-bolt"></i>
                     </div>
                     <div>
-                        <div class="flex items-center gap-2 text-rose-600 font-black text-[0.625rem] uppercase tracking-widest mb-1">
-                            <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
-                            System Ready for Billing
+                        <div class="flex items-center gap-2 text-rose-600 font-semibold text-[10px] uppercase tracking-wider mb-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+                            Ready for Billing
                         </div>
-                        <p class="text-sm font-bold text-slate-700">Initialize <span id="barFeeCount" class="text-emerald-600 font-extrabold">0</span> fees for <span id="barClassTarget" class="text-indigo-600 font-extrabold">Global Population</span></p>
+                        <p class="text-sm font-medium text-slate-700">Initialize <span id="barFeeCount" class="text-emerald-600 font-bold">0</span> fees for <span id="barClassTarget" class="text-indigo-600 font-bold">Global Population</span></p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button type="button" onclick="window.history.back()" class="px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all">Cancel</button>
-                    <button type="submit" id="submitBtn" disabled class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-[0.2em] px-10 py-4 rounded-2xl shadow-xl shadow-emerald-500/30 transition-all flex items-center gap-4 disabled:opacity-50 disabled:grayscale">
-                        Deploy Billings <i class="fas fa-arrow-right"></i>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="window.history.back()" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200">Cancel</button>
+                    <button type="submit" id="submitBtn" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-6 py-2 rounded-lg shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Deploy Billings <i class="fas fa-arrow-right text-xs"></i>
                     </button>
                 </div>
             </div>

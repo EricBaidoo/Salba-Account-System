@@ -90,26 +90,32 @@ include '../../../includes/fee_categories.php';
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
-<body class="text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
-                    Registry Node
-                </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Modify <span class="text-indigo-600">Fee Logic</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Re-configuring parameters for institutional billing entities.</p>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_fees.php" class="hover:text-blue-600 transition-colors">Fee Management</a>
+                <span>/</span>
+                <span class="text-blue-600">Modify Fee</span>
             </div>
-            <a href="view_fees.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
-                <i class="fas fa-arrow-left mr-2"></i> Return to List
-            </a>
-        </header>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-pen text-indigo-600"></i> Modify Fee Configuration
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Re-configuring parameters for institutional billing entities.</p>
+                </div>
+                <a href="view_fees.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Return to List
+                </a>
+            </div>
+        </div>
 
-        <div class="max-w-4xl">
+        <div class="px-6 max-w-4xl">
             <?php if ($success): ?>
                 <div class="mb-10 bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex items-center gap-4 text-emerald-800 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -119,23 +125,22 @@ include '../../../includes/fee_categories.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-10">
+            <form method="POST" class="space-y-6">
                 <!-- Identity Hub -->
-                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                        <i class="fas fa-fingerprint text-8xl"></i>
-                    </div>
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Fee Identity & Classification</h3>
+                <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <i class="fas fa-fingerprint text-slate-400"></i> Fee Identity & Classification
+                    </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Institutional Name</label>
-                                <input type="text" name="name" value="<?= htmlspecialchars($fee['name']) ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Institutional Name</label>
+                                <input type="text" name="name" value="<?= htmlspecialchars($fee['name']) ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                             </div>
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Functional Logic Type</label>
-                                <select name="fee_type" id="feeTypeSelect" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-indigo-500/10 appearance-none">
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Functional Logic Type</label>
+                                <select name="fee_type" id="feeTypeSelect" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition-all">
                                     <option value="fixed" <?= $fee['fee_type']==='fixed'?'selected':'' ?>>Standard Fixed Rate</option>
                                     <option value="class_based" <?= $fee['fee_type']==='class_based'?'selected':'' ?>>Class-Based Tiering</option>
                                     <option value="category" <?= $fee['fee_type']==='category'?'selected':'' ?>>Generalized Category Based</option>
@@ -143,42 +148,44 @@ include '../../../includes/fee_categories.php';
                             </div>
                         </div>
                         <div>
-                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block">Administrative Notes</label>
-                            <textarea name="description" rows="5" class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all leading-loose"><?= htmlspecialchars($fee['description']) ?></textarea>
+                            <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Administrative Notes</label>
+                            <textarea name="description" rows="5" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all leading-loose"><?= htmlspecialchars($fee['description']) ?></textarea>
                         </div>
                     </div>
                 </section>
 
                 <!-- Amount Thresholds Hub -->
-                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Fiscal Allocation Matrix</h3>
+                <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+                        <i class="fas fa-coins text-slate-400"></i> Fiscal Allocation Matrix
+                    </h3>
 
                     <div id="fixedAmountDiv" class="fee-section">
-                        <div class="bg-slate-50 p-10 rounded-[2rem] border border-slate-100">
-                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-4 block text-center">Standard Institutional Amount (GHS)</label>
-                            <input type="number" step="0.01" name="fixed_amount" value="<?= $fee['amount'] ?>" class="w-full text-center bg-transparent text-5xl font-black text-slate-900 outline-none focus:text-indigo-600 transition-colors" placeholder="0.00">
+                        <div class="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 block text-center">Standard Institutional Amount (GHS)</label>
+                            <input type="number" step="0.01" name="fixed_amount" value="<?= $fee['amount'] ?>" class="w-full text-center bg-white border border-slate-300 py-3 rounded-lg text-3xl font-bold text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all" placeholder="0.00">
                         </div>
                     </div>
 
-                    <div id="classAmountsDiv" class="fee-section hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="classAmountsDiv" class="fee-section hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <?php foreach($classes as $class): ?>
-                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
-                                <span class="text-xs font-black text-slate-500 uppercase tracking-widest"><?= $class ?></span>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[0.625rem] font-black text-slate-300">GHS</span>
-                                    <input type="number" step="0.01" name="class_amounts[<?= $class ?>]" value="<?= $amounts['class'][$class] ?? '' ?>" class="w-24 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-right text-slate-900 outline-none group-hover:border-indigo-400 transition-all">
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col gap-2">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider"><?= $class ?></span>
+                                <div class="relative">
+                                    <input type="number" step="0.01" name="class_amounts[<?= $class ?>]" value="<?= $amounts['class'][$class] ?? '' ?>" class="w-full bg-white border border-slate-300 rounded-md pl-8 pr-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">₵</span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
 
-                    <div id="categoryAmountsDiv" class="fee-section hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="categoryAmountsDiv" class="fee-section hidden grid grid-cols-1 md:grid-cols-2 gap-4">
                         <?php foreach($fee_categories as $catId=>$catLabel): ?>
-                            <div class="bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
-                                <span class="text-xs font-black text-indigo-600 uppercase tracking-widest"><?= htmlspecialchars($catLabel) ?></span>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[0.625rem] font-black text-indigo-300">GHS</span>
-                                    <input type="number" step="0.01" name="category_amounts[<?= $catId ?>]" value="<?= $amounts['category'][(string)$catId] ?? '' ?>" class="w-24 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-right text-slate-900 outline-none group-hover:border-indigo-400 transition-all">
+                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex items-center justify-between gap-4">
+                                <span class="text-xs font-bold text-indigo-800 uppercase tracking-wider"><?= htmlspecialchars($catLabel) ?></span>
+                                <div class="relative w-32">
+                                    <input type="number" step="0.01" name="category_amounts[<?= $catId ?>]" value="<?= $amounts['category'][(string)$catId] ?? '' ?>" class="w-full bg-white border border-slate-300 rounded-md pl-8 pr-3 py-2 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">₵</span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -186,24 +193,24 @@ include '../../../includes/fee_categories.php';
                 </section>
 
                 <!-- Action Bar -->
-                <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800 shadow-2xl flex flex-wrap items-center justify-between gap-6">
-                    <div class="flex items-center gap-5">
-                        <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-emerald-500/20">
+                <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-emerald-500 text-xl border border-slate-200 shadow-sm">
                             <i class="fas fa-shield-check"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-400">Node Sync Authorization</h4>
-                            <p class="text-slate-500 text-[0.625rem] font-bold mt-1 uppercase leading-none">Commits architectural changes to core receivers.</p>
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800">Node Sync Authorization</h4>
+                            <p class="text-slate-500 text-xs font-medium mt-1">Commits architectural changes to core receivers.</p>
                         </div>
                     </div>
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-10 py-5 rounded-2xl transition-all shadow-xl shadow-emerald-600/20 active:scale-95 leading-none h-fit">
-                        Sync Fee Architecture
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg transition-all shadow-sm flex items-center gap-2">
+                        <i class="fas fa-sync-alt"></i> Sync Fee Architecture
                     </button>
                 </div>
             </form>
         </div>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
+        <footer class="mt-12 mx-6 py-6 border-t border-slate-200 text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Salba Montessori &middot; Multi-Tapered Billing Engine &middot; v9.5.0
         </footer>
     </main>

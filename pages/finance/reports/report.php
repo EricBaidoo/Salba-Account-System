@@ -33,11 +33,12 @@ if (!in_array($default_academic_year, $year_options)) array_unshift($year_option
 
 $available_terms = getAvailableSemesters($conn);
 
-// Logic and Data Fetching (Condensed for modernization while keeping core logic)
+// Logic and Data Fetching
 $total_income = 0; $total_expenses = 0;
 $income_by_category = []; $expense_by_category = [];
 
 if ($report_type === 'overview' || $report_type === 'income' || $report_type === 'expenses') {
+    // Total Income
     $income_total_stmt = $conn->prepare("
         SELECT COALESCE(SUM(p.amount), 0) as total 
         FROM payments p 
@@ -70,6 +71,20 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     else $exp_stmt->bind_param('s', $selected_academic_year);
     $exp_stmt->execute(); $exp_res = $exp_stmt->get_result();
     while($r = $exp_res->fetch_assoc()) { $expense_by_category[] = $r; $total_expenses += $r['total']; }
+
+    // Fetch Total Waivers Given
+    $waivers_stmt = $conn->prepare("
+        SELECT COALESCE(SUM(sf.amount), 0) as total 
+        FROM student_fees sf
+        JOIN fees f ON sf.fee_id = f.id
+        WHERE f.name = 'Waivers & Scholarships'
+        AND sf.academic_year = ? 
+        " . ($selected_term !== 'All' ? "AND sf.semester = ? " : "") . "
+    ");
+    if($selected_term !== 'All') $waivers_stmt->bind_param('ss', $selected_academic_year, $selected_term);
+    else $waivers_stmt->bind_param('s', $selected_academic_year);
+    $waivers_stmt->execute();
+    $total_waivers = abs((float)$waivers_stmt->get_result()->fetch_assoc()['total']);
 }
 
 $budget_comparison = [];
@@ -104,7 +119,7 @@ if ($report_type === 'budget' || $report_type === 'overview') {
     </style>
 </head>
 <body class="text-slate-900 leading-relaxed">
-    <div class="no-print"><?php include '../../../includes/sidebar_admin_modern.php'; ?></div>
+    <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
         <!-- Header -->
@@ -118,38 +133,38 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 <p class="text-slate-500 mt-2 font-medium">Multi-dimensional reporting for institutional fiscal oversight.</p>
             </div>
             <div class="no-print flex gap-4">
-                 <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
-                    <i class="fas fa-print mr-2"></i> Release Report
+                 <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none shadow-sm">
+                    <i class="fas fa-print mr-2"></i> Print Report
                  </button>
             </div>
         </header>
 
         <!-- Navigation Context -->
-        <nav class="no-print flex flex-wrap gap-2 mb-12 bg-white/50 p-2 rounded-3xl border border-slate-100 w-fit">
+        <nav class="no-print flex flex-wrap gap-2 mb-12 bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm w-fit">
             <?php 
             $navs = [
                 'overview' => ['Overview', 'chart-pie'],
                 'income' => ['Income', 'coins'],
                 'expenses' => ['Expenses', 'receipt'],
                 'budget' => ['Budget vs Actual', 'calculator'],
-                'student_fees' => ['Collections', 'users'],
+                'student_fees' => ['Collections Summary', 'users'],
                 'transactions' => ['Transactions', 'list-check']
             ];
             foreach($navs as $type => $info): ?>
                 <a href="?report_type=<?= $type ?>&semester=<?= $selected_term ?>&academic_year=<?= $selected_academic_year ?>" 
-                   class="nav-pill px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 <?= $report_type===$type?'active':'text-slate-400' ?>">
+                   class="nav-pill px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 <?= $report_type===$type?'active':'text-slate-500 hover:bg-slate-50' ?>">
                     <i class="fas fa-<?= $info[1] ?> text-xs"></i> <?= $info[0] ?>
                 </a>
             <?php endforeach; ?>
         </nav>
 
         <!-- Filter Console -->
-        <section class="no-print bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm mb-12">
+        <section class="no-print bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm mb-12">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                 <input type="hidden" name="report_type" value="<?= $report_type ?>">
                 <div>
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Fiscal Year</label>
-                    <select name="academic_year" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                    <select name="academic_year" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
                         <?php foreach($year_options as $y): ?>
                             <option value="<?= htmlspecialchars($y) ?>" <?= $y === $selected_academic_year ? 'selected' : '' ?>><?= formatAcademicYearDisplay($conn, $y) ?></option>
                         <?php endforeach; ?>
@@ -157,7 +172,7 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 </div>
                 <div>
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Trimester Context</label>
-                    <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                    <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
                         <option value="All">All Trimesters</option>
                         <?php foreach($available_terms as $t): ?>
                             <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
@@ -165,39 +180,47 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                     </select>
                 </div>
                 <div>
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Scope (Optional)</label>
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Date Scope (Optional)</label>
                     <div class="flex gap-2">
-                        <input type="date" name="date_from" value="<?= $date_from ?>" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
-                        <input type="date" name="date_to" value="<?= $date_to ?>" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none">
+                        <input type="date" name="date_from" value="<?= $date_from ?>" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-3 text-[10px] font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
+                        <input type="date" name="date_to" value="<?= $date_to ?>" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-3 text-[10px] font-bold outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-4 py-4 rounded-xl shadow-lg shadow-indigo-600/20 leading-none">Apply Scopes</button>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-4 py-4 rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">Apply Scopes</button>
             </form>
         </section>
 
         <!-- Report Content -->
         <?php if($report_type === 'overview'): ?>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- Summary Metrics -->
-                <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-emerald-500 p-8 rounded-[2.5rem] shadow-xl shadow-emerald-500/10 text-white">
-                        <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-2">Aggregate Income</p>
-                        <h3 class="text-4xl font-black italic">₵<?= number_format($total_income, 2) ?></h3>
+                <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-emerald-500 p-8 rounded-[2rem] shadow-xl shadow-emerald-500/20 text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-emerald-400/30 text-7xl"><i class="fas fa-arrow-trend-up"></i></div>
+                        <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-2 relative z-10">Aggregate Income</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($total_income, 2) ?></h3>
                     </div>
-                    <div class="bg-rose-500 p-8 rounded-[2.5rem] shadow-xl shadow-rose-500/10 text-white">
-                        <p class="text-[10px] font-black text-rose-100 uppercase tracking-widest mb-2">Aggregate Expenditure</p>
-                        <h3 class="text-4xl font-black italic">₵<?= number_format($total_expenses, 2) ?></h3>
+                    <div class="bg-rose-500 p-8 rounded-[2rem] shadow-xl shadow-rose-500/20 text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-rose-400/30 text-7xl"><i class="fas fa-arrow-trend-down"></i></div>
+                        <p class="text-[10px] font-black text-rose-100 uppercase tracking-widest mb-2 relative z-10">Aggregate Expenditure</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($total_expenses, 2) ?></h3>
                     </div>
-                    <div class="bg-indigo-900 p-8 rounded-[2.5rem] shadow-xl shadow-indigo-900/10 text-white">
-                        <p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-2">Net Liquidity</p>
-                        <h3 class="text-4xl font-black italic">₵<?= number_format($total_income - $total_expenses, 2) ?></h3>
+                    <div class="bg-pink-500 p-8 rounded-[2rem] shadow-xl shadow-pink-500/20 text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-pink-400/30 text-7xl"><i class="fas fa-hand-holding-heart"></i></div>
+                        <p class="text-[10px] font-black text-pink-100 uppercase tracking-widest mb-2 relative z-10">Waivers Granted</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($total_waivers, 2) ?></h3>
+                    </div>
+                    <div class="bg-indigo-900 p-8 rounded-[2rem] shadow-xl shadow-indigo-900/20 text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-indigo-800/50 text-7xl"><i class="fas fa-scale-balanced"></i></div>
+                        <p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-2 relative z-10">Net Liquidity</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($total_income - $total_expenses, 2) ?></h3>
                     </div>
                 </div>
 
                 <!-- Category Matrix -->
-                <div class="lg:col-span-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                    <div class="px-10 py-8 border-b border-slate-50 bg-slate-50/50">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Income Classification Breakdown</h4>
+                <div class="lg:col-span-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-chart-pie mr-2 text-emerald-500"></i> Income Breakdown</h4>
                     </div>
                     <div class="p-8 space-y-6">
                         <?php foreach($income_by_category as $row): 
@@ -205,20 +228,23 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                         ?>
                             <div class="space-y-2">
                                 <div class="flex justify-between items-end">
-                                    <p class="text-[11px] font-black text-slate-700 uppercase leading-none"><?= htmlspecialchars($row['category']) ?></p>
-                                    <p class="text-[11px] font-black text-emerald-600">₵<?= number_format($row['total'], 2) ?></p>
+                                    <p class="text-xs font-bold text-slate-700 uppercase leading-none"><?= htmlspecialchars($row['category']) ?></p>
+                                    <p class="text-xs font-black text-emerald-600">₵<?= number_format($row['total'], 2) ?></p>
                                 </div>
-                                <div class="h-2 bg-slate-50 rounded-full overflow-hidden flex items-center">
+                                <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
                                     <div class="h-full bg-emerald-500 rounded-full" style="width: <?= $pct ?>%"></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
+                        <?php if(empty($income_by_category)): ?>
+                            <p class="text-center text-slate-400 text-sm italic py-8">No income data available for this period.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="lg:col-span-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-                    <div class="px-10 py-8 border-b border-slate-50 bg-slate-50/50">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Expenditure Matrix</h4>
+                <div class="lg:col-span-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-chart-pie mr-2 text-rose-500"></i> Expenditure Breakdown</h4>
                     </div>
                     <div class="p-8 space-y-6">
                         <?php foreach($expense_by_category as $row): 
@@ -226,36 +252,43 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                         ?>
                             <div class="space-y-2">
                                 <div class="flex justify-between items-end">
-                                    <p class="text-[11px] font-black text-slate-700 uppercase leading-none"><?= htmlspecialchars($row['category']) ?></p>
-                                    <p class="text-[11px] font-black text-rose-600">₵<?= number_format($row['total'], 2) ?></p>
+                                    <p class="text-xs font-bold text-slate-700 uppercase leading-none"><?= htmlspecialchars($row['category']) ?></p>
+                                    <p class="text-xs font-black text-rose-600">₵<?= number_format($row['total'], 2) ?></p>
                                 </div>
-                                <div class="h-2 bg-slate-50 rounded-full overflow-hidden flex items-center">
+                                <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden flex items-center">
                                     <div class="h-full bg-rose-500 rounded-full" style="width: <?= $pct ?>%"></div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
+                        <?php if(empty($expense_by_category)): ?>
+                            <p class="text-center text-slate-400 text-sm italic py-8">No expenditure data available for this period.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Budget Overview (Condensed) -->
                 <?php if(!empty($budget_comparison)): ?>
-                <div class="lg:col-span-12 bg-slate-900 rounded-[2.5rem] p-10 text-white border border-slate-800">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-10 flex items-center gap-4">
-                        <i class="fas fa-chart-line text-emerald-500"></i> Trimester Performance Benchmarks
+                <div class="lg:col-span-12 bg-slate-900 rounded-[2rem] p-8 md:p-10 text-white shadow-xl shadow-slate-900/10">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                        <i class="fas fa-bullseye text-indigo-400"></i> Budget Performance Benchmarks
                     </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <?php foreach($budget_comparison as $term => $data): 
                             $e_pct = $data['e_bud']>0 ? ($data['e_act']/$data['e_bud'])*100 : 0;
                         ?>
-                            <div class="space-y-6">
-                                <h5 class="text-xl font-black tracking-tight text-white"><?= htmlspecialchars($term) ?></h5>
-                                <div class="flex justify-between py-4 border-b border-white/5">
-                                    <span class="text-[10px] font-black text-slate-500 uppercase">Expense Utilization</span>
-                                    <span class="text-[10px] font-black <?= $e_pct>100?'text-rose-400':'text-emerald-400' ?>"><?= round($e_pct) ?>% Consumed</span>
+                            <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+                                <h5 class="text-lg font-black tracking-tight text-white mb-6"><?= htmlspecialchars($term) ?></h5>
+                                <div class="flex justify-between py-3 border-b border-slate-700">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Expense Consumption</span>
+                                    <span class="text-[10px] font-black <?= $e_pct>100?'text-rose-400':'text-emerald-400' ?>"><?= round($e_pct) ?>% Utilized</span>
                                 </div>
-                                <div class="flex justify-between py-4 border-b border-white/5">
-                                    <span class="text-[10px] font-black text-slate-500 uppercase">Realized Net</span>
-                                    <span class="text-[11px] font-black text-indigo-400">₵<?= number_format($data['i_act'] - $data['e_act'], 2) ?></span>
+                                <div class="flex justify-between py-3 border-b border-slate-700">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Actual Revenue</span>
+                                    <span class="text-xs font-black text-indigo-400">₵<?= number_format($data['i_act'], 2) ?></span>
+                                </div>
+                                <div class="flex justify-between py-3 pt-4 mt-2 border-t border-slate-600">
+                                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Realized Net</span>
+                                    <span class="text-sm font-black text-white">₵<?= number_format($data['i_act'] - $data['e_act'], 2) ?></span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -263,24 +296,173 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 </div>
                 <?php endif; ?>
             </div>
+
+        <?php elseif($report_type === 'income' || $report_type === 'expenses'): ?>
+            <!-- Detailed Table View -->
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><?= $navs[$report_type][0] ?> Summary Table</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                <th class="px-8 py-4">Category / Item</th>
+                                <th class="px-8 py-4 text-right">Amount (₵)</th>
+                                <th class="px-8 py-4 text-right">Percentage (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php 
+                            $data_source = $report_type === 'income' ? $income_by_category : $expense_by_category;
+                            $grand_total = $report_type === 'income' ? $total_income : $total_expenses;
+                            $color_class = $report_type === 'income' ? 'text-emerald-600' : 'text-rose-600';
+                            $bg_class = $report_type === 'income' ? 'bg-emerald-50' : 'bg-rose-50';
+
+                            foreach($data_source as $row): 
+                                $pct = $grand_total > 0 ? ($row['total'] / $grand_total) * 100 : 0;
+                            ?>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-8 py-4 font-bold text-slate-800 text-sm"><?= htmlspecialchars($row['category']) ?></td>
+                                <td class="px-8 py-4 text-right font-black <?= $color_class ?> text-sm"><?= number_format($row['total'], 2) ?></td>
+                                <td class="px-8 py-4 text-right font-bold text-slate-500 text-xs">
+                                    <div class="flex items-center justify-end gap-3">
+                                        <span><?= number_format($pct, 1) ?>%</span>
+                                        <div class="w-16 h-1.5 <?= $bg_class ?> rounded-full overflow-hidden">
+                                            <div class="h-full <?= str_replace('text-', 'bg-', $color_class) ?>" style="width: <?= $pct ?>%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                            
+                            <?php if(empty($data_source)): ?>
+                            <tr>
+                                <td colspan="3" class="px-8 py-12 text-center text-slate-400 italic font-medium">No records found for the selected criteria.</td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                        <?php if(!empty($data_source)): ?>
+                        <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                            <tr>
+                                <td class="px-8 py-5 font-black text-slate-900 uppercase tracking-widest text-xs text-right">Grand Total:</td>
+                                <td class="px-8 py-5 text-right font-black text-lg <?= $color_class ?> underline decoration-double">₵<?= number_format($grand_total, 2) ?></td>
+                                <td class="px-8 py-5"></td>
+                            </tr>
+                        </tfoot>
+                        <?php endif; ?>
+                    </table>
+                </div>
+            </div>
+
+        <?php elseif($report_type === 'transactions'): ?>
+            <!-- Recent Transactions Table -->
+            <?php
+            // Fetch top 100 recent transactions based on filters
+            $limit = 100;
+            
+            // Build where clauses
+            $where_clauses = ["1=1"];
+            $params = [];
+            $types = "";
+            
+            if ($selected_term !== 'All') {
+                $where_clauses[] = "semester = ?";
+                $params[] = $selected_term;
+                $types .= "s";
+            }
+            if ($selected_academic_year) {
+                $where_clauses[] = "academic_year = ?";
+                $params[] = $selected_academic_year;
+                $types .= "s";
+            }
+            if ($date_from) {
+                $where_clauses[] = "DATE(created_at) >= ?";
+                $params[] = $date_from;
+                $types .= "s";
+            }
+            if ($date_to) {
+                $where_clauses[] = "DATE(created_at) <= ?";
+                $params[] = $date_to;
+                $types .= "s";
+            }
+            
+            $where_sql = implode(" AND ", $where_clauses);
+            
+            // Payments
+            $p_sql = "SELECT 'Payment' as type, payment_date as t_date, amount, reference as ref, created_at FROM payments WHERE $where_sql";
+            // Expenses
+            $e_sql = "SELECT 'Expense' as type, expense_date as t_date, amount, reference as ref, created_at FROM expenses WHERE $where_sql";
+            
+            // Union
+            $u_sql = "($p_sql) UNION ALL ($e_sql) ORDER BY created_at DESC LIMIT $limit";
+            
+            $stmt = $conn->prepare($u_sql);
+            if ($types) {
+                // We need to bind params twice because of UNION
+                $bind_params = array_merge($params, $params);
+                $stmt->bind_param($types . $types, ...$bind_params);
+            }
+            $stmt->execute();
+            $tx_result = $stmt->get_result();
+            ?>
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Recent Transactions List (Top 100)</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                <th class="px-8 py-4">Date</th>
+                                <th class="px-8 py-4">Type</th>
+                                <th class="px-8 py-4">Reference</th>
+                                <th class="px-8 py-4 text-right">Amount (₵)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <?php while($tx = $tx_result->fetch_assoc()): 
+                                $is_income = $tx['type'] === 'Payment';
+                            ?>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-8 py-4 font-bold text-slate-600 text-xs"><?= date('M d, Y', strtotime($tx['t_date'])) ?></td>
+                                <td class="px-8 py-4">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase <?= $is_income ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' ?>">
+                                        <?= $tx['type'] ?>
+                                    </span>
+                                </td>
+                                <td class="px-8 py-4 font-bold text-slate-800 text-sm"><?= htmlspecialchars($tx['ref'] ?: 'N/A') ?></td>
+                                <td class="px-8 py-4 text-right font-black <?= $is_income ? 'text-emerald-600' : 'text-rose-600' ?> text-sm"><?= number_format($tx['amount'], 2) ?></td>
+                            </tr>
+                            <?php endwhile; ?>
+                            <?php if($tx_result->num_rows === 0): ?>
+                            <tr>
+                                <td colspan="4" class="px-8 py-12 text-center text-slate-400 italic font-medium">No transactions found for the selected criteria.</td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         <?php else: ?>
-            <!-- Fallback for other reports - modernized table -->
-            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <!-- Fallback for other generic requests -->
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
                 <div class="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><?= $navs[$report_type][0] ?> Ledger</h3>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><?= $navs[$report_type][0] ?? 'Data' ?> Ledger</h3>
                 </div>
                 <div class="p-20 text-center">
-                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 text-3xl mx-auto mb-6">
+                    <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-400 text-3xl mx-auto mb-6">
                         <i class="fas fa-layer-group"></i>
                     </div>
                     <h3 class="text-xl font-black text-slate-900 mb-2">Detailed View Initialized</h3>
-                    <p class="text-slate-500 font-medium max-w-sm mx-auto italic">Refining data structures for specific report types: <?= $navs[$report_type][0] ?>.</p>
+                    <p class="text-slate-500 font-medium max-w-sm mx-auto">This specific view is being refined for enhanced analytics.</p>
                 </div>
             </div>
         <?php endif; ?>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">
-            Institutional Registry Ledger &middot; Salba Montessori &middot; v9.5.0
+        <footer class="mt-20 py-10 border-t border-slate-200 text-[10px] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
+            Finance Analysis System &middot; Salba Montessori &middot; v9.4.0
         </footer>
     </main>
 </body>

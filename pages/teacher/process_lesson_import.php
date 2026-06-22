@@ -49,8 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
     if (!isset($_POST['csrf_token']) || !verify_csrf($_POST['csrf_token'])) {
         die('Security Check Failed: Invalid or missing CSRF token.');
     }
+    // Validate File Type
+    $allowedExts = ['docx', 'xlsx', 'xls', 'pdf', 'rtf', 'doc', 'png', 'jpg', 'jpeg'];
     $file = $_FILES['lesson_file'];
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    
+    if (!in_array($ext, $allowedExts)) {
+        die('Invalid file type.');
+    }
+    
     $tmpPath = $file['tmp_name'];
     
     $imported_count = 0;
@@ -115,6 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 $parser = new \Smalot\PdfParser\Parser();
                 $pdf = $parser->parseFile($tmpPath);
                 $rawText = $pdf->getText();
+            } elseif (in_array($ext, ['png', 'jpg', 'jpeg'])) {
+                try {
+                    $ocr = new \thiagoalessio\TesseractOCR\TesseractOCR($tmpPath);
+                    $rawText = $ocr->run();
+                } catch (Exception $e) {
+                    throw new Exception("OCR Failed. Please ensure Tesseract OCR is installed on the server. Error: " . $e->getMessage());
+                }
             } else {
                 // Word parsing fallback to extract raw text
                 if ($ext === 'docx') {
@@ -135,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 
                 // If docx manual extraction failed, or it's RTF/DOC, try PhpWord
                 if (empty(trim($rawText))) {
-                    $reader = ($ext === 'docx') ? 'Word2007' : (($ext === 'rtf') ? 'RTF' : 'HTML');
+                    $reader = ($ext === 'docx') ? 'Word2007' : (($ext === 'rtf') ? 'RTF' : (($ext === 'doc') ? 'MsDoc' : 'HTML'));
                     try {
                         $phpWord = @\PhpOffice\PhpWord\IOFactory::load($tmpPath, $reader);
                         if ($phpWord) {
@@ -147,8 +161,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
                 }
                 
                 if (empty(trim($rawText)) && $ext === 'doc') {
+                    // Manual extraction fallback for binary .doc files
                     $rawContent = file_get_contents($tmpPath);
-                    $rawText = strip_tags(str_replace(['</tr>', '</td>', '<br>', '</p>'], "\n", $rawContent));
+                    // strip_tags is extremely dangerous on binary as it treats random < as html tags and deletes all text until >
+                    // We extract chunks of printable text (words and punctuation) that are at least 3 characters long
+                    if (preg_match_all('/[a-zA-Z0-9\s,\.\-\(\):;!?\'"]{3,}/', $rawContent, $matches)) {
+                        $rawText = implode("\n", $matches[0]);
+                    }
                 }
                 
                 if (empty(trim($rawText)) && $ext === 'rtf') {
@@ -163,7 +182,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
             }
 
             if (empty(trim($rawText))) {
-                throw new Exception("Could not extract any text from the document. Please ensure it is not a scanned image.");
+                if ($ext === 'pdf') {
+                    throw new Exception("Could not extract any text from the PDF. If this is a scanned document or a photo converted to PDF, the system cannot read it because it does not have OCR capabilities. Please upload the original Word document, a PDF saved directly from Word, or use the Paste Tool.");
+                } else {
+                    throw new Exception("Could not extract any text from the document. Please ensure it is not a scanned image or an empty file.");
+                }
             }
 
             // Normalize tabs to newlines so table cells are treated as separate chunks of text
@@ -280,33 +303,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['lesson_file'])) {
             }
 
             $class_name = trim($data['class'] ?? '');
+            if (empty($class_name)) {
+                // Fallback: If class is missing, scan the first 1000 characters of the document
+                $class_name = mb_substr(implode(" ", $data), 0, 1000);
+            }
+
             if (!empty($class_name)) {
-                // Map short forms (e.g. B7, b7, B 7, b 7 to Basic 7)
-                if (preg_match('/^[Bb]\s*([1-9])$/', $class_name, $matches)) {
+                // Map word numbers to digits (e.g. "Six" to "6")
+                $wordToNum = [
+                    'one' => '1', 'two' => '2', 'three' => '3', 'four' => '4', 
+                    'five' => '5', 'six' => '6', 'seven' => '7', 'eight' => '8', 'nine' => '9'
+                ];
+                foreach ($wordToNum as $word => $num) {
+                    $class_name = preg_replace('/\b' . $word . '\b/i', $num, $class_name);
+                }
+
+                // Map short forms and extract from noisy strings (e.g. "B6.1.1" -> Basic 6)
+                if (preg_match('/(?:Basic|Class|B)\s*([1-9])/i', $class_name, $matches)) {
                     $class_name = 'Basic ' . $matches[1];
-                } elseif (preg_match('/^[Kk][Gg]\s*([1-2])$/', $class_name, $matches)) {
+                } elseif (preg_match('/(?:KG)\s*([1-2])/i', $class_name, $matches)) {
                     $class_name = 'KG ' . $matches[1];
-                } elseif (preg_match('/^[Nn]ursery\s*([1-2])$/i', $class_name, $matches)) {
+                } elseif (preg_match('/(?:Nursery|N)\s*([1-2])/i', $class_name, $matches)) {
                     $class_name = 'Nursery ' . $matches[1];
+                } elseif (preg_match('/^([1-9])$/', trim($class_name), $matches)) {
+                    // If it's just a digit like "6", default to Basic 6
+                    $class_name = 'Basic ' . $matches[1];
                 }
                 
-                $c_res = $conn->query("SELECT name FROM classes WHERE name LIKE '%" . $conn->real_escape_string($class_name) . "%' LIMIT 1");
+                $c_res = $conn->query("SELECT name FROM classes WHERE name LIKE '%" . $conn->real_escape_string($class_name) . "%' OR '" . $conn->real_escape_string($class_name) . "' LIKE CONCAT('%', name, '%') ORDER BY LENGTH(name) DESC LIMIT 1");
                 if ($c_res && $c_res->num_rows > 0) {
                     $data['class'] = $c_res->fetch_assoc()['name']; // Use exact official name
                 } else {
-                    throw new Exception("Invalid Class Name detected in document: '" . htmlspecialchars($class_name) . "'. Please check your document and ensure it exactly matches an official class name (e.g. Basic 1).");
+                    // Truncate to first 30 chars for error message readability
+                    $short_c = mb_substr($class_name, 0, 30) . (mb_strlen($class_name) > 30 ? '...' : '');
+                    throw new Exception("Invalid Class Name detected in document: '" . htmlspecialchars($short_c) . "'. Please check your document and ensure it exactly matches an official class name (e.g. Basic 1).");
                 }
             } else {
                 throw new Exception("Missing Class Name in document. Please ensure 'Class:' is clearly labeled.");
             }
             
             $subject_name = trim($data['subject'] ?? '');
+            if (empty($subject_name)) {
+                // Fallback: If subject is missing, scan the first 1000 characters of the document
+                $subject_name = mb_substr(implode(" ", $data), 0, 1000);
+            }
+
             if (!empty($subject_name)) {
-                $s_res = $conn->query("SELECT name FROM subjects WHERE name LIKE '%" . $conn->real_escape_string($subject_name) . "%' LIMIT 1");
+                $s_res = $conn->query("SELECT name FROM subjects WHERE name LIKE '%" . $conn->real_escape_string($subject_name) . "%' OR '" . $conn->real_escape_string($subject_name) . "' LIKE CONCAT('%', name, '%') ORDER BY LENGTH(name) DESC LIMIT 1");
                 if ($s_res && $s_res->num_rows > 0) {
                     $data['subject'] = $s_res->fetch_assoc()['name']; // Use exact official name
                 } else {
-                    throw new Exception("Invalid Subject Name detected in document: '" . htmlspecialchars($subject_name) . "'. Please check your document and ensure it exactly matches an official subject name.");
+                    // Truncate for readability
+                    $short_s = mb_substr($subject_name, 0, 30) . (mb_strlen($subject_name) > 30 ? '...' : '');
+                    throw new Exception("Invalid Subject Name detected in document: '" . htmlspecialchars($short_s) . "'. Please check your document and ensure it exactly matches an official subject name.");
                 }
             } else {
                 throw new Exception("Missing Subject Name in document. Please ensure 'Subject:' is clearly labeled.");

@@ -44,6 +44,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSystemSetting($conn, 'payment_allocation_scope', $_POST['payment_allocation_scope'], $updated_by);
     }
 
+    // 4.5 Payroll Parameters
+    if (isset($_POST['ssnit_tier1_employee'])) {
+        setSystemSetting($conn, 'ssnit_tier1_employee', $_POST['ssnit_tier1_employee'], $updated_by);
+        setSystemSetting($conn, 'ssnit_tier2_employee', $_POST['ssnit_tier2_employee'], $updated_by);
+        setSystemSetting($conn, 'ssnit_tier1_employer', $_POST['ssnit_tier1_employer'], $updated_by);
+        
+        $global_taxes = [];
+        if (isset($_POST['tax_name']) && is_array($_POST['tax_name'])) {
+            for ($i = 0; $i < count($_POST['tax_name']); $i++) {
+                if (trim($_POST['tax_name'][$i]) !== '') {
+                    $global_taxes[] = [
+                        'name' => trim($_POST['tax_name'][$i]),
+                        'percent' => floatval($_POST['tax_percent'][$i])
+                    ];
+                }
+            }
+        }
+        setSystemSetting($conn, 'global_taxes', json_encode($global_taxes), $updated_by);
+    }
+
     // 5. Semester Bill Settings JSON Saving
     if (isset($_POST['bank_name'])) {
         // Collect Bank Details
@@ -117,6 +137,13 @@ $late_fee_percentage = getSystemSetting($conn, 'late_fee_percentage', '5');
 $late_fee_grace_days = getSystemSetting($conn, 'late_fee_grace_days', '14');
 $alloc_scope = getSystemSetting($conn, 'payment_allocation_scope', 'global');
 
+$ssnit_tier1_employee = getSystemSetting($conn, 'ssnit_tier1_employee', '5.5');
+$ssnit_tier2_employee = getSystemSetting($conn, 'ssnit_tier2_employee', '5.0');
+$ssnit_tier1_employer = getSystemSetting($conn, 'ssnit_tier1_employer', '13.0');
+
+$global_taxes_json = getSystemSetting($conn, 'global_taxes', '[]');
+$global_taxes = json_decode($global_taxes_json, true) ?: [];
+
 $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $active_year);
 ?>
 <!DOCTYPE html>
@@ -133,22 +160,21 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
     <?php include '../../includes/sidebar.php'; ?>
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
-        <header class="app-header !border-b-4 !border-b-emerald-600">
-            <div class="flex items-center gap-2 mb-4">
-                <a href="dashboard.php" class="text-gray-400 hover:text-emerald-600 transition-colors flex items-center gap-1 text-sm font-medium">
-                    <i class="fas fa-arrow-left"></i> Back to Finance Hub
-                </a>
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="dashboard.php" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <span class="text-emerald-600">Settings</span>
             </div>
-            <div class="flex flex-wrap items-center justify-between gap-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <div class="app-title-pill !bg-emerald-600 !text-white !px-3 !py-1 !text-[0.625rem] !font-black !uppercase !tracking-widest !mb-2 !inline-flex">
-                        <i class="fas fa-vault mr-2"></i> Fiscal Configuration
-                    </div>
-                    <h1 class="app-title uppercase tracking-tighter text-emerald-900">Finance & Fee Settings</h1>
-                    <p class="app-subtitle">Calibrate currency, billing templates, and late payment logic</p>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-vault text-emerald-600"></i> Fiscal Configuration
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Calibrate currency, billing templates, and late payment logic.</p>
                 </div>
             </div>
-        </header>
+        </div>
 
         <div class="p-8 max-w-5xl">
             <?php if ($success): ?>
@@ -216,6 +242,60 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
                                         <input type="number" name="late_fee_grace_days" value="<?= $late_fee_grace_days ?>" 
                                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section: Payroll Parameters -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-50 bg-slate-50/50">
+                            <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <i class="fas fa-percent text-indigo-500"></i> Payroll Parameters
+                            </h2>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">SSNIT Tier 1 (Employee %)</label>
+                                    <input type="number" step="0.01" name="ssnit_tier1_employee" value="<?= htmlspecialchars($ssnit_tier1_employee) ?>" 
+                                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                                </div>
+                                <div>
+                                    <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">SSNIT Tier 2 (Employee %)</label>
+                                    <input type="number" step="0.01" name="ssnit_tier2_employee" value="<?= htmlspecialchars($ssnit_tier2_employee) ?>" 
+                                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                                </div>
+                                <div>
+                                    <label class="block text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2">SSNIT Tier 1 (Employer %)</label>
+                                    <input type="number" step="0.01" name="ssnit_tier1_employer" value="<?= htmlspecialchars($ssnit_tier1_employer) ?>" 
+                                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-700">
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-slate-100 pt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-[0.625rem] uppercase text-indigo-500 font-black tracking-widest">Global Taxes</h4>
+                                    <button type="button" onclick="addTaxRow()" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">
+                                        <i class="fas fa-plus mr-1"></i> Add Tax
+                                    </button>
+                                </div>
+                                <div id="taxesContainer" class="space-y-3">
+                                    <?php foreach($global_taxes as $tax): ?>
+                                    <div class="grid grid-cols-12 gap-3 items-center tax-row">
+                                        <div class="col-span-6">
+                                            <input type="text" name="tax_name[]" value="<?= htmlspecialchars($tax['name']) ?>" placeholder="Tax Name (e.g. PAYE)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 text-sm">
+                                        </div>
+                                        <div class="col-span-5">
+                                            <input type="number" step="0.01" name="tax_percent[]" value="<?= htmlspecialchars($tax['percent']) ?>" placeholder="Percentage (%)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 text-sm">
+                                        </div>
+                                        <div class="col-span-1 text-right">
+                                            <button type="button" onclick="this.closest('.tax-row').remove()" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors flex items-center justify-center">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
                         </div>
@@ -344,5 +424,26 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
             <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">Finance Control Node &middot; Salba Institutional Oversight &middot; v9.4.0</p>
         </footer>
     </main>
+    <script>
+        function addTaxRow() {
+            const container = document.getElementById('taxesContainer');
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-12 gap-3 items-center tax-row';
+            row.innerHTML = `
+                <div class="col-span-6">
+                    <input type="text" name="tax_name[]" placeholder="Tax Name (e.g. PAYE)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 text-sm">
+                </div>
+                <div class="col-span-5">
+                    <input type="number" step="0.01" name="tax_percent[]" placeholder="Percentage (%)" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 text-sm">
+                </div>
+                <div class="col-span-1 text-right">
+                    <button type="button" onclick="this.closest('.tax-row').remove()" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+    </script>
 </body>
 </html>

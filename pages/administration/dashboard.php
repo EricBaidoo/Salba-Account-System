@@ -188,6 +188,7 @@ $actions = [
     ['href'=>'../../pages/academics/transcript_breakdown.php','icon'=>'fa-table-list','color'=>'emerald','title'=>'Class Broadsheet',  'desc'=>'View student performance broadsheets'],
     ['href'=>'../../pages/communication/dashboard.php',  'icon'=>'fa-tower-broadcast',  'color'=>'rose',  'title'=>'Communication',    'desc'=>'Announcements & internal messages'],
     ['href'=>'../../pages/finance/dashboard.php',  'icon'=>'fa-wallet',          'color'=>'teal',  'title'=>'Finance',    'desc'=>'Go to financial portal'],
+    ['href'=>'staff_appraisals.php',  'icon'=>'fa-clipboard-check', 'color'=>'blue',  'title'=>'Staff Appraisals', 'desc'=>'Finalize evaluations'],
 ];
 ?>
 <!DOCTYPE html>

@@ -319,6 +319,20 @@ if ($wr_notifs) {
                                 </div>
                             </a>
                         </div>
+                        
+                        <div class="mt-4">
+                            <a href="<?= BASE_URL ?>pages/teacher/appraisal_portfolio.php" class="group relative bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-blue-400 hover:ring-1 hover:ring-blue-400 hover:shadow-md transition-all overflow-hidden flex items-center gap-4">
+                                <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                                <div class="relative z-10 w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0 border border-blue-200 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                    <i class="fas fa-clipboard-user"></i>
+                                </div>
+                                <div class="relative z-10 flex-1">
+                                    <h3 class="text-base font-bold text-slate-800 mb-1">Monthly Appraisals</h3>
+                                    <p class="text-xs font-medium text-slate-500 mb-1">Complete your self-evaluation and view ratings.</p>
+                                    <span class="text-[11px] font-bold uppercase tracking-widest text-blue-600 flex items-center gap-1 group-hover:text-blue-700">Open Portfolio <i class="fas fa-arrow-right text-[10px]"></i></span>
+                                </div>
+                            </a>
+                        </div>
                     </div>
 
                 </div>

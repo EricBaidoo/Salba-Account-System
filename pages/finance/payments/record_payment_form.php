@@ -53,63 +53,71 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
         .fee-item.selected { border-color: #10b981; background-color: #f0fdf4; }
     </style>
 </head>
-<body class="text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex justify-between items-end">
-            <div>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
-                    Remittance Intake
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_payments.php" class="hover:text-blue-600 transition-colors">Payment Ledger</a>
+                <span>/</span>
+                <span class="text-blue-600">Record Payment</span>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-file-invoice-dollar text-indigo-600"></i> Record Payment
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Verify credentials and process financial entries into the institutional ledger.</p>
                 </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Record <span class="text-indigo-600">Payment</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Verify credentials and process financial entries into the institutional ledger.</p>
+                <div class="flex gap-3">
+                    <a href="view_payments.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i class="fas fa-history"></i> Audit History
+                    </a>
+                </div>
             </div>
-            <div class="flex gap-4">
-                <a href="view_payments.php" class="bg-white border border-slate-200 text-slate-600 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
-                    <i class="fas fa-history mr-2"></i> Audit History
-                </a>
-            </div>
-        </header>
+        </div>
+
+        <div class="px-6">
 
         <form action="record_payment.php" method="POST" id="paymentForm">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 <!-- Left: Intake Context -->
-                <div class="lg:col-span-12 xl:col-span-7 space-y-10">
+                <div class="lg:col-span-12 xl:col-span-7 space-y-6">
                     
                     <!-- Type Selection -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <div onclick="setMode('student')" id="mode-student" class="mode-card bg-white p-6 rounded-[2rem] active flex items-center gap-6">
-                            <div class="icon-box w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div onclick="setMode('student')" id="mode-student" class="mode-card bg-white p-5 rounded-xl active flex items-center gap-4 shadow-sm border border-slate-200">
+                            <div class="icon-box w-10 h-10 bg-slate-50 flex items-center justify-center rounded-lg text-slate-400 text-lg transition-all border border-slate-100">
                                 <i class="fas fa-user-graduate"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">Student Bill</h4>
-                                <p class="text-[0.625rem] text-slate-400 font-bold italic">Fees & Arrears settlement</p>
+                                <h4 class="text-sm font-bold text-slate-900 mb-0.5">Student Bill</h4>
+                                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Fees & Arrears settlement</p>
                             </div>
                             <input type="radio" name="payment_mode" value="student" id="radio-student" class="hidden" checked>
                         </div>
-                        <div onclick="setMode('general')" id="mode-general" class="mode-card bg-white p-6 rounded-[2rem] flex items-center gap-6">
-                            <div class="icon-box w-14 h-14 bg-slate-50 flex items-center justify-center rounded-2xl text-slate-400 text-xl transition-all">
+                        <div onclick="setMode('general')" id="mode-general" class="mode-card bg-white p-5 rounded-xl flex items-center gap-4 shadow-sm border border-slate-200">
+                            <div class="icon-box w-10 h-10 bg-slate-50 flex items-center justify-center rounded-lg text-slate-400 text-lg transition-all border border-slate-100">
                                 <i class="fas fa-vault"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">General Entry</h4>
-                                <p class="text-[0.625rem] text-slate-400 font-bold italic">Miscellaneous school income</p>
+                                <h4 class="text-sm font-bold text-slate-900 mb-0.5">General Entry</h4>
+                                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Miscellaneous school income</p>
                             </div>
                             <input type="radio" name="payment_mode" value="general" id="radio-general" class="hidden">
                         </div>
                     </div>
 
                     <!-- Target Selection -->
-                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden h-fit">
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm relative overflow-hidden h-fit">
                         <div id="student-selector">
-                            <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">01. Entity Verification</h3>
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fas fa-search text-slate-400"></i> Entity Verification</h3>
                             <div class="relative">
-                                <select name="student_id" id="student_id" class="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500 appearance-none text-sm">
+                                <select name="student_id" id="student_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg font-medium text-slate-900 outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 appearance-none text-sm transition-all">
                                     <option value="">Search Student Repository...</option>
                                     <?php while($s = $students_rs->fetch_assoc()): ?>
                                         <option value="<?= $s['id'] ?>" <?= $s['id'] == $pre_student_id ? 'selected' : '' ?> data-class="<?= htmlspecialchars($s['class']) ?>">
@@ -121,8 +129,8 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                         </div>
 
                         <div id="general-selector" class="hidden">
-                            <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">01. Income Classification</h3>
-                            <select name="fee_id" class="w-full px-8 py-5 bg-slate-50 border border-slate-100 rounded-2xl font-black text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 appearance-none text-sm">
+                            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fas fa-tag text-slate-400"></i> Income Classification</h3>
+                            <select name="fee_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg font-medium text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none text-sm transition-all">
                                 <option value="">None - Direct General Payment</option>
                                 <?php foreach($fee_options as $f): ?>
                                     <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['name']) ?></option>
@@ -131,68 +139,66 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                         </div>
 
                         <!-- Real-time Balance Matrix -->
-                        <div id="balance-matrix" class="mt-8 hidden animate-fade-in">
-                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50">
-                                    <p class="text-[0.5rem] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Due</p>
-                                    <p class="text-xl font-black text-indigo-900" id="matrix-total">₵0.00</p>
+                        <div id="balance-matrix" class="mt-6 hidden animate-fade-in border-t border-slate-100 pt-6">
+                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100/50 text-center md:text-left">
+                                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1">Total Due</p>
+                                    <p class="text-lg font-bold text-indigo-900" id="matrix-total">₵0.00</p>
                                 </div>
-                                <div class="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100/50">
-                                    <p class="text-[0.5rem] font-black text-emerald-400 uppercase tracking-widest mb-1">Settled</p>
-                                    <p class="text-xl font-black text-emerald-900" id="matrix-paid">₵0.00</p>
+                                <div class="bg-emerald-50/50 p-4 rounded-lg border border-emerald-100/50 text-center md:text-left">
+                                    <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-1">Settled</p>
+                                    <p class="text-lg font-bold text-emerald-900" id="matrix-paid">₵0.00</p>
                                 </div>
-                                <div class="bg-rose-50/50 p-6 rounded-3xl border border-rose-100/50">
-                                    <p class="text-[0.5rem] font-black text-rose-400 uppercase tracking-widest mb-1">Exposure</p>
-                                    <p class="text-xl font-black text-rose-900" id="matrix-exposure">₵0.00</p>
+                                <div class="bg-rose-50/50 p-4 rounded-lg border border-rose-100/50 text-center md:text-left">
+                                    <p class="text-[10px] font-bold text-rose-500 uppercase tracking-wider mb-1">Exposure</p>
+                                    <p class="text-lg font-bold text-rose-900" id="matrix-exposure">₵0.00</p>
                                 </div>
                              </div>
 
-                             <div class="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-slate-900 rounded-2xl">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-emerald-400 text-xs">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                    <p class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest">Projected Exposure Post-Payment</p>
+                             <div class="mt-4 flex flex-col md:flex-row items-center justify-between gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-chart-line text-emerald-500"></i>
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Projected Exposure Post-Payment</p>
                                 </div>
-                                <p class="text-sm font-black text-emerald-400" id="matrix-projected">₵0.00</p>
+                                <p class="text-base font-bold text-emerald-600" id="matrix-projected">₵0.00</p>
                              </div>
                         </div>
                     </div>
 
                     <!-- Outstanding Tranches -->
-                    <div id="tranches-section" class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm hidden">
-                         <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">02. Pending Tranche Allocation</h3>
-                         <div id="tranches-list" class="space-y-3">
+                    <div id="tranches-section" class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hidden">
+                         <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-slate-400"></i> Pending Tranche Allocation</h3>
+                         <div id="tranches-list" class="space-y-2">
                             <!-- Populated by JS -->
                          </div>
                     </div>
                 </div>
 
                 <!-- Right: Fiscal Parameters -->
-                <div class="lg:col-span-12 xl:col-span-5 space-y-10">
-                    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-                        <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">03. Fiscal Attributes</h3>
-                        <div class="space-y-6">
+                <div class="lg:col-span-12 xl:col-span-5 space-y-6">
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2"><i class="fas fa-sliders-h text-slate-400"></i> Fiscal Attributes</h3>
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-3 block italic">Remittance Value (GHS)</label>
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Remittance Value (GHS)</label>
                                 <div class="relative">
-                                    <input type="number" step="0.01" name="amount" id="amount-input" required class="w-full px-12 py-5 bg-slate-900 border border-slate-800 rounded-2xl font-black text-2xl text-emerald-400 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all leading-none">
-                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 font-black text-emerald-900">₵</span>
+                                    <input type="number" step="0.01" name="amount" id="amount-input" required class="w-full px-10 py-3 bg-white border border-slate-300 rounded-lg font-bold text-xl text-emerald-600 outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all leading-none">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-500">₵</span>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Semester</label>
-                                    <select name="semester" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Semester</label>
+                                    <select name="semester" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none">
                                         <?php foreach($available_terms as $t): ?>
                                             <option value="<?= htmlspecialchars($t) ?>" <?= $t === $selected_term ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Maturity Year</label>
-                                    <select name="academic_year" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Maturity Year</label>
+                                    <select name="academic_year" class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none">
                                         <?php foreach($year_options as $y): ?>
                                             <option value="<?= htmlspecialchars($y) ?>" <?= $y === $selected_academic_year ? 'selected' : '' ?>><?= formatAcademicYearDisplay($conn, $y) ?></option>
                                         <?php endforeach; ?>
@@ -202,22 +208,22 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Intake Date</label>
-                                    <input type="date" name="payment_date" value="<?= date('Y-m-d') ?>" required class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Intake Date</label>
+                                    <input type="date" name="payment_date" value="<?= date('Y-m-d') ?>" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
                                 <div>
-                                    <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Audit Token / Receipt No</label>
-                                    <input type="text" name="receipt_no" placeholder="Optional..." class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Audit Token / Receipt No</label>
+                                    <input type="text" name="receipt_no" placeholder="Optional..." class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Remittance Narrative</label>
-                                <textarea name="description" rows="3" placeholder="Explain the purpose of this entry..." class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Remittance Narrative</label>
+                                <textarea name="description" rows="3" placeholder="Explain the purpose of this entry..." class="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm font-medium outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full mt-10 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-[0.25em] py-5 rounded-2xl shadow-xl shadow-emerald-900/10 transition-all active:scale-95 flex items-center justify-center gap-3">
+                        <button type="submit" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-3 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2">
                             <i class="fas fa-shield-check text-base"></i> Sync to Repository
                         </button>
                     </div>
@@ -225,9 +231,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
             </div>
         </form>
 
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
-            Institutional Remittance Node &middot; Salba Montessori &middot; v9.5.0
-        </footer>
+        </div>
     </main>
 
     <script>
@@ -286,7 +290,7 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
             if (data.fees && data.fees.length > 0) {
                 data.fees.forEach(f => {
                     const row = document.createElement('div');
-                    row.className = 'fee-item bg-white p-4 rounded-2xl flex items-center justify-between group';
+                    row.className = 'fee-item bg-slate-50 p-3 rounded-lg flex items-center justify-between group border border-slate-200 hover:bg-white transition-colors';
                     row.onclick = () => {
                         document.getElementById('amount-input').value = parseFloat(f.amount).toFixed(2);
                         document.querySelectorAll('.fee-item').forEach(i => i.classList.remove('selected'));
@@ -295,15 +299,15 @@ while ($row = $fees_rs->fetch_assoc()) $fee_options[] = $row;
                     };
                     row.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[0.625rem] font-black text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                            <div class="w-8 h-8 rounded-md bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 group-hover:border-emerald-200 group-hover:text-emerald-500 transition-colors">
                                 <i class="fas fa-layer-group"></i>
                             </div>
                             <div>
-                                <p class="text-[0.625rem] font-black text-slate-800 uppercase leading-none mb-1">${f.fee_name}</p>
-                                <p class="text-[0.5rem] font-bold text-slate-400 uppercase tracking-widest">${f.due_date}</p>
+                                <p class="text-xs font-bold text-slate-800 uppercase leading-none mb-1">${f.fee_name}</p>
+                                <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">${f.due_date}</p>
                             </div>
                         </div>
-                        <p class="text-xs font-black text-slate-900 leading-none">₵${parseFloat(f.amount).toFixed(2)}</p>
+                        <p class="text-sm font-bold text-slate-900 leading-none">₵${parseFloat(f.amount).toFixed(2)}</p>
                     `;
                     list.appendChild(row);
                 });

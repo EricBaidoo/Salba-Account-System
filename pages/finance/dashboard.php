@@ -17,6 +17,8 @@ $acad_year = getAcademicYear($conn);
 $total_fees = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_semester' AND academic_year = '$acad_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
 $total_payments = $conn->query("SELECT SUM(amount) as total FROM payments WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
 $total_expenses = $conn->query("SELECT SUM(amount) as total FROM expenses WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
+$total_payroll_expense = $conn->query("SELECT SUM(total_gross + total_employer_ssnit) as total FROM payroll_runs WHERE status IN ('approved', 'paid')")->fetch_assoc()['total'] ?? 0;
+
 $outstanding = $total_fees - $total_payments;
 
 // Count students with outstanding fees in CURRENT TRIMESTER
@@ -33,7 +35,7 @@ $pending_payments_result = $conn->query("
 ");
 $pending_students = $pending_payments_result ? ($pending_payments_result->fetch_assoc()['cnt'] ?? 0) : 0;
 
-$net_position = $total_payments - $total_expenses;
+$net_position = $total_payments - $total_expenses - $total_payroll_expense;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,175 +60,240 @@ $net_position = $total_payments - $total_expenses;
         .metric-gradient-4 { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900">
+<body class="bg-slate-50 text-slate-900 antialiased">
     <?php include '../../includes/sidebar.php'; ?>
         
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
         <!-- Header Section -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-6">
             <div>
-                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-emerald-600"></span>
+                <div class="flex items-center gap-2 text-blue-600 font-semibold text-xs uppercase tracking-wider mb-2">
                     Institutional Oversight
                 </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Finance & <span class="text-emerald-600">Billing Hub</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Global financial console for revenue tracking, expenditure, and student billing.</p>
+                <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Finance & Billing</h1>
+                <p class="text-slate-500 mt-1 text-sm">Global financial console for revenue tracking, expenditure, and student billing.</p>
             </div>
             <div class="flex items-center gap-3">
-                <div class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 flex items-center gap-3">
+                    <div class="text-blue-600 text-lg">
                         <i class="fas fa-calendar-day"></i>
                     </div>
                     <div>
-                        <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Current Session</p>
-                        <p class="text-sm font-bold text-slate-700"><?= htmlspecialchars(getCurrentSemester($conn)) ?> | <?= htmlspecialchars(getAcademicYear($conn)) ?></p>
+                        <p class="text-[0.65rem] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-1">Current Session</p>
+                        <p class="text-sm font-medium text-slate-700"><?= htmlspecialchars(getCurrentSemester($conn)) ?> | <?= htmlspecialchars(getAcademicYear($conn)) ?></p>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Dynamic Metrics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
             <!-- Revenue Card -->
-            <div class="metric-gradient-1 p-6 rounded-[2rem] shadow-xl shadow-indigo-500/20 text-white relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
-                    <i class="fas fa-coins text-6xl"></i>
+            <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden group">
+                <p class="text-indigo-600 text-[10px] font-bold uppercase tracking-wider mb-1">Total Receivables</p>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($total_fees, 2) ?></h2>
+                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+                    <i class="fas fa-info-circle text-indigo-500"></i> Current Trimester Context
                 </div>
-                <p class="text-indigo-100 text-xs font-black uppercase tracking-widest mb-1">Total Receivables</p>
-                <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_fees, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-info-circle"></i> Current Trimester Context
+                <div class="absolute top-3 right-3 text-indigo-200 group-hover:text-indigo-300 transition-colors">
+                    <i class="fas fa-coins text-2xl"></i>
                 </div>
             </div>
 
             <!-- Payments Card -->
-            <div class="metric-gradient-2 p-6 rounded-[2rem] shadow-xl shadow-emerald-500/20 text-white relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
-                    <i class="fas fa-hand-holding-dollar text-6xl"></i>
+            <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm relative overflow-hidden group">
+                <p class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider mb-1">Revenue Collected</p>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($total_payments, 2) ?></h2>
+                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+                    <i class="fas fa-check-circle text-emerald-500"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collections
                 </div>
-                <p class="text-emerald-100 text-xs font-black uppercase tracking-widest mb-1">Revenue Collected</p>
-                <h2 class="text-3xl font-black mb-4">GHS <?= number_format($total_payments, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-check-circle"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collections
+                <div class="absolute top-3 right-3 text-emerald-200 group-hover:text-emerald-300 transition-colors">
+                    <i class="fas fa-hand-holding-dollar text-2xl"></i>
                 </div>
             </div>
 
             <!-- Outstanding Card -->
-            <div class="metric-gradient-4 p-6 rounded-[2rem] shadow-xl shadow-amber-500/20 text-white relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
-                    <i class="fas fa-exclamation-circle text-6xl"></i>
+            <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100 shadow-sm relative overflow-hidden group">
+                <p class="text-amber-600 text-[10px] font-bold uppercase tracking-wider mb-1">Trimester Exposure</p>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($outstanding, 2) ?></h2>
+                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+                    <i class="fas fa-users text-amber-500"></i> <?= $pending_students ?> Active Arrears
                 </div>
-                <p class="text-amber-100 text-xs font-black uppercase tracking-widest mb-1">Trimester Exposure</p>
-                <h2 class="text-3xl font-black mb-4">GHS <?= number_format($outstanding, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-users"></i> <?= $pending_students ?> Active Arrears
+                <div class="absolute top-3 right-3 text-amber-200 group-hover:text-amber-300 transition-colors">
+                    <i class="fas fa-exclamation-circle text-2xl"></i>
                 </div>
             </div>
 
             <!-- Net Position -->
-            <div class="bg-slate-900 p-6 rounded-[2rem] shadow-xl shadow-slate-900/20 text-white relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-500 text-slate-500">
-                    <i class="fas fa-chart-line text-6xl"></i>
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm relative overflow-hidden group">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Net Cashflow</p>
+                <h2 class="text-xl font-bold mb-2 <?= $net_position >= 0 ? 'text-emerald-400' : 'text-rose-400' ?>">GHS <?= number_format($net_position, 2) ?></h2>
+                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
+                    <i class="fas fa-shield-halved text-slate-500"></i> Liquidity Status
                 </div>
-                <p class="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Net Cashflow</p>
-                <h2 class="text-3xl font-black mb-4 <?= $net_position >= 0 ? 'text-emerald-400' : 'text-rose-400' ?>">GHS <?= number_format($net_position, 2) ?></h2>
-                <div class="flex items-center gap-2 text-[0.625rem] font-bold bg-white/5 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                    <i class="fas fa-shield-halved"></i> Liquidity Status
+                <div class="absolute top-3 right-3 text-slate-800 group-hover:text-slate-700 transition-colors">
+                    <i class="fas fa-chart-line text-2xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Navigation Grid -->
-        <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-            Available Modules <span class="flex-1 h-[0.0625rem] bg-slate-100"></span>
+        <h3 class="text-[0.65rem] font-semibold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">
+            Available Modules
         </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             <!-- Billing Card -->
-            <a href="bills/view_semester_bills.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group relative">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-file-invoice"></i>
+            <a href="bills/view_semester_bills.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 hover:border-indigo-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Billing Center</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Generate, manage, and batch-print semester bills for all students.</p>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Billing Center</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Generate, manage, and batch-print semester bills for all students.</p>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-widest">
-                    Manage Bills <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-indigo-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Manage Bills <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
-
+            
             <!-- Payments/Receipts Card -->
-            <a href="payments/view_payments.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-                <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-credit-card"></i>
+            <a href="payments/view_payments.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Payments & Receipts</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Record fee payments, issue receipts, and track student balances.</p>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Payments & Receipts</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Record fee payments, issue receipts, and track student balances.</p>
-                <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-widest">
-                    Record Payment <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Record Payment <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 
             <!-- Expenses Card -->
-            <a href="expenses/view_expenses.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-                <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-rose-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-receipt"></i>
+            <a href="expenses/view_expenses.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-rose-500/10 hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Expenditure</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Monitor institutional spending, categorize expenses, and track outflows.</p>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Expenditure</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Monitor institutional spending, categorize expenses, and track outflows.</p>
-                <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-widest">
-                    View Expenses <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-rose-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    View Expenses <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 
             <!-- Invoicing/Billing Options -->
-            <a href="fees/view_fees.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-                <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-amber-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-tags"></i>
+            <a href="fees/view_fees.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-amber-500/10 hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Invoicing & Pricing</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Define invoice categories, assign tiers to classes, and manage pricing.</p>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Invoicing & Pricing</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Define invoice categories, assign tiers to classes, and manage pricing.</p>
-                <div class="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-widest">
-                    Configure Invoicing <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-amber-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Configure Invoicing <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 
             <!-- Budgets Card -->
-            <a href="budgets/semester_budget.php" class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-                <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500">
-                    <i class="fas fa-sack-dollar"></i>
+            <a href="budgets/semester_budget.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-purple-500/10 hover:border-purple-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-sack-dollar"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Trimester Budget</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Set up trimester budgets and monitor actual vs. planned performance.</p>
                 </div>
-                <h4 class="text-xl font-black text-slate-900 mb-2">Trimester Budget</h4>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8">Set up trimester budgets and monitor actual vs. planned performance.</p>
-                <div class="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-widest">
-                    Open Budgets <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-purple-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Open Budgets <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 
             <!-- Settings Card -->
-            <a href="settings.php" class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl shadow-slate-900/10 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent"></div>
-                <div class="w-16 h-16 bg-white/10 text-white rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-white group-hover:text-slate-900 transition-all duration-500 relative z-10">
-                    <i class="fas fa-sliders"></i>
+            <a href="settings.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-slate-500/10 hover:border-slate-400 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-slate-700 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-sliders"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Protocols</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Configure currency, late fee rules, and global billing footer details.</p>
                 </div>
-                <h4 class="text-xl font-black text-white mb-2 relative z-10">Protocols</h4>
-                <p class="text-slate-400 text-sm font-medium leading-relaxed mb-8 relative z-10">Configure currency, late fee rules, and global billing footer details.</p>
-                <div class="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-[0.2em] relative z-10">
-                    Edit Protocol <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+                <div class="text-slate-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Edit Protocol <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Payroll Card -->
+            <a href="payroll/index.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-sky-500/10 hover:border-sky-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-sky-50 text-sky-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-sky-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-money-check-dollar"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Payroll & Salaries</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Manage staff salary structures, SSNIT deductions, and generate payslips.</p>
+                </div>
+                <div class="text-sky-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Open Payroll <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 
             <!-- Financial Reporting Card -->
-            <a href="reports/report.php" class="bg-gradient-to-r from-sky-500 to-sky-600 p-8 rounded-[2.5rem] shadow-xl shadow-sky-500/20 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
-                <div class="absolute -right-8 -bottom-8 p-12 opacity-10 group-hover:scale-110 transition-transform duration-500 text-white">
-                    <i class="fas fa-chart-pie text-8xl"></i>
+            <a href="reports/report.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-fuchsia-500/10 hover:border-fuchsia-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-fuchsia-50 text-fuchsia-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-fuchsia-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Financial Reporting</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Generate custom data extracts, payment histories, and overall financial summaries.</p>
                 </div>
-                <div class="w-16 h-16 bg-white/20 text-white rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-white group-hover:text-sky-600 transition-all duration-500 relative z-10">
-                    <i class="fas fa-chart-bar"></i>
+                <div class="text-fuchsia-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Open Intelligence <i class="fas fa-arrow-right"></i>
                 </div>
-                <h4 class="text-xl font-black text-white mb-2 relative z-10">Financial Reporting</h4>
-                <p class="text-sky-100 text-sm font-medium leading-relaxed mb-8 relative z-10">Generate custom data extracts, payment histories, and overall financial summaries.</p>
-                <div class="flex items-center gap-2 text-white font-bold text-xs uppercase tracking-[0.2em] relative z-10">
-                    Open Intelligence <i class="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
+            </a>
+
+            <!-- Waivers Card -->
+            <a href="waivers/index.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-pink-500/10 hover:border-pink-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-pink-50 text-pink-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-pink-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Waivers & Scholarships</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Manage staff ward discounts, academic scholarships, and apply fee waivers.</p>
+                </div>
+                <div class="text-pink-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Manage Waivers <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Petty Cash Card -->
+            <a href="petty_cash/index.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-orange-500/10 hover:border-orange-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Petty Cash</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Log daily minor disbursements securely and upload receipts instantly.</p>
+                </div>
+                <div class="text-orange-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Manage Petty Cash <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Accounting Ledger Card -->
+            <a href="accounting/index.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-teal-500/10 hover:border-teal-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-book-journal-whills"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Accounting Ledger</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Access the Double-Entry General Journal, Trial Balance, and Financial Statements.</p>
+                </div>
+                <div class="text-teal-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Open Ledger <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
         </div>

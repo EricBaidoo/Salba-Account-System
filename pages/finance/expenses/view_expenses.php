@@ -120,53 +120,61 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header Section -->
-        <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
-            <div>
-                <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
-                    Expenditure Oversight
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6 no-print">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <span class="text-blue-600">Institutional Expenses</span>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-rose-600"></i> Institutional Expenses
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Detailed tracking and categorization of school spending protocols.</p>
                 </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Institutional <span class="text-rose-600">Expenses</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Detailed tracking and categorization of school spending protocols.</p>
+                <div class="flex items-center gap-3">
+                    <button onclick="window.print()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i class="fas fa-print"></i> Print Audit
+                    </button>
+                    <a href="add_expense_form.php" class="px-4 py-2 bg-rose-600 text-white text-sm font-medium rounded-lg hover:bg-rose-700 shadow-sm transition-all flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Record Expense
+                    </a>
+                </div>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
-                    <i class="fas fa-print mr-2"></i> Print Audit
-                </button>
-                <a href="add_expense_form.php" class="bg-rose-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all leading-none">
-                    <i class="fas fa-plus mr-2"></i> Record Expense
-                </a>
-            </div>
-        </header>
+        </div>
+
+        <div class="px-6">
 
         <!-- Stats Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-10 no-print">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-1">Transaction Pool</p>
-                <h4 class="text-2xl font-black text-slate-900 leading-none mb-2"><?= $total_count ?></h4>
-                <p class="text-[0.5625rem] font-bold text-slate-400">Total Entries</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 no-print">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Transaction Pool</p>
+                <h4 class="text-2xl font-bold text-slate-900 leading-none mb-1"><?= $total_count ?></h4>
+                <p class="text-[10px] font-medium text-slate-400">Total Entries</p>
             </div>
-            <div class="bg-rose-600 p-6 rounded-3xl shadow-lg shadow-rose-500/20 text-white lg:col-span-1 xl:col-span-2">
-                <p class="text-[0.625rem] font-black text-rose-100 uppercase tracking-widest mb-1 text-opacity-80">Aggregate Spending</p>
-                <h4 class="text-3xl font-black leading-none mb-2">GHS <?= number_format($total_expenses_amt, 2) ?></h4>
-                <p class="text-[0.5625rem] font-bold text-rose-100 text-opacity-60">Total Cash Outflow</p>
+            <div class="bg-rose-600 p-5 rounded-xl shadow-sm border border-rose-700 text-white lg:col-span-1 xl:col-span-2">
+                <p class="text-xs font-semibold text-rose-100 uppercase tracking-wider mb-1 text-opacity-80">Aggregate Spending</p>
+                <h4 class="text-2xl font-bold leading-none mb-1">GHS <?= number_format($total_expenses_amt, 2) ?></h4>
+                <p class="text-[10px] font-medium text-rose-100 text-opacity-80">Total Cash Outflow</p>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-center xl:col-span-3">
-                 <p class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-3">Spending Breakdown by Category</p>
-                 <div class="flex gap-6 overflow-x-auto pb-2 custom-scrollbar">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center xl:col-span-3">
+                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Spending Breakdown by Category</p>
+                 <div class="flex gap-4 overflow-x-auto pb-1 custom-scrollbar">
                     <?php foreach(array_slice($summary_data, 0, 4) as $cat): 
                         $rate = ($cat['total'] / ($total_expenses_amt ?: 1)) * 100;
                     ?>
-                    <div class="flex-shrink-0">
-                        <div class="text-[0.5rem] font-black text-slate-400 uppercase tracking-tighter mb-1 truncate w-20"><?= htmlspecialchars($cat['category']) ?></div>
-                        <div class="text-sm font-black text-slate-900 mb-1 leading-none"><?= number_format($rate, 1) ?>%</div>
-                        <div class="w-16 h-1 bg-slate-50 rounded-full overflow-hidden">
-                            <div class="h-full bg-rose-500" style="width: <?= $rate ?>%"></div>
+                    <div class="flex-shrink-0 flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+                        <div class="w-10 h-10 rounded-full border border-rose-100 bg-white flex items-center justify-center text-rose-500 shrink-0">
+                            <span class="text-xs font-bold"><?= number_format($rate, 0) ?>%</span>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate w-24" title="<?= htmlspecialchars($cat['category']) ?>"><?= htmlspecialchars($cat['category']) ?></div>
+                            <div class="text-sm font-bold text-slate-900 mt-0.5">GHS <?= number_format($cat['total'], 0) ?></div>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -175,49 +183,49 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         </div>
 
         <!-- Filter Panel -->
-        <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm mb-10 no-print">
-            <form method="GET" class="flex flex-wrap items-end gap-6" id="filterForm">
-                <div class="w-56">
-                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm mb-6 no-print">
+            <form method="GET" class="flex flex-wrap items-end gap-4" id="filterForm">
+                <div class="w-full md:w-56">
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-calendar-alt text-rose-500"></i> Semester
                     </label>
-                    <select name="semester" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
+                    <select name="semester" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 outline-none text-sm font-medium text-slate-900 appearance-none transition-all" onchange="this.form.submit()">
                         <option value="">All Semesters</option>
                          <?php foreach ($available_terms as $t): ?>
                             <option value="<?= htmlspecialchars($t) ?>" <?= ($selected_term === $t) ? 'selected' : '' ?>><?= htmlspecialchars($t) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="w-56">
-                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div class="w-full md:w-56">
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-graduation-cap text-rose-500"></i> Academic Period
                     </label>
-                    <select name="year" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
+                    <select name="year" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 outline-none text-sm font-medium text-slate-900 appearance-none transition-all" onchange="this.form.submit()">
                         <option value="">All Years</option>
                          <?php foreach ($year_options as $yr): ?>
                             <option value="<?= htmlspecialchars($yr) ?>" <?= ($selected_year === $yr) ? 'selected' : '' ?>><?= htmlspecialchars(formatAcademicYearDisplay($conn, $yr)) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="w-56">
-                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div class="w-full md:w-56">
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-folder text-rose-500"></i> Category
                     </label>
-                    <select name="category" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-bold text-slate-700 appearance-none transition-all" onchange="this.form.submit()">
+                    <select name="category" class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 outline-none text-sm font-medium text-slate-900 appearance-none transition-all" onchange="this.form.submit()">
                         <option value="">All Categories</option>
                         <?php foreach ($categories_list as $cat): ?>
                             <option value="<?= $cat['id'] ?>" <?= ($selected_category == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="flex-1 min-w-[12.5rem]">
-                    <label class="text-[0.625rem] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-2">
                         <i class="fas fa-search text-rose-500"></i> Search Entries
                     </label>
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Search description or amount..." 
-                               class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-rose-500 outline-none text-sm font-bold text-slate-700 transition-all pl-12">
-                        <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                               class="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-rose-500 focus:border-rose-500 outline-none text-sm font-medium text-slate-900 transition-all pl-10">
+                        <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     </div>
                 </div>
             </form>
@@ -235,48 +243,48 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         </div>
 
         <!-- Ledger Table -->
-        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
-            <table class="w-full min-w-[62.5rem] border-collapse" id="expenseLedger">
-                <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest w-20">ID</th>
-                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Category</th>
-                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest text-rose-600">Value (GHS)</th>
-                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Date / Period</th>
-                        <th class="px-8 py-6 text-left text-[0.625rem] font-black text-slate-400 uppercase tracking-widest">Description</th>
-                        <th class="px-8 py-6 text-right text-[0.625rem] font-black text-slate-400 uppercase tracking-widest no-print">Actions</th>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden overflow-x-auto mb-6">
+            <table class="w-full text-left text-sm text-slate-600" id="expenseLedger">
+                <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
+                    <tr>
+                        <th class="px-6 py-3 w-20">ID</th>
+                        <th class="px-6 py-3">Category</th>
+                        <th class="px-6 py-3 text-rose-600 font-bold">Value (GHS)</th>
+                        <th class="px-6 py-3">Date / Period</th>
+                        <th class="px-6 py-3">Description</th>
+                        <th class="px-6 py-3 text-right no-print">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 text-sm">
+                <tbody class="divide-y divide-slate-100">
                     <?php if ($result && $result->num_rows > 0): ?>
                         <?php while($row = $result->fetch_assoc()): ?>
-                            <tr class="expense-row transition-colors group">
-                                <td class="px-8 py-6">
-                                    <span class="text-[0.625rem] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">#<?= $row['id'] ?></span>
+                            <tr class="expense-row hover:bg-slate-50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200">#<?= $row['id'] ?></span>
                                 </td>
-                                <td class="px-8 py-6">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-100 bg-slate-50 text-slate-600 text-[0.625rem] font-black uppercase tracking-widest">
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-semibold uppercase tracking-wider">
                                         <i class="fas fa-folder-open text-rose-400"></i> <?= htmlspecialchars($row['category_name'] ?? 'General') ?>
                                     </span>
                                 </td>
-                                <td class="px-8 py-6">
-                                    <span class="text-base font-black text-rose-600 tracking-tighter"><?= number_format($row['amount'], 2) ?></span>
+                                <td class="px-6 py-4">
+                                    <span class="text-sm font-bold text-rose-600"><?= number_format($row['amount'], 2) ?></span>
                                 </td>
-                                <td class="px-8 py-6">
+                                <td class="px-6 py-4">
                                     <div class="flex flex-col">
-                                        <span class="font-bold text-slate-700"><?= date('M j, Y', strtotime($row['expense_date'])) ?></span>
-                                        <span class="text-[0.5625rem] text-slate-400 font-black tracking-widest uppercase"><?= htmlspecialchars($row['semester'] ?? '') ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) ?></span>
+                                        <span class="font-medium text-slate-900"><?= date('M j, Y', strtotime($row['expense_date'])) ?></span>
+                                        <span class="text-[10px] text-slate-400 font-medium tracking-wider uppercase"><?= htmlspecialchars($row['semester'] ?? '') ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $row['academic_year'])) ?></span>
                                     </div>
                                 </td>
-                                <td class="px-8 py-6 text-slate-600 font-medium max-w-md truncate" title="<?= htmlspecialchars($row['description']) ?>">
+                                <td class="px-6 py-4 text-slate-600 max-w-md truncate" title="<?= htmlspecialchars($row['description']) ?>">
                                     <?= htmlspecialchars($row['description']) ?>
                                 </td>
-                                <td class="px-8 py-6 text-right no-print">
+                                <td class="px-6 py-4 text-right no-print">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="edit_expense.php?id=<?= $row['id'] ?>" class="w-9 h-9 bg-slate-50 text-slate-400 border border-slate-100 rounded-xl flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                                        <a href="edit_expense.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center">
                                             <i class="fas fa-pen text-xs"></i>
                                         </a>
-                                        <a href="delete_expense.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: Permanently excise this expense entry from history?');" class="w-9 h-9 bg-slate-50 text-slate-300 border border-slate-50 rounded-xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                                        <a href="delete_expense.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: Permanently excise this expense entry from history?');" class="w-8 h-8 rounded bg-white border border-slate-300 text-rose-600 hover:bg-rose-50 transition-all shadow-sm flex items-center justify-center">
                                             <i class="fas fa-trash text-xs"></i>
                                         </a>
                                     </div>
@@ -285,12 +293,12 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="px-8 py-20 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                 <div class="flex flex-col items-center">
-                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 text-3xl mb-4">
+                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-2xl mb-3 border border-slate-100">
                                         <i class="fas fa-receipt"></i>
                                     </div>
-                                    <p class="text-slate-400 font-black uppercase tracking-[0.2em] text-[0.625rem]">No recorded expenditure found for this scope</p>
+                                    <p class="text-xs font-medium uppercase tracking-wider">No recorded expenditure found for this scope</p>
                                 </div>
                             </td>
                         </tr>
@@ -299,14 +307,7 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
             </table>
         </div>
 
-        <!-- Footer Audit -->
-        <footer class="mt-20 py-10 border-t border-slate-200 flex justify-between items-center text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em] no-print">
-            <span>Expenditure Management &middot; Fiscal Transparency &middot; v9.5.0</span>
-            <div class="flex gap-6">
-                <a href="../dashboard.php" class="hover:text-rose-600">Finance Hub</a>
-                <a href="../payments/view_payments.php" class="hover:text-rose-600">Revenue Ledger</a>
-            </div>
-        </footer>
+        </div>
     </main>
 
     <script>

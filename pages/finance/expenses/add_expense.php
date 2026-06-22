@@ -7,6 +7,7 @@ if (!is_logged_in()) {
 }
 
 include '../../../includes/system_settings.php';
+include_once '../../../includes/accounting_engine.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category_id = intval($_POST['category_id']);
@@ -23,6 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare("INSERT INTO expenses (category_id, amount, expense_date, description, semester, academic_year) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("idssss", $category_id, $amount, $expense_date, $description, $semester, $academic_year);
     if ($stmt->execute()) {
+        $expense_id = $conn->insert_id;
+        
+        // Auto Journal Entry
+        record_journal_entry($conn, $expense_date, 'Expense', $expense_id, "Expense: $description", [
+            ['account_code' => '5200', 'debit' => $amount, 'credit' => 0], // DR Operational Expense
+            ['account_code' => '1000', 'debit' => 0, 'credit' => $amount]  // CR Cash
+        ]);
+
         echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>Expense added successfully!</div>";
     } else {
         echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Error: " . $stmt->error . "</div>";

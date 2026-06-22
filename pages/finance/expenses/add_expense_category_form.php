@@ -40,44 +40,50 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
         .taxonomy-card:hover { transform: translateY(-0.25rem); border-color: #e2e8f0; box-shadow: 0 1.25rem 1.5625rem -0.3125rem rgba(0, 0, 0, 0.05); }
     </style>
 </head>
-<body class="text-slate-900 leading-relaxed">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
-    <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
-        <!-- Header -->
-        <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <div class="flex items-center gap-2 text-rose-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-rose-600"></span>
-                    Taxonomy Node
-                </div>
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Expense <span class="text-rose-600">Categories</span></h1>
-                <p class="text-slate-500 mt-2 font-medium">Managing the functional classification of institutional spending.</p>
+    <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
+        <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_expenses.php" class="hover:text-blue-600 transition-colors">Institutional Expenses</a>
+                <span>/</span>
+                <span class="text-blue-600">Categories</span>
             </div>
-            <a href="view_expenses.php" class="bg-white border border-slate-200 text-slate-400 font-black text-[0.625rem] uppercase tracking-widest px-8 py-4 rounded-2xl hover:text-slate-600 hover:bg-slate-50 transition-all leading-none">
-                <i class="fas fa-arrow-left mr-2"></i> Return to Ledger
-            </a>
-        </header>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                        <i class="fas fa-tags text-rose-600"></i> Expense Categories
+                    </h1>
+                    <p class="text-slate-500 mt-1 text-sm">Managing the functional classification of institutional spending.</p>
+                </div>
+                <a href="view_expenses.php" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-slate-400"></i> Return to Ledger
+                </a>
+            </div>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div class="px-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Left: Entry Hub -->
             <div class="lg:col-span-4">
-                <section class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm sticky top-10">
-                    <h3 class="text-[0.625rem] font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Node Registration</h3>
+                <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm sticky top-32">
+                    <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2"><i class="fas fa-plus-circle text-slate-400"></i> Node Registration</h3>
                     
                     <?php if ($message): ?>
-                        <div class="mb-8 bg-emerald-50 text-emerald-700 px-5 py-3 rounded-2xl text-[0.625rem] font-black uppercase tracking-widest border border-emerald-100 italic animate-in fade-in duration-500">
-                            <?= $message ?>
+                        <div class="mb-6 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm border border-emerald-200">
+                            <i class="fas fa-check-circle"></i> <?= $message ?>
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST" class="space-y-6">
+                    <form method="POST" class="space-y-4">
                         <div>
-                            <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Classification Label</label>
-                            <input type="text" name="name" placeholder="e.g. INFRASTRUCTURE" required class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all">
+                            <label class="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 block">Classification Label</label>
+                            <input type="text" name="name" placeholder="e.g. INFRASTRUCTURE" required class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 transition-all">
                         </div>
-                        <button type="submit" class="w-full bg-rose-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all active:scale-95 leading-none">
-                            Register Category
+                        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm py-2.5 rounded-lg shadow-sm transition-all flex justify-center items-center gap-2">
+                            <i class="fas fa-save"></i> Register Category
                         </button>
                     </form>
                 </section>
@@ -85,37 +91,38 @@ $categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC")
 
             <!-- Right: Existing Taxonomy -->
             <div class="lg:col-span-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <?php if ($categories->num_rows > 0): 
-                        $i = 1;
                         while($row = $categories->fetch_assoc()): 
                     ?>
-                        <div class="taxonomy-card bg-white rounded-[2.5rem] p-8 border border-slate-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 group">
-                            <div class="flex items-center gap-5">
-                                <div class="w-12 h-12 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center text-xs group-hover:bg-rose-50 group-hover:text-rose-400 transition-all">
+                        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-center justify-between group hover:border-slate-300 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-slate-50 border border-slate-100 text-slate-400 rounded-lg flex items-center justify-center text-sm group-hover:bg-rose-50 group-hover:text-rose-500 group-hover:border-rose-100 transition-all">
                                     <i class="fas fa-folder-tree"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Index SMS-<?= str_pad($row['id'], 3, '0', STR_PAD_LEFT) ?></p>
-                                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight"><?= htmlspecialchars($row['name']) ?></h4>
+                                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Index SMS-<?= str_pad($row['id'], 3, '0', STR_PAD_LEFT) ?></p>
+                                    <h4 class="text-sm font-bold text-slate-800 tracking-tight"><?= htmlspecialchars($row['name']) ?></h4>
                                 </div>
                             </div>
-                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <a href="edit_expense_category_form.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[0.625rem]"></i></a>
-                                <a href="delete_expense_category.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: This Category taxonomy node will be expunged. Proceed?');" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-trash text-[0.625rem]"></i></a>
+                            <div class="flex gap-2">
+                                <a href="edit_expense_category_form.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded bg-slate-50 text-slate-400 border border-slate-200 hover:bg-slate-800 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Edit"><i class="fas fa-edit text-xs"></i></a>
+                                <a href="delete_expense_category.php?id=<?= $row['id'] ?>" onclick="return confirm('DANGER: This Category taxonomy node will be expunged. Proceed?');" class="w-8 h-8 rounded bg-slate-50 text-rose-500 border border-slate-200 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors shadow-sm" title="Delete"><i class="fas fa-trash text-xs"></i></a>
                             </div>
                         </div>
                     <?php endwhile; ?>
                     <?php else: ?>
-                        <div class="col-span-full py-20 text-center text-slate-300 italic text-sm">Taxonomy Empty &middot; No categories defined for this fiscal year.</div>
+                        <div class="col-span-full py-16 text-center text-slate-400 text-sm">
+                            <div class="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                <i class="fas fa-folder-open text-slate-300 text-2xl"></i>
+                            </div>
+                            <p class="font-medium">Taxonomy Empty</p>
+                            <p class="text-xs mt-1">No categories defined for this fiscal year.</p>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
-
-        <footer class="mt-20 py-10 border-t border-slate-200 text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">
-            Institutional Registry Node &middot; Salba Montessori &middot; v9.5.0
-        </footer>
     </main>
 </body>
 </html>
