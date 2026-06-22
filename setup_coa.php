@@ -1,5 +1,16 @@
 <?php
+// Enable error display for diagnostics
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Prevent mysqli from throwing exceptions to avoid 500 errors
+mysqli_report(MYSQLI_REPORT_OFF);
+
 require 'includes/db_connect.php';
+
+echo "<div style='font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px;'>";
+echo "<h2>Chart of Accounts Setup Log</h2>";
 
 $sql_accounts = "CREATE TABLE IF NOT EXISTS accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,11 +41,25 @@ $sql_lines = "CREATE TABLE IF NOT EXISTS journal_lines (
 )";
 
 $conn->query($sql_accounts);
-if ($conn->error) echo "Error accounts: " . $conn->error . "<br>";
+if ($conn->error) {
+    echo "<div style='color: red; margin-bottom: 5px;'>❌ Error creating accounts table: " . $conn->error . "</div>";
+} else {
+    echo "<div style='color: green; margin-bottom: 5px;'>✅ Accounts table created/verified.</div>";
+}
+
 $conn->query($sql_je);
-if ($conn->error) echo "Error je: " . $conn->error . "<br>";
+if ($conn->error) {
+    echo "<div style='color: red; margin-bottom: 5px;'>❌ Error creating journal_entries table: " . $conn->error . "</div>";
+} else {
+    echo "<div style='color: green; margin-bottom: 5px;'>✅ Journal Entries table created/verified.</div>";
+}
+
 $conn->query($sql_lines);
-if ($conn->error) echo "Error jl: " . $conn->error . "<br>";
+if ($conn->error) {
+    echo "<div style='color: red; margin-bottom: 5px;'>❌ Error creating journal_lines table: " . $conn->error . "</div>";
+} else {
+    echo "<div style='color: green; margin-bottom: 5px;'>✅ Journal Lines table created/verified.</div>";
+}
 
 // Insert Default Accounts
 $defaults = [
@@ -51,10 +76,17 @@ $defaults = [
 ];
 
 $stmt = $conn->prepare("INSERT IGNORE INTO accounts (account_code, name, type, is_system) VALUES (?, ?, ?, ?)");
-foreach ($defaults as $acc) {
-    $stmt->bind_param("sssi", $acc[0], $acc[1], $acc[2], $acc[3]);
-    $stmt->execute();
+if ($stmt) {
+    foreach ($defaults as $acc) {
+        $stmt->bind_param("sssi", $acc[0], $acc[1], $acc[2], $acc[3]);
+        $stmt->execute();
+    }
+    $stmt->close();
+    echo "<div style='color: green; margin-bottom: 5px;'>✅ Default Chart of Accounts populated.</div>";
+} else {
+    echo "<div style='color: red; margin-bottom: 5px;'>❌ Error preparing defaults statement: " . $conn->error . "</div>";
 }
-$stmt->close();
 
-echo "Chart of Accounts tables and defaults created successfully.";
+echo "<hr style='border:0; border-top:1px solid #eee; margin:20px 0;'>";
+echo "<h3 style='color: green;'>Setup script completed execution.</h3>";
+echo "</div>";
