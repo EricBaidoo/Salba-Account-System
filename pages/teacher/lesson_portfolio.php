@@ -261,7 +261,12 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-red-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[250px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1 flex flex-wrap items-center gap-2">
+                                                    <span><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></span>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Attachment</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 min-w-[300px]">
                                                 <div class="p-3 bg-red-50/50 rounded-xl border border-red-100/50">
@@ -269,9 +274,16 @@ $rejected = getPlans($conn, $where, 'rejected');
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
-                                                <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
-                                                    <i class="fas fa-edit"></i> Fix & Resubmit
-                                                </a>
+                                                <div class="flex justify-end gap-2">
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <a href="../../uploads/lesson_attachments/<?= htmlspecialchars($p['attachment']) ?>" target="_blank" class="h-9 px-4 bg-indigo-50 text-indigo-600 rounded-xl inline-flex items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-indigo-100 transition" title="Download File">
+                                                            <i class="fas fa-paperclip"></i> View File
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <a href="lesson_plans?edit=<?= $p['id'] ?>" class="inline-flex h-9 px-4 bg-red-600 text-white rounded-xl items-center gap-2 text-[0.625rem] font-black uppercase tracking-widest hover:bg-red-700 transition shadow-lg shadow-red-100">
+                                                        <i class="fas fa-edit"></i> Fix & Resubmit
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endwhile; ?>
@@ -305,7 +317,12 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-indigo-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[300px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1 flex flex-wrap items-center gap-2">
+                                                    <span><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></span>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Attachment</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
@@ -367,7 +384,12 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-yellow-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[300px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1 flex flex-wrap items-center gap-2">
+                                                    <span><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></span>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Attachment</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -377,7 +399,11 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
                                                 <div class="flex justify-end gap-2">
-                                                    <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                     <?php if(!empty($p['attachment'])): ?>
+                                                         <a href="../../uploads/lesson_attachments/<?= htmlspecialchars($p['attachment']) ?>" target="_blank" class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition" title="Download File"><i class="fas fa-paperclip text-xs"></i></a>
+                                                     <?php else: ?>
+                                                         <a href="print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="w-9 h-9 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:text-indigo-600 transition" title="Preview"><i class="fas fa-eye text-xs"></i></a>
+                                                     <?php endif; ?>
                                                     <form method="POST" action="lesson_plans" onsubmit="return confirm('Unsubmit this plan back to drafts?');">
                                                         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                         <input type="hidden" name="plan_id" value="<?= $p['id'] ?>">
@@ -420,7 +446,12 @@ $rejected = getPlans($conn, $where, 'rejected');
                                             <td class="px-6 py-4 whitespace-nowrap"><span class="font-black text-emerald-600">Wk <?= $p['week_number'] ?></span></td>
                                             <td class="px-6 py-4 min-w-[250px]">
                                                 <div class="font-black text-gray-900"><?= htmlspecialchars($p['topic']) ?></div>
-                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1"><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></div>
+                                                <div class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest mt-1 flex flex-wrap items-center gap-2">
+                                                    <span><?= htmlspecialchars($p['subject_name']) ?> · <?= htmlspecialchars($p['class_name']) ?></span>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Attachment</span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 text-xs font-bold text-gray-500 whitespace-nowrap"><?= date('M j, Y', strtotime($p['created_at'])) ?></td>
                                             <td class="px-6 py-4 min-w-[200px]">

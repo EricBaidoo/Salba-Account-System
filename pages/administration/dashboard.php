@@ -22,7 +22,8 @@ $display_academic_year = formatAcademicYearDisplay($conn, $academic_year);
 $active_students   = $conn->query("SELECT COUNT(*) as c FROM students WHERE status='active'")->fetch_assoc()['c'] ?? 0;
 $unique_classes    = $conn->query("SELECT COUNT(DISTINCT class) as c FROM students WHERE status='active'")->fetch_assoc()['c'] ?? 0;
 
-$today = date('Y-m-d');
+$selected_date = $_GET['attendance_date'] ?? date('Y-m-d');
+$today = $selected_date;
 $present_stmt = $conn->prepare("SELECT COUNT(*) as c FROM attendance WHERE attendance_date=? AND status='present'");
 $present_stmt->bind_param('s', $today);
 $present_stmt->execute();
@@ -135,6 +136,54 @@ if ($att_res) {
         }
     }
     $att_res->close();
+}
+
+// Fetch absent students per class for the selected date
+$absentees_by_class = [];
+foreach ($class_progress as $cname => $cdata) {
+    $absentees_by_class[$cname] = [];
+    
+    // Check if attendance was marked at all for this class on this date
+    $marked_check_stmt = $conn->prepare("SELECT COUNT(*) as c FROM attendance a JOIN students s ON a.student_id = s.id WHERE s.class = ? AND a.attendance_date = ?");
+    $marked_check_stmt->bind_param('ss', $cname, $selected_date);
+    $marked_check_stmt->execute();
+    $is_marked = (int)$marked_check_stmt->get_result()->fetch_assoc()['c'] > 0;
+    $marked_check_stmt->close();
+    
+    if (!$is_marked) {
+        $absentees_by_class[$cname] = [
+            'marked' => false,
+            'students' => []
+        ];
+    } else {
+        $abs_stmt = $conn->prepare("
+            SELECT id, first_name, last_name 
+            FROM students 
+            WHERE class = ? AND status = 'active' 
+              AND id NOT IN (
+                  SELECT student_id 
+                  FROM attendance 
+                  WHERE attendance_date = ? AND status = 'present'
+              )
+            ORDER BY first_name, last_name
+        ");
+        $abs_stmt->bind_param('ss', $cname, $selected_date);
+        $abs_stmt->execute();
+        $abs_res = $abs_stmt->get_result();
+        $list = [];
+        while ($row = $abs_res->fetch_assoc()) {
+            $list[] = [
+                'id' => $row['id'],
+                'name' => htmlspecialchars($row['first_name'] . ' ' . $row['last_name'])
+            ];
+        }
+        $abs_stmt->close();
+        
+        $absentees_by_class[$cname] = [
+            'marked' => true,
+            'students' => $list
+        ];
+    }
 }
 
 // --- 5. CELEBRATORY BIRTHDAYS ---
@@ -559,13 +608,16 @@ $palettes = [
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Class Progress Tracker -->
                 <div class="glass-card rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-2 flex flex-col overflow-hidden">
-                    <div class="p-6 border-b border-slate-100/50 bg-slate-50/50 flex justify-between items-center">
+                    <div class="p-6 border-b border-slate-100/50 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-lg font-extrabold font-display text-slate-800 flex items-center gap-2">
                                 <i class="fas fa-list-check text-indigo-500"></i> Class Progress Tracker
                             </h2>
-                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Today's Attendance Status</p>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Attendance Status for: <span class="text-indigo-600 font-extrabold"><?= date('M j, Y', strtotime($selected_date)) ?></span></p>
                         </div>
+                        <form method="GET" class="w-full sm:w-auto">
+                            <input type="date" name="attendance_date" value="<?= htmlspecialchars($selected_date) ?>" onchange="this.form.submit()" class="w-full sm:w-auto px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none shadow-sm cursor-pointer text-slate-700">
+                        </form>
                     </div>
                     <div class="flex-1 overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
                         <table class="w-full text-left text-sm border-collapse">
@@ -602,7 +654,10 @@ $palettes = [
                                               <div class="bg-<?= $color ?>-500 h-1.5 rounded-full transition-all duration-500" style="width: <?= $att_pct ?>%"></div>
                                           </div>
                                       </td>
-                                      <td class="px-6 py-4 text-right">
+                                      <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                          <button type="button" onclick="viewAbsentees('<?= htmlspecialchars($cname) ?>')" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 text-red-500 border border-red-100 hover:bg-red-100 hover:text-red-700 transition-all shadow-sm" title="View Absent Students">
+                                              <i class="fas fa-user-xmark text-xs"></i>
+                                          </button>
                                           <a href="../academics/attendance.php?class=<?= urlencode($cname) ?>&action=entry" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm" title="Mark Attendance">
                                               <i class="fas fa-clipboard-check text-xs"></i>
                                           </a>
@@ -700,6 +755,90 @@ $palettes = [
             }
 
         });
+    </script>
+
+    <!-- Premium Absentees Modal -->
+    <div id="absenteesModal" class="fixed inset-0 z-50 flex items-center justify-center hidden animate-in fade-in duration-200">
+        <!-- Backdrop with custom blur -->
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeAbsenteesModal()"></div>
+        
+        <!-- Modal Wrapper -->
+        <div class="relative z-10 w-full max-w-md mx-4 bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8 rounded-none flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+            <!-- Close Button -->
+            <button onclick="closeAbsenteesModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-50 hover:bg-rose-50 hover:text-rose-600 text-slate-400 flex items-center justify-center transition-all">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+
+            <!-- Title -->
+            <div class="text-left border-b border-slate-100 pb-3">
+                <span class="text-[0.625rem] font-black text-red-600 uppercase tracking-[0.2em] mb-1 block">Class Roster Check</span>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight font-display" id="absenteesModalTitle">Absent Students</h3>
+            </div>
+
+            <!-- Content Area -->
+            <div id="absenteesModalContent" class="py-2">
+                <!-- Javascript will populate this -->
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-[0.625rem] font-black text-slate-400 uppercase tracking-widest pt-3 border-t border-slate-100">
+                Date: <span id="absenteesModalDate" class="text-slate-600 font-extrabold">Selected Date</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const absenteesData = <?= json_encode($absentees_by_class) ?>;
+        const selectedDateStr = "<?= date('M j, Y', strtotime($selected_date)) ?>";
+        
+        function viewAbsentees(className) {
+            const modal = document.getElementById('absenteesModal');
+            const modalTitle = document.getElementById('absenteesModalTitle');
+            const modalContent = document.getElementById('absenteesModalContent');
+            
+            modalTitle.innerText = `Absent Students: ${className}`;
+            document.getElementById('absenteesModalDate').innerText = selectedDateStr;
+            
+            const data = absenteesData[className];
+            if (!data || !data.marked) {
+                modalContent.innerHTML = `
+                    <div class="py-8 text-center text-slate-400">
+                        <i class="fas fa-circle-exclamation text-3xl mb-3 text-slate-300 block"></i>
+                        <p class="font-bold text-xs uppercase tracking-wider">Not Marked</p>
+                        <p class="text-xs text-slate-500 mt-1 font-bold">Attendance has not been marked for this class on ${selectedDateStr}.</p>
+                    </div>
+                `;
+            } else if (data.students.length === 0) {
+                modalContent.innerHTML = `
+                    <div class="py-8 text-center text-emerald-500">
+                        <i class="fas fa-circle-check text-3xl mb-3 text-emerald-300 block"></i>
+                        <p class="font-bold text-xs uppercase tracking-wider">Perfect Attendance</p>
+                        <p class="text-xs text-slate-400 mt-1 font-bold">All students are present today!</p>
+                    </div>
+                `;
+            } else {
+                let html = '<ul class="divide-y divide-slate-100 max-h-64 overflow-y-auto pr-2 custom-scrollbar">';
+                data.students.forEach((student, index) => {
+                    html += `
+                        <li class="py-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-none bg-slate-50 text-slate-500 flex items-center justify-center text-[0.625rem] font-bold border border-slate-200">${index + 1}</span>
+                                <span class="font-bold text-slate-800 text-xs">${student.name}</span>
+                            </div>
+                            <span class="text-[0.55rem] font-black text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-none uppercase tracking-wider">Absent</span>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                modalContent.innerHTML = html;
+            }
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeAbsenteesModal() {
+            document.getElementById('absenteesModal').classList.add('hidden');
+        }
     </script>
 
 </body>

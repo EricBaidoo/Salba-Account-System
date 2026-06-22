@@ -23,6 +23,11 @@ $p = $conn->query("
 
 if (!$p) die("Lesson plan not found.");
 
+if (!empty($p['attachment'])) {
+    header("Location: ../../uploads/lesson_attachments/" . $p['attachment']);
+    exit;
+}
+
 if ($_SESSION['role'] === 'facilitator' && $_SESSION['user_id'] != $p['teacher_id']) {
     die("Access denied.");
 }

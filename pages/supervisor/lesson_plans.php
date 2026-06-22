@@ -19,6 +19,7 @@ $cols_to_check = [
     'created_at' => "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
     'updated_at' => "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
     'status' => "VARCHAR(20) DEFAULT 'pending' AFTER objectives",
+    'attachment' => "VARCHAR(255) NULL AFTER status",
     'supervisor_comments' => "TEXT NULL AFTER status",
     'supervisor_id' => "INT NULL AFTER supervisor_comments",
     'references' => "TEXT NULL",
@@ -508,14 +509,25 @@ $reviewed_plans = $conn->query("
                                                 <div class="text-xs text-gray-500 font-medium"><?= htmlspecialchars($p['subject_name']) ?></div>
                                             </td>
                                             <td class="py-4 px-4 align-top">
-                                                <div class="font-bold text-gray-900 text-base mb-1 leading-tight"><?= htmlspecialchars($p['topic']) ?></div>
+                                                <div class="font-bold text-gray-900 text-base mb-1 leading-tight flex flex-wrap items-center gap-2">
+                                                    <span><?= htmlspecialchars($p['topic']) ?></span>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Direct Upload</span>
+                                                    <?php endif; ?>
+                                                </div>
                                                 <div class="flex items-center gap-3 text-xs">
-                                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
-                                                        <i class="fas fa-eye"></i> View Note
-                                                    </a>
-                                                    <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="text-red-600 hover:text-red-800 font-bold flex items-center gap-1">
-                                                        <i class="fas fa-file-pdf"></i> PDF
-                                                    </a>
+                                                    <?php if(!empty($p['attachment'])): ?>
+                                                        <a href="<?= BASE_URL ?>uploads/lesson_attachments/<?= htmlspecialchars($p['attachment']) ?>" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                                            <i class="fas fa-paperclip"></i> View File
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>&view=html" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                                            <i class="fas fa-eye"></i> View Note
+                                                        </a>
+                                                        <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $p['id'] ?>" target="_blank" class="text-red-600 hover:text-red-800 font-bold flex items-center gap-1">
+                                                            <i class="fas fa-file-pdf"></i> PDF
+                                                        </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                             <td class="py-4 px-4 align-top">
@@ -581,7 +593,14 @@ $reviewed_plans = $conn->query("
                                             </td>
                                         <?php endif; ?>
                                         <td class="py-3 px-4 text-gray-600 whitespace-nowrap"><?= htmlspecialchars($rp['class_name']) ?> | <?= htmlspecialchars($rp['subject_name']) ?></td>
-                                        <td class="py-3 px-4 font-medium text-gray-800 min-w-[200px]"><?= htmlspecialchars($rp['topic']) ?></td>
+                                        <td class="py-3 px-4 font-medium text-gray-800 min-w-[200px]">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span><?= htmlspecialchars($rp['topic']) ?></span>
+                                                <?php if(!empty($rp['attachment'])): ?>
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[0.55rem] font-black uppercase tracking-wider"><i class="fas fa-paperclip"></i> Direct Upload</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
                                         <td class="py-3 px-4 text-center whitespace-nowrap">
                                             <?php if($rp['status'] === 'approved'): ?>
                                                 <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">Approved</span>
@@ -604,9 +623,15 @@ $reviewed_plans = $conn->query("
                                                          </button>
                                                      </form>
                                                  <?php endif; ?>
-                                                <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1">
-                                                    <i class="fas fa-file-pdf"></i> View / PDF
-                                                </a>
+                                                 <?php if(!empty($rp['attachment'])): ?>
+                                                     <a href="<?= BASE_URL ?>uploads/lesson_attachments/<?= htmlspecialchars($rp['attachment']) ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1">
+                                                         <i class="fas fa-paperclip"></i> View File
+                                                     </a>
+                                                 <?php else: ?>
+                                                     <a href="<?= BASE_URL ?>pages/teacher/print_lesson_plan?id=<?= $rp['id'] ?>" target="_blank" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs flex items-center gap-1">
+                                                         <i class="fas fa-file-pdf"></i> View / PDF
+                                                     </a>
+                                                 <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>

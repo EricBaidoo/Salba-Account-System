@@ -27,6 +27,7 @@ $db_name = $conn->query("SELECT DATABASE()")->fetch_row()[0];
 $cols_to_check = [
     'created_at' => "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
     'status' => "VARCHAR(20) DEFAULT 'pending' AFTER objectives",
+    'attachment' => "VARCHAR(255) NULL AFTER status",
     'supervisor_comments' => "TEXT NULL AFTER status",
     'week_ending' => "DATE NULL",
     'day_of_week' => "VARCHAR(20) NULL",
@@ -300,8 +301,9 @@ if ($_SESSION['role'] === 'admin') {
             </div>
             <div class="p-6 md:p-8">
                 <div class="flex flex-col lg:flex-row items-center gap-6">
-                    <form action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex flex-col sm:flex-row items-center gap-4">
+                    <form id="importForm" action="process_lesson_import.php" method="POST" enctype="multipart/form-data" class="flex-1 w-full flex flex-col sm:flex-row items-center gap-4" onsubmit="handleImportSubmit(event)">
                         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="direct_upload" id="direct_upload" value="0">
                         <div class="flex-1 w-full relative group">
                             <input type="file" name="lesson_file" accept=".xlsx,.docx,.rtf,.doc,.pdf" required class="absolute inset-0 opacity-0 cursor-pointer z-10">
                             <div class="w-full h-20 px-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center gap-4 group-hover:border-slate-400 group-hover:bg-slate-100/50 transition-all">
@@ -575,5 +577,79 @@ if ($_SESSION['role'] === 'admin') {
         background: #cbd5e1;
     }
     </style>
+
+    <!-- Premium Upload Mode Modal -->
+    <div id="uploadChoiceModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <!-- Backdrop with custom blur -->
+        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity duration-300" onclick="closeUploadModal()"></div>
+        
+        <!-- Modal Wrapper -->
+        <div class="relative z-10 w-full max-w-xl mx-4 bg-white border border-slate-200/60 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] p-6 md:p-8 rounded-none flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+            <!-- Close Button -->
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+
+            <!-- Header -->
+            <div class="text-left">
+                <span class="text-[0.625rem] font-bold text-indigo-600 uppercase tracking-widest mb-1 block">Roster Upload Mode</span>
+                <h3 class="text-xl font-bold text-slate-900 tracking-tight font-display">Select Upload Option</h3>
+            </div>
+
+            <!-- Choice Containers -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <!-- Option A: Import & Edit -->
+                <div onclick="submitImport(0)" class="border border-slate-100 bg-slate-50/50 p-6 flex flex-col justify-between hover:border-slate-800 hover:bg-white hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                    <div class="mb-4">
+                        <div class="text-blue-500 text-3xl mb-3">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h4 class="text-sm font-extrabold text-slate-950 mb-1">Import &amp; Edit</h4>
+                        <p class="text-[0.7rem] text-slate-400 font-semibold leading-relaxed">
+                            Convert standard files to digital editable drafts.
+                        </p>
+                    </div>
+                    <span class="text-[0.625rem] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1 group-hover:text-indigo-600 mt-2">
+                        Use Parser <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </span>
+                </div>
+
+                <!-- Option B: Direct Submission -->
+                <div onclick="submitImport(1)" class="border border-slate-100 bg-slate-50/50 p-6 flex flex-col justify-between hover:border-indigo-600 hover:bg-white hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                    <div class="mb-4">
+                        <div class="text-indigo-500 text-3xl mb-3">
+                            <i class="fas fa-paperclip"></i>
+                        </div>
+                        <h4 class="text-sm font-extrabold text-indigo-950 mb-1">Direct Upload</h4>
+                        <p class="text-[0.7rem] text-slate-400 font-semibold leading-relaxed">
+                            Submit original file directly for approval.
+                        </p>
+                    </div>
+                    <span class="text-[0.625rem] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1 group-hover:text-indigo-800 mt-2">
+                        Use Attachment <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function handleImportSubmit(e) {
+        e.preventDefault();
+        document.getElementById('uploadChoiceModal').classList.remove('hidden');
+    }
+
+    function closeUploadModal() {
+        document.getElementById('uploadChoiceModal').classList.add('hidden');
+    }
+
+    function submitImport(isDirect) {
+        document.getElementById('direct_upload').value = isDirect;
+        document.getElementById('uploadChoiceModal').classList.add('hidden');
+        document.getElementById('importForm').submit();
+    }
+    </script>
 </body>
 </html>
