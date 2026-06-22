@@ -59,6 +59,9 @@ function safeAddColumn($conn, $table, $column, $definition, $afterColumn = '') {
 }
 
 // 1. Safe Truncates
+// Disable foreign key checks temporarily to allow truncating referenced tables
+$conn->query("SET FOREIGN_KEY_CHECKS = 0");
+
 $tables_to_truncate = ['payroll_records', 'payroll_runs', 'staff_salary_structures'];
 foreach ($tables_to_truncate as $table) {
     if (tableExists($conn, $table)) {
@@ -71,6 +74,9 @@ foreach ($tables_to_truncate as $table) {
         echo "<div style='color: orange; margin-bottom: 5px;'>⚠️ Table <strong>$table</strong> does not exist. Skipping truncate.</div>";
     }
 }
+
+// Re-enable foreign key checks
+$conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
 // 2. Alter staff_salary_structures
 echo "<h3>Altering staff_salary_structures:</h3>";
