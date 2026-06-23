@@ -160,13 +160,60 @@ $budget_comparison = [];
 if ($report_type === 'budget' || $report_type === 'overview') {
     $terms = ($selected_term === 'All') ? $available_terms : [$selected_term];
     foreach($terms as $term) {
-        $sb = $conn->query("SELECT id FROM semester_budgets WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc();
+        $sb = $conn->query("SELECT id, expected_income FROM semester_budgets WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc();
+        $e_bud = 0; $i_bud = 0;
         if($sb) {
-             $e_bud = (float)$conn->query("SELECT SUM(amount) as t FROM semester_budget_items WHERE semester_budget_id = {$sb['id']} AND type = 'expense'")->fetch_assoc()['t'];
-             $e_act = (float)$conn->query("SELECT SUM(amount) as t FROM expenses WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc()['t'];
-             $i_act = (float)$conn->query("SELECT SUM(amount) as t FROM payments WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc()['t'];
-             $budget_comparison[$term] = ['e_bud'=>$e_bud, 'e_act'=>$e_act, 'i_act'=>$i_act];
+            $e_bud = (float)$conn->query("SELECT COALESCE(SUM(amount),0) as t FROM semester_budget_items WHERE semester_budget_id = {$sb['id']} AND type = 'expense'")->fetch_assoc()['t'];
+            $i_bud = (float)($sb['expected_income'] ?? 0);
         }
+        $e_act = (float)$conn->query("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc()['t'];
+        $i_act = (float)$conn->query("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE semester = '$term' AND academic_year = '$selected_academic_year'")->fetch_assoc()['t'];
+        $budget_comparison[$term] = ['e_bud'=>$e_bud, 'i_bud'=>$i_bud, 'e_act'=>$e_act, 'i_act'=>$i_act, 'has_budget'=>($sb !== null)];
+    }
+}
+
+// Collections Summary Data
+$collections_data = [];
+$collections_totals = ['fees_owed'=>0,'amount_paid'=>0,'balance'=>0,'student_count'=>0];
+if ($report_type === 'student_fees' || $report_type === 'overview') {
+    $coll_sql = "SELECT s.class, COUNT(DISTINCT sf.student_id) as students,
+                        COALESCE(SUM(sf.amount),0) as fees_owed,
+                        COALESCE(SUM(sf.amount_paid),0) as amount_paid,
+                        COALESCE(SUM(sf.amount - sf.amount_paid),0) as balance
+                 FROM student_fees sf
+                 JOIN students s ON sf.student_id = s.id
+                 WHERE sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'"
+                 . ($selected_term !== 'All' ? " AND sf.semester = '" . $conn->real_escape_string($selected_term) . "'" : "")
+                 . " GROUP BY s.class ORDER BY s.class";
+    $coll_res = $conn->query($coll_sql);
+    while ($r = $coll_res->fetch_assoc()) {
+        $collections_data[] = $r;
+        $collections_totals['fees_owed'] += $r['fees_owed'];
+        $collections_totals['amount_paid'] += $r['amount_paid'];
+        $collections_totals['balance'] += $r['balance'];
+        $collections_totals['student_count'] += $r['students'];
+    }
+    // Also get per-fee breakdown
+    $fee_coll_sql = "SELECT f.name AS fee_name, COALESCE(SUM(sf.amount),0) as fees_owed,
+                            COALESCE(SUM(sf.amount_paid),0) as amount_paid,
+                            COALESCE(SUM(sf.amount - sf.amount_paid),0) as balance
+                     FROM student_fees sf
+                     JOIN fees f ON sf.fee_id = f.id
+                     WHERE sf.academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'"
+                     . ($selected_term !== 'All' ? " AND sf.semester = '" . $conn->real_escape_string($selected_term) . "'" : "")
+                     . " GROUP BY f.id ORDER BY fees_owed DESC";
+    $fee_coll_res = $conn->query($fee_coll_sql);
+    $fee_collections = [];
+    while ($r = $fee_coll_res->fetch_assoc()) $fee_collections[] = $r;
+}
+
+// Income breakdown per semester (for overview)
+$income_by_semester = [];
+if ($report_type === 'overview' && $selected_term === 'All') {
+    foreach ($available_terms as $term) {
+        $t_inc = (float)$conn->query("SELECT COALESCE(SUM(amount),0) as t FROM payments WHERE semester = '" . $conn->real_escape_string($term) . "' AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'")->fetch_assoc()['t'];
+        $t_exp = (float)$conn->query("SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE semester = '" . $conn->real_escape_string($term) . "' AND academic_year = '" . $conn->real_escape_string($selected_academic_year) . "'")->fetch_assoc()['t'];
+        $income_by_semester[$term] = ['income' => $t_inc, 'expenses' => $t_exp];
     }
 }
 ?>
@@ -336,6 +383,39 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                     </div>
                 </div>
 
+                <!-- Semester Income Breakdown (Overview) -->
+                <?php if(!empty($income_by_semester)): ?>
+                <div class="lg:col-span-12 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-calendar-alt mr-2 text-indigo-400"></i> Trimester Income vs Expenditure</h4>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <?php foreach($income_by_semester as $term => $tdata): 
+                            $net = $tdata['income'] - $tdata['expenses'];
+                            $netClass = $net >= 0 ? 'text-emerald-600' : 'text-rose-600';
+                        ?>
+                        <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4"><?= htmlspecialchars($term) ?></p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-slate-500 font-medium">Income</span>
+                                    <span class="text-sm font-black text-emerald-600">₵<?= number_format($tdata['income'], 2) ?></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-slate-500 font-medium">Expenses</span>
+                                    <span class="text-sm font-black text-rose-600">₵<?= number_format($tdata['expenses'], 2) ?></span>
+                                </div>
+                                <div class="border-t border-slate-200 pt-3 flex justify-between items-center">
+                                    <span class="text-xs text-slate-700 font-black uppercase">Net</span>
+                                    <span class="text-sm font-black <?= $netClass ?>"><?= $net >= 0 ? '+' : '' ?>₵<?= number_format($net, 2) ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Budget Overview (Condensed) -->
                 <?php if(!empty($budget_comparison)): ?>
                 <div class="lg:col-span-12 bg-slate-900 rounded-[2rem] p-8 md:p-10 text-white shadow-xl shadow-slate-900/10">
@@ -345,20 +425,40 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <?php foreach($budget_comparison as $term => $data): 
                             $e_pct = $data['e_bud']>0 ? ($data['e_act']/$data['e_bud'])*100 : 0;
+                            $i_pct = $data['i_bud']>0 ? ($data['i_act']/$data['i_bud'])*100 : 0;
                         ?>
                             <div class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
-                                <h5 class="text-lg font-black tracking-tight text-white mb-6"><?= htmlspecialchars($term) ?></h5>
-                                <div class="flex justify-between py-3 border-b border-slate-700">
+                                <div class="flex justify-between items-center mb-5">
+                                    <h5 class="text-base font-black tracking-tight text-white"><?= htmlspecialchars($term) ?></h5>
+                                    <?php if(!$data['has_budget']): ?>
+                                        <span class="text-[9px] font-black bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full uppercase tracking-wider">No Budget Set</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if($data['i_bud'] > 0): ?>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Income Target</span>
+                                    <span class="text-[10px] font-black text-indigo-300">₵<?= number_format($data['i_bud'],2) ?></span>
+                                </div>
+                                <?php endif; ?>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Actual Revenue</span>
+                                    <span class="text-xs font-black text-emerald-400">₵<?= number_format($data['i_act'], 2) ?></span>
+                                </div>
+                                <?php if($data['i_bud'] > 0): ?>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Income Achieved</span>
+                                    <span class="text-[10px] font-black <?= $i_pct>=100?'text-emerald-400':'text-amber-400' ?>"><?= round($i_pct) ?>%</span>
+                                </div>
+                                <?php endif; ?>
+                                <?php if($data['e_bud'] > 0): ?>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
                                     <span class="text-[10px] font-black text-slate-400 uppercase">Expense Consumption</span>
                                     <span class="text-[10px] font-black <?= $e_pct>100?'text-rose-400':'text-emerald-400' ?>"><?= round($e_pct) ?>% Utilized</span>
                                 </div>
-                                <div class="flex justify-between py-3 border-b border-slate-700">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase">Actual Revenue</span>
-                                    <span class="text-xs font-black text-indigo-400">₵<?= number_format($data['i_act'], 2) ?></span>
-                                </div>
-                                <div class="flex justify-between py-3 pt-4 mt-2 border-t border-slate-600">
+                                <?php endif; ?>
+                                <div class="flex justify-between py-2 pt-3 mt-2 border-t border-slate-600">
                                     <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Realized Net</span>
-                                    <span class="text-sm font-black text-white">₵<?= number_format($data['i_act'] - $data['e_act'], 2) ?></span>
+                                    <span class="text-sm font-black <?= ($data['i_act']-$data['e_act'])>=0?'text-emerald-400':'text-rose-400' ?>">₵<?= number_format($data['i_act'] - $data['e_act'], 2) ?></span>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -541,18 +641,245 @@ if ($report_type === 'budget' || $report_type === 'overview') {
                 </div>
             </div>
 
-        <?php else: ?>
-            <!-- Fallback for other generic requests -->
-            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                <div class="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><?= $navs[$report_type][0] ?? 'Data' ?> Ledger</h3>
+        <?php elseif($report_type === 'budget'): ?>
+            <!-- Budget vs Actual Full View -->
+            <div class="space-y-8">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <?php 
+                    $bud_total_income = array_sum(array_column($budget_comparison, 'i_act'));
+                    $bud_total_exp = array_sum(array_column($budget_comparison, 'e_act'));
+                    $bud_total_bud_exp = array_sum(array_column($budget_comparison, 'e_bud'));
+                    ?>
+                    <div class="bg-emerald-500 p-8 rounded-[2rem] shadow-xl shadow-emerald-500/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-emerald-400/30 text-7xl"><i class="fas fa-coins"></i></div>
+                        <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-2 relative z-10">Total Revenue</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($bud_total_income, 2) ?></h3>
+                    </div>
+                    <div class="bg-rose-500 p-8 rounded-[2rem] shadow-xl shadow-rose-500/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-rose-400/30 text-7xl"><i class="fas fa-receipt"></i></div>
+                        <p class="text-[10px] font-black text-rose-100 uppercase tracking-widest mb-2 relative z-10">Total Expenditure</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($bud_total_exp, 2) ?></h3>
+                    </div>
+                    <div class="bg-indigo-900 p-8 rounded-[2rem] shadow-xl shadow-indigo-900/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-indigo-800/50 text-7xl"><i class="fas fa-scale-balanced"></i></div>
+                        <p class="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-2 relative z-10">Net Balance</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($bud_total_income - $bud_total_exp, 2) ?></h3>
+                    </div>
                 </div>
+
+                <!-- Per Semester Budget Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-<?= min(count($budget_comparison), 3) ?> gap-6">
+                    <?php foreach($budget_comparison as $term => $data):
+                        $e_pct = $data['e_bud']>0 ? ($data['e_act']/$data['e_bud'])*100 : 0;
+                        $i_pct = $data['i_bud']>0 ? ($data['i_act']/$data['i_bud'])*100 : 0;
+                        $net = $data['i_act'] - $data['e_act'];
+                    ?>
+                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h5 class="text-lg font-black text-slate-900"><?= htmlspecialchars($term) ?></h5>
+                            <?php if(!$data['has_budget']): ?>
+                                <span class="text-[9px] font-black bg-amber-50 text-amber-600 border border-amber-200 px-3 py-1 rounded-full uppercase tracking-wider">No Budget Set</span>
+                            <?php else: ?>
+                                <span class="text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1 rounded-full uppercase tracking-wider">Budget Tracked</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between py-3 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-500">Actual Income</span>
+                                <span class="text-sm font-black text-emerald-600">₵<?= number_format($data['i_act'],2) ?></span>
+                            </div>
+                            <?php if($data['i_bud'] > 0): ?>
+                            <div class="flex justify-between py-3 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-500">Income Target</span>
+                                <span class="text-sm font-black text-indigo-600">₵<?= number_format($data['i_bud'],2) ?></span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Income Achievement</span>
+                                    <span class="text-[10px] font-black <?= $i_pct>=100?'text-emerald-600':'text-amber-600' ?>"><?= round($i_pct) ?>%</span>
+                                </div>
+                                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full <?= $i_pct>=100?'bg-emerald-500':'bg-amber-500' ?> rounded-full" style="width:<?= min($i_pct,100) ?>%"></div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <div class="flex justify-between py-3 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-500">Actual Expenses</span>
+                                <span class="text-sm font-black text-rose-600">₵<?= number_format($data['e_act'],2) ?></span>
+                            </div>
+                            <?php if($data['e_bud'] > 0): ?>
+                            <div class="flex justify-between py-3 border-b border-slate-100">
+                                <span class="text-xs font-bold text-slate-500">Expense Budget</span>
+                                <span class="text-sm font-black text-slate-600">₵<?= number_format($data['e_bud'],2) ?></span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Budget Utilization</span>
+                                    <span class="text-[10px] font-black <?= $e_pct>100?'text-rose-600':'text-emerald-600' ?>"><?= round($e_pct) ?>%</span>
+                                </div>
+                                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full <?= $e_pct>100?'bg-rose-500':'bg-emerald-500' ?> rounded-full" style="width:<?= min($e_pct,100) ?>%"></div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                            <div class="bg-slate-50 rounded-xl p-4 flex justify-between items-center mt-2">
+                                <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Net Balance</span>
+                                <span class="text-lg font-black <?= $net>=0?'text-emerald-600':'text-rose-600' ?>"><?= $net>=0?'+':'' ?>₵<?= number_format($net,2) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+        <?php elseif($report_type === 'student_fees'): ?>
+            <!-- Collections Summary -->
+            <div class="space-y-8">
+                <!-- Summary Banner -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-indigo-600 p-8 rounded-[2rem] shadow-xl shadow-indigo-600/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-indigo-500/30 text-7xl"><i class="fas fa-users"></i></div>
+                        <p class="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-2 relative z-10">Total Students</p>
+                        <h3 class="text-3xl font-black italic relative z-10"><?= number_format($collections_totals['student_count']) ?></h3>
+                    </div>
+                    <div class="bg-slate-900 p-8 rounded-[2rem] shadow-xl shadow-slate-900/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-slate-700/50 text-7xl"><i class="fas fa-file-invoice"></i></div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 relative z-10">Total Fees Owed</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($collections_totals['fees_owed'], 2) ?></h3>
+                    </div>
+                    <div class="bg-emerald-500 p-8 rounded-[2rem] shadow-xl shadow-emerald-500/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-emerald-400/30 text-7xl"><i class="fas fa-check-circle"></i></div>
+                        <p class="text-[10px] font-black text-emerald-100 uppercase tracking-widest mb-2 relative z-10">Amount Collected</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($collections_totals['amount_paid'], 2) ?></h3>
+                    </div>
+                    <div class="bg-rose-500 p-8 rounded-[2rem] shadow-xl shadow-rose-500/20 text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-rose-400/30 text-7xl"><i class="fas fa-clock"></i></div>
+                        <p class="text-[10px] font-black text-rose-100 uppercase tracking-widest mb-2 relative z-10">Outstanding Balance</p>
+                        <h3 class="text-3xl font-black italic relative z-10">₵<?= number_format($collections_totals['balance'], 2) ?></h3>
+                    </div>
+                </div>
+
+                <!-- Collection Rate Progress -->
+                <?php 
+                $coll_rate = $collections_totals['fees_owed'] > 0 ? ($collections_totals['amount_paid'] / $collections_totals['fees_owed']) * 100 : 0;
+                ?>
+                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-percentage mr-2 text-indigo-500"></i>Collection Rate</h4>
+                        <span class="text-2xl font-black <?= $coll_rate >= 80 ? 'text-emerald-600' : ($coll_rate >= 50 ? 'text-amber-600' : 'text-rose-600') ?>"><?= number_format($coll_rate, 1) ?>%</span>
+                    </div>
+                    <div class="h-4 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-700 <?= $coll_rate >= 80 ? 'bg-emerald-500' : ($coll_rate >= 50 ? 'bg-amber-500' : 'bg-rose-500') ?>" style="width:<?= min($coll_rate,100) ?>%"></div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-3 font-medium">₵<?= number_format($collections_totals['amount_paid'],2) ?> collected out of ₵<?= number_format($collections_totals['fees_owed'],2) ?> total fees assigned</p>
+                </div>
+
+                <!-- Two Column Layout: By Class & By Fee Type -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- By Class -->
+                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-school mr-2 text-indigo-500"></i>By Class</h4>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        <th class="px-6 py-4">Class</th>
+                                        <th class="px-4 py-4 text-center">Students</th>
+                                        <th class="px-4 py-4 text-right">Fees Owed</th>
+                                        <th class="px-4 py-4 text-right">Collected</th>
+                                        <th class="px-4 py-4 text-right">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    <?php foreach($collections_data as $row):
+                                        $rate = $row['fees_owed']>0 ? ($row['amount_paid']/$row['fees_owed'])*100 : 0;
+                                    ?>
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-slate-800 text-xs"><?= htmlspecialchars($row['class']) ?></td>
+                                        <td class="px-4 py-4 text-center">
+                                            <span class="inline-flex items-center justify-center w-7 h-7 bg-indigo-50 text-indigo-600 font-black text-xs rounded-full"><?= $row['students'] ?></span>
+                                        </td>
+                                        <td class="px-4 py-4 text-right font-bold text-slate-700 text-xs">₵<?= number_format($row['fees_owed'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-emerald-600 text-xs">₵<?= number_format($row['amount_paid'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-rose-600 text-xs">₵<?= number_format($row['balance'],2) ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php if(empty($collections_data)): ?>
+                                    <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 italic text-sm">No data for selected period.</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                                <?php if(!empty($collections_data)): ?>
+                                <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                                    <tr>
+                                        <td class="px-6 py-4 font-black text-slate-900 text-xs uppercase">TOTAL</td>
+                                        <td class="px-4 py-4 text-center font-black text-slate-700 text-xs"><?= $collections_totals['student_count'] ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-slate-900 text-sm">₵<?= number_format($collections_totals['fees_owed'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-emerald-700 text-sm">₵<?= number_format($collections_totals['amount_paid'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-rose-700 text-sm">₵<?= number_format($collections_totals['balance'],2) ?></td>
+                                    </tr>
+                                </tfoot>
+                                <?php endif; ?>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- By Fee Type -->
+                    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]"><i class="fas fa-tags mr-2 text-emerald-500"></i>By Fee Type</h4>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        <th class="px-6 py-4">Fee Name</th>
+                                        <th class="px-4 py-4 text-right">Owed</th>
+                                        <th class="px-4 py-4 text-right">Collected</th>
+                                        <th class="px-4 py-4 text-right">Balance</th>
+                                        <th class="px-4 py-4 text-right">Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    <?php foreach($fee_collections as $row):
+                                        $fee_rate = $row['fees_owed']>0 ? ($row['amount_paid']/$row['fees_owed'])*100 : 0;
+                                    ?>
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-slate-800 text-xs"><?= htmlspecialchars($row['fee_name']) ?></td>
+                                        <td class="px-4 py-4 text-right font-bold text-slate-700 text-xs">₵<?= number_format($row['fees_owed'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-emerald-600 text-xs">₵<?= number_format($row['amount_paid'],2) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-rose-600 text-xs">₵<?= number_format($row['balance'],2) ?></td>
+                                        <td class="px-4 py-4 text-right">
+                                            <div class="flex items-center justify-end gap-2">
+                                                <span class="text-[10px] font-black text-slate-500"><?= number_format($fee_rate,1) ?>%</span>
+                                                <div class="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div class="h-full <?= $fee_rate>=80?'bg-emerald-500':($fee_rate>=50?'bg-amber-500':'bg-rose-500') ?> rounded-full" style="width:<?= min($fee_rate,100) ?>%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php if(empty($fee_collections)): ?>
+                                    <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 italic text-sm">No data for selected period.</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <?php else: ?>
+            <!-- Fallback -->
+            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
                 <div class="p-20 text-center">
                     <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-400 text-3xl mx-auto mb-6">
                         <i class="fas fa-layer-group"></i>
                     </div>
-                    <h3 class="text-xl font-black text-slate-900 mb-2">Detailed View Initialized</h3>
-                    <p class="text-slate-500 font-medium max-w-sm mx-auto">This specific view is being refined for enhanced analytics.</p>
+                    <h3 class="text-xl font-black text-slate-900 mb-2">View Not Found</h3>
+                    <p class="text-slate-500 font-medium max-w-sm mx-auto">Please select a valid report type from the navigation above.</p>
                 </div>
             </div>
         <?php endif; ?>
