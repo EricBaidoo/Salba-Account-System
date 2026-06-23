@@ -360,47 +360,73 @@ if ($report_type === 'budget' || $report_type === 'overview') {
             // Fetch top 100 recent transactions based on filters
             $limit = 100;
             
-            // Build where clauses
-            $where_clauses = ["1=1"];
-            $params = [];
-            $types = "";
+            // Build payments where clauses
+            $p_clauses = ["1=1"];
+            $p_params = [];
+            $p_types = "";
             
             if ($selected_term !== 'All') {
-                $where_clauses[] = "semester = ?";
-                $params[] = $selected_term;
-                $types .= "s";
+                $p_clauses[] = "semester = ?";
+                $p_params[] = $selected_term;
+                $p_types .= "s";
             }
             if ($selected_academic_year) {
-                $where_clauses[] = "academic_year = ?";
-                $params[] = $selected_academic_year;
-                $types .= "s";
+                $p_clauses[] = "academic_year = ?";
+                $p_params[] = $selected_academic_year;
+                $p_types .= "s";
             }
             if ($date_from) {
-                $where_clauses[] = "DATE(created_at) >= ?";
-                $params[] = $date_from;
-                $types .= "s";
+                $p_clauses[] = "payment_date >= ?";
+                $p_params[] = $date_from;
+                $p_types .= "s";
             }
             if ($date_to) {
-                $where_clauses[] = "DATE(created_at) <= ?";
-                $params[] = $date_to;
-                $types .= "s";
+                $p_clauses[] = "payment_date <= ?";
+                $p_params[] = $date_to;
+                $p_types .= "s";
             }
+            $p_where = implode(" AND ", $p_clauses);
+
+            // Build expenses where clauses
+            $e_clauses = ["1=1"];
+            $e_params = [];
+            $e_types = "";
             
-            $where_sql = implode(" AND ", $where_clauses);
+            if ($selected_term !== 'All') {
+                $e_clauses[] = "semester = ?";
+                $e_params[] = $selected_term;
+                $e_types .= "s";
+            }
+            if ($selected_academic_year) {
+                $e_clauses[] = "academic_year = ?";
+                $e_params[] = $selected_academic_year;
+                $e_types .= "s";
+            }
+            if ($date_from) {
+                $e_clauses[] = "expense_date >= ?";
+                $e_params[] = $date_from;
+                $e_types .= "s";
+            }
+            if ($date_to) {
+                $e_clauses[] = "expense_date <= ?";
+                $e_params[] = $date_to;
+                $e_types .= "s";
+            }
+            $e_where = implode(" AND ", $e_clauses);
             
-            // Payments
-            $p_sql = "SELECT 'Payment' as type, payment_date as t_date, amount, reference as ref, created_at FROM payments WHERE $where_sql";
-            // Expenses
-            $e_sql = "SELECT 'Expense' as type, expense_date as t_date, amount, reference as ref, created_at FROM expenses WHERE $where_sql";
+            // Payments query
+            $p_sql = "SELECT 'Payment' as type, payment_date as t_date, amount, COALESCE(NULLIF(receipt_no, ''), description, 'Student Payment') as ref FROM payments WHERE $p_where";
+            // Expenses query
+            $e_sql = "SELECT 'Expense' as type, expense_date as t_date, amount, description as ref FROM expenses WHERE $e_where";
             
-            // Union
-            $u_sql = "($p_sql) UNION ALL ($e_sql) ORDER BY created_at DESC LIMIT $limit";
+            // Union and sort by transaction date
+            $u_sql = "($p_sql) UNION ALL ($e_sql) ORDER BY t_date DESC, amount DESC LIMIT $limit";
             
             $stmt = $conn->prepare($u_sql);
-            if ($types) {
-                // We need to bind params twice because of UNION
-                $bind_params = array_merge($params, $params);
-                $stmt->bind_param($types . $types, ...$bind_params);
+            $bind_types = $p_types . $e_types;
+            $bind_params = array_merge($p_params, $e_params);
+            if ($bind_types) {
+                $stmt->bind_param($bind_types, ...$bind_params);
             }
             $stmt->execute();
             $tx_result = $stmt->get_result();
