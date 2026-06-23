@@ -94,108 +94,52 @@ function getStudentBalance($conn, $student_id, $semester = null, $academic_year 
 
 if (!function_exists('getAllStudentBalances')) {
 function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'active', $semester = null, $academic_year = null) {
+    if ($semester !== null && $academic_year === null) {
+        $academic_year = getAcademicYear($conn);
+    }
+    [$prev_term, $prev_year] = ($semester !== null) ? getPreviousSemesterYear($semester, $academic_year) : [null, null];
+
     $params = [];
     $param_types = "";
     
-    // Build semester filtering first
-    if ($semester !== null) {
-        if ($academic_year === null) {
-            $academic_year = getAcademicYear($conn);
-        }
-
-        $fee_filter = "AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL)";
-        $payment_subquery = "
-            (SELECT COALESCE(SUM(amount), 0) 
-             FROM payments 
-             WHERE student_id = s.id 
-             AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL))";
-        // Arrears = unpaid from the immediate previous semester/year only
-        [$prev_term, $prev_year] = getPreviousSemesterYear($semester, $academic_year);
-        $arrears_subquery = "
-            COALESCE((
-                SELECT SUM(sf2.amount - sf2.amount_paid)
-                FROM student_fees sf2
-                WHERE sf2.student_id = s.id
-                  AND sf2.semester = ?
-                  AND (sf2.academic_year = ? OR sf2.academic_year IS NULL)
-                  AND sf2.status != 'cancelled'
-                  AND (sf2.amount - sf2.amount_paid) > 0
-            ), 0)";
-    } else {
-        $fee_filter = "";
-        $payment_subquery = "
-            (SELECT COALESCE(SUM(amount), 0) 
-             FROM payments 
-             WHERE student_id = s.id)";
-        $arrears_subquery = "0";
+    $where_conditions = [];
+    if ($status_filter && $status_filter !== 'all') {
+        $where_conditions[] = "s.status = ?";
+        $params[] = $status_filter;
+        $param_types .= "s";
     }
-    
+    if ($class_filter && $class_filter !== 'all') {
+        $where_conditions[] = "s.class = ?";
+        $params[] = $class_filter;
+        $param_types .= "s";
+    }
+    $where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
+
+    $fee_filter_clause = $semester !== null
+        ? "AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL)"
+        : "";
+
     $sql = "
     SELECT 
         s.id as student_id,
         CONCAT(s.first_name, ' ', s.last_name) as student_name,
         s.class,
         s.status as student_status,
-        COALESCE(
-            (SELECT SUM(amount) 
-             FROM student_fees 
-             WHERE student_id = s.id $fee_filter), 
-        0) as total_fees,
-        $payment_subquery as total_payments,
-        $arrears_subquery as arrears,
-        (SELECT COUNT(*) 
-         FROM student_fees 
-         WHERE student_id = s.id 
-         AND status = 'pending' $fee_filter) as pending_assignments,
-        (SELECT COUNT(*) 
-         FROM student_fees 
-         WHERE student_id = s.id 
-         AND status = 'paid' $fee_filter) as paid_assignments
-    FROM students s";
-    
-    // Build WHERE conditions
-    $where_conditions = [];
-    
-    if ($status_filter && $status_filter !== 'all') {
-        $where_conditions[] = "s.status = ?";
-    }
-    
-    if ($class_filter && $class_filter !== 'all') {
-        $where_conditions[] = "s.class = ?";
-    }
-    
-    if (!empty($where_conditions)) {
-        $sql .= " WHERE " . implode(" AND ", $where_conditions);
-    }
-    
-    $sql .= " ORDER BY s.last_name, s.first_name";
-    
-    // Now bind parameters in the order they appear in SQL
-    if ($semester !== null) {
-        $params[] = $semester; // For total_fees subquery (semester)
-        $params[] = $academic_year; // For total_fees subquery (academic_year)
-        $params[] = $semester; // For payment_subquery (semester)
-        $params[] = $academic_year; // For payment_subquery (academic_year)
-        $params[] = $prev_term; // For arrears_subquery (semester)
-        $params[] = $prev_year; // For arrears_subquery (academic_year)
-        $params[] = $semester; // For pending_assignments subquery (semester)
-        $params[] = $academic_year; // For pending_assignments subquery (academic_year)
-        $params[] = $semester; // For paid_assignments subquery (semester)
-        $params[] = $academic_year; // For paid_assignments subquery (academic_year)
-        $param_types .= "ssssssssss";
-    }
-    
-    if ($status_filter && $status_filter !== 'all') {
-        $params[] = $status_filter;
-        $param_types .= "s";
-    }
-    
-    if ($class_filter && $class_filter !== 'all') {
-        $params[] = $class_filter;
-        $param_types .= "s";
-    }
-    
+        COALESCE((SELECT SUM(amount) FROM student_fees WHERE student_id = s.id $fee_filter_clause), 0) as total_fees,
+        COALESCE((SELECT SUM(amount) FROM payments WHERE student_id = s.id $fee_filter_clause), 0) as total_payments,
+        0 as arrears,
+        (SELECT COUNT(*) FROM student_fees WHERE student_id = s.id AND status = 'pending' $fee_filter_clause) as pending_assignments,
+        (SELECT COUNT(*) FROM student_fees WHERE student_id = s.id AND status = 'paid' $fee_filter_clause) as paid_assignments
+    FROM students s
+    $where_clause
+    ORDER BY s.last_name, s.first_name";
+
     $stmt = $conn->prepare($sql);
+    if ($semester !== null) {
+        // SQL has $fee_filter_clause 4 times (total_fees, total_payments, pending, paid) × 2 params each = 8
+        array_unshift($params, $semester, $academic_year, $semester, $academic_year, $semester, $academic_year, $semester, $academic_year);
+        $param_types = "ssssssss" . $param_types;
+    }
     
     if (!empty($params)) {
         $stmt->bind_param($param_types, ...$params);
@@ -206,12 +150,7 @@ function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'ac
     
     $balances = [];
     while ($row = $result->fetch_assoc()) {
-        // Arrears separate; total_fees is current-semester only and should include carry-forward if ensured
-        if ($semester !== null) {
-            $row['arrears'] = getArrearsFromPreviousSemester($conn, $row['student_id'], $semester, $academic_year);
-        }
         $row['arrears'] = max(0, $row['arrears']);
-        // Calculate net balance
         $row['outstanding_fees'] = max(0, $row['total_fees'] - $row['total_payments']);
         $row['net_balance'] = $row['outstanding_fees'];
         $balances[] = $row;

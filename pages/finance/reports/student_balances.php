@@ -24,22 +24,9 @@ $percent_filter = $_GET['percent'] ?? 'all';
 $sort_by        = $_GET['sort_by'] ?? 'name';
 $order          = $_GET['order']   ?? 'asc';
 
-// Pre-compute arrears
-{
-    $where = []; $params = []; $types = '';
-    if ($status_filter && $status_filter !== 'all') { $where[] = "status = ?"; $params[] = $status_filter; $types .= 's'; }
-    if ($class_filter  && $class_filter  !== 'all') { $where[] = "class = ?";  $params[] = $class_filter;  $types .= 's'; }
-    $sql = "SELECT id FROM students" . (empty($where) ? '' : (' WHERE ' . implode(' AND ', $where)));
-    $stmt = $conn->prepare($sql);
-    if (!empty($params)) { $stmt->bind_param($types, ...$params); }
-    if ($stmt->execute()) {
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc()) {
-            ensureArrearsAssignment($conn, intval($row['id']), $selected_term, $selected_academic_year);
-        }
-    }
-    $stmt->close();
-}
+// Note: Arrears carry-forward records are maintained in the DB by ensureArrearsAssignment
+// which is called when semesters change. No need to re-run on every page load.
+
 
 // Data Fetching
 $student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);
@@ -132,24 +119,33 @@ $filter_qs = http_build_query([
 </head>
 <body class="text-slate-900 leading-relaxed">
     <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
-
-    <!-- Print Header (hidden on screen) -->
-    <div class="hidden print:block p-8 border-b border-slate-200 mb-6">
-        <h2 class="text-xl font-black text-center uppercase tracking-widest"><?= htmlspecialchars($school_name) ?></h2>
-        <?php if($school_address): ?><p class="text-center text-sm text-slate-500"><?= htmlspecialchars($school_address) ?></p><?php endif; ?>
-        <p class="text-center font-black text-sm mt-2 uppercase tracking-widest">Student Balances Report</p>
-        <div class="text-center text-xs text-slate-500 mt-1">
-            Semester: <strong><?= htmlspecialchars($selected_term) ?></strong> &middot;
-            Year: <strong><?= htmlspecialchars($display_academic_year) ?></strong> &middot;
-            Class: <strong><?= $class_filter !== 'all' ? htmlspecialchars($class_filter) : 'All Classes' ?></strong> &middot;
-            Status: <strong><?= ucfirst($status_filter) ?></strong> &middot;
-            Printed: <strong><?= date('M j, Y') ?></strong>
-        </div>
-    </div>
-
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 
-        <!-- Header -->
+        <!-- Breadcrumb & Page Header -->
+        <div class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-30 mb-8 no-print -mx-4 md:-mx-8 -mt-4 md:-mt-8">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="../reports/report.php" class="hover:text-blue-600 transition-colors">Reports</a>
+                <span>/</span>
+                <span class="text-emerald-600">Student Balances</span>
+            </div>
+        </div>
+
+        <!-- Print Header (hidden on screen) -->
+        <div class="hidden print:block p-8 border-b border-slate-200 mb-6">
+            <h2 class="text-xl font-black text-center uppercase tracking-widest"><?= htmlspecialchars($school_name) ?></h2>
+            <?php if($school_address): ?><p class="text-center text-sm text-slate-500"><?= htmlspecialchars($school_address) ?></p><?php endif; ?>
+            <p class="text-center font-black text-sm mt-2 uppercase tracking-widest">Student Balances Report</p>
+            <div class="text-center text-xs text-slate-500 mt-1">
+                Semester: <strong><?= htmlspecialchars($selected_term) ?></strong> &middot;
+                Year: <strong><?= htmlspecialchars($display_academic_year) ?></strong> &middot;
+                Class: <strong><?= $class_filter !== 'all' ? htmlspecialchars($class_filter) : 'All Classes' ?></strong> &middot;
+                Status: <strong><?= ucfirst($status_filter) ?></strong> &middot;
+                Printed: <strong><?= date('M j, Y') ?></strong>
+            </div>
+        </div>
+
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
                 <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">

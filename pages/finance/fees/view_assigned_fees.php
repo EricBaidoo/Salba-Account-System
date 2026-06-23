@@ -129,7 +129,20 @@ if (!empty($year_filter)) {
     <div class="no-print"><?php include '../../../includes/sidebar.php'; ?></div>
 
     <main class="admin-main-content lg:ml-72 p-4 md:p-8 p-10 min-h-screen">
+
+        <!-- Breadcrumb -->
+        <div class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-30 mb-8 no-print -mx-4 md:-mx-8 -mt-4 md:-mt-8">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">
+                <a href="../dashboard.php" class="hover:text-blue-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="view_fees.php" class="hover:text-blue-600 transition-colors">Fee Schedule</a>
+                <span>/</span>
+                <span class="text-indigo-600">Fee Assignments</span>
+            </div>
+        </div>
+
         <!-- Header Section -->
+
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
                 <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
