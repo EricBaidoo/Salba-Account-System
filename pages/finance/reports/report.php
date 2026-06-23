@@ -52,16 +52,87 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
 
     // Income categories
     $filter_term = ($selected_term !== 'All');
-    $income_union_sql = "
-        (SELECT f.name AS category, SUM(pa.amount) AS total FROM payment_allocations pa JOIN student_fees sf ON pa.student_fee_id = sf.id JOIN payments p ON pa.payment_id = p.id JOIN fees f ON sf.fee_id = f.id WHERE p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." GROUP BY f.id)
-        UNION ALL
-        (SELECT CONCAT(f.name, ' (General)') AS category, SUM(p.amount) AS total FROM payments p JOIN fees f ON p.fee_id = f.id WHERE p.payment_type = 'general' AND p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." GROUP BY f.id)
-        ORDER BY total DESC";
+    $segments = [];
+    $params = [];
+    $types = "";
+    
+    // Segment 1: Allocated student payments
+    $segments[] = "
+        SELECT f.name AS category, SUM(pa.amount) AS total 
+        FROM payment_allocations pa 
+        JOIN student_fees sf ON pa.student_fee_id = sf.id 
+        JOIN payments p ON pa.payment_id = p.id 
+        JOIN fees f ON sf.fee_id = f.id 
+        WHERE p.payment_type = 'student' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+        GROUP BY f.id
+    ";
+    $params[] = $selected_academic_year;
+    $types .= "s";
+    if ($filter_term) {
+        $params[] = $selected_term;
+        $types .= "s";
+    }
+
+    // Segment 2: Unallocated student payments
+    $segments[] = "
+        SELECT 'School Fees (Unallocated)' AS category, SUM(p.amount - COALESCE(pa_sum.allocated, 0)) AS total
+        FROM payments p
+        LEFT JOIN (
+            SELECT payment_id, SUM(amount) as allocated
+            FROM payment_allocations
+            GROUP BY payment_id
+        ) pa_sum ON p.id = pa_sum.payment_id
+        WHERE p.payment_type = 'student' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+          AND p.amount > COALESCE(pa_sum.allocated, 0)
+    ";
+    $params[] = $selected_academic_year;
+    $types .= "s";
+    if ($filter_term) {
+        $params[] = $selected_term;
+        $types .= "s";
+    }
+
+    // Segment 3: Categorized general payments
+    $segments[] = "
+        SELECT CONCAT(f.name, ' (General)') AS category, SUM(p.amount) AS total 
+        FROM payments p 
+        JOIN fees f ON p.fee_id = f.id 
+        WHERE p.payment_type = 'general' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+        GROUP BY f.id
+    ";
+    $params[] = $selected_academic_year;
+    $types .= "s";
+    if ($filter_term) {
+        $params[] = $selected_term;
+        $types .= "s";
+    }
+
+    // Segment 4: Unallocated general payments
+    $segments[] = "
+        SELECT 'General Income (Unallocated)' AS category, SUM(p.amount) AS total
+        FROM payments p
+        WHERE p.payment_type = 'general' AND p.fee_id IS NULL AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+    ";
+    $params[] = $selected_academic_year;
+    $types .= "s";
+    if ($filter_term) {
+        $params[] = $selected_term;
+        $types .= "s";
+    }
+
+    // Combine segments into union
+    $income_union_sql = "(" . implode(") UNION ALL (", $segments) . ") ORDER BY total DESC";
     $inc_stmt = $conn->prepare($income_union_sql);
-    if($filter_term) $inc_stmt->bind_param('ssss', $selected_academic_year, $selected_term, $selected_academic_year, $selected_term);
-    else $inc_stmt->bind_param('ss', $selected_academic_year, $selected_academic_year);
-    $inc_stmt->execute(); $inc_res = $inc_stmt->get_result();
-    while($r = $inc_res->fetch_assoc()) if($r['total']>0) $income_by_category[] = $r;
+    if ($types) {
+        $inc_stmt->bind_param($types, ...$params);
+    }
+    $inc_stmt->execute();
+    $inc_res = $inc_stmt->get_result();
+    while($r = $inc_res->fetch_assoc()) {
+        if ($r['total'] > 0) {
+            $income_by_category[] = $r;
+        }
+    }
 
     // Expenses
     $exp_stmt = $conn->prepare("SELECT ec.name AS category, SUM(e.amount) AS total FROM expenses e LEFT JOIN expense_categories ec ON e.category_id = ec.id WHERE e.academic_year = ? " . ($selected_term !== 'All' ? "AND e.semester = ? " : "") . " GROUP BY e.category_id ORDER BY total DESC");
