@@ -55,8 +55,8 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     $segments = [];
     $params = [];
     $types = "";
-    
-    // Segment 1: Allocated student payments — grouped by fee name
+
+    // Segment 1: Allocated student payments — by fee name (matches old system Segment 1)
     $segments[] = "
         SELECT f.name AS category, SUM(pa.amount) AS total 
         FROM payment_allocations pa 
@@ -73,28 +73,10 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
         $types .= "s";
     }
 
-    // Segment 2: Unallocated student payments — labeled "School Fees" (merges with allocated under GROUP BY)
+    // Segment 2: General payments WITH a fee_id — shown as "fee_name (General)" (matches old system)
+    // e.g. daily feeding → "Feeding Fee (General)", separate from term-billed "Feeding Fee"
     $segments[] = "
-        SELECT 'School Fees' AS category, SUM(p.amount - COALESCE(pa_sum.allocated, 0)) AS total
-        FROM payments p
-        LEFT JOIN (
-            SELECT payment_id, SUM(amount) as allocated
-            FROM payment_allocations
-            GROUP BY payment_id
-        ) pa_sum ON p.id = pa_sum.payment_id
-        WHERE p.payment_type = 'student' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
-          AND p.amount > COALESCE(pa_sum.allocated, 0)
-    ";
-    $params[] = $selected_academic_year;
-    $types .= "s";
-    if ($filter_term) {
-        $params[] = $selected_term;
-        $types .= "s";
-    }
-
-    // Segment 3: General payments WITH a fee_id — show under that fee's name (no "(General)" suffix)
-    $segments[] = "
-        SELECT f.name AS category, SUM(p.amount) AS total 
+        SELECT CONCAT(f.name, ' (General)') AS category, SUM(p.amount) AS total 
         FROM payments p 
         JOIN fees f ON p.fee_id = f.id 
         WHERE p.payment_type = 'general' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
@@ -107,7 +89,8 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
         $types .= "s";
     }
 
-    // Segment 4: General payments with NO fee_id — show as "Other Income"
+    // Segment 3: General payments with NO fee_id — "Other Income"
+    // Unallocated student payments are excluded by design (same as old system)
     $segments[] = "
         SELECT 'Other Income' AS category, SUM(p.amount) AS total
         FROM payments p
@@ -120,9 +103,8 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
         $types .= "s";
     }
 
-    // Combine and GROUP BY category so same fee name from multiple segments merges into one row
-    $inner_union = "(" . implode(") UNION ALL (", $segments) . ")";
-    $income_union_sql = "SELECT category, SUM(total) AS total FROM ($inner_union) AS combined GROUP BY category ORDER BY total DESC";
+    // Combine into UNION — no outer GROUP BY needed since each segment has distinct category labels
+    $income_union_sql = "(" . implode(") UNION ALL (", $segments) . ") ORDER BY total DESC";
     $inc_stmt = $conn->prepare($income_union_sql);
     if ($types) {
         $inc_stmt->bind_param($types, ...$params);
