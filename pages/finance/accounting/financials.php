@@ -60,6 +60,13 @@ $net_income = $totals['revenue'] - $totals['expense'];
     <?php include '../../../includes/sidebar.php'; ?>
     <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
         <div class="bg-white border-b border-gray-100 px-8 py-6 mb-8">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider no-print">
+                <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="index.php" class="hover:text-indigo-600 transition-colors">Accounting Ledger</a>
+                <span>/</span>
+                <span class="text-indigo-600">Financial Statements</span>
+            </div>
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight"><i class="fas fa-file-invoice-dollar text-indigo-600"></i> Financial Statements</h1>

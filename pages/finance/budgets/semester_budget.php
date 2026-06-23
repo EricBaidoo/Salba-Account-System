@@ -138,9 +138,10 @@ $net_actual = $total_income_actual - $total_expense_actual;
         <!-- Header Section -->
         <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 no-print">
             <div>
-                <div class="flex items-center gap-2 text-purple-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-purple-600"></span>
-                    Financial Forecasting
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">
+                    <a href="../dashboard.php" class="hover:text-purple-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                    <span>/</span>
+                    <span class="text-purple-600">Budgets</span>
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Trimester <span class="text-purple-600">Budget</span></h1>
                 <p class="text-slate-500 mt-2 font-medium"><?= htmlspecialchars($current_term) ?> | <?= htmlspecialchars(formatAcademicYearDisplay($conn, $academic_year)) ?></p>

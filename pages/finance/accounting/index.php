@@ -45,6 +45,11 @@ $total_cr = 0;
     <?php include '../../../includes/sidebar.php'; ?>
     <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
         <div class="bg-white border-b border-gray-100 px-8 py-6">
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider no-print">
+                <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <span class="text-indigo-600">Accounting Ledger</span>
+            </div>
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight"><i class="fas fa-book-journal-whills text-indigo-600"></i> Double-Entry Ledger</h1>

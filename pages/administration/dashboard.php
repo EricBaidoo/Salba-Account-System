@@ -43,12 +43,41 @@ if ($users_res) {
     }
 }
 
-$total_fees_assigned = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_term' AND academic_year = '$academic_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
+// Total fees assigned to active students
+$total_fees_assigned = $conn->query("
+    SELECT SUM(sf.amount) as total 
+    FROM student_fees sf 
+    INNER JOIN students s ON sf.student_id = s.id 
+    WHERE s.status = 'active' 
+      AND sf.semester = '$current_term' 
+      AND sf.academic_year = '$academic_year' 
+      AND sf.status != 'cancelled'
+")->fetch_assoc()['total'] ?? 0;
+
+// Total payments collected from active students (payment_type = 'student')
+$total_student_payments = $conn->query("
+    SELECT SUM(p.amount) as total 
+    FROM payments p 
+    INNER JOIN students s ON p.student_id = s.id 
+    WHERE s.status = 'active' 
+      AND p.semester = '$current_term' 
+      AND p.academic_year = '$academic_year' 
+      AND p.payment_type = 'student'
+")->fetch_assoc()['total'] ?? 0;
+
+// Total general payments collected
+$total_general_payments = $conn->query("
+    SELECT SUM(amount) as total 
+    FROM payments 
+    WHERE semester = '$current_term' 
+      AND academic_year = '$academic_year' 
+      AND payment_type = 'general'
+")->fetch_assoc()['total'] ?? 0;
 
 $pay_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE semester=? AND academic_year=?");
 $pay_stmt->bind_param('ss', $current_term, $academic_year);
 $pay_stmt->execute();
-$total_payments = (float)$pay_stmt->get_result()->fetch_assoc()['total'];
+$total_payments = (float)$pay_stmt->get_result()->fetch_assoc()['total']; // remains total cash collected for expenses and aggregate views
 $pay_stmt->close();
 
 $exp_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS total FROM expenses WHERE semester=? AND academic_year=?");
@@ -57,8 +86,33 @@ $exp_stmt->execute();
 $total_expenses = (float)$exp_stmt->get_result()->fetch_assoc()['total'];
 $exp_stmt->close();
 
-$outstanding_fees = max(0, $total_fees_assigned - $total_payments);
-$collection_rate = ($total_fees_assigned > 0) ? round(($total_payments / $total_fees_assigned) * 100) : 0;
+// Outstanding balance = sum of positive outstanding balances for active students
+$outstanding_query = $conn->query("
+    SELECT SUM(GREATEST(0, sf_sum.fees - COALESCE(p_sum.paid, 0))) as outstanding
+    FROM (
+        SELECT sf.student_id, SUM(sf.amount) as fees 
+        FROM student_fees sf
+        INNER JOIN students s ON sf.student_id = s.id
+        WHERE s.status = 'active' 
+          AND sf.semester = '$current_term' 
+          AND sf.academic_year = '$academic_year' 
+          AND sf.status != 'cancelled'
+        GROUP BY sf.student_id
+    ) sf_sum
+    LEFT JOIN (
+        SELECT p.student_id, SUM(p.amount) as paid 
+        FROM payments p
+        INNER JOIN students s ON p.student_id = s.id
+        WHERE s.status = 'active' 
+          AND p.semester = '$current_term' 
+          AND p.academic_year = '$academic_year' 
+          AND p.payment_type = 'student'
+        GROUP BY p.student_id
+    ) p_sum ON sf_sum.student_id = p_sum.student_id
+");
+$outstanding_fees = $outstanding_query ? ($outstanding_query->fetch_assoc()['outstanding'] ?? 0) : 0;
+
+$collection_rate = ($total_fees_assigned > 0) ? round(($total_student_payments / $total_fees_assigned) * 100) : 0;
 
 // --- 2. FINANCIAL TRENDS (CHART DATA) ---
 $months = [];
@@ -513,6 +567,10 @@ $palettes = [
                         <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-100 flex flex-col justify-center">
                             <p class="text-[0.65rem] font-bold text-emerald-600/70 uppercase tracking-widest mb-1">Payments Collected</p>
                             <h3 class="text-2xl font-extrabold font-display text-emerald-600">GH₵<?= number_format($total_payments, 2) ?></h3>
+                            <div class="text-[10px] font-semibold text-slate-500 mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Fees: GH₵<?= number_format($total_student_payments, 2) ?></span>
+                                <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> General: GH₵<?= number_format($total_general_payments, 2) ?></span>
+                            </div>
                         </div>
                         <!-- Outstanding -->
                         <div class="bg-amber-50 rounded-2xl p-5 border border-amber-100 flex flex-col justify-center">

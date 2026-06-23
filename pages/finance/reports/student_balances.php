@@ -79,11 +79,16 @@ usort($student_balances, function($a, $b) use ($sort_by, $order) {
     return ($order === 'asc') ? ($vA < $vB ? -1 : 1) : ($vA > $vB ? -1 : 1);
 });
 
-// Stats
+// Stats — computed directly from the filtered list of student records
 $total_students = count($student_balances);
-$sum_fees    = array_sum(array_column($student_balances, 'total_fees'));
-$sum_paid    = array_sum(array_column($student_balances, 'total_payments'));
-$sum_due     = array_sum(array_column($student_balances, 'net_balance'));
+$sum_fees = 0;
+$sum_paid = 0;
+$sum_due = 0;
+foreach ($student_balances as $s) {
+    $sum_fees += (float)($s['total_fees'] ?? 0);
+    $sum_paid += (float)($s['total_payments'] ?? 0);
+    $sum_due  += max(0, (float)($s['net_balance'] ?? 0)); // sum of amounts owed by individual learners
+}
 
 $classes_rs = $conn->query("SELECT DISTINCT class FROM students ORDER BY class");
 $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');

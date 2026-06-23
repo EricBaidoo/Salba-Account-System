@@ -110,6 +110,7 @@ if (!function_exists('getSemesterDateRange')) {
             'Semester 1' => 0,
             'Semester 2' => 4,
             'Semester 3' => 8,
+            'Trimester' => 8,
         ];
         $offset = $offsets[$semester] ?? 0;
         $term_start_ts = strtotime("+{$offset} months", $start_ts);

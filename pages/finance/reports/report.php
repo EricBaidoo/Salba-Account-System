@@ -42,10 +42,8 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     $income_total_stmt = $conn->prepare("
         SELECT COALESCE(SUM(p.amount), 0) as total 
         FROM payments p 
-        LEFT JOIN students s ON p.student_id = s.id
         WHERE p.academic_year = ? 
         " . ($selected_term !== 'All' ? "AND p.semester = ? " : "") . "
-        AND (s.status = 'active' OR p.payment_type = 'general')
     ");
     if ($selected_term !== 'All') $income_total_stmt->bind_param('ss', $selected_academic_year, $selected_term);
     else $income_total_stmt->bind_param('s', $selected_academic_year);
@@ -55,9 +53,9 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     // Income categories
     $filter_term = ($selected_term !== 'All');
     $income_union_sql = "
-        (SELECT f.name AS category, SUM(pa.amount) AS total FROM payment_allocations pa JOIN student_fees sf ON pa.student_fee_id = sf.id JOIN payments p ON pa.payment_id = p.id JOIN fees f ON sf.fee_id = f.id LEFT JOIN students s ON p.student_id = s.id WHERE p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." AND (s.status = 'active' OR s.id IS NULL) GROUP BY f.id)
+        (SELECT f.name AS category, SUM(pa.amount) AS total FROM payment_allocations pa JOIN student_fees sf ON pa.student_fee_id = sf.id JOIN payments p ON pa.payment_id = p.id JOIN fees f ON sf.fee_id = f.id WHERE p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." GROUP BY f.id)
         UNION ALL
-        (SELECT CONCAT(f.name, ' (General)') AS category, SUM(p.amount) AS total FROM payments p JOIN fees f ON p.fee_id = f.id LEFT JOIN students s ON p.student_id = s.id WHERE p.payment_type = 'general' AND p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." GROUP BY f.id)
+        (SELECT CONCAT(f.name, ' (General)') AS category, SUM(p.amount) AS total FROM payments p JOIN fees f ON p.fee_id = f.id WHERE p.payment_type = 'general' AND p.academic_year = ? ".($filter_term?"AND p.semester = ? ":"")." GROUP BY f.id)
         ORDER BY total DESC";
     $inc_stmt = $conn->prepare($income_union_sql);
     if($filter_term) $inc_stmt->bind_param('ssss', $selected_academic_year, $selected_term, $selected_academic_year, $selected_term);
@@ -125,9 +123,10 @@ if ($report_type === 'budget' || $report_type === 'overview') {
         <!-- Header -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[2px] bg-indigo-600"></span>
-                    Audit Node
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider no-print">
+                    <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                    <span>/</span>
+                    <span class="text-indigo-600">Financial Analytics</span>
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Financial <span class="text-indigo-600">Analytics</span></h1>
                 <p class="text-slate-500 mt-2 font-medium">Multi-dimensional reporting for institutional fiscal oversight.</p>

@@ -41,8 +41,10 @@ $accounts = $conn->query("SELECT * FROM accounts ORDER BY account_code ASC");
     <?php include '../../../includes/sidebar.php'; ?>
     <main class="admin-main-content lg:ml-72 min-h-screen">
         <div class="bg-white border-b border-gray-100 px-8 py-6">
-            <div class="flex items-center gap-2 text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">
-                <a href="index.php" class="hover:text-indigo-600 transition-colors">Accounting</a>
+            <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider no-print">
+                <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                <span>/</span>
+                <a href="index.php" class="hover:text-indigo-600 transition-colors">Accounting Ledger</a>
                 <span>/</span>
                 <span class="text-indigo-600">Chart of Accounts</span>
             </div>

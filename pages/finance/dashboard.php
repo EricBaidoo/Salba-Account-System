@@ -14,28 +14,112 @@ $current_semester = getCurrentSemester($conn);
 $acad_year = getAcademicYear($conn);
 
 // Get finance statistics for CURRENT TRIMESTER ONLY
-$total_fees = $conn->query("SELECT SUM(amount) as total FROM student_fees WHERE semester = '$current_semester' AND academic_year = '$acad_year' AND status != 'cancelled'")->fetch_assoc()['total'] ?? 0;
-$total_payments = $conn->query("SELECT SUM(amount) as total FROM payments WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
-$total_expenses = $conn->query("SELECT SUM(amount) as total FROM expenses WHERE semester = '$current_semester' AND academic_year = '$acad_year'")->fetch_assoc()['total'] ?? 0;
-$total_payroll_expense = $conn->query("SELECT SUM(total_gross + total_employer_ssnit) as total FROM payroll_runs WHERE status IN ('approved', 'paid')")->fetch_assoc()['total'] ?? 0;
+// Total fees assigned to active students
+$total_fees = $conn->query("
+    SELECT SUM(sf.amount) as total 
+    FROM student_fees sf 
+    INNER JOIN students s ON sf.student_id = s.id 
+    WHERE s.status = 'active' 
+      AND sf.semester = '$current_semester' 
+      AND sf.academic_year = '$acad_year' 
+      AND sf.status != 'cancelled'
+")->fetch_assoc()['total'] ?? 0;
 
-$outstanding = $total_fees - $total_payments;
+// Total payments collected from active students (payment_type = 'student')
+$total_student_payments = $conn->query("
+    SELECT SUM(p.amount) as total 
+    FROM payments p 
+    INNER JOIN students s ON p.student_id = s.id 
+    WHERE s.status = 'active' 
+      AND p.semester = '$current_semester' 
+      AND p.academic_year = '$acad_year' 
+      AND p.payment_type = 'student'
+")->fetch_assoc()['total'] ?? 0;
+
+// Total general payments collected (not student fee payments)
+$total_general_payments = $conn->query("
+    SELECT SUM(amount) as total 
+    FROM payments 
+    WHERE semester = '$current_semester' 
+      AND academic_year = '$acad_year' 
+      AND payment_type = 'general'
+")->fetch_assoc()['total'] ?? 0;
+
+// Aggregate payments (fees + general) received this semester for Net Surplus calculations
+$total_revenue = $conn->query("
+    SELECT SUM(amount) as total 
+    FROM payments 
+    WHERE semester = '$current_semester' 
+      AND academic_year = '$acad_year'
+")->fetch_assoc()['total'] ?? 0;
+
+$total_expenses = $conn->query("
+    SELECT SUM(amount) as total 
+    FROM expenses 
+    WHERE semester = '$current_semester' 
+      AND academic_year = '$acad_year'
+")->fetch_assoc()['total'] ?? 0;
+
+$total_payroll_expense = $conn->query("
+    SELECT SUM(total_gross + total_employer_ssnit) as total 
+    FROM payroll_runs 
+    WHERE status IN ('approved', 'paid')
+")->fetch_assoc()['total'] ?? 0;
+
+// Outstanding balance = sum of positive outstanding balances for active students (amounts owed by learners)
+$outstanding_query = $conn->query("
+    SELECT SUM(GREATEST(0, sf_sum.fees - COALESCE(p_sum.paid, 0))) as outstanding
+    FROM (
+        SELECT sf.student_id, SUM(sf.amount) as fees 
+        FROM student_fees sf
+        INNER JOIN students s ON sf.student_id = s.id
+        WHERE s.status = 'active' 
+          AND sf.semester = '$current_semester' 
+          AND sf.academic_year = '$acad_year' 
+          AND sf.status != 'cancelled'
+        GROUP BY sf.student_id
+    ) sf_sum
+    LEFT JOIN (
+        SELECT p.student_id, SUM(p.amount) as paid 
+        FROM payments p
+        INNER JOIN students s ON p.student_id = s.id
+        WHERE s.status = 'active' 
+          AND p.semester = '$current_semester' 
+          AND p.academic_year = '$acad_year' 
+          AND p.payment_type = 'student'
+        GROUP BY p.student_id
+    ) p_sum ON sf_sum.student_id = p_sum.student_id
+");
+$outstanding = $outstanding_query ? ($outstanding_query->fetch_assoc()['outstanding'] ?? 0) : 0;
 
 // Count students with outstanding fees in CURRENT TRIMESTER
-$pending_payments_result = $conn->query("
-    SELECT COUNT(DISTINCT s.id) as cnt 
-    FROM students s 
-    INNER JOIN student_fees sf ON s.id = sf.student_id
-    WHERE s.status = 'active' 
-    AND sf.semester = '$current_semester'
-    AND sf.academic_year = '$acad_year'
-    AND sf.status != 'cancelled'
-    AND (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.student_id = s.id AND p.semester = '$current_semester' AND p.academic_year = '$acad_year') < 
-        sf.amount
+$pending_students_query = $conn->query("
+    SELECT COUNT(*) as cnt FROM (
+        SELECT sf.student_id, SUM(sf.amount) as fees 
+        FROM student_fees sf
+        INNER JOIN students s ON sf.student_id = s.id
+        WHERE s.status = 'active' 
+          AND sf.semester = '$current_semester' 
+          AND sf.academic_year = '$acad_year' 
+          AND sf.status != 'cancelled'
+        GROUP BY sf.student_id
+    ) sf_sum
+    LEFT JOIN (
+        SELECT p.student_id, SUM(p.amount) as paid 
+        FROM payments p
+        INNER JOIN students s ON p.student_id = s.id
+        WHERE s.status = 'active' 
+          AND p.semester = '$current_semester' 
+          AND p.academic_year = '$acad_year' 
+          AND p.payment_type = 'student'
+        GROUP BY p.student_id
+    ) p_sum ON sf_sum.student_id = p_sum.student_id
+    WHERE sf_sum.fees > COALESCE(p_sum.paid, 0)
 ");
-$pending_students = $pending_payments_result ? ($pending_payments_result->fetch_assoc()['cnt'] ?? 0) : 0;
+$pending_students = $pending_students_query ? ($pending_students_query->fetch_assoc()['cnt'] ?? 0) : 0;
 
-$net_position = $total_payments - $total_expenses - $total_payroll_expense;
+// Net Surplus = total revenues received (fees + general) minus expenses and payroll
+$net_position = $total_revenue - $total_expenses - $total_payroll_expense;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,10 +174,10 @@ $net_position = $total_payments - $total_expenses - $total_payroll_expense;
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
             <!-- Revenue Card -->
             <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden group">
-                <p class="text-indigo-600 text-[10px] font-bold uppercase tracking-wider mb-1">Total Receivables</p>
+                <p class="text-indigo-600 text-[10px] font-bold uppercase tracking-wider mb-1">Total Fees</p>
                 <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($total_fees, 2) ?></h2>
                 <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                    <i class="fas fa-info-circle text-indigo-500"></i> Current Trimester Context
+                    <i class="fas fa-info-circle text-indigo-500"></i> What students owe this term
                 </div>
                 <div class="absolute top-3 right-3 text-indigo-200 group-hover:text-indigo-300 transition-colors">
                     <i class="fas fa-coins text-2xl"></i>
@@ -102,10 +186,17 @@ $net_position = $total_payments - $total_expenses - $total_payroll_expense;
 
             <!-- Payments Card -->
             <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm relative overflow-hidden group">
-                <p class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider mb-1">Revenue Collected</p>
-                <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($total_payments, 2) ?></h2>
-                <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                    <i class="fas fa-check-circle text-emerald-500"></i> <?= number_format(($total_payments / ($total_fees ?: 1)) * 100, 1) ?>% Collections
+                <p class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider mb-1">Amount Collected</p>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($total_revenue, 2) ?></h2>
+                <div class="space-y-1 text-[10px] font-semibold text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Fees: GHS <?= number_format($total_student_payments, 2) ?> (<?= number_format(($total_student_payments / ($total_fees ?: 1)) * 100, 1) ?>%)
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        General: GHS <?= number_format($total_general_payments, 2) ?>
+                    </div>
                 </div>
                 <div class="absolute top-3 right-3 text-emerald-200 group-hover:text-emerald-300 transition-colors">
                     <i class="fas fa-hand-holding-dollar text-2xl"></i>
@@ -114,10 +205,10 @@ $net_position = $total_payments - $total_expenses - $total_payroll_expense;
 
             <!-- Outstanding Card -->
             <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-100 shadow-sm relative overflow-hidden group">
-                <p class="text-amber-600 text-[10px] font-bold uppercase tracking-wider mb-1">Trimester Exposure</p>
+                <p class="text-amber-600 text-[10px] font-bold uppercase tracking-wider mb-1">Outstanding Balance</p>
                 <h2 class="text-xl font-bold text-slate-900 mb-2">GHS <?= number_format($outstanding, 2) ?></h2>
                 <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                    <i class="fas fa-users text-amber-500"></i> <?= $pending_students ?> Active Arrears
+                    <i class="fas fa-users text-amber-500"></i> <?= $pending_students ?> students still owing
                 </div>
                 <div class="absolute top-3 right-3 text-amber-200 group-hover:text-amber-300 transition-colors">
                     <i class="fas fa-exclamation-circle text-2xl"></i>
@@ -126,10 +217,10 @@ $net_position = $total_payments - $total_expenses - $total_payroll_expense;
 
             <!-- Net Position -->
             <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm relative overflow-hidden group">
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Net Cashflow</p>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Net Surplus</p>
                 <h2 class="text-xl font-bold mb-2 <?= $net_position >= 0 ? 'text-emerald-400' : 'text-rose-400' ?>">GHS <?= number_format($net_position, 2) ?></h2>
                 <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
-                    <i class="fas fa-shield-halved text-slate-500"></i> Liquidity Status
+                    <i class="fas fa-shield-halved text-slate-500"></i> Income minus Expenses
                 </div>
                 <div class="absolute top-3 right-3 text-slate-800 group-hover:text-slate-700 transition-colors">
                     <i class="fas fa-chart-line text-2xl"></i>

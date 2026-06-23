@@ -49,9 +49,12 @@ $arrears = max(0, $total_fees - $total_payments);
         <!-- Header -->
         <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-                <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-[0.2em] mb-3">
-                    <span class="w-8 h-[0.125rem] bg-indigo-600"></span>
-                    Liquidity Pulse
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider no-print">
+                    <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5"><i class="fas fa-home"></i> Finance</a>
+                    <span>/</span>
+                    <a href="student_balances.php" class="hover:text-indigo-600 transition-colors">Student Balances</a>
+                    <span>/</span>
+                    <span class="text-indigo-600">Paid Percentage</span>
                 </div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">Velocity <span class="text-indigo-600">Analysis</span></h1>
                 <div class="mt-3 flex items-center gap-3">
