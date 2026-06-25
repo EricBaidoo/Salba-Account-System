@@ -22,6 +22,12 @@ require_once __DIR__ . '/includes/db_connect.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
+// Simple access guard — must pass ?token=salba2026patch in the URL
+if (php_sapi_name() !== 'cli' && ($_GET['token'] ?? '') !== 'salba2026patch') {
+    http_response_code(403);
+    die("403 Forbidden. Missing or invalid token.");
+}
+
 $log   = [];
 $errors = [];
 
