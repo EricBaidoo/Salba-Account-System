@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $total_employer_ssnit = 0;
             
             if ($staff_res && $staff_res->num_rows > 0) {
-                $stmt = $conn->prepare("INSERT INTO payroll_records (payroll_run_id, staff_id, base_salary, custom_allowances, custom_deductions, global_taxes, tier_1_employee, tier_2_employee, net_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO payroll_records (payroll_run_id, staff_id, base_salary, allowances, custom_allowances, deductions, custom_deductions, global_taxes, tier_1_employee, tier_2_employee, net_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 
                 while ($staff = $staff_res->fetch_assoc()) {
                     $alws = json_decode($staff['custom_allowances'] ?? '[]', true) ?: [];
@@ -68,10 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $net = $gross - $total_deduct;
                     
                     $gtax_json = json_encode($staff_global_taxes);
+                    $alw_json = $staff['custom_allowances'] ?? '[]';
+                    $ded_json = $staff['custom_deductions'] ?? '[]';
                     
-                    $stmt->bind_param("iidssssdd", 
-                        $run_id, $staff['staff_id'], $staff['base_salary'], $staff['custom_allowances'], 
-                        $staff['custom_deductions'], $gtax_json, $staff['tier_1_ssnit_employee'], $staff['tier_2_ssnit'], 
+                    $stmt->bind_param("iiddsdssddd",
+                        $run_id, $staff['staff_id'], $staff['base_salary'], $tot_alw, $alw_json,
+                        $tot_ded, $ded_json, $gtax_json, $staff['tier_1_ssnit_employee'], $staff['tier_2_ssnit'],
                         $net
                     );
                     $stmt->execute();

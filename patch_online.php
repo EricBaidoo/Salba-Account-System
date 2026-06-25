@@ -147,6 +147,24 @@ foreach (['old1_v_fee_assignments', 'old2_v_fee_assignments', 'old3_v_fee_assign
     }
 }
 
+// ── 5. Payroll JSON columns (named allowances/deductions for payslip display)
+$payroll_cols = [
+    ['staff_salary_structures', 'custom_allowances', "TEXT DEFAULT NULL AFTER `allowances`"],
+    ['staff_salary_structures', 'custom_deductions',  "TEXT DEFAULT NULL AFTER `deductions`"],
+    ['payroll_records',         'custom_allowances', "TEXT DEFAULT NULL AFTER `allowances`"],
+    ['payroll_records',         'custom_deductions',  "TEXT DEFAULT NULL AFTER `deductions`"],
+    ['payroll_records',         'global_taxes',       "TEXT DEFAULT NULL AFTER `custom_deductions`"],
+];
+foreach ($payroll_cols as [$tbl, $col, $def]) {
+    $exists_col = $conn->query("SELECT COUNT(*) as c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='$tbl' AND COLUMN_NAME='$col'")->fetch_assoc()['c'];
+    if (!$exists_col) {
+        if ($conn->query("ALTER TABLE `$tbl` ADD COLUMN `$col` $def")) ok("Added column $col to $tbl");
+        else err("Could not add $col to $tbl: " . $conn->error);
+    } else {
+        skip("Column $col already exists in $tbl");
+    }
+}
+
 // ── Output
 echo "=== ONLINE DB PATCH RESULTS ===" . PHP_EOL;
 echo "Date: " . date('Y-m-d H:i:s') . PHP_EOL;

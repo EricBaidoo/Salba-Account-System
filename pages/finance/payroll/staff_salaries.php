@@ -43,18 +43,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     $alw_json = $conn->real_escape_string(json_encode($custom_allowances));
     $ded_json = $conn->real_escape_string(json_encode($custom_deductions));
-    $user_id = $_SESSION['user_id'];
-    
+    $tot_alw = array_sum(array_column($custom_allowances, 'amount'));
+    $tot_ded = array_sum(array_column($custom_deductions, 'amount'));
+
     // Check if exists
     $check = $conn->query("SELECT id FROM staff_salary_structures WHERE staff_id = $staff_id");
     if ($check && $check->num_rows > 0) {
-        $success = $conn->query("UPDATE staff_salary_structures 
-                      SET base_salary = $base_salary, custom_allowances = '$alw_json', custom_deductions = '$ded_json',
-                          bank_name = '$bank_name', account_number = '$account_number', updated_by = $user_id
+        $success = $conn->query("UPDATE staff_salary_structures
+                      SET base_salary = $base_salary,
+                          allowances = $tot_alw, custom_allowances = '$alw_json',
+                          deductions = $tot_ded, custom_deductions = '$ded_json',
+                          bank_name = '$bank_name', account_number = '$account_number'
                       WHERE staff_id = $staff_id");
     } else {
-        $success = $conn->query("INSERT INTO staff_salary_structures (staff_id, base_salary, custom_allowances, custom_deductions, bank_name, account_number, created_by)
-                      VALUES ($staff_id, $base_salary, '$alw_json', '$ded_json', '$bank_name', '$account_number', $user_id)");
+        $success = $conn->query("INSERT INTO staff_salary_structures
+                      (staff_id, base_salary, allowances, custom_allowances, deductions, custom_deductions, bank_name, account_number)
+                      VALUES ($staff_id, $base_salary, $tot_alw, '$alw_json', $tot_ded, '$ded_json', '$bank_name', '$account_number')");
     }
     
     if ($success) {
