@@ -90,11 +90,25 @@ if ($report_type === 'overview' || $report_type === 'income' || $report_type ===
     }
 
     // Segment 3: General payments with NO fee_id — "Other Income"
-    // Unallocated student payments are excluded by design (same as old system)
     $segments[] = "
         SELECT 'Other Income' AS category, SUM(p.amount) AS total
         FROM payments p
         WHERE p.payment_type = 'general' AND p.fee_id IS NULL AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+    ";
+    $params[] = $selected_academic_year;
+    $types .= "s";
+    if ($filter_term) {
+        $params[] = $selected_term;
+        $types .= "s";
+    }
+
+    // Segment 4: Unallocated student payments (no payment_allocations row)
+    // These count in the total income card but would otherwise be invisible in the breakdown
+    $segments[] = "
+        SELECT 'Unallocated Payments' AS category, SUM(p.amount) AS total
+        FROM payments p
+        WHERE p.payment_type = 'student' AND p.academic_year = ? " . ($filter_term ? "AND p.semester = ? " : "") . "
+          AND NOT EXISTS (SELECT 1 FROM payment_allocations pa WHERE pa.payment_id = p.id)
     ";
     $params[] = $selected_academic_year;
     $types .= "s";
@@ -826,7 +840,10 @@ if ($report_type === 'overview' && $selected_term === 'All') {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-50">
-                                    <?php foreach($fee_collections as $row):
+                                    <?php 
+                                    $waiver_row = null;
+                                    foreach($fee_collections as $row):
+                                        if ($row['fees_owed'] <= 0) { $waiver_row = $row; continue; } // separate waiver row
                                         $fee_rate = $row['fees_owed']>0 ? ($row['amount_paid']/$row['fees_owed'])*100 : 0;
                                     ?>
                                     <tr class="hover:bg-slate-50/50 transition-colors">
@@ -844,6 +861,15 @@ if ($report_type === 'overview' && $selected_term === 'All') {
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
+                                    <?php if($waiver_row): ?>
+                                    <tr class="bg-violet-50/60 border-t border-violet-100">
+                                        <td class="px-6 py-4 font-bold text-violet-700 text-xs flex items-center gap-2"><i class="fas fa-hand-holding-heart"></i> <?= htmlspecialchars($waiver_row['fee_name']) ?></td>
+                                        <td class="px-4 py-4 text-right font-black text-violet-700 text-xs">₵<?= number_format(abs($waiver_row['fees_owed']),2) ?></td>
+                                        <td class="px-4 py-4 text-right text-violet-400 text-xs">—</td>
+                                        <td class="px-4 py-4 text-right font-black text-violet-700 text-xs">-₵<?= number_format(abs($waiver_row['fees_owed']),2) ?></td>
+                                        <td class="px-4 py-4 text-right"><span class="text-[10px] font-black text-violet-500">DISCOUNT</span></td>
+                                    </tr>
+                                    <?php endif; ?>
                                     <?php if(empty($fee_collections)): ?>
                                     <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 italic text-sm">No data for selected period.</td></tr>
                                     <?php endif; ?>
