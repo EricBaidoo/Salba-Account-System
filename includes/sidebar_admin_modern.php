@@ -377,3 +377,4 @@ function toggleSidebar() {
         window.history.replaceState(null, null, window.location.href);
     }
 </script>
+<script src="<?= BASE_URL ?>assets/js/app-confirm.js"></script>

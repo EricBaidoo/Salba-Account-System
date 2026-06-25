@@ -363,9 +363,9 @@ if (!empty($year_filter)) {
         }
 
         function cancelAssignment(assignmentId) {
-            if (confirm('CAUTION: Are you sure you want to VOID this fee assignment? This action will be logged and may impact historical student balance reports.')) {
-                window.location.href = 'cancel_assignment.php?id=' + assignmentId;
-            }
+            appConfirm('CAUTION: Are you sure you want to VOID this fee assignment? This action will be logged and may impact historical student balance reports.', {
+                onConfirm: function() { window.location.href = 'cancel_assignment.php?id=' + assignmentId; }
+            });
         }
     </script>
 </body>

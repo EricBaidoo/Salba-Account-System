@@ -318,17 +318,19 @@ while ($row = $class_result->fetch_assoc()) {
         <script>
         function toggleStudent(studentId, newStatus) {
             const action = newStatus === 'active' ? 'activate' : 'deactivate';
-            if (confirm(`Are you sure you want to ${action} this student?`)) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'toggle_student_status.php';
-                form.innerHTML = `
-                    <input type="hidden" name="student_id" value="${studentId}">
-                    <input type="hidden" name="status" value="${newStatus}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
+            appConfirm(`Are you sure you want to ${action} this student?`, {
+                onConfirm: function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'toggle_student_status.php';
+                    form.innerHTML = `
+                        <input type="hidden" name="student_id" value="${studentId}">
+                        <input type="hidden" name="status" value="${newStatus}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
         }
 
         function exportToCSV() {

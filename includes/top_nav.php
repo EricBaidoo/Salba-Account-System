@@ -116,6 +116,7 @@ if (!empty($flashes)): ?>
     }, 6000);
 </script>
 <?php endif; ?>
+<script src="<?= BASE_URL ?>assets/js/app-confirm.js"></script>
 
 <script>
     // System-wide: Prevent form resubmission warning on refresh

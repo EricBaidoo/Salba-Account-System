@@ -848,17 +848,23 @@ $tpl_welcome = getSystemSetting($conn, 'template_welcome', '0');
         }
 
         function deleteTemplate(id) {
-            if(!confirm('Delete this template?')) return;
-            let f = document.createElement('form'); f.method = 'POST'; f.action = '';
-            f.innerHTML = `<input type="hidden" name="action" value="delete_template"><input type="hidden" name="id" value="${id}">`;
-            document.body.appendChild(f); f.submit();
+            appConfirm('Delete this template?', {
+                onConfirm: function() {
+                    let f = document.createElement('form'); f.method = 'POST'; f.action = '';
+                    f.innerHTML = `<input type="hidden" name="action" value="delete_template"><input type="hidden" name="id" value="${id}">`;
+                    document.body.appendChild(f); f.submit();
+                }
+            });
         }
 
         function deleteProvider(id) {
-            if(!confirm('Delete this gateway forever?')) return;
-            let f = document.createElement('form'); f.method = 'POST'; f.action = '';
-            f.innerHTML = `<input type="hidden" name="action" value="delete_provider"><input type="hidden" name="id" value="${id}">`;
-            document.body.appendChild(f); f.submit();
+            appConfirm('Delete this gateway forever?', {
+                onConfirm: function() {
+                    let f = document.createElement('form'); f.method = 'POST'; f.action = '';
+                    f.innerHTML = `<input type="hidden" name="action" value="delete_provider"><input type="hidden" name="id" value="${id}">`;
+                    document.body.appendChild(f); f.submit();
+                }
+            });
         }
 
         function activateProvider(id) {

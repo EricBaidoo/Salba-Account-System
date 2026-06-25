@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 include '../../includes/db_connect.php';
 include '../../includes/auth_functions.php';
@@ -11,8 +12,48 @@ if (!is_logged_in() || $_SESSION['role'] !== 'admin') {
 }
 
 $success = '';
-$error = '';
+$error   = '';
 $updated_by = $_SESSION['username'] ?? 'Admin';
+
+// ── Expense Category AJAX handler — must run before anything else outputs ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ec_action'])) {
+    ob_clean(); // discard any warnings from includes
+    header('Content-Type: application/json');
+    $ec_action = $_POST['ec_action'];
+
+    if ($ec_action === 'add') {
+        $name = trim($_POST['name'] ?? '');
+        if ($name === '') { echo json_encode(['success' => false, 'message' => 'Name is required.']); exit; }
+        $esc = $conn->real_escape_string($name);
+        if ($conn->query("SELECT id FROM expense_categories WHERE name = '$esc' LIMIT 1")->num_rows > 0) {
+            echo json_encode(['success' => false, 'message' => 'A category with that name already exists.']); exit;
+        }
+        $stmt = $conn->prepare("INSERT INTO expense_categories (name) VALUES (?)");
+        $stmt->bind_param('s', $name); $stmt->execute();
+        echo json_encode(['success' => true, 'id' => $conn->insert_id, 'name' => $name]); exit;
+    }
+
+    if ($ec_action === 'edit') {
+        $id   = (int)($_POST['id'] ?? 0);
+        $name = trim($_POST['name'] ?? '');
+        if (!$id || $name === '') { echo json_encode(['success' => false, 'message' => 'Invalid data.']); exit; }
+        $stmt = $conn->prepare("UPDATE expense_categories SET name = ? WHERE id = ?");
+        $stmt->bind_param('si', $name, $id); $stmt->execute();
+        echo json_encode(['success' => true, 'name' => $name]); exit;
+    }
+
+    if ($ec_action === 'delete') {
+        $id = (int)($_POST['id'] ?? 0);
+        $in_use = (int)$conn->query("SELECT COUNT(*) as c FROM expenses WHERE category_id = $id")->fetch_assoc()['c'];
+        if ($in_use > 0) {
+            echo json_encode(['success' => false, 'message' => "Cannot delete — $in_use expense record(s) use this category."]); exit;
+        }
+        $conn->query("DELETE FROM expense_categories WHERE id = $id");
+        echo json_encode(['success' => $conn->affected_rows > 0, 'message' => $conn->affected_rows > 0 ? '' : 'Category not found.']); exit;
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Unknown action.']); exit;
+}
 
 // Default active semester context for Bill Settings
 $active_semester = getCurrentSemester($conn);
@@ -145,6 +186,7 @@ $global_taxes_json = getSystemSetting($conn, 'global_taxes', '[]');
 $global_taxes = json_decode($global_taxes_json, true) ?: [];
 
 $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $active_year);
+$expense_categories = $conn->query("SELECT * FROM expense_categories ORDER BY name ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -420,6 +462,92 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
             </form>
         </div>
 
+        <!-- ── Expense Categories ── -->
+        <div class="mt-10 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fas fa-tags text-rose-500"></i> Expense Categories
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Manage the categories used to classify expenses and budgets.</p>
+                </div>
+                <button onclick="openAddCatModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-lg hover:bg-rose-700 shadow-sm transition-all">
+                    <i class="fas fa-plus"></i> Add Category
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="ec-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <?php if ($expense_categories && $expense_categories->num_rows > 0): ?>
+                        <?php while ($cat = $expense_categories->fetch_assoc()): ?>
+                        <div id="ec-item-<?= $cat['id'] ?>" class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 group">
+                            <span class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                <i class="fas fa-circle-dot text-rose-400 text-[10px]"></i>
+                                <span id="ec-name-<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></span>
+                            </span>
+                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="openEditCatModal(<?= $cat['id'] ?>, '<?= addslashes(htmlspecialchars($cat['name'])) ?>')"
+                                    class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors text-xs">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteCat(<?= $cat['id'] ?>, '<?= addslashes(htmlspecialchars($cat['name'])) ?>')"
+                                    class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors text-xs">
+                                    <i class="fas fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <div id="ec-empty" class="col-span-3 text-center py-8 text-slate-400 text-sm">No categories yet. Add one above.</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Category Modal -->
+        <div id="addCatModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm">
+                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i class="fas fa-plus text-rose-500"></i> Add Category</h3>
+                    <button onclick="closeModal('addCatModal')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div id="addCatError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"></div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Category Name</label>
+                        <input type="text" id="addCatName" placeholder="e.g. Transportation"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                    </div>
+                    <div class="flex gap-3 justify-end pt-2">
+                        <button onclick="closeModal('addCatModal')" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50">Cancel</button>
+                        <button onclick="submitAddCat()" class="px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 shadow-sm">Add Category</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Category Modal -->
+        <div id="editCatModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm">
+                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2"><i class="fas fa-edit text-blue-500"></i> Edit Category</h3>
+                    <button onclick="closeModal('editCatModal')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="editCatId">
+                    <div id="editCatError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"></div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Category Name</label>
+                        <input type="text" id="editCatName"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div class="flex gap-3 justify-end pt-2">
+                        <button onclick="closeModal('editCatModal')" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50">Cancel</button>
+                        <button onclick="submitEditCat()" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 shadow-sm">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer class="mt-24 py-16 text-left border-t border-slate-200">
             <p class="text-[0.625rem] font-black text-slate-300 uppercase tracking-[0.5em]">Finance Control Node &middot; Salba Institutional Oversight &middot; v9.4.0</p>
         </footer>
@@ -444,6 +572,114 @@ $active_bill_settings = getSemesterInvoiceSettings($conn, $active_semester, $act
             `;
             container.appendChild(row);
         }
+
+        // ── Expense Categories ──
+        const EC_URL = window.location.pathname + window.location.search;
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function openAddCatModal() {
+            document.getElementById('addCatName').value = '';
+            document.getElementById('addCatError').classList.add('hidden');
+            openModal('addCatModal');
+            setTimeout(() => document.getElementById('addCatName').focus(), 100);
+        }
+
+        function openEditCatModal(id, name) {
+            document.getElementById('editCatId').value = id;
+            document.getElementById('editCatName').value = name;
+            document.getElementById('editCatError').classList.add('hidden');
+            openModal('editCatModal');
+            setTimeout(() => document.getElementById('editCatName').focus(), 100);
+        }
+
+        function ecPost(data) {
+            return fetch(EC_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams(data).toString()
+            }).then(r => r.json());
+        }
+
+        function buildCatItem(id, name) {
+            return `<div id="ec-item-${id}" class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 group">
+                <span class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-circle-dot text-rose-400 text-[10px]"></i>
+                    <span id="ec-name-${id}">${name}</span>
+                </span>
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onclick="openEditCatModal(${id}, '${name.replace(/'/g,"\\\'")}')"
+                        class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors text-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteCat(${id}, '${name.replace(/'/g,"\\\'")}')"
+                        class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-colors text-xs">
+                        <i class="fas fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>`;
+        }
+
+        function submitAddCat() {
+            const name = document.getElementById('addCatName').value.trim();
+            if (!name) return;
+            ecPost({ec_action: 'add', name}).then(d => {
+                if (!d.success) {
+                    const err = document.getElementById('addCatError');
+                    err.textContent = d.message; err.classList.remove('hidden'); return;
+                }
+                document.getElementById('ec-empty')?.remove();
+                document.getElementById('ec-list').insertAdjacentHTML('beforeend', buildCatItem(d.id, d.name));
+                closeModal('addCatModal');
+            });
+        }
+
+        function submitEditCat() {
+            const id   = document.getElementById('editCatId').value;
+            const name = document.getElementById('editCatName').value.trim();
+            if (!name) return;
+            ecPost({ec_action: 'edit', id, name}).then(d => {
+                if (!d.success) {
+                    const err = document.getElementById('editCatError');
+                    err.textContent = d.message; err.classList.remove('hidden'); return;
+                }
+                document.getElementById('ec-name-' + id).textContent = d.name;
+                // Refresh button data attributes
+                const item = document.getElementById('ec-item-' + id);
+                item.querySelectorAll('button')[0].setAttribute('onclick', `openEditCatModal(${id}, '${d.name.replace(/'/g,"\\'")}')`);
+                item.querySelectorAll('button')[1].setAttribute('onclick', `deleteCat(${id}, '${d.name.replace(/'/g,"\\'")}')`);
+                closeModal('editCatModal');
+            });
+        }
+
+        function deleteCat(id, name) {
+            appConfirm(`Delete category "${name}"? This cannot be undone.`, {
+                onConfirm: function() {
+                    ecPost({ec_action: 'delete', id}).then(d => {
+                        if (!d.success) { alert(d.message); return; }
+                        document.getElementById('ec-item-' + id)?.remove();
+                        if (!document.querySelector('#ec-list .group')) {
+                            document.getElementById('ec-list').innerHTML = '<div id="ec-empty" class="col-span-3 text-center py-8 text-slate-400 text-sm">No categories yet.</div>';
+                        }
+                    });
+                }
+            });
+        }
+
+        // Allow Enter key to submit category modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('addCatModal').classList.contains('hidden')) submitAddCat();
+                if (!document.getElementById('editCatModal').classList.contains('hidden')) submitEditCat();
+            }
+        });
     </script>
 </body>
 </html>

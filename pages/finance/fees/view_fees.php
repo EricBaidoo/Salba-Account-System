@@ -242,9 +242,9 @@ $cy = getAcademicYear($conn);
 
     <script>
         function deleteFee(feeId, feeName) {
-            if (confirm('Are you sure you want to delete the fee "' + feeName + '"?\n\nThis action cannot be undone and may affect existing assignments.')) {
-                window.location.href = 'delete_fee.php?id=' + feeId;
-            }
+            appConfirm('Are you sure you want to delete the fee "' + feeName + '"? This action cannot be undone and may affect existing assignments.', {
+                onConfirm: function() { window.location.href = 'delete_fee.php?id=' + feeId; }
+            });
         }
     </script>
 </body>

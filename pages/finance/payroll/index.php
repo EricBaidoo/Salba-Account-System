@@ -1,6 +1,8 @@
 <?php
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+include_once '../../../includes/accounting_engine.php';
 
 // Enforce admin/finance only
 if (!in_array($_SESSION['role'] ?? '', ['admin', 'finance'])) {
@@ -27,15 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             // Get all active staff with configured salaries
             $staff_res = $conn->query("
-                SELECT sp.id as staff_id, sss.base_salary, sss.custom_allowances, sss.custom_deductions,
-                       sss.tier_1_ssnit_employee, sss.tier_2_ssnit, sss.tier_1_ssnit_employer
+                SELECT sp.id as staff_id, sss.base_salary, sss.custom_allowances, sss.custom_deductions
                 FROM staff_profiles sp
                 JOIN staff_salary_structures sss ON sp.id = sss.staff_id
                 WHERE sp.employment_status = 'active' AND sss.base_salary IS NOT NULL
             ");
             
+            // Read SSNIT rates and global taxes from Finance Settings
             $global_taxes_json = getSystemSetting($conn, 'global_taxes', '[]');
             $global_taxes_conf = json_decode($global_taxes_json, true) ?: [];
+            $ssnit_t1_emp_pct   = (float)getSystemSetting($conn, 'ssnit_tier1_employee', '5.5');
+            $ssnit_t2_emp_pct   = (float)getSystemSetting($conn, 'ssnit_tier2_employee', '5.0');
+            $ssnit_t1_er_pct    = (float)getSystemSetting($conn, 'ssnit_tier1_employer', '13.0');
             
             $total_gross = 0;
             $total_net = 0;
@@ -64,7 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     }
                     
                     $gross = $staff['base_salary'] + $tot_alw;
-                    $total_deduct = $tot_ded + $staff['tier_1_ssnit_employee'] + $staff['tier_2_ssnit'] + $tot_global_tax;
+                    $tier1_emp_amt = round($staff['base_salary'] * $ssnit_t1_emp_pct / 100, 2);
+                    $tier2_emp_amt = round($staff['base_salary'] * $ssnit_t2_emp_pct / 100, 2);
+                    $tier1_er_amt  = round($staff['base_salary'] * $ssnit_t1_er_pct  / 100, 2);
+                    $total_deduct = $tot_ded + $tier1_emp_amt + $tier2_emp_amt + $tot_global_tax;
                     $net = $gross - $total_deduct;
                     
                     $gtax_json = json_encode($staff_global_taxes);
@@ -73,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     
                     $stmt->bind_param("iiddsdssddd",
                         $run_id, $staff['staff_id'], $staff['base_salary'], $tot_alw, $alw_json,
-                        $tot_ded, $ded_json, $gtax_json, $staff['tier_1_ssnit_employee'], $staff['tier_2_ssnit'],
+                        $tot_ded, $ded_json, $gtax_json, $tier1_emp_amt, $tier2_emp_amt,
                         $net
                     );
                     $stmt->execute();
@@ -81,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $total_gross += $gross;
                     $total_net += $net;
                     $total_deductions += $total_deduct;
-                    $total_employer_ssnit += $staff['tier_1_ssnit_employer'];
+                    $total_employer_ssnit += $tier1_er_amt;
                 }
                 
                 // Update run totals
@@ -103,14 +111,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Handle Delete Payroll Run
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_run') {
     $run_id = (int)$_POST['run_id'];
-    
     $check = $conn->query("SELECT status FROM payroll_runs WHERE id = $run_id")->fetch_assoc();
-    if ($check && $check['status'] === 'draft') {
+    if ($check) {
+        // Reverse journal entries and expense rows first
+        $res = $conn->query("SELECT id FROM payroll_records WHERE payroll_run_id = $run_id");
+        $record_ids = [];
+        while ($r = $res->fetch_assoc()) $record_ids[] = (int)$r['id'];
+        if (!empty($record_ids)) {
+            $ids = implode(',', $record_ids);
+            $conn->query("DELETE jl FROM journal_lines jl
+                          JOIN journal_entries je ON jl.journal_entry_id = je.id
+                          WHERE je.reference_type = 'Payroll' AND je.reference_id IN ($ids)");
+            $conn->query("DELETE FROM journal_entries WHERE reference_type = 'Payroll' AND reference_id IN ($ids)");
+        }
+        $conn->query("DELETE FROM expenses WHERE description LIKE 'Payroll Run #$run_id: %'");
         $conn->query("DELETE FROM payroll_records WHERE payroll_run_id = $run_id");
         $conn->query("DELETE FROM payroll_runs WHERE id = $run_id");
-        $_SESSION['success_msg'] = "Drafted payroll deleted successfully.";
+        $label = $check['status'] === 'paid' ? 'Paid' : 'Drafted';
+        $_SESSION['success_msg'] = "$label payroll run deleted and all journal entries reversed successfully.";
     } else {
-        $_SESSION['error_msg'] = "Cannot delete a payroll that has already been approved or paid.";
+        $_SESSION['error_msg'] = "Payroll run not found.";
     }
     header("Location: index.php");
     exit;
@@ -233,15 +253,11 @@ $runs = $conn->query("
                                             <a href="view_run.php?id=<?= $row['id'] ?>" class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 hover:text-slate-900 transition-colors" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <?php if ($row['status'] === 'draft'): ?>
-                                            <form method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this drafted payroll run? This cannot be undone.');">
-                                                <input type="hidden" name="action" value="delete_run">
-                                                <input type="hidden" name="run_id" value="<?= $row['id'] ?>">
-                                                <button type="submit" class="inline-flex items-center justify-center w-8 h-8 bg-rose-50 border border-rose-200 text-rose-600 rounded hover:bg-rose-100 transition-colors" title="Delete Draft">
-                                                    <i class="fas fa-trash-can"></i>
-                                                </button>
-                                            </form>
-                                            <?php endif; ?>
+                                            <button type="button"
+                                                onclick="openDeleteModal(<?= $row['id'] ?>, '<?= addslashes(date('F', mktime(0,0,0,$row['payroll_month'],10)) . ' ' . $row['payroll_year']) ?>', <?= $row['status'] === 'paid' ? 'true' : 'false' ?>)"
+                                                class="inline-flex items-center justify-center w-8 h-8 bg-rose-50 border border-rose-200 text-rose-600 rounded hover:bg-rose-100 transition-colors" title="Delete Run">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -312,5 +328,60 @@ $runs = $conn->query("
             </form>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-1" id="delete_modal_title">Delete Payroll Run?</h3>
+                <p class="text-sm text-slate-500 mb-2" id="delete_modal_period"></p>
+                <div id="delete_modal_warning" class="hidden mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium px-3 py-2 rounded-lg flex items-start gap-2">
+                    <i class="fas fa-triangle-exclamation mt-0.5"></i>
+                    <span>This payroll has already been paid out. All journal entries and expense records will be <strong>permanently reversed and deleted</strong>.</span>
+                </div>
+                <p class="text-sm text-slate-500">This action cannot be undone.</p>
+            </div>
+            <div class="px-6 pb-6 flex gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-all">
+                    Cancel
+                </button>
+                <form method="POST" class="flex-1" id="deleteForm">
+                    <input type="hidden" name="action" value="delete_run">
+                    <input type="hidden" name="run_id" id="delete_run_id">
+                    <button type="submit" class="w-full px-4 py-2.5 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 shadow-sm transition-all">
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDeleteModal(runId, period, isPaid) {
+            document.getElementById('delete_run_id').value = runId;
+            document.getElementById('delete_modal_period').textContent = period;
+            const warn = document.getElementById('delete_modal_warning');
+            if (isPaid) {
+                warn.classList.remove('hidden');
+                warn.classList.add('flex');
+                document.getElementById('delete_modal_title').textContent = 'Delete Paid Payroll?';
+            } else {
+                warn.classList.add('hidden');
+                warn.classList.remove('flex');
+                document.getElementById('delete_modal_title').textContent = 'Delete Draft Payroll?';
+            }
+            const m = document.getElementById('deleteModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+        function closeDeleteModal() {
+            const m = document.getElementById('deleteModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+    </script>
 </body>
 </html>

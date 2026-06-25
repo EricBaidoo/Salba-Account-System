@@ -300,21 +300,27 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
         });
 
         function unassignFee(id) {
-            if(!confirm('Expunge this fee assignment?')) return;
-            fetch('unassign_fee.php', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({student_fee_id: id, student_id: <?= $student_id ?>})
-            }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+            appConfirm('Expunge this fee assignment?', {
+                onConfirm: function() {
+                    fetch('unassign_fee.php', { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({student_fee_id: id, student_id: <?= $student_id ?>})
+                    }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+                }
+            });
         }
 
         function deletePayment(id) {
-            if(!confirm('Expunge this payment record? Balance will be updated.')) return;
-            fetch('delete_payment.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({payment_id: id})
-            }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+            appConfirm('Expunge this payment record? Balance will be updated.', {
+                onConfirm: function() {
+                    fetch('delete_payment.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({payment_id: id})
+                    }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+                }
+            });
         }
     </script>
 </body>

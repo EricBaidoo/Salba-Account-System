@@ -184,25 +184,18 @@ if ($map_res) {
         }
 
         function triggerDelete(id, name) {
-            if (confirm("Are you sure you want to permanently delete '" + name + "'? This action cannot be undone.")) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                
-                const action = document.createElement('input');
-                action.type = 'hidden';
-                action.name = 'action';
-                action.value = 'delete_subject';
-                
-                const sid = document.createElement('input');
-                sid.type = 'hidden';
-                sid.name = 'subject_id';
-                sid.value = id;
-                
-                form.appendChild(action);
-                form.appendChild(sid);
-                document.body.appendChild(form);
-                form.submit();
-            }
+            appConfirm("Are you sure you want to permanently delete '" + name + "'? This action cannot be undone.", {
+                onConfirm: function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    const action = document.createElement('input');
+                    action.type = 'hidden'; action.name = 'action'; action.value = 'delete_subject';
+                    const sid = document.createElement('input');
+                    sid.type = 'hidden'; sid.name = 'subject_id'; sid.value = id;
+                    form.appendChild(action); form.appendChild(sid);
+                    document.body.appendChild(form); form.submit();
+                }
+            });
         }
     </script>
 </head>
