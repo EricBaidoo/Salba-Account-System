@@ -344,6 +344,20 @@ $net_position = $total_revenue - $total_expenses - $total_payroll_expense;
                 </div>
             </a>
 
+            <!-- Student Balances Card -->
+            <a href="reports/student_balances.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-emerald-500/10 hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-users-between-lines"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Student Balances</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">View per-student fee balances, outstanding debts, and payment progress across all classes.</p>
+                </div>
+                <div class="text-emerald-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    View Balances <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
             <!-- Waivers Card -->
             <a href="waivers/index.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-pink-500/10 hover:border-pink-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
                 <div>
