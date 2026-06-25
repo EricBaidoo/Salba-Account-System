@@ -185,7 +185,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                                     <td class="px-10 py-6 text-right no-print">
                                         <?php if(!$is_ob): ?>
                                         <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onclick="editFee(<?= $fee['id'] ?>, '<?= htmlspecialchars($fee['fee_name']) ?>', <?= $fee['amount'] ?>)" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[0.625rem]"></i></button>
+                                            <button onclick="editFee(<?= $fee['id'] ?>, '<?= htmlspecialchars(addslashes($fee['fee_name'])) ?>', <?= $fee['amount'] ?>, '<?= htmlspecialchars($fee['due_date'] ?? '') ?>', '<?= htmlspecialchars($fee['semester'] ?? '') ?>', '<?= htmlspecialchars($fee['status'] ?? 'pending') ?>')" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-edit text-[0.625rem]"></i></button>
                                             <button onclick="unassignFee(<?= $fee['id'] ?>)" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all"><i class="fas fa-times text-[0.625rem]"></i></button>
                                         </div>
                                         <?php else: ?>
@@ -243,6 +243,10 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             <p class="text-xs text-slate-500 font-medium mb-8">Redefine fee parameters for <span id="overlayFeeName" class="text-indigo-600 font-black">...</span></p>
             <form id="editFeeForm">
                 <input type="hidden" name="student_fee_id" id="editFeeId">
+                <input type="hidden" name="student_id" value="<?= $student_id ?>">
+                <input type="hidden" name="due_date" id="editFeeDueDate">
+                <input type="hidden" name="semester" id="editFeeSemester">
+                <input type="hidden" name="status" id="editFeeStatus">
                 <div class="space-y-6">
                     <div>
                         <label class="text-[0.5625rem] font-black text-slate-400 uppercase tracking-widest mb-2 block">Modified Amount (GHS)</label>
@@ -265,10 +269,13 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             window.location.href = `?id=${sid}&semester=${encodeURIComponent(term)}&academic_year=${encodeURIComponent(year)}`;
         }
 
-        function editFee(id, name, amount) {
+        function editFee(id, name, amount, due_date, semester, status) {
             document.getElementById('editFeeId').value = id;
             document.getElementById('overlayFeeName').textContent = name;
             document.getElementById('editFeeAmount').value = amount;
+            document.getElementById('editFeeDueDate').value = due_date || '';
+            document.getElementById('editFeeSemester').value = semester || '';
+            document.getElementById('editFeeStatus').value = status || 'pending';
             const o = document.getElementById('editFeeOverlay');
             o.classList.remove('pointer-events-none');
             o.classList.add('opacity-100');
@@ -286,9 +293,10 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
         document.getElementById('editFeeForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const fd = new FormData(this);
-            fetch('edit_student_fee.php', { method: 'POST', body: fd })
+            fetch('../../administration/students/edit_student_fee.php', { method: 'POST', body: fd })
                 .then(r => r.json())
-                .then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+                .then(d => { if(d.success) window.location.reload(); else alert(d.message || 'Update failed'); })
+                .catch(() => alert('Request failed — check your connection and try again.'));
         });
 
         function unassignFee(id) {

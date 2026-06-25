@@ -25,15 +25,13 @@ $total_fees = $conn->query("
       AND sf.status != 'cancelled'
 ")->fetch_assoc()['total'] ?? 0;
 
-// Total payments collected from active students (payment_type = 'student')
+// Total payments collected (payment_type = 'student') — all students including inactive
 $total_student_payments = $conn->query("
-    SELECT SUM(p.amount) as total 
-    FROM payments p 
-    INNER JOIN students s ON p.student_id = s.id 
-    WHERE s.status = 'active' 
-      AND p.semester = '$current_semester' 
-      AND p.academic_year = '$acad_year' 
-      AND p.payment_type = 'student'
+    SELECT SUM(amount) as total 
+    FROM payments 
+    WHERE semester = '$current_semester' 
+      AND academic_year = '$acad_year' 
+      AND payment_type = 'student'
 ")->fetch_assoc()['total'] ?? 0;
 
 // Total general payments collected (not student fee payments)
