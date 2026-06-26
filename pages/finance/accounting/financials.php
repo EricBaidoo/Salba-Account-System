@@ -152,9 +152,9 @@ if (!in_array($current_year, $yr_opts)) array_unshift($yr_opts, $current_year);
                     <a href="index.php?semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_year) ?>" class="flex items-center gap-2 bg-slate-100 text-slate-700 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-200 transition-all">
                         <i class="fas fa-arrow-left"></i> Back to Ledger
                     </a>
-                    <button onclick="window.print()" class="flex items-center gap-2 bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/25">
-                        <i class="fas fa-print"></i> Print
-                    </button>
+                    <a href="download_financials_pdf.php?semester=<?= urlencode($selected_term) ?>&academic_year=<?= urlencode($selected_year) ?>" class="flex items-center gap-2 bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/25">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
                 </div>
             </header>
 

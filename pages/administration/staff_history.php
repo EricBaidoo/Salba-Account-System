@@ -126,9 +126,9 @@ if ($logs_res) {
                     </div>
                 <?php endif; ?>
                 
-                <button onclick="window.print()" class="bg-indigo-600 text-white text-[0.625rem] font-black uppercase tracking-[0.3em] px-8 py-5 rounded-2xl border border-indigo-500 hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-sm">
-                    <i class="fas fa-print"></i> Download Attendance Report
-                </button>
+                <a href="download_staff_history_pdf.php?user_id=<?= $user_id ?>" class="bg-indigo-600 text-white text-[0.625rem] font-black uppercase tracking-[0.3em] px-8 py-5 rounded-2xl border border-indigo-500 hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-sm">
+                    <i class="fas fa-file-pdf"></i> Download Report
+                </a>
             </div>
         </header>
 

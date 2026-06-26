@@ -134,9 +134,9 @@ foreach ($students as &$student) {
             </span>
         </div>
         <div class="flex gap-4">
-            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none">
-                <i class="fas fa-print mr-2 text-xs"></i> Release Print Job
-            </button>
+            <a href="download_semester_bill.php?student_id=<?= $student_id ?>&semester=<?= urlencode($semester) ?>&academic_year=<?= urlencode($selected_academic_year) ?>" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none inline-block">
+                <i class="fas fa-file-pdf mr-2 text-xs"></i> Download Bill PDF
+            </a>
         </div>
     </div>
 

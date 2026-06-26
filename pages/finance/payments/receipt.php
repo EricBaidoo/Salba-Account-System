@@ -92,9 +92,9 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                 <i class="fas fa-arrow-left"></i> Payment Ledger
             </a>
         </div>
-        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none">
-            <i class="fas fa-print mr-2"></i> Release Receipt
-        </button>
+        <a href="download_receipt_pdf.php?payment_id=<?= $payment_id ?>" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/20 leading-none inline-block">
+            <i class="fas fa-file-pdf mr-2"></i> Download Receipt
+        </a>
     </div>
 
     <div class="receipt-card">

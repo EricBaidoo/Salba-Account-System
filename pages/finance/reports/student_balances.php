@@ -162,9 +162,6 @@ $filter_qs = http_build_query([
                 <a href="download_student_balances_pdf.php?<?= $filter_qs ?>" class="bg-rose-50 text-rose-700 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-rose-600 hover:text-white transition-all flex items-center gap-2 border border-rose-100">
                     <i class="fas fa-file-pdf"></i> Download PDF
                 </a>
-                <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
-                    <i class="fas fa-print"></i> Print
-                </button>
                 <a href="../payments/record_payment_form.php" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-5 py-3 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2">
                     <i class="fas fa-plus"></i> Record Payment
                 </a>

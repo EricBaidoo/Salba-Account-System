@@ -286,9 +286,9 @@ $holiday_info = $is_holiday ? $holidays[$selected_date] : null;
                         <div class="text-[0.625rem] font-black text-indigo-500 uppercase tracking-widest leading-none mb-1"><?= $current_semester ?></div>
                         <div class="text-xs font-bold text-slate-700"><?= $current_year ?> Academic Session</div>
                     </div>
-                    <button onclick="window.print()" class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors shadow-sm">
-                        <i class="fas fa-print"></i>
-                    </button>
+                    <a href="download_attendance_pdf.php?class=<?= urlencode($selected_class) ?>&date=<?= urlencode($selected_date) ?>" class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors shadow-sm" title="Download Attendance PDF">
+                        <i class="fas fa-file-pdf"></i>
+                    </a>
                 </div>
             </div>
         </header>

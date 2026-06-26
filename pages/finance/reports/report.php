@@ -247,9 +247,9 @@ if ($report_type === 'overview' && $selected_term === 'All') {
                 <p class="text-slate-500 mt-2 font-medium">Multi-dimensional reporting for institutional fiscal oversight.</p>
             </div>
             <div class="no-print flex gap-4">
-                 <button onclick="window.print()" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none shadow-sm">
-                    <i class="fas fa-print mr-2"></i> Print Report
-                 </button>
+                 <a href="download_finance_report_pdf.php?academic_year=<?= urlencode($selected_academic_year) ?>&semester=<?= urlencode($selected_term) ?>" class="bg-white border border-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none shadow-sm inline-flex items-center">
+                    <i class="fas fa-file-pdf mr-2"></i> Download PDF
+                 </a>
             </div>
         </header>
 

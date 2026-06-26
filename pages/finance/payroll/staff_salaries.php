@@ -74,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Fetch staff and their salary structures
 $query = "
     SELECT sp.id, sp.full_name, sp.job_title, sp.department, sp.employment_status,
-           sss.base_salary, sss.custom_allowances, sss.custom_deductions, sss.bank_name, sss.account_number
+           sss.base_salary, sss.custom_allowances, sss.custom_deductions, sss.bank_name, sss.account_number,
+           sp.bank_details as sp_bank_details
     FROM staff_profiles sp
     LEFT JOIN staff_salary_structures sss ON sp.id = sss.staff_id
     WHERE sp.employment_status = 'active'
@@ -303,7 +304,7 @@ $result = $conn->query($query);
             document.getElementById('modal_staff_role').innerText = (staff.job_title || 'Staff') + ' - ' + (staff.department || 'General');
             
             document.getElementById('modal_base_salary').value = staff.base_salary || '';
-            document.getElementById('modal_bank_name').value = staff.bank_name || '';
+            document.getElementById('modal_bank_name').value = staff.bank_name || staff.sp_bank_details || '';
             document.getElementById('modal_account_number').value = staff.account_number || '';
 
             // Clear containers

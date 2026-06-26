@@ -138,9 +138,9 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     <p class="text-slate-500 mt-1 text-sm">Detailed tracking and categorization of school spending protocols.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="window.print()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
-                        <i class="fas fa-print"></i> Print Audit
-                    </button>
+                    <a href="download_expenses_pdf.php?semester=<?= urlencode($selected_term) ?>&year=<?= urlencode($selected_year) ?>&category=<?= $selected_category ?>" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
                     <a href="add_expense_form.php" class="px-4 py-2 bg-rose-600 text-white text-sm font-medium rounded-lg hover:bg-rose-700 shadow-sm transition-all flex items-center gap-2">
                         <i class="fas fa-plus"></i> Record Expense
                     </a>

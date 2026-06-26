@@ -142,9 +142,9 @@ for ($i = 0; $i < 12; $i++) {
                 </div>
             </div>
             <div class="flex gap-3 no-print">
-                <button onclick="window.print()" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-2">
-                    <i class="fas fa-print"></i> Print Report
-                </button>
+                <a href="download_my_attendance_pdf.php" class="bg-slate-900 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-2">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </a>
             </div>
         </header>
 

@@ -1,6 +1,7 @@
 <?php
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
 include_once '../../../includes/accounting_engine.php';
 
 // Enforce admin/finance only
@@ -124,15 +125,20 @@ if (!$run) {
 }
 $period_name = date("F", mktime(0, 0, 0, $run['payroll_month'], 10)) . ' ' . $run['payroll_year'];
 
-// Fetch records
-$records = $conn->query("
-    SELECT pr.*, sp.full_name, sp.job_title, sp.department, sss.bank_name, sss.account_number
+// Fetch records into array so we can loop multiple times
+$records_raw = $conn->query("
+    SELECT pr.*, sp.full_name, sp.job_title, sp.department,
+           sss.bank_name, sss.account_number,
+           sp.bank_details as sp_bank_details
     FROM payroll_records pr
     JOIN staff_profiles sp ON pr.staff_id = sp.id
     LEFT JOIN staff_salary_structures sss ON sp.id = sss.staff_id
     WHERE pr.payroll_run_id = $run_id
     ORDER BY sp.full_name ASC
 ");
+$records = [];
+while ($r = $records_raw->fetch_assoc()) $records[] = $r;
+$school_name = getSystemSetting($conn, 'school_name', 'SALBA MONTESSORI INTERNATIONAL SCHOOL');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -164,6 +170,10 @@ $records = $conn->query("
                     </h1>
                     <p class="text-slate-500 mt-1 text-sm">Review salary calculations and manage payouts for this period.</p>
                 </div>
+                <div class="flex items-center gap-3">
+                <a href="download_payroll_pdf.php?id=<?= $run_id ?>" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-lg hover:bg-slate-900 shadow-sm transition-all">
+                    <i class="fas fa-file-pdf"></i> Download Payroll PDF
+                </a>
                 <?php if ($run['status'] !== 'paid'): ?>
                 <form method="POST">
                     <input type="hidden" name="action" value="bulk_pay">
@@ -172,6 +182,7 @@ $records = $conn->query("
                     </button>
                 </form>
                 <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -231,8 +242,8 @@ $records = $conn->query("
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <?php if ($records && $records->num_rows > 0): ?>
-                                <?php while ($row = $records->fetch_assoc()): 
+                            <?php if (!empty($records)): ?>
+                                <?php foreach ($records as $row): 
                                     $gross = $row['base_salary'] + $row['allowances'];
                                 ?>
                                 <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 group">
@@ -250,9 +261,14 @@ $records = $conn->query("
                                         <?= number_format($row['net_salary'], 2) ?>
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <?php if (!empty($row['bank_name'])): ?>
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold" title="<?= htmlspecialchars($row['account_number']) ?>">
-                                                <i class="fas fa-building-columns"></i> <?= htmlspecialchars($row['bank_name']) ?>
+                                        <?php
+                                            $b = '';
+                                            if (!empty($row['bank_name'])) $b = $row['bank_name'];
+                                            elseif (!empty($row['sp_bank_details'])) $b = $row['sp_bank_details'];
+                                        ?>
+                                        <?php if ($b !== ''): ?>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold" title="<?= htmlspecialchars($row['account_number'] ?? '') ?>">
+                                                <i class="fas fa-building-columns"></i> <?= htmlspecialchars($b) ?>
                                             </span>
                                         <?php else: ?>
                                             <span class="text-slate-300 text-xs italic">Cash / Cheque</span>
@@ -271,8 +287,8 @@ $records = $conn->query("
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <a href="view_payslip.php?id=<?= $row['id'] ?>" target="_blank" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors" title="Print Payslip">
-                                                <i class="fas fa-print"></i>
+                                            <a href="download_payslip_pdf.php?id=<?= $row['id'] ?>" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors" title="Download Payslip PDF">
+                                                <i class="fas fa-file-pdf"></i>
                                             </a>
                                             <?php if ($row['status'] !== 'paid'): ?>
                                             <button onclick='openEditModal(<?= json_encode(['id'=>$row['id'],'full_name'=>$row['full_name'],'base_salary'=>$row['base_salary'],'allowances'=>$row['allowances'],'deductions'=>$row['deductions']]) ?>)'
@@ -290,7 +306,7 @@ $records = $conn->query("
                                         </div>
                                     </td>
                                 </tr>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -341,6 +357,64 @@ $records = $conn->query("
             </form>
         </div>
     </div>
+
+    <!-- ═══ PRINT-ONLY BANK PAYROLL ═══ -->
+    <div id="printPayroll" style="display:none; font-family: Arial, sans-serif; font-size: 12px; color: #000;">
+        <table style="width:100%; border-collapse:collapse; margin-bottom:0;">
+            <tr>
+                <td colspan="4" style="background:#1e3a5f; color:#fff; text-align:center; font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:1px; padding: 10px 8px;">
+                    STAFF PAYROLL FOR <?= strtoupper($period_name) ?>.
+                </td>
+            </tr>
+        </table>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f5c200; color:#000;">
+                    <th style="border:1px solid #ccc; padding:7px 8px; text-align:center; width:45px; font-weight:800; text-transform:uppercase;">S/N.</th>
+                    <th style="border:1px solid #ccc; padding:7px 8px; text-align:left; font-weight:800; text-transform:uppercase;">STAFF NAME</th>
+                    <th style="border:1px solid #ccc; padding:7px 8px; text-align:left; font-weight:800; text-transform:uppercase;">BANK ACC</th>
+                    <th style="border:1px solid #ccc; padding:7px 8px; text-align:right; width:90px; font-weight:800; text-transform:uppercase;">SALARY</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $sn = 1; foreach ($records as $row): ?>
+                <tr>
+                    <td style="border:1px solid #ccc; padding:6px 8px; text-align:center;"><?= $sn++ ?></td>
+                    <td style="border:1px solid #ccc; padding:6px 8px; font-weight:600; text-transform:uppercase;"><?= htmlspecialchars($row['full_name']) ?></td>
+                    <td style="border:1px solid #ccc; padding:6px 8px;">
+                        <?php
+                            $bank_str = '';
+                            if (!empty($row['bank_name']) || !empty($row['account_number'])) {
+                                $parts = array_filter([$row['bank_name'], $row['account_number']]);
+                                $bank_str = implode(', ', $parts);
+                            } elseif (!empty($row['sp_bank_details'])) {
+                                $bank_str = $row['sp_bank_details'];
+                            }
+                            echo $bank_str !== '' ? htmlspecialchars($bank_str) : 'Cash / Cheque';
+                        ?>
+                    </td>
+                    <td style="border:1px solid #ccc; padding:6px 8px; text-align:right; font-weight:700;"><?= number_format($row['net_salary'], 2) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot>
+                <tr style="background:#f0f0f0;">
+                    <td colspan="3" style="border:1px solid #000; padding:7px 8px; font-weight:800; text-align:right; text-transform:uppercase; letter-spacing:0.5px;">TOTAL</td>
+                    <td style="border:1px solid #000; padding:7px 8px; text-align:right; font-weight:800;"><?= number_format($run['total_net'], 2) ?></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div style="margin-top:30px; display:flex; justify-content:space-between; font-size:11px;">
+            <div>Prepared by: ________________________</div>
+            <div>Approved by: ________________________</div>
+            <div>Date: ________________________</div>
+        </div>
+    </div>
+    <script>
+        // Show printPayroll div only when printing
+        window.addEventListener('beforeprint', () => { document.getElementById('printPayroll').style.display = 'block'; });
+        window.addEventListener('afterprint',  () => { document.getElementById('printPayroll').style.display = 'none'; });
+    </script>
 
     <script>
         function openEditModal(rec) {

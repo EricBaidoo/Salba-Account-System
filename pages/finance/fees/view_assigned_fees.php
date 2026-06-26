@@ -153,9 +153,9 @@ if (!empty($year_filter)) {
                 <p class="text-slate-500 mt-2 font-medium">Historical trace of all financial obligations assigned to students.</p>
             </div>
             <div class="flex items-center gap-4">
-                <button onclick="window.print()" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none">
-                    <i class="fas fa-print mr-2"></i> Print Report
-                </button>
+                <a href="download_assigned_fees_pdf.php?class=<?= urlencode($class_filter) ?>&status=<?= urlencode($status_filter) ?>&year=<?= urlencode($year_filter) ?>" class="bg-white text-slate-600 border border-slate-200 font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-slate-50 transition-all leading-none inline-block">
+                    <i class="fas fa-file-pdf mr-2"></i> Download PDF
+                </a>
                 <a href="assign_fee_form.php" class="bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">
                     <i class="fas fa-plus mr-2"></i> New Assignment
                 </a>

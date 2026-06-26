@@ -82,7 +82,7 @@ $school_address = getSystemSetting($conn, 'school_address', '123 Edu Lane');
 </head>
 <body>
     <div class="no-print" style="text-align: right; margin-bottom: 20px; max-width: 800px; margin: 0 auto 20px auto;">
-        <button onclick="window.print()" style="padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Print Payslip</button>
+        <a href="download_payslip_pdf.php?id=<?= $record_id ?>" class="no-print" style="padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration:none; display:inline-block;">⬇ Download PDF</a>
     </div>
 
     <div class="payslip-container">

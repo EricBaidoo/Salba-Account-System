@@ -168,9 +168,9 @@ $net_actual = $total_income_actual - $total_expense_actual;
                          </a>
                     </div>
                 <?php endif; ?>
-                <button onclick="window.print()" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-purple-600 transition-all shadow-sm">
-                    <i class="fas fa-print"></i>
-                </button>
+                <a href="download_budget.php?semester=<?= urlencode($current_term) ?>&academic_year=<?= urlencode($academic_year) ?>" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-purple-600 transition-all shadow-sm" title="Download Budget PDF">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
             </div>
         </header>
 

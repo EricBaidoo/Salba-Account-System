@@ -146,9 +146,9 @@ if ($photo_src && strpos($photo_src, 'http') === 0) {
                 <i class="fas fa-arrow-left"></i> Back to Directory
             </a>
             <div class="flex gap-3">
-                <button onclick="window.print()" class="action-button inline-flex items-center gap-2 text-sm font-bold bg-white text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl hover:bg-slate-50 shadow-sm">
-                    <i class="fas fa-print text-slate-400"></i> Print Profile
-                </button>
+                <a href="download_staff_profile_pdf.php?id=<?= $s['id'] ?>" class="action-button inline-flex items-center gap-2 text-sm font-bold bg-white text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl hover:bg-slate-50 shadow-sm">
+                    <i class="fas fa-file-pdf text-slate-400"></i> Download Profile
+                </a>
                 <a href="edit_staff.php?id=<?= $s['id'] ?>" class="action-button inline-flex items-center gap-2 text-sm font-bold bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-indigo-700 shadow-sm shadow-indigo-200">
                     <i class="fas fa-pen-to-square"></i> Edit Details
                 </a>
