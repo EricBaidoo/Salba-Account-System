@@ -294,8 +294,8 @@ $net_position = $total_revenue - $total_expenses - $total_payroll_expense;
                     <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
                         <i class="fas fa-sack-dollar"></i>
                     </div>
-                    <h4 class="text-sm font-bold text-slate-900 mb-1">Trimester Budget</h4>
-                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Set up trimester budgets and monitor actual vs. planned performance.</p>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Semester Budget</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Set up semester budgets and monitor actual vs. planned performance.</p>
                 </div>
                 <div class="text-purple-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
                     Open Budgets <i class="fas fa-arrow-right"></i>
@@ -308,11 +308,11 @@ $net_position = $total_revenue - $total_expenses - $total_payroll_expense;
                     <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-slate-700 group-hover:text-white transition-colors duration-300">
                         <i class="fas fa-sliders"></i>
                     </div>
-                    <h4 class="text-sm font-bold text-slate-900 mb-1">Protocols</h4>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Settings</h4>
                     <p class="text-slate-500 text-xs mb-3 line-clamp-2">Configure currency, late fee rules, and global billing footer details.</p>
                 </div>
                 <div class="text-slate-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Edit Protocol <i class="fas fa-arrow-right"></i>
+                    Edit Settings <i class="fas fa-arrow-right"></i>
                 </div>
             </a>
 

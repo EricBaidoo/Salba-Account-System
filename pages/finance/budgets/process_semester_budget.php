@@ -7,39 +7,31 @@ if (!is_logged_in()) {
     exit;
 }
 
-$semester = $_POST['semester'] ?? '';
+$semester      = $_POST['semester'] ?? '';
 $academic_year = $_POST['academic_year'] ?? '';
 $income_categories = $_POST['income_category'] ?? [];
-$income_amounts = $_POST['income_amount'] ?? [];
-$categories = $_POST['category'] ?? [];
-$amounts = $_POST['amount'] ?? [];
+$income_amounts    = $_POST['income_amount'] ?? [];
 
 if (!$semester || !$academic_year) {
     header('Location: edit_semester_budget.php?error=Please fill in all required fields');
     exit;
 }
 
-// Calculate total expected income from all fee categories
 $expected_income = 0;
-foreach ($income_amounts as $amt) {
-    $expected_income += (float)$amt;
-}
+foreach ($income_amounts as $amt) $expected_income += (float)$amt;
 
-// Check if budget exists
-$existing = $conn->query("SELECT id FROM semester_budgets WHERE semester = '$semester' AND academic_year = '$academic_year'")->fetch_assoc();
+// Upsert semester_budgets header
+$existing = $conn->query("SELECT id FROM semester_budgets WHERE semester = '" . $conn->real_escape_string($semester) . "' AND academic_year = '" . $conn->real_escape_string($academic_year) . "'")->fetch_assoc();
 
 if ($existing) {
-    // Update existing
     $budget_id = $existing['id'];
-    $stmt = $conn->prepare("UPDATE semester_budgets SET expected_income = ? WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE semester_budgets SET expected_income = ?, updated_at = NOW() WHERE id = ?");
     $stmt->bind_param('di', $expected_income, $budget_id);
     $stmt->execute();
     $stmt->close();
-    
-    // Delete old items
-    $conn->query("DELETE FROM semester_budget_items WHERE semester_budget_id = $budget_id");
+    // Remove only income items — leave expense items (managed via drill-down CRUD) untouched
+    $conn->query("DELETE FROM semester_budget_items WHERE semester_budget_id = $budget_id AND type = 'income'");
 } else {
-    // Create new
     $stmt = $conn->prepare("INSERT INTO semester_budgets (semester, academic_year, expected_income, created_at) VALUES (?, ?, ?, NOW())");
     $stmt->bind_param('ssd', $semester, $academic_year, $expected_income);
     $stmt->execute();
@@ -47,12 +39,12 @@ if ($existing) {
     $stmt->close();
 }
 
-// Add income budget items
+// Re-insert income items
 for ($i = 0; $i < count($income_categories); $i++) {
-    if (!empty($income_categories[$i]) && !empty($income_amounts[$i]) && (float)$income_amounts[$i] > 0) {
-        $amount = (float)$income_amounts[$i];
+    if (!empty($income_categories[$i]) && isset($income_amounts[$i]) && (float)$income_amounts[$i] > 0) {
+        $amount   = (float)$income_amounts[$i];
         $category = $income_categories[$i];
-        $type = 'income';
+        $type     = 'income';
         $stmt = $conn->prepare("INSERT INTO semester_budget_items (semester_budget_id, category, amount, type) VALUES (?, ?, ?, ?)");
         $stmt->bind_param('isds', $budget_id, $category, $amount, $type);
         $stmt->execute();
@@ -60,19 +52,5 @@ for ($i = 0; $i < count($income_categories); $i++) {
     }
 }
 
-// Add expense budget items
-for ($i = 0; $i < count($categories); $i++) {
-    if (!empty($categories[$i]) && !empty($amounts[$i])) {
-        $amount = (float)$amounts[$i];
-        $category = $categories[$i];
-        $type = 'expense'; // All budget items from this form are expenses
-        $stmt = $conn->prepare("INSERT INTO semester_budget_items (semester_budget_id, category, amount, type) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('isds', $budget_id, $category, $amount, $type);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-header('Location: semester_budget.php?semester=' . urlencode($semester) . '&academic_year=' . urlencode($academic_year) . '&success=Budget saved successfully');
+header('Location: semester_budget.php?semester=' . urlencode($semester) . '&academic_year=' . urlencode($academic_year) . '&success=Income+budget+saved');
 exit;
-?>

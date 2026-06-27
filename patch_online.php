@@ -165,6 +165,40 @@ foreach ($payroll_cols as [$tbl, $col, $def]) {
     }
 }
 
+// ── 6. semester_budget_item_sources table (budget sub-items / line-item breakdown)
+$tbl_exists = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='semester_budget_item_sources'")->fetch_assoc()['c'];
+if (!$tbl_exists) {
+    $sql = "CREATE TABLE semester_budget_item_sources (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        budget_item_id INT NOT NULL,
+        source VARCHAR(255) NOT NULL,
+        amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        notes TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_sbis_item (budget_item_id),
+        CONSTRAINT fk_sbis_item FOREIGN KEY (budget_item_id) REFERENCES semester_budget_items(id) ON DELETE CASCADE
+    )";
+    if ($conn->query($sql)) ok("Created table: semester_budget_item_sources");
+    else err("Could not create semester_budget_item_sources: " . $conn->error);
+} else {
+    skip("Table semester_budget_item_sources already exists");
+}
+
+// ── 7. semester_budgets — add lock columns (status, locked_at, locked_by)
+$col_check = $conn->query("SELECT COUNT(*) as c FROM information_schema.COLUMNS 
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='semester_budgets' AND COLUMN_NAME='status'")->fetch_assoc()['c'];
+if (!$col_check) {
+    $sql = "ALTER TABLE semester_budgets 
+        ADD COLUMN status ENUM('draft','locked') NOT NULL DEFAULT 'draft',
+        ADD COLUMN locked_at DATETIME NULL DEFAULT NULL,
+        ADD COLUMN locked_by VARCHAR(100) NULL DEFAULT NULL";
+    if ($conn->query($sql)) ok("semester_budgets: added status, locked_at, locked_by columns");
+    else err("semester_budgets lock columns: " . $conn->error);
+} else {
+    skip("semester_budgets lock columns already exist");
+}
+
 // ── Output
 echo "=== ONLINE DB PATCH RESULTS ===" . PHP_EOL;
 echo "Date: " . date('Y-m-d H:i:s') . PHP_EOL;
