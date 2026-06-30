@@ -357,6 +357,14 @@ $admin_features = [
             ['label' => 'Class Broadsheet', 'href' => '../../pages/academics/transcript_breakdown.php'],
             ['label' => 'Teacher Reports', 'href' => '../../pages/academics/teacher_reports.php'],
         ]
+    ],
+    [
+        'icon' => 'fa-box-open', 'color' => 'purple',
+        'title' => 'Stationery Lists', 'desc' => 'Manage per-class stationery requirements, track submissions, and bill missing items.',
+        'links' => [
+            ['label' => 'Tracker', 'href' => 'stationery/index.php'],
+            ['label' => 'Manage Items', 'href' => 'stationery/manage.php'],
+        ]
     ]
 ];
 

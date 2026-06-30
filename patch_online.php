@@ -199,6 +199,65 @@ if (!$col_check) {
     skip("semester_budgets lock columns already exist");
 }
 
+// ── 8. stationery_items (master catalog)
+$tbl_exists = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='stationery_items'")->fetch_assoc()['c'];
+if (!$tbl_exists) {
+    $sql = "CREATE TABLE stationery_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT DEFAULT NULL,
+        unit VARCHAR(100) DEFAULT '',
+        default_price DECIMAL(10,2) DEFAULT 0.00,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    if ($conn->query($sql)) ok("Created table: stationery_items");
+    else err("stationery_items: " . $conn->error);
+} else {
+    skip("Table stationery_items already exists");
+}
+
+// ── 9. stationery_assignments (per-class item lists)
+$tbl_exists = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='stationery_assignments'")->fetch_assoc()['c'];
+if (!$tbl_exists) {
+    $sql = "CREATE TABLE stationery_assignments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        item_id INT NOT NULL,
+        class VARCHAR(100) NOT NULL,
+        academic_year VARCHAR(20) NOT NULL,
+        semester VARCHAR(50) DEFAULT '',
+        quantity VARCHAR(100) NOT NULL DEFAULT '1',
+        price DECIMAL(10,2) DEFAULT 0.00,
+        sort_order INT DEFAULT 0,
+        assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (item_id) REFERENCES stationery_items(id) ON DELETE CASCADE,
+        UNIQUE KEY uq_item_class_year (item_id, class, academic_year)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    if ($conn->query($sql)) ok("Created table: stationery_assignments");
+    else err("stationery_assignments: " . $conn->error);
+} else {
+    skip("Table stationery_assignments already exists");
+}
+
+// ── 10. stationery_submissions (student tracking)
+$tbl_exists = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='stationery_submissions'")->fetch_assoc()['c'];
+if (!$tbl_exists) {
+    $sql = "CREATE TABLE stationery_submissions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        assignment_id INT NOT NULL,
+        student_id INT NOT NULL,
+        brought TINYINT(1) DEFAULT 0,
+        billed TINYINT(1) DEFAULT 0,
+        student_fee_id INT DEFAULT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_assign_student (assignment_id, student_id),
+        FOREIGN KEY (assignment_id) REFERENCES stationery_assignments(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    if ($conn->query($sql)) ok("Created table: stationery_submissions");
+    else err("stationery_submissions: " . $conn->error);
+} else {
+    skip("Table stationery_submissions already exists");
+}
+
 // ── Output
 echo "=== ONLINE DB PATCH RESULTS ===" . PHP_EOL;
 echo "Date: " . date('Y-m-d H:i:s') . PHP_EOL;

@@ -91,112 +91,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Fee Result - Salba Montessori Accounting</title>
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Fee Created | Finance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="stylesheet" href="../../../assets/css/style.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
 </head>
-<body class="clean-page">
+<body class="bg-slate-50 text-slate-900">
 
-    <div class="clean-page-header">
-        <div class="w-full px-4">
-            <div class="flex justify-between items-center mb-">
-                <a href="view_fees.php" class="clean-back-px-3 py-2 rounded">
-                    <i class="fas fa-arrow-left"></i> Back to Fees
-                </a>
-            </div>
-            <div class="text-center">
-                <h1 class="clean-page-title"><i class="fas fa-check-circle mr-2"></i>Fee Creation Result</h1>
-            </div>
-        </div>
-    </div>
+    <?php include '../../../includes/sidebar_admin_modern.php'; ?>
 
-    <div class="w-full px-4 py-4">
-        <div class="flex flex-wrap justify-center">
-            <div class="col-lg-8">
-                <?php if ($success): ?>
-                    <div class="bg-white rounded shadow">
-                        <div class="bg-white rounded shadow-header bg-success text-white text-center">
-                            <h4><i class="fas fa-check-circle mr-2"></i>Fee Added Successfully!</h4>
+    <main class="admin-main-content lg:ml-72 p-4 md:p-10 min-h-screen flex items-start justify-center">
+        <div class="w-full max-w-lg mt-10">
+
+            <?php if ($success): ?>
+            <!-- Success Card -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+
+                <!-- Top accent bar -->
+                <div class="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+
+                <div class="p-8">
+                    <!-- Icon + heading -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <i class="fas fa-circle-check text-2xl"></i>
                         </div>
-                        <div class="bg-white rounded shadow-body">
-                            <div class="text-center mb-">
-                                <i class="fas fa-money-bill-wave fa-4x text-green-600 mb-"></i>
-                                <h5><?php echo htmlspecialchars($name); ?></h5>
-                                <span class="badge bg-info fs-6"><?php echo ucfirst(str_replace('_', ' ', $fee_type)); ?> Fee</span>
-                            </div>
-                            
-                            <?php if (!empty($fee_details)): ?>
-                                <div class="bg-white rounded shadow">
-                                    <div class="bg-white rounded shadow-header">
-                                        <h6 class="mb-"><i class="fas fa-list mr-2"></i>Fee Structure</h6>
-                                    </div>
-                                    <div class="bg-white rounded shadow-body">
-                                        <ul class="list-group list-group-flush">
-                                            <?php foreach ($fee_details as $detail): ?>
-                                                <li class="list-group-item flex justify-between items-center">
-                                                    <?php echo htmlspecialchars($detail); ?>
-                                                    <i class="fas fa-check text-green-600"></i>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <?php if (!empty($description)): ?>
-                                <div class="mt-3">
-                                    <small class="text-gray-600">
-                                        <strong>Description:</strong> <?php echo htmlspecialchars($description); ?>
-                                    </small>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <div class="grid gap-2 md:flex md:justify-center mt-4">
-                                <a href="add_fee_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    <i class="fas fa-plus mr-2"></i>Add Another Fee
-                                </a>
-                                <a href="view_fees.php" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                                    <i class="fas fa-eye mr-2"></i>View All Fees
-                                </a>
-                                <a href="assign_fee_form.php" class="px-3 py-2 rounded px-3 py-2 rounded-info">
-                                    <i class="fas fa-user-tag mr-2"></i>Assign Fee
-                                </a>
-                            </div>
+                        <div>
+                            <p class="text-[0.5625rem] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Success</p>
+                            <h1 class="text-xl font-black text-slate-900">Fee Created</h1>
                         </div>
                     </div>
-                <?php else: ?>
-                    <div class="bg-white rounded shadow">
-                        <div class="bg-white rounded shadow-header bg-danger text-white text-center">
-                            <h4><i class="fas fa-exclamation-triangle mr-2"></i>Error Adding Fee</h4>
-                        </div>
-                        <div class="bg-white rounded shadow-body text-center">
-                            <i class="fas fa-money-bill-alt fa-4x text-red-600 mb-"></i>
-                            <div class="p-4 bg-red-100 text-red-700 rounded border border-red-200">
-                                <?php echo htmlspecialchars($error); ?>
-                            </div>
-                            
-                            <div class="grid gap-2 md:flex md:justify-center">
-                                <a href="add_fee_form.php" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    <i class="fas fa-arrow-left mr-2"></i>Back to Form
-                                </a>
-                                <a href="../dashboard.php" class="px-4 py-2 bg-gray-600 text-white rounded">
-                                    <i class="fas fa-home mr-2"></i>Dashboard
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
 
-                <!-- Quick Actions -->
-                <div class="text-center mt-4">
-                    <a href="../dashboard.php" class="px-4 py-2 border border-gray-300 rounded">
-                        <i class="fas fa-home mr-2"></i>Back to Dashboard
+                    <!-- Fee summary -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 mb-6">
+                        <p class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-1">Fee Name</p>
+                        <p class="text-lg font-black text-slate-900 mb-3"><?= htmlspecialchars($name) ?></p>
+
+                        <span class="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-100 text-[0.5625rem] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                            <i class="fas fa-tag text-[0.5rem]"></i>
+                            <?= ucfirst(str_replace('_', ' ', $fee_type)) ?> Fee
+                        </span>
+
+                        <?php if (!empty($fee_details)): ?>
+                        <div class="mt-4 pt-4 border-t border-slate-200">
+                            <p class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest mb-2">Fee Structure</p>
+                            <ul class="space-y-2">
+                                <?php foreach ($fee_details as $detail): ?>
+                                <li class="flex items-center justify-between text-sm font-semibold text-slate-700">
+                                    <span><?= htmlspecialchars($detail) ?></span>
+                                    <i class="fas fa-check text-emerald-500 text-xs"></i>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($description)): ?>
+                        <p class="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-500">
+                            <span class="font-bold">Note:</span> <?= htmlspecialchars($description) ?>
+                        </p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="assign_fee_form.php" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest px-5 py-3.5 rounded-2xl text-center transition-colors">
+                            <i class="fas fa-user-tag mr-2"></i>Assign to Students
+                        </a>
+                        <a href="add_fee_form.php" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest px-5 py-3.5 rounded-2xl text-center transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Add Another Fee
+                        </a>
+                    </div>
+
+                    <a href="view_fees.php" class="block text-center mt-4 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                        <i class="fas fa-list mr-1"></i> View All Fees
                     </a>
                 </div>
             </div>
+
+            <?php else: ?>
+            <!-- Error Card -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+
+                <div class="h-1.5 bg-gradient-to-r from-rose-400 to-pink-500"></div>
+
+                <div class="p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <i class="fas fa-circle-xmark text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-[0.5625rem] font-black text-rose-600 uppercase tracking-widest mb-0.5">Failed</p>
+                            <h1 class="text-xl font-black text-slate-900">Could Not Create Fee</h1>
+                        </div>
+                    </div>
+
+                    <div class="bg-rose-50 border border-rose-100 rounded-2xl px-5 py-4 mb-6 text-sm font-semibold text-rose-700">
+                        <i class="fas fa-triangle-exclamation mr-2"></i><?= htmlspecialchars($error) ?>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="add_fee_form.php" class="flex-1 bg-slate-900 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest px-5 py-3.5 rounded-2xl text-center transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Form
+                        </a>
+                        <a href="../dashboard.php" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest px-5 py-3.5 rounded-2xl text-center transition-colors">
+                            <i class="fas fa-home mr-2"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
         </div>
-    </div>
+    </main>
+</body>
+</html>
 
     </body>
 </html>

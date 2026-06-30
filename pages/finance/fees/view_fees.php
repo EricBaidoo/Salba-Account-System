@@ -58,6 +58,15 @@ $cy = getAcademicYear($conn);
 <body class="bg-slate-50 text-slate-900 min-h-screen">
     <?php include '../../../includes/sidebar.php'; ?>
 
+    <?php if (isset($_GET['deleted'])): ?>
+    <div id="del-toast" class="fixed top-5 right-5 z-50 bg-emerald-600 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3">
+        <i class="fas fa-circle-check"></i>
+        "<?= htmlspecialchars($_GET['name'] ?? 'Fee') ?>" deleted successfully.
+        <button onclick="document.getElementById('del-toast').remove()" class="ml-2 text-white/70 hover:text-white"><i class="fas fa-xmark"></i></button>
+    </div>
+    <script>setTimeout(()=>{const t=document.getElementById('del-toast');if(t)t.remove();},4000);</script>
+    <?php endif; ?>
+
     <main class="admin-main-content lg:ml-72 min-h-screen pb-12">
         <div class="bg-white border-b border-slate-200 px-6 py-6 sticky top-0 z-30 mb-6">
             <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">

@@ -59,7 +59,7 @@ if ($classes_result) {
 
         <div class="px-6">
 
-        <form action="process_fee.php" method="POST" id="feeForm" class="max-w-4xl space-y-6">
+        <form action="add_fee.php" method="POST" id="feeForm" class="max-w-4xl space-y-6">
             <!-- Part 1: Classification & Naming -->
             <section class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                 <h3 class="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
