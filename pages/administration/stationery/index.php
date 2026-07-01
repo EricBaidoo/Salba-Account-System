@@ -278,7 +278,7 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
                                         <i class="fas fa-check text-xs"></i>
                                     </button>
                                     <?php if ($hasPrice): ?>
-                                    <button onclick="billStudent(<?= $aid ?>,<?= $sid ?>,this)"
+                                    <button onclick="billStudent(<?= $aid ?>,<?= $sid ?>,<?= htmlspecialchars(json_encode($sname), ENT_QUOTES) ?>,<?= htmlspecialchars(json_encode($asgn['item_name']), ENT_QUOTES) ?>,<?= $asgn['price'] ?>,this)"
                                         class="w-7 h-7 bg-slate-100 hover:bg-amber-100 text-slate-400 hover:text-amber-600 rounded-lg flex items-center justify-center transition-colors"
                                         title="Bill GH₵<?= number_format($asgn["price"],2) ?>">
                                         <i class="fas fa-file-invoice-dollar text-xs"></i>
@@ -298,6 +298,48 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
 
     <?php endif; ?>
 </main>
+
+<!-- Billing Confirmation Modal -->
+<div id="bill-modal" class="no-print fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.55);backdrop-filter:blur(3px)">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <!-- Header -->
+        <div class="bg-amber-50 border-b border-amber-100 px-6 py-5 flex items-center gap-4">
+            <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-file-invoice-dollar text-amber-600 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-slate-900 text-lg">Confirm Billing</h3>
+                <p class="text-xs text-slate-500 mt-0.5">This will add a charge to the student's fee account.</p>
+            </div>
+        </div>
+        <!-- Body -->
+        <div class="px-6 py-5 space-y-3">
+            <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Student</span>
+                <span id="bm-student" class="text-sm font-bold text-slate-800"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Item</span>
+                <span id="bm-item" class="text-sm font-semibold text-slate-700"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Semester</span>
+                <span id="bm-semester" class="text-sm font-semibold text-slate-700"></span>
+            </div>
+            <div class="flex justify-between items-center py-2">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Amount</span>
+                <span id="bm-amount" class="text-lg font-black text-amber-600"></span>
+            </div>
+        </div>
+        <!-- Actions -->
+        <div class="px-6 pb-6 flex gap-3 justify-end">
+            <button onclick="closeBillModal()" class="px-5 py-2.5 text-sm font-black text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+            <button id="bm-confirm" class="px-6 py-2.5 text-sm font-black text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors flex items-center gap-2">
+                <i class="fas fa-file-invoice-dollar"></i> Bill Student
+            </button>
+        </div>
+    </div>
+</div>
 
 <div id="toast" class="no-print fixed bottom-6 right-6 z-50 hidden text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3"></div>
 
@@ -324,13 +366,33 @@ async function toggleBrought(aid, sid, brought, btn) {
     if (res.success) { showToast(brought ? "Marked as brought." : "Unmarked."); setTimeout(() => location.reload(), 500); }
     else { showToast("Error.", false); btn.disabled = false; }
 }
-async function billStudent(aid, sid, btn) {
-    if (!confirm("Add this item to the student bill for " + SEL_SEMESTER + "?")) return;
-    btn.disabled = true;
-    const res = await apiPost({action:"bill", assignment_id:aid, student_id:sid, semester:SEL_SEMESTER, academic_year:SEL_YEAR});
-    if (res.success) { showToast(res.message); setTimeout(() => location.reload(), 700); }
-    else { showToast(res.message || "Billing failed.", false); btn.disabled = false; }
+let _billBtn = null;
+function billStudent(aid, sid, studentName, itemName, price, btn) {
+    _billBtn = btn;
+    document.getElementById('bm-student').textContent  = studentName;
+    document.getElementById('bm-item').textContent     = itemName;
+    document.getElementById('bm-semester').textContent = SEL_SEMESTER;
+    document.getElementById('bm-amount').textContent   = 'GH\u20b5' + parseFloat(price).toFixed(2);
+    const modal = document.getElementById('bill-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('bm-confirm').onclick = async () => {
+        document.getElementById('bm-confirm').disabled = true;
+        document.getElementById('bm-confirm').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Billing...';
+        const res = await apiPost({action:'bill', assignment_id:aid, student_id:sid, semester:SEL_SEMESTER, academic_year:SEL_YEAR});
+        closeBillModal();
+        if (res.success) { showToast(res.message); setTimeout(() => location.reload(), 700); }
+        else { showToast(res.message || 'Billing failed.', false); if(_billBtn) _billBtn.disabled = false; }
+    };
 }
+function closeBillModal() {
+    document.getElementById('bill-modal').classList.add('hidden');
+    const btn = document.getElementById('bm-confirm');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-file-invoice-dollar"></i> Bill Student';
+}
+document.getElementById('bill-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('bill-modal')) closeBillModal();
+});
 </script>
 </body>
 </html>
