@@ -260,9 +260,18 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
                         ?>
                         <td class="px-2 py-2 text-center <?= $bg ?> min-w-[80px]" data-aid="<?= $aid ?>" data-sid="<?= $sid ?>">
                             <?php if ($billed && !$brought): ?>
-                                <span class="no-print inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[0.5rem] font-black px-2 py-1 rounded-lg">
-                                    <i class="fas fa-file-invoice-dollar"></i> Billed
-                                </span>
+                                <div class="no-print flex flex-col items-center gap-1">
+                                    <button onclick="unbillStudent(<?= $aid ?>,<?= $sid ?>,1,this)"
+                                        class="w-full px-1.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[0.45rem] font-black rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                        title="Mark brought &amp; remove charge">
+                                        <i class="fas fa-check"></i> Brought
+                                    </button>
+                                    <button onclick="unbillStudent(<?= $aid ?>,<?= $sid ?>,0,this)"
+                                        class="w-full px-1.5 py-1 bg-amber-100 hover:bg-rose-100 text-amber-600 hover:text-rose-600 text-[0.45rem] font-black rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                        title="Unbill only (remove charge, stays not brought)">
+                                        <i class="fas fa-xmark"></i> Unbill
+                                    </button>
+                                </div>
                                 <span class="print-only text-amber-600 font-bold text-xs">Billed</span>
                             <?php elseif ($brought): ?>
                                 <button onclick="toggleBrought(<?= $aid ?>,<?= $sid ?>,0,this)"
@@ -366,6 +375,14 @@ async function toggleBrought(aid, sid, brought, btn) {
     if (res.success) { showToast(brought ? "Marked as brought." : "Unmarked."); setTimeout(() => location.reload(), 500); }
     else { showToast("Error.", false); btn.disabled = false; }
 }
+async function unbillStudent(aid, sid, markBrought, btn) {
+    btn.disabled = true;
+    try {
+        const res = await apiPost({action:'unbill', assignment_id:aid, student_id:sid, mark_brought:markBrought});
+        if (res.success) { showToast(res.message); setTimeout(() => location.reload(), 500); }
+        else { showToast(res.message || 'Failed to unbill.', false); btn.disabled = false; }
+    } catch(e) { showToast('Server error.', false); btn.disabled = false; }
+}
 let _billBtn = null;
 function billStudent(aid, sid, studentName, itemName, price, btn) {
     _billBtn = btn;
@@ -378,10 +395,17 @@ function billStudent(aid, sid, studentName, itemName, price, btn) {
     document.getElementById('bm-confirm').onclick = async () => {
         document.getElementById('bm-confirm').disabled = true;
         document.getElementById('bm-confirm').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Billing...';
-        const res = await apiPost({action:'bill', assignment_id:aid, student_id:sid, semester:SEL_SEMESTER, academic_year:SEL_YEAR});
-        closeBillModal();
-        if (res.success) { showToast(res.message); setTimeout(() => location.reload(), 700); }
-        else { showToast(res.message || 'Billing failed.', false); if(_billBtn) _billBtn.disabled = false; }
+        try {
+            const res = await apiPost({action:'bill', assignment_id:aid, student_id:sid, semester:SEL_SEMESTER, academic_year:SEL_YEAR});
+            closeBillModal();
+            if (res.success) { showToast(res.message); setTimeout(() => location.reload(), 700); }
+            else { showToast(res.message || 'Billing failed.', false); if(_billBtn) _billBtn.disabled = false; }
+        } catch(e) {
+            closeBillModal();
+            showToast('Server error — check console for details.', false);
+            console.error('Bill error:', e);
+            if(_billBtn) _billBtn.disabled = false;
+        }
     };
 }
 function closeBillModal() {

@@ -1,7 +1,10 @@
 ﻿<?php
+ini_set('display_errors', '0');
+ob_start();
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
+ob_clean();
 header('Content-Type: application/json');
 
 if (($_SESSION['role'] ?? '') !== 'admin') {
@@ -120,8 +123,12 @@ switch ($action) {
         if (!$assignment_id || !$student_id || !$semester || !$academic_year) {
             echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
         }
-        $row = $conn->query("SELECT sa.price, si.name FROM stationery_assignments sa
-            JOIN stationery_items si ON sa.item_id=si.id WHERE sa.id=$assignment_id")->fetch_assoc();
+        $result = $conn->query("SELECT sa.price, si.name FROM stationery_assignments sa
+            JOIN stationery_items si ON sa.item_id=si.id WHERE sa.id=$assignment_id");
+        if (!$result) {
+            echo json_encode(['success'=>false,'message'=>'Database error: '.$conn->error.' — run the DB patch first.']); exit;
+        }
+        $row = $result->fetch_assoc();
         if (!$row || $row['price'] <= 0) {
             echo json_encode(['success'=>false,'message'=>'Item has no price set. Edit the assignment to add a price first.']); exit;
         }
@@ -130,19 +137,83 @@ switch ($action) {
         if (!$fee) {
             echo json_encode(['success'=>false,'message'=>'No "'.htmlspecialchars($billing_fee_name).'" fee exists. Create one under Finance > Fees first or update the fee name in Stationery Settings.']); exit;
         }
-        $fee_id = $fee['id'];
-        $price  = $row['price'];
-        $notes  = $conn->real_escape_string($row['name']) . ' (Stationery)';
-        $stmt = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, amount, amount_paid, semester, academic_year, notes, assigned_date, status)
-            VALUES (?,?,?,0,?,?,?,CURDATE(),'unpaid')");
-        $stmt->bind_param('iidsss', $student_id, $fee_id, $price, $semester, $academic_year, $notes);
-        $stmt->execute();
-        $sf_id = $conn->insert_id;
+        $fee_id    = $fee['id'];
+        $price     = (float)$row['price'];
+        $item_name = $row['name'];
+        $sem_esc   = $conn->real_escape_string($semester);
+        $yr_esc    = $conn->real_escape_string($academic_year);
+
+        // Find existing consolidated stationery row for this student/semester/year
+        $existing = $conn->query("SELECT id, amount, notes FROM student_fees
+            WHERE student_id=$student_id AND fee_id=$fee_id
+              AND semester='$sem_esc' AND academic_year='$yr_esc'
+            LIMIT 1")->fetch_assoc();
+
+        if ($existing) {
+            // Add to the existing row
+            $new_amount = round((float)$existing['amount'] + $price, 2);
+            $new_notes  = $existing['notes'] . ', ' . $item_name;
+            $sf_id      = (int)$existing['id'];
+            $upd = $conn->prepare("UPDATE student_fees SET amount=?, notes=? WHERE id=?");
+            $upd->bind_param('dsi', $new_amount, $new_notes, $sf_id);
+            $upd->execute();
+        } else {
+            // Create the first consolidated row
+            $notes = $item_name;
+            $stmt  = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, amount, amount_paid, semester, academic_year, notes, assigned_date, status)
+                VALUES (?,?,?,0,?,?,?,CURDATE(),'pending')");
+            $stmt->bind_param('iidsss', $student_id, $fee_id, $price, $semester, $academic_year, $notes);
+            $stmt->execute();
+            $sf_id = $conn->insert_id;
+        }
         $stmt2 = $conn->prepare("INSERT INTO stationery_submissions (assignment_id, student_id, billed, student_fee_id) VALUES (?,?,1,?)
             ON DUPLICATE KEY UPDATE billed=1, student_fee_id=VALUES(student_fee_id)");
         $stmt2->bind_param('iii', $assignment_id, $student_id, $sf_id);
         $stmt2->execute();
         echo json_encode(['success'=>true,'message'=>'GH&#8373;'.number_format($price,2).' billed.']);
+        break;
+    }
+
+    case 'unbill': {
+        $assignment_id = intval($_POST['assignment_id'] ?? 0);
+        $student_id    = intval($_POST['student_id']    ?? 0);
+        $mark_brought  = intval($_POST['mark_brought']  ?? 0);
+        if (!$assignment_id || !$student_id) {
+            echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
+        }
+        // Get item price and name
+        $item = $conn->query("SELECT sa.price, si.name FROM stationery_assignments sa
+            JOIN stationery_items si ON sa.item_id=si.id WHERE sa.id=$assignment_id")->fetch_assoc();
+        // Get the linked student_fees row
+        $sub = $conn->query("SELECT student_fee_id FROM stationery_submissions
+            WHERE assignment_id=$assignment_id AND student_id=$student_id")->fetch_assoc();
+        if ($item && $sub && $sub['student_fee_id']) {
+            $sf_id     = (int)$sub['student_fee_id'];
+            $price     = (float)$item['price'];
+            $item_name = $item['name'];
+            $sf = $conn->query("SELECT amount, notes FROM student_fees WHERE id=$sf_id")->fetch_assoc();
+            if ($sf) {
+                $new_amount = round((float)$sf['amount'] - $price, 2);
+                // Remove this item from the notes list
+                $parts = array_filter(array_map('trim', explode(',', $sf['notes'])), fn($n) => $n !== $item_name);
+                $new_notes = implode(', ', $parts);
+                if ($new_amount <= 0) {
+                    $conn->query("DELETE FROM student_fees WHERE id=$sf_id");
+                } else {
+                    $upd = $conn->prepare("UPDATE student_fees SET amount=?, notes=? WHERE id=?");
+                    $upd->bind_param('dsi', $new_amount, $new_notes, $sf_id);
+                    $upd->execute();
+                }
+            }
+        }
+        // Update submission row
+        $brought_val = $mark_brought ? 1 : 0;
+        $stmt = $conn->prepare("INSERT INTO stationery_submissions (assignment_id, student_id, brought, billed, student_fee_id)
+            VALUES (?,?,?,0,NULL) ON DUPLICATE KEY UPDATE brought=?, billed=0, student_fee_id=NULL");
+        $stmt->bind_param('iiii', $assignment_id, $student_id, $brought_val, $brought_val);
+        $stmt->execute();
+        $msg = $mark_brought ? 'Marked as brought and charge removed.' : 'Charge removed.';
+        echo json_encode(['success'=>true,'message'=>$msg]);
         break;
     }
 
