@@ -25,7 +25,9 @@ header('Content-Type: text/plain; charset=utf-8');
 // Simple access guard — must pass ?token=salba2026patch in the URL
 if (php_sapi_name() !== 'cli' && ($_GET['token'] ?? '') !== 'salba2026patch') {
     http_response_code(403);
-    die("403 Forbidden. Missing or invalid token.");
+    $host = $_SERVER['HTTP_HOST'] ?? 'your-domain.com';
+    $path = $_SERVER['PHP_SELF'] ?? '/patch_online.php';
+    die("403 Forbidden. Missing or invalid token.\n\nRun this patch by visiting:\nhttps://{$host}{$path}?token=salba2026patch");
 }
 
 $log   = [];
@@ -197,6 +199,29 @@ if (!$col_check) {
     else err("semester_budgets lock columns: " . $conn->error);
 } else {
     skip("semester_budgets lock columns already exist");
+}
+
+// ── 7a. Drop old class_stationery_items table (superseded by new 3-table schema)
+$old_tbl = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='class_stationery_items'")->fetch_assoc()['c'];
+if ($old_tbl) {
+    if ($conn->query("DROP TABLE IF EXISTS class_stationery_items")) ok("Dropped old table: class_stationery_items");
+    else err("Could not drop class_stationery_items: " . $conn->error);
+} else {
+    skip("Old table class_stationery_items not present");
+}
+
+// ── 7b. Drop stationery_submissions if it has the OLD schema (no assignment_id column)
+//       The old table had class_stationery_item_id; new schema uses assignment_id.
+//       Safe to drop — old data is meaningless without the old parent table.
+$sub_exists  = $conn->query("SELECT COUNT(*) as c FROM information_schema.TABLES  WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='stationery_submissions'")->fetch_assoc()['c'];
+$has_new_col = $conn->query("SELECT COUNT(*) as c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='stationery_submissions' AND COLUMN_NAME='assignment_id'")->fetch_assoc()['c'];
+if ($sub_exists && !$has_new_col) {
+    if ($conn->query("DROP TABLE IF EXISTS stationery_submissions")) ok("Dropped old-schema stationery_submissions (will be recreated in step 10)");
+    else err("Could not drop old stationery_submissions: " . $conn->error);
+} elseif ($sub_exists && $has_new_col) {
+    skip("stationery_submissions already has new schema — no action needed");
+} else {
+    skip("stationery_submissions does not exist yet — will be created in step 10");
 }
 
 // ── 8. stationery_items (master catalog)

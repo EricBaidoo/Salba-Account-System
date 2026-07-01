@@ -1,6 +1,7 @@
 ﻿<?php
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
 header('Content-Type: application/json');
 
 if (($_SESSION['role'] ?? '') !== 'admin') {
@@ -124,9 +125,10 @@ switch ($action) {
         if (!$row || $row['price'] <= 0) {
             echo json_encode(['success'=>false,'message'=>'Item has no price set. Edit the assignment to add a price first.']); exit;
         }
-        $fee = $conn->query("SELECT id FROM fees WHERE LOWER(name)='stationery' LIMIT 1")->fetch_assoc();
+        $billing_fee_name = getSystemSetting($conn, 'stationery_billing_fee_name', 'stationery');
+        $fee = $conn->query("SELECT id FROM fees WHERE LOWER(name)=LOWER('".$conn->real_escape_string($billing_fee_name)."') LIMIT 1")->fetch_assoc();
         if (!$fee) {
-            echo json_encode(['success'=>false,'message'=>'No "Stationery" fee exists. Create one under Finance > Fees first.']); exit;
+            echo json_encode(['success'=>false,'message'=>'No "'.htmlspecialchars($billing_fee_name).'" fee exists. Create one under Finance > Fees first or update the fee name in Stationery Settings.']); exit;
         }
         $fee_id = $fee['id'];
         $price  = $row['price'];

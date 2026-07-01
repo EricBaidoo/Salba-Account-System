@@ -12,6 +12,16 @@ $selected_year  = $_GET['academic_year'] ?? '';
 $school_name    = getSystemSetting($conn, 'school_name', 'School');
 $school_logo    = getSystemSetting($conn, 'school_logo', '');
 
+// Printout settings (editable from settings.php)
+$print_title       = getSystemSetting($conn, 'stationery_print_title',       'STATIONERY LIST');
+$print_instruction = getSystemSetting($conn, 'stationery_print_instruction', 'Dear Parent / Guardian, kindly ensure your child/ward reports with the items listed below. All items should be labelled with the student\'s name. Thank you for your cooperation.');
+$print_footer_1    = getSystemSetting($conn, 'stationery_print_footer_1',    'Items must be brought on or before the first week of the term.');
+$print_footer_2    = getSystemSetting($conn, 'stationery_print_footer_2',    'All items should be neatly labelled with your child\'s full name and class.');
+$print_footer_3    = getSystemSetting($conn, 'stationery_print_footer_3',    'For inquiries, please contact the class teacher or school administration.');
+$show_price        = getSystemSetting($conn, 'stationery_print_show_price',  '0') === '1';
+$show_notes        = getSystemSetting($conn, 'stationery_print_show_notes',  '1') === '1';
+$show_sig          = getSystemSetting($conn, 'stationery_print_show_sig',    '1') === '1';
+
 if (!$selected_class || !$selected_year) {
     header('Location: manage.php'); exit;
 }
@@ -309,15 +319,14 @@ if (empty($items)) {
 
         <!-- Document Title Band -->
         <div class="doc-title-band">
-            <h2>📋 Stationery List</h2>
+            <h2>📋 <?= htmlspecialchars($print_title) ?></h2>
             <p>Class: <?= htmlspecialchars($selected_class) ?></p>
         </div>
 
         <!-- Instruction -->
-        <p class="instruction">
-            Dear Parent / Guardian, kindly ensure your child/ward reports with the items listed below.
-            All items should be labelled with the student's name. Thank you for your cooperation.
-        </p>
+        <?php if ($print_instruction): ?>
+        <p class="instruction"><?= nl2br(htmlspecialchars($print_instruction)) ?></p>
+        <?php endif; ?>
 
         <!-- Items Table -->
         <div class="items-table-wrapper">
@@ -327,19 +336,23 @@ if (empty($items)) {
                         <th style="width:36px; text-align:center">#</th>
                         <th>Item</th>
                         <th class="right">Quantity</th>
+                        <?php if ($show_price): ?><th class="right">Price</th><?php endif; ?>
                         <?php
-                        $has_notes = array_filter($items, fn($i) => !empty($i['notes']));
+                        $has_notes = $show_notes && array_filter($items, fn($i) => !empty($i['notes']));
                         if ($has_notes): ?>
                         <th>Notes</th>
                         <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($items as $idx => $item): ?>
+                    <?php
+                    $cols = 3 + ($show_price ? 1 : 0) + ($has_notes ? 1 : 0);
+                    foreach ($items as $idx => $item): ?>
                     <tr>
                         <td class="sn"><?= $idx + 1 ?></td>
                         <td class="item-name"><?= htmlspecialchars($item['item_name']) ?></td>
                         <td class="qty"><?= htmlspecialchars($item['quantity']) ?></td>
+                        <?php if ($show_price): ?><td class="qty"><?= $item['price'] > 0 ? 'GH₵ '.number_format($item['price'],2) : '—' ?></td><?php endif; ?>
                         <?php if ($has_notes): ?>
                         <td class="notes-cell"><?= htmlspecialchars($item['notes'] ?? '') ?></td>
                         <?php endif; ?>
@@ -348,7 +361,7 @@ if (empty($items)) {
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="<?= $has_notes ? 4 : 3 ?>" style="text-align:right">
+                        <td colspan="<?= $cols ?>" style="text-align:right">
                             Total items: <?= count($items) ?>
                         </td>
                     </tr>
@@ -357,19 +370,23 @@ if (empty($items)) {
         </div>
 
         <!-- Signature Block -->
+        <?php if ($show_sig): ?>
         <div class="sign-block">
             <div class="sign-line">Student Name</div>
             <div class="sign-line">Class</div>
             <div class="sign-line">Parent/Guardian Signature</div>
             <div class="sign-line">Date</div>
         </div>
+        <?php endif; ?>
 
         <!-- Footer Note -->
+        <?php if ($print_footer_1 || $print_footer_2 || $print_footer_3): ?>
         <p class="footer-note">
-            ★ Items must be brought on or before the first week of the term.<br>
-            ★ All items should be neatly labelled with your child's full name and class.<br>
-            ★ For inquiries, please contact the class teacher or school administration.
+            <?php if ($print_footer_1): ?>★ <?= htmlspecialchars($print_footer_1) ?><br><?php endif; ?>
+            <?php if ($print_footer_2): ?>★ <?= htmlspecialchars($print_footer_2) ?><br><?php endif; ?>
+            <?php if ($print_footer_3): ?>★ <?= htmlspecialchars($print_footer_3) ?><?php endif; ?>
         </p>
+        <?php endif; ?>
 
     </div><!-- /.print-card -->
 </div><!-- /.page-wrapper -->

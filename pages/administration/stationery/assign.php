@@ -90,6 +90,9 @@ $not_assigned = array_filter($all_catalog, fn($i) => !isset($assigned[$i['id']])
            class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
             <i class="fas fa-table-cells"></i> Tracker
         </a>
+        <a href="settings.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
+            <i class="fas fa-gear"></i> Settings
+        </a>
     </nav>
 
     <!-- Filter Form -->

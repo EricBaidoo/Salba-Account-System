@@ -22,7 +22,7 @@ if (empty($semesters)) $semesters = ["First Semester","Second Semester","Third S
 
 // Classes
 $classes = [];
-$cr = $conn->query("SELECT DISTINCT class FROM students WHERE status=''active'' AND class IS NOT NULL AND class != '''' ORDER BY class ASC");
+$cr = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' AND class IS NOT NULL AND class != '' ORDER BY class ASC");
 while ($c = $cr->fetch_assoc()) $classes[] = $c["class"];
 
 // Years
@@ -44,12 +44,12 @@ if ($selected_class) {
         SELECT sa.id as assignment_id, sa.quantity, sa.price, si.name as item_name
         FROM stationery_assignments sa
         JOIN stationery_items si ON sa.item_id = si.id
-        WHERE sa.class=''$sc'' AND sa.academic_year=''$sy''
+        WHERE sa.class='$sc' AND sa.academic_year='$sy'
         ORDER BY sa.sort_order ASC, sa.id ASC
     ");
     while ($a = $ar->fetch_assoc()) $assignments[$a["assignment_id"]] = $a;
 
-    $sr = $conn->query("SELECT id, CONCAT(first_name,'' '',last_name) as name FROM students WHERE status=''active'' AND class=''$sc'' ORDER BY first_name, last_name ASC");
+    $sr = $conn->query("SELECT id, CONCAT(first_name,' ',last_name) as name FROM students WHERE status='active' AND class='$sc' ORDER BY first_name, last_name ASC");
     while ($s = $sr->fetch_assoc()) $students[$s["id"]] = $s["name"];
 
     if (!empty($assignments)) {
@@ -138,6 +138,9 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
         <span class="flex items-center gap-2 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl">
             <i class="fas fa-table-cells"></i> Tracker
         </span>
+        <a href="settings.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
+            <i class="fas fa-gear"></i> Settings
+        </a>
     </nav>
 
     <!-- Filter -->

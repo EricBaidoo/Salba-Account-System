@@ -231,9 +231,9 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-clipboard-check"></i>
             <span>Staff Appraisals</span>
         </a>
-        <a href="<?= nav_link($base_path, 'administration/stationery/index') ?>" class="nav-item <?= nav_active('stationery', $current_page) ?>">
+        <a href="<?= nav_link($base_path, 'administration/stationery/dashboard') ?>" class="nav-item <?= nav_active('stationery', $current_page) ?>">
             <i class="fas fa-box-open"></i>
-            <span>Stationery Lists</span>
+            <span>Stationery</span>
         </a>
 
         <!-- ACADEMIC CENTER -->

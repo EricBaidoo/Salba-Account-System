@@ -61,6 +61,9 @@ $total = count($items);
         <a href="index.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
             <i class="fas fa-table-cells"></i> Tracker
         </a>
+        <a href="settings.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
+            <i class="fas fa-gear"></i> Settings
+        </a>
     </nav>
 
     <!-- Items Table -->
@@ -152,25 +155,25 @@ $total = count($items);
             <i class="fas fa-plus-circle text-indigo-600"></i> Add New Item to Catalog
         </h3>
         <div class="flex flex-wrap gap-3 items-end">
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 flex-1 min-w-[180px]">
                 <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Item Name *</label>
                 <input type="text" id="new-name" placeholder="e.g. Nataraj Pencils"
-                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 w-52">
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 w-full">
             </div>
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 flex-1 min-w-[130px]">
                 <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Default Qty / Unit</label>
-                <input type="text" id="new-unit" placeholder="e.g. 2 packs, 1 RIM"
-                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-36">
+                <input type="text" id="new-unit" placeholder="e.g. 2 packs"
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-full">
             </div>
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 min-w-[120px]">
                 <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Default Price (GH₵)</label>
                 <input type="number" id="new-price" placeholder="0.00" step="0.01" min="0"
-                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-32">
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-full">
             </div>
-            <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5 flex-1 min-w-[160px]">
                 <label class="text-[0.5rem] font-black text-slate-400 uppercase tracking-widest">Notes (optional)</label>
                 <input type="text" id="new-desc" placeholder="e.g. Must be labelled"
-                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-52">
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-full">
             </div>
             <button onclick="addItem()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
                 <i class="fas fa-plus"></i> Add Item

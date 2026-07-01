@@ -363,7 +363,7 @@ $admin_features = [
         'title' => 'Stationery Lists', 'desc' => 'Manage per-class stationery requirements, track submissions, and bill missing items.',
         'links' => [
             ['label' => 'Tracker', 'href' => 'stationery/index.php'],
-            ['label' => 'Manage Items', 'href' => 'stationery/manage.php'],
+            ['label' => 'Manage Items', 'href' => 'stationery/items.php'],
         ]
     ]
 ];
