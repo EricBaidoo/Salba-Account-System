@@ -26,6 +26,76 @@ function ensureUniqueReceiptNo(mysqli $conn, string $receipt_no): string {
     }
 }
 
+function renderReceiptChoicePage(int $payment_id, string $receipt_no, string $headline, array $details = []): void {
+    $safe_receipt_no = htmlspecialchars($receipt_no);
+    $safe_headline = htmlspecialchars($headline);
+    $detail_lines = '';
+
+    foreach ($details as $detail) {
+        $detail = trim((string)$detail);
+        if ($detail === '') {
+            continue;
+        }
+        $detail_lines .= '<p class="text-sm text-slate-600">' . htmlspecialchars($detail) . '</p>';
+    }
+
+    echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Saved | Receipt Decision</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../assets/css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900">
+    <div class="min-h-screen flex items-center justify-center px-6 py-10">
+        <div class="w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden">
+            <div class="bg-emerald-600 px-8 py-8 text-white">
+                <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center text-2xl mb-4">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <p class="text-xs font-black uppercase tracking-[0.3em] text-emerald-100 mb-2">Payment Recorded</p>
+                <h1 class="text-3xl font-black tracking-tight mb-2">' . $safe_headline . '</h1>
+                <p class="text-sm text-emerald-50">Receipt No: <span class="font-black">' . $safe_receipt_no . '</span></p>
+            </div>
+
+            <div class="px-8 py-8 space-y-6">
+                <div class="space-y-2">
+                    <p class="text-sm font-semibold text-slate-800">Do you want to print the receipt now or later?</p>
+                    ' . $detail_lines . '
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <a href="receipt.php?payment_id=' . $payment_id . '&autoprint=1" class="inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-6 py-4 text-sm font-black uppercase tracking-widest text-white hover:bg-slate-800 transition-colors">
+                        <i class="fas fa-print"></i>
+                        Print Receipt Now
+                    </a>
+                    <a href="view_payments.php" class="inline-flex items-center justify-center gap-3 rounded-2xl border border-slate-300 bg-white px-6 py-4 text-sm font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-clock"></i>
+                        Print Later
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <a href="receipt.php?payment_id=' . $payment_id . '" class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800">
+                        <i class="fas fa-eye"></i>
+                        Preview receipt without printing
+                    </a>
+                    <a href="record_payment_form.php" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-700">
+                        <i class="fas fa-plus"></i>
+                        Record another payment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>';
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_mode = $_POST['payment_mode'] ?? 'student';
     $amount = floatval($_POST['amount']);
@@ -89,7 +159,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ['account_code' => '4100', 'debit' => 0, 'credit' => $amount]  // CR Misc Revenue
             ]);
 
-            echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>General payment recorded successfully!</div>";
+            renderReceiptChoicePage(
+                $payment_id,
+                $receipt_no,
+                'General payment saved successfully.',
+                ['You can print the receipt immediately or return to the ledger and print it later.']
+            );
         } else {
             echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Error: " . $stmt->error . "</div>";
         }
@@ -248,14 +323,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             // --- END AUTOMATION WIRING ---
 
-            echo "<div class='p-4 bg-green-100 text-green-700 rounded border border-green-200'>Payment recorded and allocated successfully!";
+            $details = [];
             if ($amount != $remaining) {
-                echo "<br>Updated student fee records.";
+                $details[] = 'Student fee allocations were updated successfully.';
             }
             if ($remaining > 0) {
-                echo "<br>Unallocated amount: GHâ‚µ" . number_format($remaining, 2);
+                $details[] = 'Unallocated amount remaining: GHS ' . number_format($remaining, 2);
             }
-            echo "</div>";
+
+            renderReceiptChoicePage(
+                $payment_id,
+                $receipt_no,
+                'Payment recorded and allocated successfully.',
+                $details
+            );
         } catch (Exception $e) {
             $conn->rollback();
             echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Error processing payment: " . htmlspecialchars($e->getMessage()) . "</div>";
