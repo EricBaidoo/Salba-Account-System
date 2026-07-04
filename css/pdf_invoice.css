@@ -1,0 +1,243 @@
+/* School bill PDF stylesheet (used by download_semester_bill.php) */
+
+.pdf-document {
+    font-family: DejaVu Sans, Arial, sans-serif;
+    color: #111827;
+    font-size: 11.5px;
+    line-height: 1.42;
+}
+
+.bill-header {
+    text-align: center;
+    border-bottom: 2px solid #425587;
+    padding: 2px 0 8px;
+    margin-bottom: 8px;
+}
+
+.school-logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    margin-bottom: 4px;
+}
+
+.school-info h1 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.08;
+    font-weight: 900;
+    color: #3f5285;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+}
+
+.tagline {
+    margin: 1px 0 2px;
+    font-style: italic;
+    color: #6b7280;
+    font-size: 10px;
+}
+
+.contact {
+    margin: 0;
+    color: #6b7280;
+    font-size: 8.2px;
+    font-weight: 700;
+}
+
+.bill-title {
+    margin: 8px 0 7px;
+    background: #425587;
+    color: #ffffff;
+    text-align: center;
+    font-size: 10.8px;
+    font-weight: 900;
+    letter-spacing: 0.65px;
+    text-transform: uppercase;
+    padding: 5px 8px;
+}
+
+.student-details {
+    margin: 0 0 8px;
+}
+
+.student-details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.student-details-table td {
+    width: 50%;
+    padding: 3px 8px;
+    vertical-align: top;
+    border-left: 2px solid #425587;
+}
+
+.student-details-table .label {
+    display: inline-block;
+    font-weight: 800;
+    color: #111827;
+    text-transform: uppercase;
+}
+
+.fee-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 8px;
+}
+
+.fee-table thead tr {
+    background: #425587;
+    color: #ffffff;
+}
+
+.fee-table th {
+    padding: 5px 8px;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.45px;
+    text-align: left;
+    font-weight: 900;
+}
+
+.fee-table thead th {
+    color: #ffffff !important;
+}
+
+.fee-table td {
+    padding: 4px 8px;
+    border-bottom: 0.8px solid #d1d5db;
+    font-size: 10.8px;
+}
+
+.fee-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.fee-amount-col {
+    text-align: right;
+    width: 30%;
+    font-weight: 800;
+}
+
+.totals-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 10px;
+}
+
+.totals-table td {
+    background: #425587;
+    color: #ffffff;
+    padding: 6px 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+    font-size: 11px;
+}
+
+.bill-title,
+.totals-table td,
+.payment-plan-table thead th {
+    color: #ffffff !important;
+}
+
+.totals-table .label {
+    text-align: left;
+}
+
+.totals-table .value {
+    text-align: right;
+}
+
+.payment-section {
+    margin: 0 0 8px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    padding: 7px 8px;
+}
+
+.payment-section h3 {
+    margin: 0 0 6px;
+    color: #334e87;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.45px;
+    border-bottom: 1px solid #94a3b8;
+    padding-bottom: 3px;
+    font-weight: 900;
+}
+
+.payment-plan-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+.payment-plan-table thead th {
+    background: #425587;
+    color: #ffffff;
+    padding: 4px 6px;
+    text-transform: uppercase;
+    font-size: 9.4px;
+    letter-spacing: 0.35px;
+    text-align: left;
+    font-weight: 900;
+}
+
+.payment-plan-table td {
+    padding: 4px 6px;
+    border-bottom: 0.8px solid #d1d5db;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.payment-modes-grid {
+    width: 100%;
+}
+
+.payment-mode {
+    margin-bottom: 7px;
+}
+
+.payment-mode h4 {
+    margin: 0 0 2px;
+    text-transform: uppercase;
+    color: #334e87;
+    font-size: 10px;
+    letter-spacing: 0.35px;
+    font-weight: 900;
+}
+
+.payment-mode p {
+    margin: 0;
+    font-size: 9.6px;
+    line-height: 1.46;
+    font-weight: 700;
+}
+
+.payment-reference {
+    margin-top: 6px;
+    font-size: 9.6px;
+    color: #111827;
+    font-weight: 700;
+}
+
+.footer-notes {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 9.6px;
+    line-height: 1.52;
+    color: #111827;
+    font-weight: 700;
+}
+
+.footer-notes li {
+    margin: 0 0 2px;
+}

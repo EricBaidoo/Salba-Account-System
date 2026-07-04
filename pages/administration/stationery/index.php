@@ -3,7 +3,7 @@ include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
 
-if (($_SESSION["role"] ?? "") !== "admin") {
+if (!in_array(($_SESSION["role"] ?? ""), ["admin", "data_entry"])) {
     header("Location: ../dashboard.php"); exit;
 }
 
@@ -97,7 +97,9 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<div class="no-print"><?php include "../../../includes/sidebar_admin_modern.php"; ?></div>
+<div class="no-print"><?php ($_SESSION['role'] ?? '') === 'data_entry'
+    ? include "../../../includes/sidebar_data_entry.php"
+    : include "../../../includes/sidebar_admin_modern.php"; ?></div>
 
 <main class="admin-main-content lg:ml-72 p-4 md:p-8 min-h-screen">
 

@@ -270,7 +270,9 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                                         $role_class = [
                                             'admin' => 'bg-purple-50 text-purple-700 border-purple-100',
                                             'supervisor' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                            'facilitator' => 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                            'facilitator' => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                            'clerk' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                            'data_entry' => 'bg-amber-50 text-amber-700 border-amber-100',
                                         ][$user['role']] ?? 'bg-slate-50 text-slate-700 border-slate-100';
                                     ?>
                                     <span class="px-2.5 py-1 rounded-lg text-[0.625rem] font-black uppercase tracking-widest border <?= $role_class ?>">
@@ -352,6 +354,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                             <select name="role" class="form-input cursor-pointer">
                                 <option value="facilitator">Facilitator</option>
                                 <option value="supervisor">Supervisor</option>
+                                <option value="data_entry">Data Entry Staff</option>
                                 <option value="admin">Administrator</option>
                             </select>
                         </div>
@@ -415,6 +418,7 @@ $available_staff = $available_staff_res->fetch_all(MYSQLI_ASSOC);
                             <select name="role" id="edit_role" class="form-input">
                                 <option value="facilitator">Facilitator</option>
                                 <option value="supervisor">Supervisor</option>
+                                <option value="data_entry">Data Entry Staff</option>
                                 <option value="admin">Administrator</option>
                             </select>
                         </div>

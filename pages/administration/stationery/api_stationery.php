@@ -7,7 +7,7 @@ include '../../../includes/system_settings.php';
 ob_clean();
 header('Content-Type: application/json');
 
-if (($_SESSION['role'] ?? '') !== 'admin') {
+if (!in_array(($_SESSION['role'] ?? ''), ['admin', 'data_entry'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']); exit;
 }
 

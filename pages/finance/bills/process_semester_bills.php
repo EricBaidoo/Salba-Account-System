@@ -53,6 +53,18 @@ function calculateFeeAmount($conn, $fee_id, $student_class) {
     }
 }
 
+function isSeparateFeedingEnrolled($conn, $student_id, $academic_year, $semester) {
+    $stmt = $conn->prepare("SELECT id FROM student_daily_weekly_feeding WHERE student_id = ? AND academic_year = ? AND semester = ? AND status = 'active' LIMIT 1");
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param('iss', $student_id, $academic_year, $semester);
+    $stmt->execute();
+    $has_row = $stmt->get_result()->num_rows > 0;
+    $stmt->close();
+    return $has_row;
+}
+
 // Get form data
 $semester = $_POST['semester'] ?? '';
 $academic_year = trim($_POST['academic_year'] ?? '');
@@ -108,10 +120,26 @@ try {
     $insert_discount_stmt = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, due_date, amount, semester, academic_year, notes, assigned_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'pending')");
 
     while ($student = $students_result->fetch_assoc()) {
+        $separate_feeding = isSeparateFeedingEnrolled($conn, $student['id'], $academic_year, $semester);
         $billed_fee_amounts = [];
         $any_billed = false;
         
         foreach ($fee_ids as $fee_id) {
+            $fee_name_stmt = $conn->prepare("SELECT name FROM fees WHERE id = ? LIMIT 1");
+            $fee_name = '';
+            if ($fee_name_stmt) {
+                $fee_name_stmt->bind_param('i', $fee_id);
+                $fee_name_stmt->execute();
+                $fee_name_row = $fee_name_stmt->get_result()->fetch_assoc();
+                $fee_name = $fee_name_row['name'] ?? '';
+                $fee_name_stmt->close();
+            }
+
+            if ($separate_feeding && strtolower(trim($fee_name)) === 'feeding fee') {
+                $skipped_count++;
+                continue;
+            }
+
             // Check if already assigned
             $check_stmt = $conn->prepare(
                 "SELECT id FROM student_fees 

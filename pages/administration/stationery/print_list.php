@@ -1,14 +1,16 @@
 <?php
+ob_start();
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
 
-if (($_SESSION['role'] ?? '') !== 'admin') {
+if (!in_array(($_SESSION['role'] ?? ''), ['admin', 'data_entry'])) {
     header('Location: ../dashboard.php'); exit;
 }
 
 $selected_class = $_GET['class'] ?? '';
 $selected_year  = $_GET['academic_year'] ?? '';
+$download_pdf   = (($_GET['download'] ?? '') === 'pdf');
 $school_name    = getSystemSetting($conn, 'school_name', 'School');
 $school_logo    = getSystemSetting($conn, 'school_logo', '');
 
@@ -18,9 +20,12 @@ $print_instruction = getSystemSetting($conn, 'stationery_print_instruction', 'De
 $print_footer_1    = getSystemSetting($conn, 'stationery_print_footer_1',    'Items must be brought on or before the first week of the term.');
 $print_footer_2    = getSystemSetting($conn, 'stationery_print_footer_2',    'All items should be neatly labelled with your child\'s full name and class.');
 $print_footer_3    = getSystemSetting($conn, 'stationery_print_footer_3',    'For inquiries, please contact the class teacher or school administration.');
-$show_price        = getSystemSetting($conn, 'stationery_print_show_price',  '0') === '1';
-$show_notes        = getSystemSetting($conn, 'stationery_print_show_notes',  '1') === '1';
-$show_sig          = getSystemSetting($conn, 'stationery_print_show_sig',    '1') === '1';
+
+$logo_public_path = $school_logo ? '../../../' . ltrim($school_logo, '/') : '../../../assets/img/salba_logo.jpg';
+$logo_file_path = $school_logo
+    ? realpath(__DIR__ . '/../../../' . ltrim($school_logo, '/'))
+    : realpath(__DIR__ . '/../../../assets/img/salba_logo.jpg');
+$logo_path = ($download_pdf && $logo_file_path) ? $logo_file_path : $logo_public_path;
 
 if (!$selected_class || !$selected_year) {
     header('Location: manage.php'); exit;
@@ -43,6 +48,12 @@ if (empty($items)) {
     header('Location: manage.php?class='.urlencode($selected_class).'&academic_year='.urlencode($selected_year));
     exit;
 }
+
+$pdf_query = http_build_query([
+    'class' => $selected_class,
+    'academic_year' => $selected_year,
+    'download' => 'pdf',
+]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -56,213 +67,176 @@ if (empty($items)) {
         body {
             font-family: Arial, sans-serif;
             background: #f1f5f9;
-            color: #1e293b;
-            padding: 32px 24px;
+            color: #111827;
+            padding: 28px 18px;
         }
 
-        /* ── Screen wrapper ── */
         .page-wrapper {
-            max-width: 720px;
+            max-width: 860px;
             margin: 0 auto;
         }
 
-        /* ── Toolbar (hidden when printing) ── */
         .toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }
         .toolbar-left {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
         }
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 12px;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: .08em;
             cursor: pointer;
             border: none;
             text-decoration: none;
-            transition: opacity .15s;
         }
-        .btn:hover { opacity: .85; }
-        .btn-primary { background: #1e40af; color: #fff; }
-        .btn-ghost   { background: #fff; color: #475569; border: 1px solid #e2e8f0; }
+        .btn-primary { background: #334e87; color: #fff; }
+        .btn-ghost { background: #fff; color: #475569; border: 1px solid #d1d5db; }
 
-        /* ── The printable card ── */
         .print-card {
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+            border: 1px solid #d1d5db;
             overflow: hidden;
         }
 
-        /* ── School header ── */
         .school-header {
-            background: #1e3a8a;
-            color: #fff;
-            padding: 20px 28px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-        .school-header img {
-            height: 56px;
-            width: 56px;
-            object-fit: contain;
-            border-radius: 6px;
-            background: #fff;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-        .school-header-text h1 {
-            font-size: 18px;
-            font-weight: 900;
-            letter-spacing: .03em;
-            text-transform: uppercase;
-        }
-        .school-header-text p {
-            font-size: 11px;
-            opacity: .8;
-            margin-top: 2px;
-            font-weight: 600;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-        }
-
-        /* ── Document title band ── */
-        .doc-title-band {
-            background: #dbeafe;
-            border-top: 3px solid #3b82f6;
-            border-bottom: 3px solid #3b82f6;
-            padding: 10px 28px;
             text-align: center;
+            padding: 16px 24px 8px;
         }
-        .doc-title-band h2 {
-            font-size: 13px;
+        .school-logo {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .school-name {
+            font-size: 38px;
+            line-height: 1;
             font-weight: 900;
+            color: #3f5285;
+            letter-spacing: .02em;
             text-transform: uppercase;
-            letter-spacing: .12em;
-            color: #1e3a8a;
         }
-        .doc-title-band p {
-            font-size: 11px;
-            color: #1e40af;
-            margin-top: 2px;
-            font-weight: 700;
+        .school-meta {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #6b7280;
         }
 
-        /* ── Instruction text ── */
-        .instruction {
-            padding: 14px 28px 6px;
+        .bill-title {
+            margin: 8px 16px 6px;
+            padding: 8px 12px;
+            background: #425587;
+            color: #fff;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .meta-grid {
+            margin: 0 16px 8px;
+            border-left: 2px solid #425587;
+            border-right: 2px solid #425587;
+            padding: 8px 10px 2px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 24px;
             font-size: 11px;
-            color: #64748b;
-            line-height: 1.6;
+        }
+        .meta-grid .label {
+            color: #111827;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .instruction {
+            margin: 4px 16px 10px;
+            font-size: 10.5px;
+            color: #475569;
+            line-height: 1.5;
             font-style: italic;
         }
 
-        /* ── Items table ── */
         .items-table-wrapper {
-            padding: 12px 28px 28px;
+            margin: 0 16px 12px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12.5px;
+            font-size: 12px;
         }
         thead tr {
-            background: #1e3a8a;
+            background: #425587;
             color: #fff;
         }
         thead th {
-            padding: 10px 14px;
+            padding: 7px 10px;
             text-align: left;
             font-size: 11px;
-            font-weight: 900;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .1em;
+            letter-spacing: .05em;
         }
         thead th.right { text-align: right; }
-        tbody tr:nth-child(even) { background: #f8fafc; }
-        tbody tr:hover { background: #eff6ff; }
         tbody td {
-            padding: 9px 14px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
+            padding: 7px 10px;
+            border-bottom: 1px solid #d1d5db;
         }
         tbody td.sn {
-            color: #94a3b8;
-            font-size: 11px;
-            font-weight: 700;
             width: 36px;
             text-align: center;
+            color: #6b7280;
+            font-weight: 700;
         }
         tbody td.item-name {
             font-weight: 700;
-            color: #1e293b;
             text-transform: uppercase;
-            font-size: 12px;
         }
         tbody td.qty {
-            font-weight: 800;
-            color: #1e3a8a;
-            white-space: nowrap;
             text-align: right;
-        }
-        tbody td.notes-cell {
-            font-size: 11px;
-            color: #64748b;
-            font-style: italic;
-        }
-        tfoot tr { background: #eff6ff; }
-        tfoot td {
-            padding: 10px 14px;
-            font-size: 11px;
             font-weight: 800;
-            color: #1e3a8a;
+            color: #1f3a77;
+        }
+
+        .notes-wrap {
+            margin: 12px 16px 16px;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+        }
+        .notes-title {
+            padding: 7px 10px;
+            border-bottom: 1px solid #94a3b8;
+            color: #334e87;
+            font-size: 11px;
+            font-weight: 900;
             text-transform: uppercase;
             letter-spacing: .05em;
-            border-top: 2px solid #3b82f6;
         }
-
-        /* ── Footer note ── */
         .footer-note {
-            padding: 0 28px 24px;
+            padding: 8px 12px 10px;
             font-size: 10.5px;
-            color: #94a3b8;
-            line-height: 1.7;
+            color: #1f2937;
+            line-height: 1.65;
         }
 
-        /* ── Signature block ── */
-        .sign-block {
-            margin: 0 28px 28px;
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-        }
-        .sign-line {
-            flex: 1;
-            border-top: 1.5px solid #cbd5e1;
-            padding-top: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            color: #94a3b8;
-            text-align: center;
-        }
-
-        /* ── Print overrides ── */
         @media print {
             body {
                 background: #fff !important;
@@ -271,22 +245,23 @@ if (empty($items)) {
             .toolbar { display: none !important; }
             .page-wrapper { max-width: none; margin: 0; }
             .print-card {
+                border: 0;
                 box-shadow: none;
-                border-radius: 0;
             }
-            tbody tr:hover { background: inherit; }
+            .school-name {
+                font-size: 34px;
+            }
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; }
         }
 
-        @page {
-            margin: 1cm;
-        }
+        @page { margin: 9mm; }
     </style>
 </head>
 <body>
 <div class="page-wrapper">
 
+    <?php if (!$download_pdf): ?>
     <!-- Toolbar (screen only) -->
     <div class="toolbar">
         <div class="toolbar-left">
@@ -299,28 +274,32 @@ if (empty($items)) {
             </span>
         </div>
         <button onclick="window.print()" class="btn btn-primary">
-            🖨 Print / Save as PDF
+            Preview / Print
         </button>
+        <a href="print_list.php?<?= htmlspecialchars($pdf_query) ?>" class="btn btn-ghost">
+            Download PDF
+        </a>
     </div>
+    <?php endif; ?>
 
     <!-- Printable card -->
     <div class="print-card">
 
-        <!-- School Header -->
         <div class="school-header">
-            <?php if ($school_logo): ?>
-            <img src="../../../<?= htmlspecialchars(ltrim($school_logo, '/')) ?>" alt="Logo">
-            <?php endif; ?>
-            <div class="school-header-text">
-                <h1><?= htmlspecialchars($school_name) ?></h1>
-                <p>Stationery Requirements — Academic Year <?= htmlspecialchars($selected_year) ?></p>
-            </div>
+            <img src="<?= htmlspecialchars($logo_path) ?>" alt="Logo" class="school-logo">
+            <h1 class="school-name"><?= htmlspecialchars($school_name) ?></h1>
+            <p class="school-meta">Stationery Requirements · Academic Year <?= htmlspecialchars($selected_year) ?></p>
         </div>
 
-        <!-- Document Title Band -->
-        <div class="doc-title-band">
-            <h2>📋 <?= htmlspecialchars($print_title) ?></h2>
-            <p>Class: <?= htmlspecialchars($selected_class) ?></p>
+        <div class="bill-title">
+            <?= htmlspecialchars($print_title) ?> - <?= strtoupper(htmlspecialchars($selected_class)) ?>
+        </div>
+
+        <div class="meta-grid">
+            <div><span class="label">Class:</span> <?= strtoupper(htmlspecialchars($selected_class)) ?></div>
+            <div><span class="label">Academic Year:</span> <?= htmlspecialchars($selected_year) ?></div>
+            <div><span class="label">Date Issued:</span> <?= date('d M, Y') ?></div>
+            <div><span class="label">Total Items:</span> <?= count($items) ?></div>
         </div>
 
         <!-- Instruction -->
@@ -336,59 +315,74 @@ if (empty($items)) {
                         <th style="width:36px; text-align:center">#</th>
                         <th>Item</th>
                         <th class="right">Quantity</th>
-                        <?php if ($show_price): ?><th class="right">Price</th><?php endif; ?>
-                        <?php
-                        $has_notes = $show_notes && array_filter($items, fn($i) => !empty($i['notes']));
-                        if ($has_notes): ?>
-                        <th>Notes</th>
-                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $cols = 3 + ($show_price ? 1 : 0) + ($has_notes ? 1 : 0);
                     foreach ($items as $idx => $item): ?>
                     <tr>
                         <td class="sn"><?= $idx + 1 ?></td>
                         <td class="item-name"><?= htmlspecialchars($item['item_name']) ?></td>
                         <td class="qty"><?= htmlspecialchars($item['quantity']) ?></td>
-                        <?php if ($show_price): ?><td class="qty"><?= $item['price'] > 0 ? 'GH₵ '.number_format($item['price'],2) : '—' ?></td><?php endif; ?>
-                        <?php if ($has_notes): ?>
-                        <td class="notes-cell"><?= htmlspecialchars($item['notes'] ?? '') ?></td>
-                        <?php endif; ?>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="<?= $cols ?>" style="text-align:right">
-                            Total items: <?= count($items) ?>
-                        </td>
-                    </tr>
-                </tfoot>
             </table>
         </div>
 
-        <!-- Signature Block -->
-        <?php if ($show_sig): ?>
-        <div class="sign-block">
-            <div class="sign-line">Student Name</div>
-            <div class="sign-line">Class</div>
-            <div class="sign-line">Parent/Guardian Signature</div>
-            <div class="sign-line">Date</div>
-        </div>
-        <?php endif; ?>
-
-        <!-- Footer Note -->
         <?php if ($print_footer_1 || $print_footer_2 || $print_footer_3): ?>
-        <p class="footer-note">
-            <?php if ($print_footer_1): ?>★ <?= htmlspecialchars($print_footer_1) ?><br><?php endif; ?>
-            <?php if ($print_footer_2): ?>★ <?= htmlspecialchars($print_footer_2) ?><br><?php endif; ?>
-            <?php if ($print_footer_3): ?>★ <?= htmlspecialchars($print_footer_3) ?><?php endif; ?>
-        </p>
+        <div class="notes-wrap">
+            <div class="notes-title">Note:</div>
+            <div class="footer-note">
+                <?php if ($print_footer_1): ?>1. <?= htmlspecialchars($print_footer_1) ?><br><?php endif; ?>
+                <?php if ($print_footer_2): ?>2. <?= htmlspecialchars($print_footer_2) ?><br><?php endif; ?>
+                <?php if ($print_footer_3): ?>3. <?= htmlspecialchars($print_footer_3) ?><?php endif; ?>
+            </div>
+        </div>
         <?php endif; ?>
 
     </div><!-- /.print-card -->
 </div><!-- /.page-wrapper -->
 </body>
 </html>
+<?php
+$html = ob_get_clean();
+
+if ($download_pdf) {
+    $autoload = __DIR__ . '/../../../vendor/autoload.php';
+    if (!file_exists($autoload)) {
+        http_response_code(500);
+        echo 'mPDF library is not installed. Run: composer require mpdf/mpdf';
+        exit;
+    }
+
+    require_once $autoload;
+
+    try {
+        $mpdf = new \Mpdf\Mpdf([
+            'format' => 'A4',
+            'margin_top' => 8,
+            'margin_bottom' => 8,
+            'margin_left' => 8,
+            'margin_right' => 8,
+        ]);
+        $mpdf->SetTitle('Stationery List - ' . $selected_class . ' - ' . $selected_year);
+        $mpdf->WriteHTML($html);
+        $filename = 'stationery_list_' . preg_replace('/[^a-z0-9]+/i', '_', $selected_class) . '_' . preg_replace('/[^0-9_\-]/', '', $selected_year) . '.pdf';
+        $pdfBinary = $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
+        $encoded = rawurlencode($filename);
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . $encoded);
+        header('Content-Length: ' . strlen($pdfBinary));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+        echo $pdfBinary;
+        exit;
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        echo 'PDF generation failed: ' . $e->getMessage();
+        exit;
+    }
+}
+
+echo $html;

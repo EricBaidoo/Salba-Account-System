@@ -291,6 +291,10 @@ if (!function_exists('nav_active')) {
             <i class="fas fa-cash-register"></i>
             <span>Payments & Receipts</span>
         </a>
+        <a href="<?= nav_link($base_path, 'finance/feeding/dashboard') ?>" class="nav-item <?= nav_active('dashboard', $current_page) && strpos($_SERVER['REQUEST_URI'], 'feeding') !== false ? 'active' : '' ?>">
+            <i class="fas fa-utensils"></i>
+            <span>Feeding Hub</span>
+        </a>
         <a href="<?= nav_link($base_path, 'finance/expenses/view_expenses') ?>" class="nav-item <?= nav_active('view_expenses', $current_page) ?>">
             <i class="fas fa-receipt"></i>
             <span>Expense Tracker</span>

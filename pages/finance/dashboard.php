@@ -274,6 +274,20 @@ $net_position = $total_revenue - $total_expenses - $total_payroll_expense;
                 </div>
             </a>
 
+            <!-- School Feeding Card -->
+            <a href="feeding/dashboard.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-orange-500/10 hover:border-orange-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
+                <div>
+                    <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center text-lg mb-3 group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">School Feeding</h4>
+                    <p class="text-slate-500 text-xs mb-3 line-clamp-2">Manage weekly and monthly feeding plans, enrollment, and collections.</p>
+                </div>
+                <div class="text-orange-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Open Feeding <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
             <!-- Invoicing/Billing Options -->
             <a href="fees/view_fees.php" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:shadow-amber-500/10 hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between h-full">
                 <div>

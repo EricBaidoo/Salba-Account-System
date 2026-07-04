@@ -4,7 +4,7 @@ include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
 
-if (!in_array($_SESSION['role'] ?? '', ['admin', 'finance'])) { header('Location: ' . BASE_URL . 'index'); exit; }
+if (!in_array($_SESSION['role'] ?? '', ['admin', 'finance', 'data_entry'])) { header('Location: ' . BASE_URL . 'index'); exit; }
 
 $current_term = getCurrentSemester($conn);
 $current_year = getAcademicYear($conn);

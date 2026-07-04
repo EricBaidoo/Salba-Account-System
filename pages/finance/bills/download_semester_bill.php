@@ -13,18 +13,23 @@ require_once '../../../includes/student_balance_functions.php';
 require_once '../../../includes/semester_helpers.php';
 
 if (!is_logged_in()) {
-    ob_end_clean();
-    header('Location: login.php');
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Location: ../../../login.php');
     exit;
 }
 
 // Check if mPDF is installed
-if (!file_exists('../vendor/autoload.php')) {
-    ob_end_clean();
+$composer_autoload = __DIR__ . '/../../../vendor/autoload.php';
+if (!file_exists($composer_autoload)) {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     die('Error: mPDF library not installed. Please run: composer require mpdf/mpdf');
 }
 
-require_once '../vendor/autoload.php';
+require_once $composer_autoload;
 
 // Get parameters
 $semester = isset($_GET['semester']) ? $_GET['semester'] : '';
@@ -32,7 +37,9 @@ $class_filter = isset($_GET['class']) ? $_GET['class'] : 'all';
 $student_id = isset($_GET['student_id']) ? intval($_GET['student_id']) : 0;
 
 if (empty($semester)) {
-    ob_end_clean();
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     die('Error: Semester is required');
 }
 
@@ -375,12 +382,19 @@ foreach ($students as $student) {
 // If only one student, download the PDF directly
 if (count($pdf_files) === 1) {
     $file = $pdf_files[0];
+    $safe_name = trim((string)($file['name'] ?? 'semester_bill.pdf'));
+    if ($safe_name === '' || !preg_match('/\.pdf$/i', $safe_name)) {
+        $safe_name = 'semester_bill.pdf';
+    }
+    $encoded_name = rawurlencode($safe_name);
     
-    // Clear any output buffer
-    ob_end_clean();
+    // Clear all output buffers before sending binary data
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="' . $file['name'] . '"');
+    header('Content-Disposition: attachment; filename="' . $safe_name . '"; filename*=UTF-8\'\'' . $encoded_name);
     header('Content-Length: ' . filesize($file['path']));
     header('Cache-Control: max-age=0');
     header('Pragma: public');
@@ -399,17 +413,24 @@ if (count($pdf_files) > 1) {
     if (!class_exists('ZipArchive')) {
         // ZipArchive not available - download first PDF with a note
         $file = $pdf_files[0];
+        $safe_name = trim((string)($file['name'] ?? 'semester_bill.pdf'));
+        if ($safe_name === '' || !preg_match('/\.pdf$/i', $safe_name)) {
+            $safe_name = 'semester_bill.pdf';
+        }
+        $encoded_name = rawurlencode($safe_name);
         
         // Clean up other files
         for ($i = 1; $i < count($pdf_files); $i++) {
             unlink($pdf_files[$i]['path']);
         }
         
-        // Clear any output buffer
-        ob_end_clean();
+        // Clear all output buffers before sending binary data
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         
         header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $file['name'] . '"');
+        header('Content-Disposition: attachment; filename="' . $safe_name . '"; filename*=UTF-8\'\'' . $encoded_name);
         header('Content-Length: ' . filesize($file['path']));
         header('Cache-Control: max-age=0');
         header('Pragma: public');
@@ -438,12 +459,14 @@ if (count($pdf_files) > 1) {
         }
         $zip->close();
         
-        // Clear any output buffer
-        ob_end_clean();
+        // Clear all output buffers before sending binary data
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         
         // Download the ZIP file
         header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $zip_filename . '"');
+        header('Content-Disposition: attachment; filename="' . $zip_filename . '"; filename*=UTF-8\'\'' . rawurlencode($zip_filename));
         header('Content-Length: ' . filesize($zip_path));
         header('Cache-Control: max-age=0');
         header('Pragma: public');
