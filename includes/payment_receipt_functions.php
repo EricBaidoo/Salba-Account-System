@@ -229,11 +229,6 @@ function buildPaymentReceiptPdfHtml(array $context) {
         </tr>';
     }
 
-    $sig_row = '<tr>
-        <td width="50%" style="padding-top:24px;font-size:8pt;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;border-top:1px solid #94a3b8;">Accounts Office</td>
-        <td width="50%" style="padding-top:24px;font-size:8pt;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;border-top:1px solid #94a3b8;text-align:right;">Parent / Guardian</td>
-    </tr>';
-
     return '<!DOCTYPE html>
 <html>
 <head>
@@ -304,8 +299,6 @@ function buildPaymentReceiptPdfHtml(array $context) {
 </table>
 
 <table style="margin-bottom:12px;">' . $balance_row . '</table>
-
-<table><tr>' . $sig_row . '</tr></table>
 </body>
 </html>';
 }
@@ -406,7 +399,7 @@ function buildPaymentReceiptHtml(array $context, array $options = []) {
         .receipt-sheet::before { content: ""; position: absolute; inset: 12px; border: 1px solid #ebe2d3; pointer-events: none; }
         .receipt-body { position: relative; padding: 18px 16px 16px; }
         .top-strip { height: 8px; background: linear-gradient(90deg, #0f766e 0%, #14532d 100%); margin: -18px -16px 14px; }
-        .brand-table, .summary-table, .meta-table, .signature-table { width: 100%; border-collapse: collapse; }
+        .brand-table, .summary-table, .meta-table { width: 100%; border-collapse: collapse; }
         .brand-logo { width: 52px; height: 52px; object-fit: contain; display: block; }
         .brand-table td { vertical-align: top; }
         .brand-logo-cell { width: 62px; }
@@ -435,9 +428,6 @@ function buildPaymentReceiptHtml(array $context, array $options = []) {
         .summary-label { background: #0f172a; color: #ffffff; font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; }
         .summary-value { background: #0f172a; color: #ffffff; text-align: right; font-size: 16px; font-weight: 800; }
         .balance-row td { background: #fff4f2; color: #9f1239; border-top: 8px solid #fffdf9; }
-        .signature-table { margin-top: 18px; }
-        .signature-table td { width: 50%; padding-top: 18px; font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; }
-        .signature-line { border-top: 1px solid #94a3b8; padding-top: 6px; }
         @media print {
             @page { size: A6 portrait; margin: 0; }
             body { background: #ffffff; }
@@ -518,14 +508,6 @@ function buildPaymentReceiptHtml(array $context, array $options = []) {
                 <table class="summary-table">
                     ' . ($is_student_payment ? '<tr class="balance-row"><td class="summary-label" style="background:#fff4f2;color:#9f1239;">Outstanding</td><td class="summary-value" style="background:#fff4f2;color:#9f1239;font-size:16px;">GHS ' . $outstanding_display . '</td></tr>' : '') . '
                 </table>
-
-                <table class="signature-table">
-                    <tr>
-                        <td><div class="signature-line">Accounts Office</div></td>
-                        <td style="text-align:right;"><div class="signature-line">Parent / Guardian</div></td>
-                    </tr>
-                </table>
-
             </div>
         </div>
     </div>

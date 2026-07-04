@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $payment_id,
                 $receipt_no,
                 'General payment saved successfully.',
-                ['You can print the receipt immediately or return to the ledger and print it later.']
+                ['Choose whether to print the receipt now or later from the payment ledger.']
             );
         } else {
             echo "<div class='p-4 bg-red-100 text-red-700 rounded border border-red-200'>Error: " . $stmt->error . "</div>";
@@ -335,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $payment_id,
                 $receipt_no,
                 'Payment recorded and allocated successfully.',
-                $details
+                ['Choose whether to print the receipt now or later from the payment ledger.']
             );
         } catch (Exception $e) {
             $conn->rollback();
