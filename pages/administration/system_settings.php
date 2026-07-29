@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // School Identity
-        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_semester'];
+        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'next_semester_begins', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_semester', 'transcript_left_signature_label', 'transcript_right_signature_label'];
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 if (setSystemSetting($conn, $field, $_POST[$field], $updated_by)) $update_count++;
@@ -95,6 +95,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $err_map = [1=>"Size exceeds limit", 2=>"Size exceeds limit", 3=>"Partial upload", 4=>"No file", 6=>"Temp folder missing", 7=>"Disk write failed"];
                 $error_message .= "Upload Error: " . ($err_map[$upload_error] ?? "Code $upload_error") . ". ";
+            }
+        }
+
+        // Signature Upload Handling 
+        if (isset($_FILES['principal_signature']) && $_FILES['principal_signature']['name'] !== '') {
+            $upload_error = $_FILES['principal_signature']['error'];
+            
+            if ($upload_error === UPLOAD_ERR_OK) {
+                $file_tmp = $_FILES['principal_signature']['tmp_name'];
+                $file_name = $_FILES['principal_signature']['name'];
+                $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+                if (in_array($ext, $allowed)) {
+                    $new_name = 'signature_' . time() . '.' . $ext;
+                    $upload_path = '../../assets/img/' . $new_name;
+                    $db_path = 'assets/img/' . $new_name;
+
+                    if (move_uploaded_file($file_tmp, $upload_path)) {
+                        $old_sig = getSystemSetting($conn, 'principal_signature', '');
+                        if (!empty($old_sig) && file_exists('../../' . $old_sig)) {
+                            @unlink('../../' . $old_sig);
+                        }
+                        setSystemSetting($conn, 'principal_signature', $db_path, $updated_by);
+                        $success_message .= "Signature updated. ";
+                        $update_count++;
+                    } else {
+                        $error_message .= "Permission Error: Could not save signature. ";
+                    }
+                } else {
+                    $error_message .= "Unsupported format for signature: $ext. ";
+                }
+            } else {
+                $err_map = [1=>"Size exceeds limit", 2=>"Size exceeds limit", 3=>"Partial upload", 4=>"No file", 6=>"Temp folder missing", 7=>"Disk write failed"];
+                $error_message .= "Signature Upload Error: " . ($err_map[$upload_error] ?? "Code $upload_error") . ". ";
             }
         }
 
@@ -259,19 +294,38 @@ for ($i = -2; $i <= 5; $i++) {
                                 <span class="text-[0.625rem] font-bold text-gray-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-gray-100">Profile</span>
                             </div>
                             <div class="p-8 space-y-8">
-                                <div class="flex flex-col md:flex-row items-center gap-8 p-6 bg-emerald-50/30 rounded-3xl border border-emerald-100/50">
-                                    <div class="relative group">
-                                        <div class="w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-3 border border-emerald-100 overflow-hidden transition-transform group-hover:scale-105">
-                                            <img id="logoPreview" src="../../<?= getSystemLogo($conn) ?>" class="w-full h-full object-contain">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="flex flex-col md:flex-row items-center gap-6 p-6 bg-emerald-50/30 rounded-3xl border border-emerald-100/50">
+                                        <div class="relative group">
+                                            <div class="w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-3 border border-emerald-100 overflow-hidden transition-transform group-hover:scale-105">
+                                                <img id="logoPreview" src="../../<?= getSystemLogo($conn) ?>" class="w-full h-full object-contain">
+                                            </div>
+                                            <label class="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-black transition-colors border-2 border-white">
+                                                <i class="fas fa-camera text-xs"></i>
+                                                <input type="file" name="system_logo" id="logoInput" class="hidden" accept="image/*" onchange="previewLogo(event, 'logoPreview')">
+                                            </label>
                                         </div>
-                                        <label class="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-black transition-colors border-2 border-white">
-                                            <i class="fas fa-camera text-xs"></i>
-                                            <input type="file" name="system_logo" id="logoInput" class="hidden" accept="image/*" onchange="previewLogo(event)">
-                                        </label>
+                                        <div class="flex-1 space-y-1 text-center md:text-left">
+                                            <h4 class="text-[0.6875rem] font-black text-gray-900 uppercase tracking-widest">Institution Branding</h4>
+                                            <p class="text-[0.625rem] text-gray-500 font-medium">Official school logo for reports.</p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1 space-y-1 text-center md:text-left">
-                                        <h4 class="text-sm font-black text-gray-900 uppercase tracking-widest">Institution Branding</h4>
-                                        <p class="text-xs text-gray-500 font-medium">Click the camera icon to upload your official school logo.</p>
+                                    
+                                    <div class="flex flex-col md:flex-row items-center gap-6 p-6 bg-blue-50/30 rounded-3xl border border-blue-100/50">
+                                        <div class="relative group">
+                                            <div class="w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-3 border border-blue-100 overflow-hidden transition-transform group-hover:scale-105">
+                                                <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
+                                                <img id="sigPreview" src="../../<?= $p_sig ? htmlspecialchars($p_sig) : 'assets/img/placeholder_sig.png' ?>" class="w-full h-full object-contain">
+                                            </div>
+                                            <label class="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-black transition-colors border-2 border-white">
+                                                <i class="fas fa-signature text-xs"></i>
+                                                <input type="file" name="principal_signature" id="sigInput" class="hidden" accept="image/*" onchange="previewLogo(event, 'sigPreview')">
+                                            </label>
+                                        </div>
+                                        <div class="flex-1 space-y-1 text-center md:text-left">
+                                            <h4 class="text-[0.6875rem] font-black text-gray-900 uppercase tracking-widest">Principal Signature</h4>
+                                            <p class="text-[0.625rem] text-gray-500 font-medium">Official signature for transcripts.</p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -291,6 +345,20 @@ for ($i = -2; $i <= 5; $i++) {
                                     <div>
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Official Email</label>
                                         <input type="email" name="school_email" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_email', '')) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="admin@salba.edu.gh">
+                                    </div>
+                                    
+                                    <div class="md:col-span-2 pt-4 mt-2 border-t border-gray-100">
+                                        <h4 class="text-[0.6875rem] font-black text-gray-900 uppercase tracking-widest mb-4">Transcript Signature Titles</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Left Signature Label</label>
+                                                <input type="text" name="transcript_left_signature_label" value="<?= htmlspecialchars(getSystemSetting($conn, 'transcript_left_signature_label', "Class Teacher's Signature")) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="Class Teacher's Signature">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Right Signature Label</label>
+                                                <input type="text" name="transcript_right_signature_label" value="<?= htmlspecialchars(getSystemSetting($conn, 'transcript_right_signature_label', "Principal's / Headteacher's / Supervisor's Signature")) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="Principal's / Headteacher's / Supervisor's Signature">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -335,7 +403,7 @@ for ($i = -2; $i <= 5; $i++) {
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-blue-50/30 rounded-3xl border border-blue-100/50">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-blue-50/30 rounded-3xl border border-blue-100/50">
                                     <div>
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Cycle Start Date</label>
                                         <input type="date" name="semester_start_date" id="semester_start_date" value="<?= htmlspecialchars(getSystemSetting($conn, 'semester_start_date', '')) ?>" class="w-full px-5 py-4 bg-white border border-transparent focus:border-blue-500 rounded-2xl font-black text-gray-800 outline-none transition-all shadow-sm">
@@ -344,7 +412,11 @@ for ($i = -2; $i <= 5; $i++) {
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Cycle End Date</label>
                                         <input type="date" name="semester_end_date" id="semester_end_date" value="<?= htmlspecialchars(getSystemSetting($conn, 'semester_end_date', '')) ?>" class="w-full px-5 py-4 bg-white border border-transparent focus:border-blue-500 rounded-2xl font-black text-gray-800 outline-none transition-all shadow-sm">
                                     </div>
-                                    <div id="date-warning" class="hidden md:col-span-2 mt-2 px-4 py-3 bg-white rounded-xl border border-orange-200">
+                                    <div>
+                                        <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2">Next Term Begins</label>
+                                        <input type="date" name="next_semester_begins" id="next_semester_begins" value="<?= htmlspecialchars(getSystemSetting($conn, 'next_semester_begins', '')) ?>" class="w-full px-5 py-4 bg-white border border-transparent focus:border-blue-500 rounded-2xl font-black text-gray-800 outline-none transition-all shadow-sm">
+                                    </div>
+                                    <div id="date-warning" class="hidden md:col-span-3 mt-2 px-4 py-3 bg-white rounded-xl border border-orange-200">
                                         <p class="text-[0.625rem] font-bold text-orange-600 uppercase tracking-tight flex items-center gap-2">
                                             <i class="fas fa-info-circle text-orange-500"></i> Academic cycle changed. Please verify your start and end dates.
                                         </p>
@@ -514,10 +586,10 @@ for ($i = -2; $i <= 5; $i++) {
     </main>
 
     <script>
-    function previewLogo(event) {
+    function previewLogo(event, targetId = 'logoPreview') {
         const reader = new FileReader();
         reader.onload = function() {
-            const output = document.getElementById('logoPreview');
+            const output = document.getElementById(targetId);
             output.src = reader.result;
         }
         if (event.target.files[0]) {
@@ -528,7 +600,7 @@ for ($i = -2; $i <= 5; $i++) {
     // Modern detection for academic cycle changes
     const cycleInputs = document.querySelectorAll('select[name="current_semester"], select[name="academic_year"]');
     const dateWarning = document.getElementById('date-warning');
-    const dateFields = [document.getElementById('semester_start_date'), document.getElementById('semester_end_date')];
+    const dateFields = [document.getElementById('semester_start_date'), document.getElementById('semester_end_date'), document.getElementById('next_semester_begins')];
 
     cycleInputs.forEach(input => {
         input.addEventListener('change', () => {

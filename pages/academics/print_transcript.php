@@ -17,16 +17,44 @@ if ($render_type === 'pdf' && ($_SESSION['role'] ?? '') !== 'admin') {
     die("Institutional Security: PDF generation is restricted to the Administrative role. Please use the Digital Preview only.");
 }
 
+$is_bulk = isset($_GET['bulk']) && $_GET['bulk'] == 1;
 $id = intval($_GET['student'] ?? ($_GET['id'] ?? 0));
 $selected_class = $conn->real_escape_string($_GET['class'] ?? '');
-if (!$id) die("Invalid Student ID.");
+
+if (!$is_bulk && !$id) die("Invalid Student ID.");
+if ($is_bulk && !$selected_class) die("Invalid Class for bulk printing.");
 
 $current_year = getAcademicYear($conn);
 $current_term = getCurrentSemester($conn);
 
+$reopening_raw = getSystemSetting($conn, 'next_semester_begins', '');
+$reopening_date = $reopening_raw ? date('jS F Y', strtotime($reopening_raw)) : '—';
+
+$vacation_raw = getSystemSetting($conn, 'semester_end_date', '');
+$vacation_date = $vacation_raw ? date('jS F Y', strtotime($vacation_raw)) : '—';
+
+function ordinalSuffix($num) {
+    if (!is_numeric($num)) return $num;
+    if ($num % 100 >= 11 && $num % 100 <= 13) return $num . 'th';
+    switch ($num % 10) {
+        case 1: return $num . 'st';
+        case 2: return $num . 'nd';
+        case 3: return $num . 'rd';
+        default: return $num . 'th';
+    }
+}
+
 // Fetch Student Data
-$p = $conn->query("SELECT * FROM students WHERE id = $id")->fetch_assoc();
-if (!$p) die("Student not found.");
+$target_students = [];
+if ($is_bulk) {
+    $res = $conn->query("SELECT * FROM students WHERE class = '$selected_class' AND status='active'");
+    while($row = $res->fetch_assoc()) $target_students[] = $row;
+    if (empty($target_students)) die("No active students found in this class.");
+} else {
+    $p = $conn->query("SELECT * FROM students WHERE id = $id")->fetch_assoc();
+    if (!$p) die("Student not found.");
+    $target_students[] = $p;
+}
 
 // Fetch Class Size
 $class_size = 0;
@@ -53,18 +81,24 @@ $global_oa_weight = floatval(getSystemSetting($conn, 'term_oa_weight', 30));
 $global_exam_weight = floatval(getSystemSetting($conn, 'term_exam_weight', 70));
 
 // Compile Transcript Engine (Ranking & Math)
-$transcript_lines = [];
-$student_remarks = null;
+$student_transcripts = []; // $student_transcripts[student_id] = [...]
+$all_remarks = [];
 
-if ($selected_class && $id) {
+if ($selected_class) {
     $class_scores = []; 
     
     // Map Configs to Array for robust matching
     $oa_types = []; $exam_types = [];
-    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
+    $total_max_oa = 0; $total_max_ex = 0;
+    $type_res = $conn->query("SELECT assessment_name, is_exam, max_marks_allocation FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
     while($r = $type_res->fetch_assoc()) {
-        if ($r['is_exam']) $exam_types[] = $r['assessment_name'];
-        else $oa_types[] = $r['assessment_name'];
+        if ($r['is_exam']) {
+            $exam_types[] = $r['assessment_name'];
+            $total_max_ex += floatval($r['max_marks_allocation']);
+        } else {
+            $oa_types[] = $r['assessment_name'];
+            $total_max_oa += floatval($r['max_marks_allocation']);
+        }
     }
 
     // Valid subjects filter
@@ -110,34 +144,57 @@ if ($selected_class && $id) {
         }
     }
     
+    // Calculate overall class positions
+    $student_overall_totals = [];
+    foreach ($class_scores as $sub => $scores_array) {
+        foreach ($scores_array as $st_id => $st_data) {
+            $final_oa = ($total_max_oa > 0) ? ($st_data['oa_raw'] / $total_max_oa) * $global_oa_weight : 0;
+            $final_ex = ($total_max_ex > 0) ? ($st_data['ex_raw'] / $total_max_ex) * $global_exam_weight : 0;
+            if (!isset($student_overall_totals[$st_id])) $student_overall_totals[$st_id] = 0;
+            $student_overall_totals[$st_id] += ($final_oa + $final_ex);
+        }
+    }
+    
+    $ranked_overall_totals = array_values($student_overall_totals);
+    rsort($ranked_overall_totals);
+    $student_overall_positions = [];
+    foreach ($student_overall_totals as $st_id => $total) {
+        $student_overall_positions[$st_id] = array_search($total, $ranked_overall_totals) + 1;
+    }
+    
     // Calculate positions per subject
     foreach ($class_scores as $sub => $scores_array) {
         $all_totals = [];
         foreach ($scores_array as $st_id => $st_data) {
-            $final_oa = ($st_data['oa_raw'] * ($global_oa_weight / 100));
-            $final_ex = ($st_data['ex_raw'] * ($global_exam_weight / 100));
+            $final_oa = ($total_max_oa > 0) ? ($st_data['oa_raw'] / $total_max_oa) * $global_oa_weight : 0;
+            $final_ex = ($total_max_ex > 0) ? ($st_data['ex_raw'] / $total_max_ex) * $global_exam_weight : 0;
             $all_totals[$st_id] = $final_oa + $final_ex;
         }
         
         $ranked_scores = array_values($all_totals);
         rsort($ranked_scores);
         
-        if (isset($all_totals[$id])) {
-            $my_total = $all_totals[$id];
+        foreach ($scores_array as $st_id => $st_data) {
+            $my_total = $all_totals[$st_id];
             $pos = array_search($my_total, $ranked_scores) + 1;
             
-            $st_data = $scores_array[$id];
-            $final_oa = ($st_data['oa_raw'] * ($global_oa_weight / 100));
-            $final_ex = ($st_data['ex_raw'] * ($global_exam_weight / 100));
+            $final_oa = ($total_max_oa > 0) ? ($st_data['oa_raw'] / $total_max_oa) * $global_oa_weight : 0;
+            $final_ex = ($total_max_ex > 0) ? ($st_data['ex_raw'] / $total_max_ex) * $global_exam_weight : 0;
             
+            $rounded_total = round($my_total, 1);
             $grade = ''; $remark = '';
-            if ($my_total >= 80)      { $grade = 'A'; $remark = 'Advance'; }
-            elseif ($my_total >= 70)  { $grade = 'B'; $remark = 'Proficient'; }
-            elseif ($my_total >= 60)  { $grade = 'C'; $remark = 'Basic'; }
-            elseif ($my_total >= 50)  { $grade = 'D'; $remark = 'Pass'; }
-            else                      { $grade = 'F'; $remark = 'Below Basic'; }
+            if ($rounded_total >= 80)      { $grade = '1'; $remark = 'Excellent'; }
+            elseif ($rounded_total >= 70)  { $grade = '2'; $remark = 'Very Good'; }
+            elseif ($rounded_total >= 65)  { $grade = '3'; $remark = 'Good'; }
+            elseif ($rounded_total >= 60)  { $grade = '4'; $remark = 'Credit'; }
+            elseif ($rounded_total >= 55)  { $grade = '5'; $remark = 'Credit'; }
+            elseif ($rounded_total >= 50)  { $grade = '6'; $remark = 'Credit'; }
+            elseif ($rounded_total >= 45)  { $grade = '7'; $remark = 'Pass'; }
+            elseif ($rounded_total >= 40)  { $grade = '8'; $remark = 'Pass'; }
+            else                           { $grade = '9'; $remark = 'Fail'; }
             
-            $transcript_lines[] = [
+            if (!isset($student_transcripts[$st_id])) $student_transcripts[$st_id] = [];
+            $student_transcripts[$st_id][] = [
                 'subject' => $sub,
                 'oa' => round($final_oa, 1),
                 'ex' => round($final_ex, 1),
@@ -149,9 +206,11 @@ if ($selected_class && $id) {
         }
     }
     
-    // Fetch Remarks
-    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE student_id = $id AND academic_year = '$current_year' AND semester = '$current_term'");
-    if($rem_res->num_rows > 0) $student_remarks = $rem_res->fetch_assoc();
+    // Fetch Remarks for the whole class
+    $rem_res = $conn->query("SELECT * FROM student_term_remarks WHERE academic_year = '$current_year' AND semester = '$current_term'");
+    while($r = $rem_res->fetch_assoc()) {
+        $all_remarks[$r['student_id']] = $r;
+    }
 }
 
 // Get School Branding (Dynamic - No hardcoding)
@@ -167,8 +226,6 @@ $raw_vacation   = getSystemSetting($conn, 'semester_end_date', '');
 $reopening_date = $raw_reopening ? date('jS F Y', strtotime($raw_reopening)) : '—';
 $vacation_date  = $raw_vacation  ? date('jS F Y', strtotime($raw_vacation))  : '—';
 
-$v = fn($k) => htmlspecialchars($p[$k] ?? '-');
-
 if (isset($_GET['view']) && $_GET['view'] == 'html') {
     $render_type = 'html';
 } else {
@@ -180,7 +237,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Transcript - <?= $v('first_name') ?> <?= $v('last_name') ?></title>
+    <title><?= $is_bulk ? 'Class Transcripts - ' . htmlspecialchars($selected_class) : 'Transcript - ' . htmlspecialchars($target_students[0]['first_name'] . ' ' . $target_students[0]['last_name']) ?></title>
     <style>
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; line-height: 1.3; color: #000; margin: 0; padding: 0; }
         .print-container { width: 100%; border: none; }
@@ -205,7 +262,9 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         .remark-content { font-weight: bold; font-style: italic; color: #1e293b; font-size: 12px; }
 
         .footer { margin-top: 30px; }
-        .sig-box { width: 45%; border-top: 1px solid #000; text-align: center; padding-top: 5px; font-weight: bold; font-size: 11px; margin-top: 40px; }
+        .sig-container { width: 45%; text-align: center; margin-top: 40px; position: relative; }
+        .sig-line { border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 11px; position: relative; z-index: 10; width: 80%; margin: 0 auto; }
+        .sig-img { height: 40px; position: relative; z-index: 20; margin-bottom: -15px; }
     </style>
 </head>
 <body style="<?= ($render_type == 'html') ? 'background-color: #f1f5f9; padding-bottom: 60px;' : '' ?>">
@@ -213,10 +272,10 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
 
     <?php if ($render_type == 'html'): ?>
         <div class="web-only-nav" style="background: #fff; padding: 10px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <div style="font-weight: bold; color: #1e293b; font-size: 14px;"><i class="fas fa-certificate text-indigo-500 mr-2"></i> Official Transcript Preview</div>
+            <div style="font-weight: bold; color: #1e293b; font-size: 14px;"><i class="fas fa-certificate text-indigo-500 mr-2"></i> Official Transcript Preview <?= $is_bulk ? '(Bulk Mode)' : '' ?></div>
             <div style="display: flex; gap: 10px;">
                 <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-                    <a href="?student=<?= $id ?>&class=<?= urlencode($selected_class) ?>" class="btn-action" style="background: #ef4444; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                    <a href="?<?= $is_bulk ? 'bulk=1&' : 'student='.$id.'&' ?>class=<?= urlencode($selected_class) ?>" class="btn-action" style="background: #ef4444; color: #fff; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-file-pdf"></i> Download PDF
                     </a>
                 <?php endif; ?>
@@ -226,6 +285,13 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </div>
         </div>
     <?php endif; ?>
+
+    <?php foreach ($target_students as $index => $p): 
+        $id = $p['id'];
+        $transcript_lines = $student_transcripts[$id] ?? [];
+        $student_remarks = $all_remarks[$id] ?? null;
+        $v = fn($k) => htmlspecialchars($p[$k] ?? '-');
+    ?>
 
     <div class="print-container" style="<?= ($render_type == 'html') ? 'max-width: 900px; margin: 40px auto; padding: 40px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 12px;' : '' ?>">
         
@@ -243,7 +309,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </div>
         </div>
 
-        <div class="doc-title">Semesterinal Progress Report</div>
+        <div class="doc-title">END OF <?= strtoupper($current_term) ?> REPORT</div>
 
         <!-- Student Bio -->
         <table class="box-table">
@@ -256,7 +322,8 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <td><span class="label">Semester:</span> <span class="content"><?= strtoupper($current_term) ?></span></td>
             </tr>
             <tr>
-                <td><span class="label">Position:</span> <span class="content">—</span></td> <!-- Master rank can be calculated later -->
+                <?php $ov_pos = $student_overall_positions[$id] ?? '—'; ?>
+                <td><span class="label">Position:</span> <span class="content"><?= ordinalSuffix($ov_pos) ?></span></td>
                 <td><span class="label">No. on Roll:</span> <span class="content"><?= $class_size ?></span></td>
             </tr>
             <tr>
@@ -269,7 +336,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         <table class="grade-table">
             <thead>
                 <tr>
-                    <th style="width: 30%;">Subject / Learning Area</th>
+                    <th style="width: 30%;">Subject</th>
                     <th style="width: 12%;">OA (<?= $global_oa_weight ?>%)</th>
                     <th style="width: 12%;">Exam (<?= $global_exam_weight ?>%)</th>
                     <th style="width: 15%;">Total (100%)</th>
@@ -319,16 +386,36 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
-        <div style="display: flex; justify-content: space-between;">
-            <div class="sig-box">
-                Class Teacher's Signature
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div class="sig-container">
+                <div style="height: 40px; margin-bottom: -15px;"></div>
+                <div class="sig-line">
+                    <?= htmlspecialchars(getSystemSetting($conn, 'transcript_left_signature_label', "Class Teacher's Signature")) ?>
+                </div>
             </div>
-            <div class="sig-box">
-                Principal's / Headteacher's / Supervisor's Signature
+            <div class="sig-container">
+                <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
+                <?php if ($p_sig): ?>
+                    <img src="../../<?= htmlspecialchars($p_sig) ?>" class="sig-img">
+                <?php else: ?>
+                    <div style="height: 40px; margin-bottom: -15px;"></div>
+                <?php endif; ?>
+                <div class="sig-line">
+                    <?= htmlspecialchars(getSystemSetting($conn, 'transcript_right_signature_label', "Principal's / Headteacher's / Supervisor's Signature")) ?>
+                </div>
             </div>
         </div>
 
     </div>
+    
+    <?php if ($index < count($target_students) - 1): ?>
+        <?php if ($render_type == 'pdf'): ?>
+            <pagebreak />
+        <?php else: ?>
+            <div style="page-break-after: always; height: 1px; margin-bottom: 40px;"></div>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php endforeach; ?>
 
 </body>
 </html>
@@ -343,7 +430,13 @@ if ($render_type == 'pdf') {
         'margin_bottom' => 10,
     ]);
     $mpdf->WriteHTML($html);
-    $filename = "Transcript_" . str_replace(' ', '_', $p['first_name'] . "_" . $p['last_name']) . ".pdf";
+    
+    if ($is_bulk) {
+        $filename = "Bulk_Transcripts_" . str_replace(' ', '_', $selected_class) . ".pdf";
+    } else {
+        $filename = "Transcript_" . str_replace(' ', '_', $target_students[0]['first_name'] . "_" . $target_students[0]['last_name']) . ".pdf";
+    }
+    
     $mpdf->Output($filename, 'D');
 }
 ?>

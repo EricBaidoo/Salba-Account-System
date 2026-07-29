@@ -101,10 +101,16 @@ if ($selected_class && $selected_student_id) {
     
     // Map Configs to Array for robust matching
     $oa_types = []; $exam_types = [];
-    $type_res = $conn->query("SELECT assessment_name, is_exam FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
+    $total_max_oa = 0; $total_max_ex = 0;
+    $type_res = $conn->query("SELECT assessment_name, is_exam, max_marks_allocation FROM assessment_configurations WHERE academic_year = '$current_year' AND semester = '$current_term'");
     while($r = $type_res->fetch_assoc()) {
-        if ($r['is_exam']) $exam_types[] = $r['assessment_name'];
-        else $oa_types[] = $r['assessment_name'];
+        if ($r['is_exam']) {
+            $exam_types[] = $r['assessment_name'];
+            $total_max_ex += floatval($r['max_marks_allocation']);
+        } else {
+            $oa_types[] = $r['assessment_name'];
+            $total_max_oa += floatval($r['max_marks_allocation']);
+        }
     }
 
     // Valid subjects filter
@@ -158,8 +164,8 @@ if ($selected_class && $selected_student_id) {
             $all_totals = [];
             foreach ($scores_array as $st_id => $st_data) {
                 // The master math formula defined by the user
-                $final_oa = ($st_data['oa_raw'] * ($global_oa_weight / 100));
-                $final_ex = ($st_data['ex_raw'] * ($global_exam_weight / 100));
+                $final_oa = ($total_max_oa > 0) ? ($st_data['oa_raw'] / $total_max_oa) * $global_oa_weight : 0;
+                $final_ex = ($total_max_ex > 0) ? ($st_data['ex_raw'] / $total_max_ex) * $global_exam_weight : 0;
                 $all_totals[$st_id] = $final_oa + $final_ex;
             }
             
@@ -173,15 +179,20 @@ if ($selected_class && $selected_student_id) {
                 
                 // Final Math Variables for injection into HTML
                 $st_data = $scores_array[$selected_student_id];
-                $final_oa = ($st_data['oa_raw'] * ($global_oa_weight / 100));
-                $final_ex = ($st_data['ex_raw'] * ($global_exam_weight / 100));
+                $final_oa = ($total_max_oa > 0) ? ($st_data['oa_raw'] / $total_max_oa) * $global_oa_weight : 0;
+                $final_ex = ($total_max_ex > 0) ? ($st_data['ex_raw'] / $total_max_ex) * $global_exam_weight : 0;
                 
+                $rounded_total = round($my_total, 1);
                 $grade = ''; $remark = '';
-                if ($my_total >= 80)      { $grade = 'A'; $remark = 'Advance'; }
-                elseif ($my_total >= 70)  { $grade = 'B'; $remark = 'Proficient'; }
-                elseif ($my_total >= 60)  { $grade = 'C'; $remark = 'Basic'; }
-                elseif ($my_total >= 50)  { $grade = 'D'; $remark = 'Pass'; }
-                else                      { $grade = 'F'; $remark = 'Below Basic'; }
+                if ($rounded_total >= 80)      { $grade = '1'; $remark = 'Excellent'; }
+                elseif ($rounded_total >= 70)  { $grade = '2'; $remark = 'Very Good'; }
+                elseif ($rounded_total >= 65)  { $grade = '3'; $remark = 'Good'; }
+                elseif ($rounded_total >= 60)  { $grade = '4'; $remark = 'Credit'; }
+                elseif ($rounded_total >= 55)  { $grade = '5'; $remark = 'Credit'; }
+                elseif ($rounded_total >= 50)  { $grade = '6'; $remark = 'Credit'; }
+                elseif ($rounded_total >= 45)  { $grade = '7'; $remark = 'Pass'; }
+                elseif ($rounded_total >= 40)  { $grade = '8'; $remark = 'Pass'; }
+                else                           { $grade = '9'; $remark = 'Fail'; }
                 
                 $transcript_lines[] = [
                     'subject' => $sub,
@@ -239,10 +250,13 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
                     </a>
                 </div>
                 
-                <div class="flex w-full md:w-auto">
+                <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                     <?php if($user_role === 'admin'): ?>
                         <a href="print_transcript.php?student=<?= $selected_student_id ?>&class=<?= urlencode($selected_class) ?>" class="w-full md:w-auto justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition flex items-center gap-2 text-sm">
-                            <i class="fas fa-file-pdf"></i> Download PDF
+                            <i class="fas fa-file-pdf"></i> Single PDF
+                        </a>
+                        <a href="print_transcript.php?class=<?= urlencode($selected_class) ?>&bulk=1" class="w-full md:w-auto justify-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition flex items-center gap-2 text-sm">
+                            <i class="fas fa-layer-group"></i> Bulk PDF
                         </a>
                     <?php else: ?>
                         <span class="w-full md:w-auto justify-center bg-gray-50 text-gray-400 border border-gray-200 font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2">
