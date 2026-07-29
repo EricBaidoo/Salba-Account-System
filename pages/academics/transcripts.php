@@ -296,38 +296,44 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
 
         <?php if($student_data): ?>
             <!-- Live Preview Table (Injected) -->
-            <div class="bg-white rounded-xl shadow border border-gray-200 p-6 mb-8 overflow-x-auto">
-                <h3 class="font-bold text-gray-800 border-b pb-3 mb-4"><i class="fas fa-table text-indigo-500"></i> Grade Breakdown Preview</h3>
-                <?php if(empty($transcript_lines)): ?>
-                    <div class="text-center text-gray-500 py-8 bg-gray-50 rounded">No grades recorded for this student yet.</div>
-                <?php else: ?>
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-gray-100 text-gray-600 font-bold uppercase text-[0.65rem] tracking-wider">
-                            <tr>
-                                <th class="px-4 py-3 rounded-tl-lg">Subject</th>
-                                <th class="px-4 py-3 text-center">Class Score<br><span class="text-indigo-600">(<?= $global_oa_weight ?>%)</span></th>
-                                <th class="px-4 py-3 text-center">Exam Score<br><span class="text-red-600">(<?= $global_exam_weight ?>%)</span></th>
-                                <th class="px-4 py-3 text-center">Total<br><span class="text-green-600">(100%)</span></th>
-                                <th class="px-4 py-3 text-center">Pos</th>
-                                <th class="px-4 py-3 text-center">Grade</th>
-                                <th class="px-4 py-3 rounded-tr-lg">Remark</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <?php foreach($transcript_lines as $row): ?>
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 font-semibold text-gray-800"><?= htmlspecialchars($row['subject']) ?></td>
-                                <td class="px-4 py-3 text-center text-gray-600 font-medium"><?= htmlspecialchars($row['oa']) ?></td>
-                                <td class="px-4 py-3 text-center text-gray-600 font-medium"><?= htmlspecialchars($row['ex']) ?></td>
-                                <td class="px-4 py-3 text-center text-gray-900 font-bold bg-gray-50/50"><?= htmlspecialchars($row['total']) ?></td>
-                                <td class="px-4 py-3 text-center text-indigo-600 font-bold"><?= htmlspecialchars($row['pos']) ?></td>
-                                <td class="px-4 py-3 text-center text-emerald-600 font-bold text-lg"><?= htmlspecialchars($row['grade']) ?></td>
-                                <td class="px-4 py-3 text-gray-600 text-xs tracking-wider uppercase font-semibold"><?= htmlspecialchars($row['remark']) ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
+            <div class="bg-white rounded-xl shadow border border-gray-200 mb-8 overflow-hidden">
+                <div class="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800"><i class="fas fa-table text-indigo-500 mr-2"></i> Grade Breakdown Preview</h3>
+                    <span class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-wider md:hidden"><i class="fas fa-arrows-left-right"></i> Scroll</span>
+                </div>
+                
+                <div class="overflow-x-auto w-full">
+                    <?php if(empty($transcript_lines)): ?>
+                        <div class="text-center text-gray-500 py-12 bg-white">No grades recorded for this student yet.</div>
+                    <?php else: ?>
+                        <table class="w-full text-sm text-left min-w-[45rem]">
+                            <thead class="bg-gray-100/50 text-gray-600 font-bold uppercase text-[0.65rem] tracking-wider border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-4">Subject</th>
+                                    <th class="px-4 py-4 text-center">Class Score<br><span class="text-indigo-600 opacity-75">(<?= $global_oa_weight ?>%)</span></th>
+                                    <th class="px-4 py-4 text-center">Exam Score<br><span class="text-red-600 opacity-75">(<?= $global_exam_weight ?>%)</span></th>
+                                    <th class="px-4 py-4 text-center">Total<br><span class="text-emerald-600 opacity-75">(100%)</span></th>
+                                    <th class="px-4 py-4 text-center">Pos</th>
+                                    <th class="px-4 py-4 text-center">Grade</th>
+                                    <th class="px-6 py-4">Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 bg-white">
+                                <?php foreach($transcript_lines as $row): ?>
+                                <tr class="hover:bg-amber-50/30 transition group">
+                                    <td class="px-6 py-3.5 font-bold text-gray-800"><?= htmlspecialchars($row['subject']) ?></td>
+                                    <td class="px-4 py-3.5 text-center text-gray-600 font-semibold"><?= htmlspecialchars($row['oa']) ?></td>
+                                    <td class="px-4 py-3.5 text-center text-gray-600 font-semibold"><?= htmlspecialchars($row['ex']) ?></td>
+                                    <td class="px-4 py-3.5 text-center text-gray-900 font-black bg-gray-50/50 group-hover:bg-transparent"><?= htmlspecialchars($row['total']) ?></td>
+                                    <td class="px-4 py-3.5 text-center text-indigo-600 font-black"><?= htmlspecialchars($row['pos']) ?></td>
+                                    <td class="px-4 py-3.5 text-center text-emerald-600 font-black text-lg"><?= htmlspecialchars($row['grade']) ?></td>
+                                    <td class="px-6 py-3.5 text-gray-500 text-xs tracking-widest uppercase font-bold"><?= htmlspecialchars($row['remark']) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- Digital Entry View for Remarks (No Print) -->
