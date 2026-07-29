@@ -295,6 +295,41 @@ $school_name = getSystemSetting($conn, 'school_name', 'Salba Montessori');
         <?php endif; ?>
 
         <?php if($student_data): ?>
+            <!-- Live Preview Table (Injected) -->
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-6 mb-8 overflow-x-auto">
+                <h3 class="font-bold text-gray-800 border-b pb-3 mb-4"><i class="fas fa-table text-indigo-500"></i> Grade Breakdown Preview</h3>
+                <?php if(empty($transcript_lines)): ?>
+                    <div class="text-center text-gray-500 py-8 bg-gray-50 rounded">No grades recorded for this student yet.</div>
+                <?php else: ?>
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-600 font-bold uppercase text-[0.65rem] tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3 rounded-tl-lg">Subject</th>
+                                <th class="px-4 py-3 text-center">Class Score<br><span class="text-indigo-600">(<?= $global_oa_weight ?>%)</span></th>
+                                <th class="px-4 py-3 text-center">Exam Score<br><span class="text-red-600">(<?= $global_exam_weight ?>%)</span></th>
+                                <th class="px-4 py-3 text-center">Total<br><span class="text-green-600">(100%)</span></th>
+                                <th class="px-4 py-3 text-center">Pos</th>
+                                <th class="px-4 py-3 text-center">Grade</th>
+                                <th class="px-4 py-3 rounded-tr-lg">Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <?php foreach($transcript_lines as $row): ?>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 font-semibold text-gray-800"><?= htmlspecialchars($row['subject']) ?></td>
+                                <td class="px-4 py-3 text-center text-gray-600 font-medium"><?= htmlspecialchars($row['oa']) ?></td>
+                                <td class="px-4 py-3 text-center text-gray-600 font-medium"><?= htmlspecialchars($row['ex']) ?></td>
+                                <td class="px-4 py-3 text-center text-gray-900 font-bold bg-gray-50/50"><?= htmlspecialchars($row['total']) ?></td>
+                                <td class="px-4 py-3 text-center text-indigo-600 font-bold"><?= htmlspecialchars($row['pos']) ?></td>
+                                <td class="px-4 py-3 text-center text-emerald-600 font-bold text-lg"><?= htmlspecialchars($row['grade']) ?></td>
+                                <td class="px-4 py-3 text-gray-600 text-xs tracking-wider uppercase font-semibold"><?= htmlspecialchars($row['remark']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+
             <!-- Digital Entry View for Remarks (No Print) -->
             <div class="bg-white rounded-xl shadow border border-gray-200 p-6 mb-8">
                 <h3 class="font-bold text-gray-800 border-b pb-3 mb-4"><i class="fas fa-pen-nib text-blue-500"></i> Pastoral Care & Remarks Digital Entry</h3>
