@@ -424,7 +424,13 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
-        <table style="width: 100%; margin-top: 25px; border: none;">
+        <?php if ($render_type == 'pdf'): ?>
+            <htmlpagefooter name="sigFooter">
+        <?php else: ?>
+            <div style="margin-top: 40px;">
+        <?php endif; ?>
+        
+        <table style="width: 100%; border: none;">
             <tr>
                 <td style="width: 40%; text-align: center; vertical-align: bottom; border: none;">
                     <div style="height: 60px;"></div>
@@ -447,6 +453,13 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
+        <?php if ($render_type == 'pdf'): ?>
+            </htmlpagefooter>
+            <sethtmlpagefooter name="sigFooter" value="on" show-this-page="1" />
+        <?php else: ?>
+            </div>
+        <?php endif; ?>
+
     </div>
     
     <?php if ($index < count($target_students) - 1): ?>
@@ -468,7 +481,7 @@ if ($render_type == 'pdf') {
         'margin_left' => 10,
         'margin_right' => 10,
         'margin_top' => 10,
-        'margin_bottom' => 10,
+        'margin_bottom' => 35,
     ]);
     $mpdf->WriteHTML($html);
     
