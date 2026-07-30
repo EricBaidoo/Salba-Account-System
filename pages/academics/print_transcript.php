@@ -118,11 +118,16 @@ if ($selected_class) {
     }
     $v_stmt->close();
 
-    // Fetch all raw scaled grades for class
+    // Fetch all raw scaled grades for active students in the class
     $g_res = $conn->query("
-        SELECT student_id, subject, marks, assessment_type 
-        FROM grades 
-        WHERE class_name = '$selected_class' AND semester = '$current_term' AND year = '$current_year'
+        SELECT g.student_id, g.subject, g.marks, g.assessment_type 
+        FROM grades g
+        JOIN students s ON g.student_id = s.id
+        WHERE g.class_name = '$selected_class' 
+        AND g.semester = '$current_term' 
+        AND g.year = '$current_year'
+        AND s.class = '$selected_class'
+        AND s.status = 'active'
     ");
     
     while($row = $g_res->fetch_assoc()) {
