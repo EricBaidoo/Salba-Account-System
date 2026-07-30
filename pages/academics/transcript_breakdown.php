@@ -30,17 +30,13 @@ if ($user_role === 'admin' || $user_role === 'supervisor') {
 $selected_class = $conn->real_escape_string($_GET['class'] ?? ($allocated_classes[0] ?? ''));
 $selected_assessment = $conn->real_escape_string($_GET['assessment_type'] ?? '');
 
-// Fetch available assessment types for the class
+// Fetch ONLY active assessment types from the master dictionary
 $available_assessments = [];
-if ($selected_class) {
-    $stmt = $conn->prepare("SELECT DISTINCT assessment_type FROM grades WHERE class_name = ? AND semester = ? AND year = ? ORDER BY assessment_type");
-    $stmt->bind_param('sss', $selected_class, $current_term, $current_year);
-    $stmt->execute();
-    $res = $stmt->get_result();
+$res = $conn->query("SELECT assessment_name FROM assessment_configurations ORDER BY assessment_name");
+if ($res) {
     while ($r = $res->fetch_assoc()) {
-        $available_assessments[] = $r['assessment_type'];
+        $available_assessments[] = $r['assessment_name'];
     }
-    $stmt->close();
 }
 
 if (!$selected_assessment && !empty($available_assessments)) {

@@ -483,6 +483,10 @@ if ($render_type == 'pdf') {
         'margin_top' => 10,
         'margin_bottom' => 35,
     ]);
+    
+    // Dynamically shrink content if it exceeds one page (up to 50% scale factor)
+    $mpdf->shrink_tables_to_fit = 2.0;
+    
     $mpdf->WriteHTML($html);
     
     if ($is_bulk) {
