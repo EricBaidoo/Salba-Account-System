@@ -267,24 +267,24 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
     <style>
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; line-height: 1.3; color: #000; margin: 0; padding: 0; }
         .print-container { width: 100%; border: none; }
-        .school-header { text-align: center; margin-bottom: 20px; }
-        .school-name { font-size: 22px; font-weight: 800; color: #1e293b; margin: 5px 0 0; line-height: 1.2; text-transform: uppercase; }
-        .school-info { font-size: 11px; color: #475569; margin: 3px 0 0; font-weight: normal; }
-        .doc-title { text-align: center; font-weight: bold; font-size: 14px; text-decoration: underline; margin-bottom: 15px; text-transform: uppercase; }
+        .school-header { text-align: center; margin-bottom: 10px; }
+        .school-name { font-size: 18px; font-weight: 800; color: #1e293b; margin: 3px 0 0; line-height: 1.1; text-transform: uppercase; }
+        .school-info { font-size: 10px; color: #475569; margin: 2px 0 0; font-weight: normal; line-height: 1.2; }
+        .doc-title { text-align: center; font-weight: bold; font-size: 12px; text-decoration: underline; margin-bottom: 8px; text-transform: uppercase; }
         
-        .box-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 15px; }
-        .box-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; }
-        .label { font-weight: bold; font-size: 10px; text-transform: uppercase; margin-right: 5px; color: #333; }
-        .content { font-weight: bold; font-size: 12px; }
+        .box-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 10px; }
+        .box-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: middle; }
+        .label { font-weight: bold; font-size: 9px; text-transform: uppercase; margin-right: 5px; color: #333; }
+        .content { font-weight: bold; font-size: 11px; }
 
-        .grade-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 15px; }
-        .grade-table th { border: 1px solid #000; padding: 8px; background-color: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 10px; text-align: center; }
-        .grade-table td { border: 1px solid #000; padding: 8px; vertical-align: middle; text-align: center; font-size: 11px; }
-        .subject-name { text-align: left !important; font-weight: bold; text-transform: uppercase; }
+        .grade-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 10px; }
+        .grade-table th { border: 1px solid #000; padding: 4px; background-color: #f1f5f9; font-weight: bold; text-transform: uppercase; font-size: 9px; text-align: center; }
+        .grade-table td { border: 1px solid #000; padding: 4px; vertical-align: middle; text-align: center; font-size: 10px; }
+        .subject-name { text-align: left !important; font-weight: bold; text-transform: uppercase; font-size: 9px; }
 
         .remarks-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
-        .remarks-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
-        .remark-label { font-weight: bold; font-size: 10px; text-transform: uppercase; background-color: #f8fafc; width: 25%; }
+        .remarks-table td { border: 1px solid #000; padding: 4px; vertical-align: top; }
+        .remark-label { font-weight: bold; font-size: 9px; text-transform: uppercase; background-color: #f8fafc; width: 25%; }
         .remark-content { font-weight: bold; font-style: italic; color: #1e293b; font-size: 12px; }
 
         .footer { margin-top: 30px; }
@@ -324,7 +324,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 $logo_path = '../../assets/img/salba_logo.jpg';
                 if (file_exists($logo_path)): 
             ?>
-                <img src="<?= $logo_path ?>" style="width: 110px; height: auto; display: block; margin: 0 auto;">
+                <img src="<?= $logo_path ?>" style="width: 80px; height: auto; display: block; margin: 0 auto;">
             <?php endif; ?>
             <div class="school-name"><?= $school_name ?></div>
             <div class="school-info">
@@ -415,16 +415,16 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <td colspan="3" class="remark-content"><?= htmlspecialchars($student_remarks['talent_and_interest'] ?? '—') ?></td>
             </tr>
             <tr>
-                <td class="remark-label" style="padding: 15px 8px;">Class Teacher's Remarks</td>
-                <td colspan="3" class="remark-content" style="padding: 15px 8px; font-size: 14px;"><?= htmlspecialchars($student_remarks['teacher_remarks'] ?? '—') ?></td>
+                <td class="remark-label" style="padding: 6px 4px;">Class Teacher's Remarks</td>
+                <td colspan="3" class="remark-content" style="padding: 6px 4px; font-size: 12px;"><?= htmlspecialchars($student_remarks['teacher_remarks'] ?? '—') ?></td>
             </tr>
             <tr>
-                <td class="remark-label" style="padding: 15px 8px;">Principal's / Headteacher's / Supervisor's Remarks</td>
-                <td colspan="3" class="remark-content" style="padding: 15px 8px; font-size: 14px; border-bottom: none;"><?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '—') ?></td>
+                <td class="remark-label" style="padding: 6px 4px;">Principal's / Headteacher's / Supervisor's Remarks</td>
+                <td colspan="3" class="remark-content" style="padding: 6px 4px; font-size: 12px; border-bottom: none;"><?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '—') ?></td>
             </tr>
         </table>
 
-        <table style="width: 100%; margin-top: 60px; border: none;">
+        <table style="width: 100%; margin-top: 25px; border: none;">
             <tr>
                 <td style="width: 40%; text-align: center; vertical-align: bottom; border: none;">
                     <div style="height: 60px;"></div>
