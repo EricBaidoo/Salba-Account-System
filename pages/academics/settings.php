@@ -201,6 +201,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// 3b. Process Edit Assessment Config
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_assessment') {
+    $e_id = intval($_POST['edit_id']);
+    $old_name = trim($_POST['old_assessment_name']);
+    $old_max = floatval($_POST['old_max_marks']);
+    $old_is_exam = intval($_POST['old_is_exam']);
+    
+    $new_name = trim($_POST['assessment_name']);
+    $new_max = floatval($_POST['max_marks']);
+    $new_is_exam = isset($_POST['is_exam']) ? 1 : 0;
+    
+    if ($new_name && $new_max > 0) {
+        $temp_exam_total = $exam_total;
+        $temp_oa_total = $oa_total;
+        
+        if ($old_is_exam) $temp_exam_total -= $old_max; else $temp_oa_total -= $old_max;
+        if ($new_is_exam) $temp_exam_total += $new_max; else $temp_oa_total += $new_max;
+        
+        if ($new_is_exam && $temp_exam_total > 100) {
+            $error = "Math Error: Exam configuration cannot exceed a base of 100%.";
+        } elseif (!$new_is_exam && $temp_oa_total > 100) {
+            $error = "Math Error: Sub-assessments (OA) must cap exactly at 100%.";
+        } else {
+            $conn->begin_transaction();
+            try {
+                $stmt = $conn->prepare("UPDATE assessment_configurations SET assessment_name = ?, max_marks_allocation = ?, is_exam = ? WHERE id = ?");
+                $stmt->bind_param("sdii", $new_name, $new_max, $new_is_exam, $e_id);
+                $stmt->execute();
+                
+                // Cascade update to grades table if name changed
+                if ($old_name !== $new_name) {
+                    $g_stmt = $conn->prepare("UPDATE grades SET assessment_type = ? WHERE assessment_type = ? AND academic_year = ? AND semester = ?");
+                    $g_stmt->bind_param("ssss", $new_name, $old_name, $current_academic_year, $current_term);
+                    $g_stmt->execute();
+                }
+                
+                $conn->commit();
+                header("Location: settings.php?success=Assessment+Rule+Updated");
+                exit;
+            } catch (Exception $e) {
+                $conn->rollback();
+                $error = "Update Failed: " . $e->getMessage();
+            }
+        }
+    }
+}
+
 // 6. Process Form Builder Schemas
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_form_schema') {
     $schema_type = $_POST['schema_type'];
@@ -375,12 +422,12 @@ if($dl_res) {
                                     <th class="py-2 px-3">Assessment Type</th>
                                     <th class="py-2 px-3">Base Out Of</th>
                                     <th class="py-2 px-3 text-center">Status</th>
-                                    <th class="py-2 px-3 text-center w-10">Act</th>
+                                    <th class="py-2 px-3 text-center w-24">Act</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 <?php while($c = $configs->fetch_assoc()): ?>
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-gray-50" id="display_rule_<?= $c['id'] ?>">
                                         <td class="py-3 px-3 font-bold text-gray-800">
                                             <?= htmlspecialchars($c['assessment_name']) ?>
                                             <?php if($c['is_exam']): ?>
@@ -399,11 +446,34 @@ if($dl_res) {
                                                 </button>
                                             </form>
                                         </td>
-                                        <td class="py-3 px-3 text-center">
-                                            <form method="POST">
+                                        <td class="py-3 px-3 text-center flex items-center justify-center gap-2">
+                                            <button type="button" onclick="toggleRename('rule_<?= $c['id'] ?>')" class="text-gray-400 hover:text-blue-500 transition"><i class="fas fa-edit"></i></button>
+                                            <form method="POST" class="inline">
                                                 <input type="hidden" name="action" value="delete_assessment">
                                                 <input type="hidden" name="delete_id" value="<?= $c['id'] ?>">
                                                 <button type="submit" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <tr class="hidden bg-blue-50" id="edit_rule_<?= $c['id'] ?>">
+                                        <td colspan="4" class="p-3 border-y border-blue-200">
+                                            <form method="POST" class="flex items-center gap-3">
+                                                <input type="hidden" name="action" value="edit_assessment">
+                                                <input type="hidden" name="edit_id" value="<?= $c['id'] ?>">
+                                                <input type="hidden" name="old_assessment_name" value="<?= htmlspecialchars($c['assessment_name']) ?>">
+                                                <input type="hidden" name="old_max_marks" value="<?= floatval($c['max_marks_allocation']) ?>">
+                                                <input type="hidden" name="old_is_exam" value="<?= $c['is_exam'] ?>">
+                                                
+                                                <input type="text" name="assessment_name" value="<?= htmlspecialchars($c['assessment_name']) ?>" required class="flex-1 px-3 py-1.5 border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded text-sm outline-none font-bold text-gray-800 shadow-inner">
+                                                <input type="number" step="0.1" name="max_marks" value="<?= floatval($c['max_marks_allocation']) ?>" required class="w-20 px-3 py-1.5 border border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded text-sm font-black text-center outline-none shadow-inner">
+                                                
+                                                <label class="flex items-center gap-1.5 text-[0.625rem] font-black text-gray-700 uppercase cursor-pointer">
+                                                    <input type="checkbox" name="is_exam" <?= $c['is_exam'] ? 'checked' : '' ?> class="rounded border-gray-400 text-red-600 focus:ring-red-500 cursor-pointer">
+                                                    Exam
+                                                </label>
+                                                
+                                                <button type="submit" class="bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-bold hover:bg-blue-700 transition shadow-sm whitespace-nowrap">Save</button>
+                                                <button type="button" onclick="toggleRename('rule_<?= $c['id'] ?>')" class="text-gray-500 hover:text-gray-700 text-xs font-bold px-2 py-1.5 whitespace-nowrap transition">Cancel</button>
                                             </form>
                                         </td>
                                     </tr>
