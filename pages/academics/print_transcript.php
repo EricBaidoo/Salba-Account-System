@@ -288,11 +288,6 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         .remark-content { font-weight: bold; font-style: italic; color: #1e293b; font-size: 12px; }
 
         .footer { margin-top: 30px; }
-        .sig-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 60px; padding: 0 10px; }
-        .sig-container { width: 40%; text-align: center; }
-        .sig-img-container { height: 60px; position: relative; }
-        .sig-img { max-height: 80px; max-width: 180px; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); z-index: 10; }
-        .sig-line { border-top: 1px solid #000; padding-top: 8px; font-weight: bold; font-size: 10px; width: 100%; position: relative; z-index: 1; text-transform: uppercase; color: #1e293b; }
     </style>
 </head>
 <body style="<?= ($render_type == 'html') ? 'background-color: #f1f5f9; padding-bottom: 60px;' : '' ?>">
@@ -429,25 +424,28 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
-        <div class="sig-wrapper">
-            <div class="sig-container">
-                <div class="sig-img-container"></div>
-                <div class="sig-line">
-                    <?= htmlspecialchars(getSystemSetting($conn, 'transcript_left_signature_label', "Class Teacher's Signature")) ?>
-                </div>
-            </div>
-            <div class="sig-container">
-                <div class="sig-img-container">
-                    <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
-                    <?php if ($p_sig): ?>
-                        <img src="../../<?= htmlspecialchars($p_sig) ?>" class="sig-img">
-                    <?php endif; ?>
-                </div>
-                <div class="sig-line">
-                    <?= htmlspecialchars(getSystemSetting($conn, 'transcript_right_signature_label', "Principal's / Headteacher's / Supervisor's Signature")) ?>
-                </div>
-            </div>
-        </div>
+        <table style="width: 100%; margin-top: 60px; border: none;">
+            <tr>
+                <td style="width: 40%; text-align: center; vertical-align: bottom; border: none;">
+                    <div style="height: 60px;"></div>
+                    <div style="border-top: 1px solid #000; padding-top: 8px; font-weight: bold; font-size: 10px; text-transform: uppercase; color: #1e293b;">
+                        <?= htmlspecialchars(getSystemSetting($conn, 'transcript_left_signature_label', "Class Teacher's Signature")) ?>
+                    </div>
+                </td>
+                <td style="width: 20%; border: none;"></td> <!-- Spacer -->
+                <td style="width: 40%; text-align: center; vertical-align: bottom; border: none;">
+                    <div style="height: 60px;">
+                        <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
+                        <?php if ($p_sig): ?>
+                            <img src="../../<?= htmlspecialchars($p_sig) ?>" style="max-height: 80px; max-width: 180px; margin-bottom: -5px;">
+                        <?php endif; ?>
+                    </div>
+                    <div style="border-top: 1px solid #000; padding-top: 8px; font-weight: bold; font-size: 10px; text-transform: uppercase; color: #1e293b;">
+                        <?= htmlspecialchars(getSystemSetting($conn, 'transcript_right_signature_label', "Principal's / Headteacher's / Supervisor's Signature")) ?>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
     </div>
     
