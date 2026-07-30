@@ -319,6 +319,10 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
 
     <div class="print-container" style="<?= ($render_type == 'html') ? 'max-width: 900px; margin: 40px auto; padding: 40px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 12px;' : '' ?>">
         
+        <?php if ($render_type == 'pdf'): ?>
+        <table style="width: 100%;" autosize="1"><tr><td style="padding: 0; border: none; vertical-align: top;">
+        <?php endif; ?>
+
         <div class="school-header">
             <?php 
                 $logo_path = '../../assets/img/salba_logo.jpg';
@@ -423,6 +427,10 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <td colspan="3" class="remark-content" style="padding: 15px 8px; font-size: 14px; border-bottom: none;"><?= htmlspecialchars($student_remarks['supervisor_remarks'] ?? '—') ?></td>
             </tr>
         </table>
+
+        <?php if ($render_type == 'pdf'): ?>
+        </td></tr></table>
+        <?php endif; ?>
 
         <?php if ($render_type == 'pdf'): ?>
             <htmlpagefooter name="sigFooter">
