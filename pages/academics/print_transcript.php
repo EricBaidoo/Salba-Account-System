@@ -323,12 +323,13 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         <table style="width: 100%;" autosize="1"><tr><td style="padding: 0; border: none; vertical-align: top;">
         <?php endif; ?>
 
-        <div class="school-header">
+        <center>
+        <div class="school-header" align="center" style="text-align: center;">
             <?php 
                 $logo_path = '../../assets/img/salba_logo.jpg';
                 if (file_exists($logo_path)): 
             ?>
-                <img src="<?= $logo_path ?>" style="width: 110px; height: auto; display: block; margin: 0 auto;">
+                <img src="<?= $logo_path ?>" style="width: 75px; height: auto; display: block; margin: 0 auto;">
             <?php endif; ?>
             <div class="school-name"><?= $school_name ?></div>
             <div class="school-info">
@@ -346,8 +347,9 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
                 <?php endif; ?>
             </div>
         </div>
-
-        <div class="doc-title">END OF <?= strtoupper($current_term) ?> REPORT</div>
+        <br>
+        <div class="doc-title" align="center" style="text-align: center; margin-top: 15px;">END OF <?= strtoupper($current_term) ?> REPORT</div>
+        </center>
 
         <!-- Student Bio -->
         <table class="box-table">
