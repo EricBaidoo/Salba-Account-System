@@ -288,9 +288,11 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         .remark-content { font-weight: bold; font-style: italic; color: #1e293b; font-size: 12px; }
 
         .footer { margin-top: 30px; }
-        .sig-container { width: 45%; text-align: center; margin-top: 40px; position: relative; }
-        .sig-line { border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 11px; position: relative; z-index: 10; width: 80%; margin: 0 auto; }
-        .sig-img { height: 40px; position: relative; z-index: 20; margin-bottom: -15px; }
+        .sig-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 60px; padding: 0 10px; }
+        .sig-container { width: 40%; text-align: center; }
+        .sig-img-container { height: 60px; position: relative; }
+        .sig-img { max-height: 80px; max-width: 180px; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .sig-line { border-top: 1px solid #000; padding-top: 8px; font-weight: bold; font-size: 10px; width: 100%; position: relative; z-index: 1; text-transform: uppercase; color: #1e293b; }
     </style>
 </head>
 <body style="<?= ($render_type == 'html') ? 'background-color: #f1f5f9; padding-bottom: 60px;' : '' ?>">
@@ -427,20 +429,20 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             </tr>
         </table>
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div class="sig-wrapper">
             <div class="sig-container">
-                <div style="height: 40px; margin-bottom: -15px;"></div>
+                <div class="sig-img-container"></div>
                 <div class="sig-line">
                     <?= htmlspecialchars(getSystemSetting($conn, 'transcript_left_signature_label', "Class Teacher's Signature")) ?>
                 </div>
             </div>
             <div class="sig-container">
-                <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
-                <?php if ($p_sig): ?>
-                    <img src="../../<?= htmlspecialchars($p_sig) ?>" class="sig-img">
-                <?php else: ?>
-                    <div style="height: 40px; margin-bottom: -15px;"></div>
-                <?php endif; ?>
+                <div class="sig-img-container">
+                    <?php $p_sig = getSystemSetting($conn, 'principal_signature', ''); ?>
+                    <?php if ($p_sig): ?>
+                        <img src="../../<?= htmlspecialchars($p_sig) ?>" class="sig-img">
+                    <?php endif; ?>
+                </div>
                 <div class="sig-line">
                     <?= htmlspecialchars(getSystemSetting($conn, 'transcript_right_signature_label', "Principal's / Headteacher's / Supervisor's Signature")) ?>
                 </div>
