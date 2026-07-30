@@ -33,6 +33,8 @@ $reopening_date = $reopening_raw ? date('jS F Y', strtotime($reopening_raw)) : '
 $vacation_raw = getSystemSetting($conn, 'semester_end_date', '');
 $vacation_date = $vacation_raw ? date('jS F Y', strtotime($vacation_raw)) : '—';
 
+$total_instructional_days = getInstructionalDaysCount($conn, $current_term, $current_year);
+
 function ordinalSuffix($num) {
     if (!is_numeric($num)) return $num;
     if ($num % 100 >= 11 && $num % 100 <= 13) return $num . 'th';
@@ -216,6 +218,22 @@ if ($selected_class) {
     while($r = $rem_res->fetch_assoc()) {
         $all_remarks[$r['student_id']] = $r;
     }
+
+    // Fetch Attendance for the whole class
+    $all_attendance = [];
+    $att_res = $conn->query("
+        SELECT student_id, COUNT(*) as days_present 
+        FROM attendance 
+        WHERE academic_year = '$current_year' 
+        AND semester = '$current_term' 
+        AND status = 'present' 
+        GROUP BY student_id
+    ");
+    if ($att_res) {
+        while($r = $att_res->fetch_assoc()) {
+            $all_attendance[$r['student_id']] = $r['days_present'];
+        }
+    }
 }
 
 // Get School Branding (Dynamic - No hardcoding)
@@ -223,6 +241,9 @@ $school_name    = getSystemSetting($conn, 'school_name', '');
 $school_address = getSystemSetting($conn, 'school_address', '');
 $school_phone   = getSystemSetting($conn, 'school_phone', '');
 $school_email   = getSystemSetting($conn, 'school_email', '');
+$school_circuit = getSystemSetting($conn, 'school_circuit', '');
+$school_district= getSystemSetting($conn, 'school_district', '');
+$school_region  = getSystemSetting($conn, 'school_region', '');
 
 // Next semester dates (Dynamic from System Settings)
 $raw_reopening = getSystemSetting($conn, 'next_semester_begins', '');
@@ -295,6 +316,7 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
         $id = $p['id'];
         $transcript_lines = $student_transcripts[$id] ?? [];
         $student_remarks = $all_remarks[$id] ?? null;
+        $student_att = $all_attendance[$id] ?? 0;
         $v = fn($k) => htmlspecialchars($p[$k] ?? '-');
     ?>
 
@@ -311,6 +333,16 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
             <div class="school-info">
                 <?= $school_address ?><br>
                 Phone: <?= $school_phone ?> | Email: <?= $school_email ?>
+                <?php if($school_circuit || $school_district || $school_region): ?>
+                    <br>
+                    <?php 
+                        $locs = [];
+                        if($school_circuit) $locs[] = "Circuit: " . htmlspecialchars($school_circuit);
+                        if($school_district) $locs[] = "District: " . htmlspecialchars($school_district);
+                        if($school_region) $locs[] = "Region: " . htmlspecialchars($school_region);
+                        echo implode(" | ", $locs);
+                    ?>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -371,6 +403,10 @@ if (isset($_GET['view']) && $_GET['view'] == 'html') {
 
         <!-- Pastoral Care & Remarks -->
         <table class="remarks-table">
+            <tr>
+                <td class="remark-label">Attendance</td>
+                <td colspan="3" class="remark-content"><?= $student_att ?> out of a total of <?= $total_instructional_days ?></td>
+            </tr>
             <tr>
                 <td class="remark-label">Attitude</td>
                 <td class="remark-content"><?= htmlspecialchars($student_remarks['attitude'] ?? '—') ?></td>

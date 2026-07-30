@@ -82,7 +82,7 @@ if ($selected_class) {
         $students[] = $r;
     }
 }
-$selected_student_id = $_GET['student'] ?? ($students[0]['id'] ?? '');
+$selected_student_id = $_GET['student'] ?? '';
 $student_data = null;
 if ($selected_student_id) {
     foreach($students as $s) {
@@ -90,6 +90,11 @@ if ($selected_student_id) {
             $student_data = $s; break;
         }
     }
+}
+// Fallback: If URL student not found in this class, auto-select the first student
+if (!$student_data && !empty($students)) {
+    $selected_student_id = $students[0]['id'];
+    $student_data = $students[0];
 }
 
 // Compile Transcript Engine (Ranking & Math)

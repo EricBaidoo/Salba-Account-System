@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // School Identity
-        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'semester_start_date', 'semester_end_date', 'next_semester_begins', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_semester', 'transcript_left_signature_label', 'transcript_right_signature_label'];
+        $fields = ['school_name', 'school_address', 'school_phone', 'school_email', 'school_circuit', 'school_district', 'school_region', 'semester_start_date', 'semester_end_date', 'next_semester_begins', 'attendance_lat', 'attendance_lng', 'attendance_radius', 'weeks_per_semester', 'transcript_left_signature_label', 'transcript_right_signature_label'];
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 if (setSystemSetting($conn, $field, $_POST[$field], $updated_by)) $update_count++;
@@ -345,6 +345,20 @@ for ($i = -2; $i <= 5; $i++) {
                                     <div>
                                         <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Official Email</label>
                                         <input type="email" name="school_email" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_email', '')) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="admin@salba.edu.gh">
+                                    </div>
+                                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                                        <div>
+                                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">School Circuit</label>
+                                            <input type="text" name="school_circuit" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_circuit', '')) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="Oyarifa Circuit">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">School District</label>
+                                            <input type="text" name="school_district" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_district', '')) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="La Nkwantanang">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[0.625rem] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">School Region</label>
+                                            <input type="text" name="school_region" value="<?= htmlspecialchars(getSystemSetting($conn, 'school_region', '')) ?>" class="w-full px-5 py-4 bg-gray-50 border border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl font-bold text-gray-800 outline-none transition-all shadow-sm" placeholder="Greater Accra">
+                                        </div>
                                     </div>
                                     
                                     <div class="md:col-span-2 pt-4 mt-2 border-t border-gray-100">
