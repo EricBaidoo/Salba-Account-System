@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 ini_set('display_errors', '0');
 ob_start();
 include '../../../includes/auth_check.php';
@@ -46,13 +46,21 @@ switch ($action) {
     case 'delete_item': {
         $id = intval($_POST['id'] ?? 0);
         if (!$id) { echo json_encode(['success'=>false]); exit; }
-        $cnt = $conn->query("SELECT COUNT(*) as c FROM stationery_assignments WHERE item_id=$id")->fetch_assoc()['c'];
-        if ($cnt > 0) {
-            echo json_encode(['success'=>false,'message'=>"Assigned to $cnt class(es). Remove assignments first."]);
-            exit;
+        
+        $conn->begin_transaction();
+        try {
+            // Remove all class assignments for this item first
+            $conn->query("DELETE FROM stationery_assignments WHERE item_id=$id");
+            
+            // Then remove the item itself
+            $conn->query("DELETE FROM stationery_items WHERE id=$id");
+            
+            $conn->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['success' => false, 'message' => 'Failed to delete.']);
         }
-        $conn->query("DELETE FROM stationery_items WHERE id=$id");
-        echo json_encode(['success' => true]);
         break;
     }
 
@@ -90,6 +98,40 @@ switch ($action) {
         $stmt->bind_param('sdsi', $quantity, $price, $semester, $id);
         $stmt->execute();
         echo json_encode(['success' => true]);
+        break;
+    }
+
+    case 'bulk_assign_item': {
+        $item_id  = intval($_POST['item_id'] ?? 0);
+        $classes  = $_POST['classes'] ?? [];
+        $year     = trim($_POST['academic_year'] ?? '');
+        $semester = trim($_POST['semester'] ?? '');
+        $quantity = trim($_POST['quantity'] ?? '1');
+        $price    = floatval($_POST['price'] ?? 0);
+        
+        if (!$item_id || empty($classes) || !$year) {
+            echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
+        }
+
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("INSERT INTO stationery_assignments (item_id, class, academic_year, semester, quantity, price, sort_order)
+                VALUES (?,?,?,?,?,?,?)
+                ON DUPLICATE KEY UPDATE quantity=VALUES(quantity), price=VALUES(price), semester=VALUES(semester)");
+            
+            foreach ($classes as $class) {
+                $sc = $conn->real_escape_string($class);
+                $sy = $conn->real_escape_string($year);
+                $max = (int)$conn->query("SELECT COALESCE(MAX(sort_order),0)+1 as n FROM stationery_assignments WHERE class='$sc' AND academic_year='$sy'")->fetch_assoc()['n'];
+                $stmt->bind_param('issssdi', $item_id, $class, $year, $semester, $quantity, $price, $max);
+                $stmt->execute();
+            }
+            $conn->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
         break;
     }
 
@@ -214,6 +256,55 @@ switch ($action) {
         $stmt->execute();
         $msg = $mark_brought ? 'Marked as brought and charge removed.' : 'Charge removed.';
         echo json_encode(['success'=>true,'message'=>$msg]);
+        break;
+    }
+
+    case 'unassign_item_by_class': {
+        $item_id  = intval($_POST['item_id'] ?? 0);
+        $class    = trim($_POST['class'] ?? '');
+        $year     = trim($_POST['academic_year'] ?? '');
+        $semester = trim($_POST['semester'] ?? '');
+        if (!$item_id || !$class || !$year) { echo json_encode(['success'=>false]); exit; }
+        
+        $sc = $conn->real_escape_string($class);
+        $sy = $conn->real_escape_string($year);
+        $ss = $conn->real_escape_string($semester);
+        
+        $conn->query("DELETE FROM stationery_assignments WHERE item_id=$item_id AND class='$sc' AND academic_year='$sy' AND semester='$ss'");
+        echo json_encode(['success' => true]);
+        break;
+    }
+
+    case 'quick_add_and_assign': {
+        $name     = trim($_POST['name'] ?? '');
+        $class    = trim($_POST['class'] ?? '');
+        $year     = trim($_POST['academic_year'] ?? '');
+        $semester = trim($_POST['semester'] ?? '');
+        if (!$name || !$class || !$year) { echo json_encode(['success'=>false,'message'=>'Missing fields']); exit; }
+        
+        $conn->begin_transaction();
+        try {
+            $sc = $conn->real_escape_string($class);
+            $sy = $conn->real_escape_string($year);
+            $n  = $conn->real_escape_string($name);
+            
+            // Insert into catalog
+            $conn->query("INSERT INTO stationery_items (name, unit, default_price) VALUES ('$n', 'pcs', 0)");
+            $item_id = $conn->insert_id;
+            
+            // Assign to class
+            $max = (int)$conn->query("SELECT COALESCE(MAX(sort_order),0)+1 as num FROM stationery_assignments WHERE class='$sc' AND academic_year='$sy'")->fetch_assoc()['num'];
+            
+            $stmt = $conn->prepare("INSERT INTO stationery_assignments (item_id, class, academic_year, semester, quantity, price, sort_order) VALUES (?,?,?,?,'1',0,?)");
+            $stmt->bind_param('isssi', $item_id, $class, $year, $semester, $max);
+            $stmt->execute();
+            
+            $conn->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
         break;
     }
 

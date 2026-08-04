@@ -80,13 +80,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-3 uppercase tracking-wider">
             <a href="../dashboard.php" class="hover:text-indigo-600 transition-colors"><i class="fas fa-home"></i> Admin</a>
             <span>/</span>
-            <a href="dashboard.php" class="hover:text-indigo-600 transition-colors">Stationery</a>
-            <span>/</span>
-            <span class="text-indigo-600">Settings</span>
+            <span class="text-indigo-600">Stationery Settings</span>
         </div>
         <h1 class="text-3xl font-black text-slate-900">Stationery <span class="text-indigo-600">Settings</span></h1>
         <p class="text-slate-500 mt-1 text-sm">Configure how stationery lists are printed and how billing works.</p>
     </header>
+
+    <!-- Tab Navigation -->
+    <nav class="no-print flex gap-1 mb-6 bg-white border border-slate-100 rounded-2xl p-1.5 shadow-sm w-fit flex-wrap">
+        <a href="manage.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
+            <i class="fas fa-list-check"></i> Manage Items
+        </a>
+        <a href="index.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
+            <i class="fas fa-table-cells"></i> Tracker
+        </a>
+        <span class="flex items-center gap-2 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl">
+            <i class="fas fa-gear"></i> Settings
+        </span>
+    </nav>
 
     <form method="POST" class="space-y-6 max-w-3xl">
 

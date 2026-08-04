@@ -14,6 +14,18 @@ if ($_SESSION['role'] === 'supervisor') {
     exit;
 }
 
+// Handle Add Class
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_class') {
+    $new_class = trim($_POST['class_name'] ?? '');
+    if ($new_class) {
+        $stmt = $conn->prepare("INSERT INTO classes (name) VALUES (?)");
+        $stmt->bind_param('s', $new_class);
+        $stmt->execute();
+    }
+    header('Location: classes.php');
+    exit;
+}
+
 // Get classes and student counts with robust queries
 $classes_data = [];
 $res = $conn->query("
@@ -74,7 +86,7 @@ $total_students = array_sum(array_column($classes_data, 'count'));
                     </p>
                 </div>
                 <div class="flex gap-3">
-                    <button class="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center gap-2 text-sm font-medium">
+                    <button onclick="document.getElementById('addClassModal').classList.remove('hidden')" class="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center gap-2 text-sm font-medium">
                         <i class="fas fa-plus"></i> Add New Class
                     </button>
                 </div>
@@ -151,5 +163,34 @@ $total_students = array_sum(array_column($classes_data, 'count'));
             </div>
         </div>
     </main>
+
+    <!-- Add Class Modal -->
+    <div id="addClassModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-purple-600"></i> Create New Class
+                </h3>
+                <button onclick="document.getElementById('addClassModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form method="POST" action="classes.php" class="p-6 flex flex-col gap-4">
+                <input type="hidden" name="action" value="add_class">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Class Name</label>
+                    <input type="text" name="class_name" required placeholder="e.g. Basic 1" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div class="flex justify-end gap-3 mt-2">
+                    <button type="button" onclick="document.getElementById('addClassModal').classList.add('hidden')" class="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm">
+                        Create Class
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

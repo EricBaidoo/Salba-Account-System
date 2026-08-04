@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
 include '../../../includes/system_settings.php';
@@ -122,20 +122,17 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
             <p class="text-slate-500 mt-1 text-sm">Mark which students have brought their items. Bill those who have not.</p>
         </div>
         <?php if ($selected_class && !empty($assignments)): ?>
-        <button onclick="window.print()" class="flex items-center gap-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest px-5 py-3 rounded-2xl hover:bg-slate-700 transition-colors self-start sm:self-auto">
-            <i class="fas fa-print"></i> Print
-        </button>
+        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>" class="flex items-center gap-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest px-5 py-3 rounded-2xl hover:bg-slate-700 transition-colors self-start sm:self-auto">
+            <i class="fas fa-print"></i> Print Lists
+        </a>
         <?php endif; ?>
     </header>
 
     <!-- Tab Navigation -->
     <nav class="no-print flex gap-1 mb-6 bg-white border border-slate-100 rounded-2xl p-1.5 shadow-sm w-fit flex-wrap">
-        <a href="items.php" class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
-            <i class="fas fa-box-open"></i> Items
-        </a>
-        <a href="assign.php<?= $selected_class ? "?class=".urlencode($selected_class)."&academic_year=".urlencode($selected_year)."&semester=".urlencode($selected_sem) : "" ?>"
+        <a href="manage.php<?= $selected_class ? "?class=".urlencode($selected_class)."&academic_year=".urlencode($selected_year)."&semester=".urlencode($selected_sem) : "" ?>" 
            class="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl transition-colors">
-            <i class="fas fa-link"></i> Assign to Class
+            <i class="fas fa-list-check"></i> Manage Items
         </a>
         <span class="flex items-center gap-2 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-xl">
             <i class="fas fa-table-cells"></i> Tracker
