@@ -159,6 +159,9 @@ if (!empty($year_filter)) {
                 <a href="assign_fee_form.php" class="bg-indigo-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all leading-none">
                     <i class="fas fa-plus mr-2"></i> New Assignment
                 </a>
+                <a href="bulk_unassign_fee_form.php" class="bg-rose-600 text-white font-black text-[0.625rem] uppercase tracking-widest px-6 py-4 rounded-2xl shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all leading-none">
+                    <i class="fas fa-trash-alt mr-2"></i> Bulk Unassign
+                </a>
             </div>
         </header>
 
