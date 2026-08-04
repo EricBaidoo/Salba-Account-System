@@ -305,7 +305,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
         function unassignFee(id) {
             appConfirm('Expunge this fee assignment?', {
                 onConfirm: function() {
-                    fetch('unassign_fee.php', { 
+                    fetch('../fees/unassign_fee.php', { 
                         method: 'POST', 
                         headers: {'Content-Type': 'application/json'}, 
                         body: JSON.stringify({student_fee_id: id, student_id: <?= $student_id ?>})
@@ -317,7 +317,7 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
         function deletePayment(id) {
             appConfirm('Expunge this payment record? Balance will be updated.', {
                 onConfirm: function() {
-                    fetch('delete_payment.php', {
+                    fetch('../payments/delete_payment.php', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({payment_id: id})
