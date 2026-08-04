@@ -6,6 +6,7 @@
 
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
+include '../../../includes/system_settings.php';
 include '../../../includes/semester_helpers.php';
 
 // Check if user is logged in

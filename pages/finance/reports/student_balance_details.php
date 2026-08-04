@@ -310,7 +310,10 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                         method: 'POST', 
                         headers: {'Content-Type': 'application/json'}, 
                         body: JSON.stringify({student_fee_id: id, student_id: <?= $student_id ?>})
-                    }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+                    })
+                    .then(r => r.json())
+                    .then(d => { if(d.success) window.location.reload(); else alert(d.message); })
+                    .catch(() => alert('Request failed — check your connection or server logs.'));
                 }
             });
         }
@@ -322,7 +325,10 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({payment_id: id})
-                    }).then(r => r.json()).then(d => { if(d.success) window.location.reload(); else alert(d.message); });
+                    })
+                    .then(r => r.json())
+                    .then(d => { if(d.success) window.location.reload(); else alert(d.message); })
+                    .catch(() => alert('Request failed — check your connection or server logs.'));
                 }
             });
         }
