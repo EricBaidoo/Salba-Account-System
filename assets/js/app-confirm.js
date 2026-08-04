@@ -11,6 +11,7 @@
  *   appConfirm('Message', { onConfirm: fn, title: 'Custom Title', danger: false, confirmText: 'OK' });
  */
 (function () {
+    if (window.appConfirm) return;
     const MODAL_HTML = `
 <div id="appConfirmModal" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:1rem;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);">
   <div style="background:#fff;border-radius:1.25rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);border:1px solid #e2e8f0;width:100%;max-width:22rem;overflow:hidden;animation:acm-pop 0.18s cubic-bezier(.34,1.56,.64,1) both;">
