@@ -17,7 +17,7 @@ function getStudentBalance($conn, $student_id, $semester = null, $academic_year 
         $fee_filter = "AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL)";
         $payment_subquery = "(SELECT COALESCE(SUM(amount), 0) FROM payments WHERE student_id = s.id AND ((semester = ? AND (academic_year = ? OR academic_year IS NULL)) OR semester IS NULL))";
         // Arrears = unpaid from the immediate previous semester/year only
-        [$prev_term, $prev_year] = getPreviousSemesterYear($semester, $academic_year);
+        [$prev_term, $prev_year] = getPreviousSemesterYear($conn, $semester, $academic_year);
         $arrears_subquery = "
             COALESCE((
                 SELECT SUM(sf2.amount - sf2.amount_paid)
@@ -97,7 +97,7 @@ function getAllStudentBalances($conn, $class_filter = null, $status_filter = 'ac
     if ($semester !== null && $academic_year === null) {
         $academic_year = getAcademicYear($conn);
     }
-    [$prev_term, $prev_year] = ($semester !== null) ? getPreviousSemesterYear($semester, $academic_year) : [null, null];
+    [$prev_term, $prev_year] = ($semester !== null) ? getPreviousSemesterYear($conn, $semester, $academic_year) : [null, null];
 
     $params = [];
     $param_types = "";
@@ -323,7 +323,7 @@ function getSemesterArrearsSnapshot($conn, $student_id, $semester, $academic_yea
  */
 if (!function_exists('getArrearsFromPreviousSemester')) {
 function getArrearsFromPreviousSemester($conn, $student_id, $current_term, $academic_year) {
-    [$prev_term, $prev_year] = getPreviousSemesterYear($current_term, $academic_year);
+    [$prev_term, $prev_year] = getPreviousSemesterYear($conn, $current_term, $academic_year);
     // Use snapshot based on payments within the previous semester/year only
     return getSemesterArrearsSnapshot($conn, $student_id, $prev_term, $prev_year);
 }

@@ -24,9 +24,21 @@ $percent_filter = $_GET['percent'] ?? 'all';
 $sort_by        = $_GET['sort_by'] ?? 'name';
 $order          = $_GET['order']   ?? 'asc';
 
-// Note: Arrears carry-forward records are maintained in the DB by ensureArrearsAssignment
-// which is called when semesters change. No need to re-run on every page load.
-
+// Note: Arrears carry-forward records are maintained in the DB by ensureArrearsAssignment.
+// To ensure global consistency (especially after retroactive payments), we sync arrears for the filtered students before fetching.
+$sync_where = "status = 'active'";
+if ($status_filter !== 'all') {
+    $sync_where = "status = '" . $conn->real_escape_string($status_filter) . "'";
+}
+if ($class_filter !== 'all') {
+    $sync_where .= " AND class = '" . $conn->real_escape_string($class_filter) . "'";
+}
+$sync_rs = $conn->query("SELECT id FROM students WHERE $sync_where");
+if ($sync_rs) {
+    while ($row = $sync_rs->fetch_assoc()) {
+        ensureArrearsAssignment($conn, intval($row['id']), $selected_term, $selected_academic_year);
+    }
+}
 
 // Data Fetching
 $student_balances = getAllStudentBalances($conn, $class_filter, $status_filter, $selected_term, $selected_academic_year);

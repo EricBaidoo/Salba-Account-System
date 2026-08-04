@@ -21,13 +21,18 @@ if (!function_exists('getPreviousSemesters')) {
  * Get the immediate previous semester (cyclic across academic years)
  */
 if (!function_exists('getImmediatePreviousSemester')) {
-    function getImmediatePreviousSemester($current_term) {
-        $prev = [
-            'First Semester' => 'Third Semester',
-            'Second Semester' => 'First Semester',
-            'Third Semester' => 'Second Semester',
-        ];
-        return $prev[$current_term] ?? 'First Semester';
+    function getImmediatePreviousSemester($conn, $current_term) {
+        $semesters = getAvailableSemesters($conn);
+        $idx = array_search($current_term, $semesters);
+        if ($idx !== false && $idx > 0) {
+            return $semesters[$idx - 1];
+        }
+        // If it's the first semester in the list, the previous is the last semester (from previous year)
+        if (!empty($semesters)) {
+            return $semesters[count($semesters) - 1];
+        }
+        
+        return 'First Semester'; // Fallback
     }
 }
 
@@ -35,14 +40,17 @@ if (!function_exists('getImmediatePreviousSemester')) {
  * Get next semester in sequence
  */
 if (!function_exists('getNextSemester')) {
-    function getNextSemester($current_term) {
-        $next = [
-            'First Semester' => 'Second Semester',
-            'Second Semester' => 'Third Semester',
-            'Third Semester' => 'First Semester'  // Cycles back
-        ];
+    function getNextSemester($conn, $current_term) {
+        $semesters = getAvailableSemesters($conn);
+        $idx = array_search($current_term, $semesters);
+        if ($idx !== false && $idx < count($semesters) - 1) {
+            return $semesters[$idx + 1];
+        }
+        if (!empty($semesters)) {
+            return $semesters[0]; // Cycle back
+        }
         
-        return $next[$current_term] ?? 'First Semester';
+        return 'First Semester';
     }
 }
 
@@ -61,10 +69,17 @@ if (!function_exists('isSemesterBefore')) {
  * compute the immediate previous semester and its academic year.
  */
 if (!function_exists('getPreviousSemesterYear')) {
-    function getPreviousSemesterYear($current_term, $current_academic_year) {
-        $prev_term = getImmediatePreviousSemester($current_term);
+    function getPreviousSemesterYear($conn, $current_term, $current_academic_year) {
+        $prev_term = getImmediatePreviousSemester($conn, $current_term);
         $prev_year = $current_academic_year;
-        if ($current_term === 'First Semester') {
+        
+        // If the previous semester comes AFTER the current semester in the order list,
+        // it means we wrapped around to the previous academic year.
+        $semesters = getAvailableSemesters($conn);
+        $curr_idx = array_search($current_term, $semesters);
+        $prev_idx = array_search($prev_term, $semesters);
+        
+        if ($curr_idx !== false && $prev_idx !== false && $prev_idx > $curr_idx) {
             $parts = explode('/', $current_academic_year);
             if (count($parts) === 2) {
                 $start = intval($parts[0]);
