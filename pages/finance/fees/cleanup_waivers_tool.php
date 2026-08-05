@@ -24,9 +24,13 @@ if (isset($_POST['run_cleanup'])) {
         // Delete all waivers for this student
         $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $waiver_fee_id");
         
-        // Recalculate their waivers from scratch using the FIXED math
+        // Recalculate their waivers from scratch using the FIXED math, for ALL their active semesters
         include_once '../../../includes/waiver_functions.php';
-        apply_student_waivers($conn, $sid);
+        
+        $terms_res = $conn->query("SELECT DISTINCT semester, academic_year FROM student_fees WHERE student_id = $sid AND semester IS NOT NULL AND academic_year IS NOT NULL");
+        while ($term = $terms_res->fetch_assoc()) {
+            apply_student_waivers($conn, $sid, $term['semester'], $term['academic_year']);
+        }
         $count++;
     }
     

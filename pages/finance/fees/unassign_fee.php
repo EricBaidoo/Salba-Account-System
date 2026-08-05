@@ -94,36 +94,7 @@ try {
         $delete_stmt->close();
         
         if ($deleted_rows > 0) {
-            $feeding_fee_stmt = $conn->prepare("SELECT id FROM fees WHERE name = 'Feeding Fee' LIMIT 1");
-            if ($feeding_fee_stmt) {
-                $feeding_fee_stmt->execute();
-                $feeding_fee_row = $feeding_fee_stmt->get_result()->fetch_assoc();
-                $feeding_fee_stmt->close();
-
-                if ($feeding_fee_row && (int)$fee_details['fee_id'] === (int)$feeding_fee_row['id']) {
-                    $feeding_exists_stmt = $conn->prepare("SELECT id FROM student_daily_weekly_feeding WHERE student_id = ? AND academic_year = ? AND semester = ? AND status = 'active' LIMIT 1");
-                    if ($feeding_exists_stmt) {
-                        $feeding_exists_stmt->bind_param('iss', $student_id, $academic_year, $current_semester);
-                        $feeding_exists_stmt->execute();
-                        $is_separate_feeding = $feeding_exists_stmt->get_result()->num_rows > 0;
-                        $feeding_exists_stmt->close();
-
-                        if (!$is_separate_feeding) {
-                            $restore_sql = "INSERT INTO student_fees (student_id, fee_id, due_date, amount, semester, academic_year, assigned_date, status) 
-                                            VALUES (?, ?, CURDATE(), ?, ?, ?, NOW(), 'pending') 
-                                            ON DUPLICATE KEY UPDATE amount = VALUES(amount), status = 'pending'";
-                            $restore_stmt = $conn->prepare($restore_sql);
-                            if ($restore_stmt) {
-                                $restore_amount = (float)$fee_details['amount'];
-                                $restore_stmt->bind_param('iidss', $student_id, $fee_details['fee_id'], $restore_amount, $current_semester, $academic_year);
-                                $restore_stmt->execute();
-                                $restore_stmt->close();
-                            }
-                        }
-                    }
-                }
-            }
-
+            // Feeding fee auto-recreation logic removed to allow unassigning
             // Log the action (optional - you can create an audit log table)
             $log_sql = "INSERT INTO audit_log (action, table_name, record_id, details, user_id, created_at) 
                        VALUES ('DELETE', 'student_fees', ?, ?, ?, NOW())";
