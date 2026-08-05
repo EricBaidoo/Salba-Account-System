@@ -298,8 +298,14 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
             const fd = new FormData(this);
             fetch('../../administration/students/edit_student_fee.php', { method: 'POST', body: fd })
                 .then(r => r.json())
-                .then(d => { if(d.success) window.location.reload(); else alert(d.message || 'Update failed'); })
-                .catch(() => alert('Request failed — check your connection and try again.'));
+                .then(d => { 
+                    if(d.success) {
+                        window.location.reload(); 
+                    } else {
+                        appConfirm(d.message || 'Update failed', { title: 'Notice', danger: true, confirmText: 'OK' });
+                    }
+                })
+                .catch(() => appConfirm('Request failed — check your connection and try again.', { title: 'Error', danger: true, confirmText: 'OK' }));
         });
 
         function unassignFee(id) {
@@ -311,8 +317,17 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                         body: JSON.stringify({student_fee_id: id, student_id: <?= $student_id ?>})
                     })
                     .then(r => r.json())
-                    .then(d => { if(d.success) window.location.reload(); else alert(d.message); })
-                    .catch(() => alert('Request failed — check your connection or server logs.'));
+                    .then(d => { 
+                        if(d.success) {
+                            window.location.reload(); 
+                        } else {
+                            appConfirm(d.message || 'Action failed', { title: 'Notice', danger: true, confirmText: 'OK' });
+                        }
+                    })
+                    .catch(e => {
+                        console.error('Unassign Error:', e);
+                        appConfirm('Request failed — check your connection or server logs.', { title: 'Error', danger: true, confirmText: 'OK' });
+                    });
                 }
             });
         }
@@ -326,8 +341,14 @@ $payment_history = getStudentPaymentHistory($conn, $student_id, $selected_term, 
                         body: JSON.stringify({payment_id: id})
                     })
                     .then(r => r.json())
-                    .then(d => { if(d.success) window.location.reload(); else alert(d.message); })
-                    .catch(() => alert('Request failed — check your connection or server logs.'));
+                    .then(d => { 
+                        if(d.success) {
+                            window.location.reload(); 
+                        } else {
+                            appConfirm(d.message || 'Action failed', { title: 'Notice', danger: true, confirmText: 'OK' });
+                        }
+                    })
+                    .catch(() => appConfirm('Request failed. Check server logs.', { title: 'Error', danger: true, confirmText: 'OK' }));
                 }
             });
         }
