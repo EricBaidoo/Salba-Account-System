@@ -113,7 +113,8 @@ if (!function_exists('apply_student_waivers')) {
             $granted_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as t FROM student_fees WHERE student_id = ? AND fee_id = ? AND semester = ? AND academic_year = ? AND notes LIKE ? AND status != 'cancelled'");
             $granted_stmt->bind_param("iisss", $student_id, $waiver_fee_id, $semester, $academic_year, $note_like);
             $granted_stmt->execute();
-            $already_granted = abs((float)$granted_stmt->get_result()->fetch_assoc()['t']);
+            $net_amount = (float)$granted_stmt->get_result()->fetch_assoc()['t'];
+            $already_granted = -$net_amount; // Discounts are negative, so multiply by -1 to get granted amount
             $granted_stmt->close();
             
             // 6. Calculate Delta
