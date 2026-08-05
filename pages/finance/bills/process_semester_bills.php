@@ -193,7 +193,8 @@ try {
     $conn->commit();
     
     // Redirect back to billing hub with results
-    header("Location: view_semester_bills.php?generated=1&count=$assigned_count&skipped=$skipped_count");
+    $include_stationery = isset($_POST['include_stationery']) && $_POST['include_stationery'] == '1' ? 1 : 0;
+    header("Location: view_semester_bills.php?generated=1&count=$assigned_count&skipped=$skipped_count&include_stationery=$include_stationery");
     exit;
     
 } catch (Exception $e) {

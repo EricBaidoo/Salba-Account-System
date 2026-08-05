@@ -5,6 +5,7 @@ include '../../../includes/system_settings.php';
 include '../../../includes/student_balance_functions.php';
 include '../../../includes/semester_bill_functions.php';
 require_once '../../../includes/semester_helpers.php';
+require_once '../../../includes/stationery_helpers.php';
 
 if (!is_logged_in()) {
     header('Location: ../../../login');
@@ -312,6 +313,18 @@ foreach ($students as &$student) {
             </div>
         </div>
     </div>
+    
+    <?php
+    $include_stationery = isset($_GET['include_stationery']) && $_GET['include_stationery'] == '1';
+    if ($include_stationery) {
+        $student_full_name = $student['first_name'] . ' ' . $student['last_name'];
+        $stationery_html = generate_stationery_html($conn, $student_full_name, $student['class'], $selected_academic_year, false);
+        if ($stationery_html) {
+            echo $stationery_html;
+        }
+    }
+    ?>
+
     <?php endforeach; ?>
 </body>
 </html>

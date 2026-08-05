@@ -126,6 +126,12 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
                                 <?php endwhile; ?>
                             </select>
                         </div>
+                        <div>
+                            <label class="flex items-center gap-2 cursor-pointer mt-4">
+                                <input type="checkbox" name="include_stationery" value="1" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" <?= isset($_GET['include_stationery']) && $_GET['include_stationery'] == '1' ? 'checked' : '' ?>>
+                                <span class="text-xs font-semibold text-slate-700">Include Class Stationery List on Page 2</span>
+                            </label>
+                        </div>
 
                         <button type="submit" class="w-full bg-indigo-600 text-white font-medium text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-sm">
                             <i class="fas fa-download"></i> Generate Batch Statements
@@ -173,6 +179,12 @@ if (isset($_GET['generated']) && $_GET['generated'] == 1) {
                                     </option>
                                 <?php endwhile; ?>
                             </select>
+                        </div>
+                        <div>
+                            <label class="flex items-center gap-2 cursor-pointer mt-4">
+                                <input type="checkbox" name="include_stationery" value="1" class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" <?= isset($_GET['include_stationery']) && $_GET['include_stationery'] == '1' ? 'checked' : '' ?>>
+                                <span class="text-xs font-semibold text-slate-700">Include Class Stationery List on Page 2</span>
+                            </label>
                         </div>
 
                         <button type="submit" class="w-full bg-emerald-600 text-white font-medium text-sm py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-sm">

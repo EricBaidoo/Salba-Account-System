@@ -135,6 +135,51 @@ switch ($action) {
         break;
     }
 
+    case 'bulk_unassign_item': {
+        $item_id  = intval($_POST['item_id'] ?? 0);
+        $classes  = $_POST['classes'] ?? [];
+        $year     = trim($_POST['academic_year'] ?? '');
+        $semester = trim($_POST['semester'] ?? '');
+        
+        if (!$item_id || empty($classes) || !$year) {
+            echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
+        }
+
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("DELETE FROM stationery_assignments WHERE item_id=? AND class=? AND academic_year=? AND semester=?");
+            
+            foreach ($classes as $class) {
+                $stmt->bind_param('isss', $item_id, $class, $year, $semester);
+                $stmt->execute();
+            }
+            $conn->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        break;
+    }
+
+    case 'unassign_item_by_class': {
+        $item_id  = intval($_POST['item_id'] ?? 0);
+        $class    = trim($_POST['class'] ?? '');
+        $year     = trim($_POST['academic_year'] ?? '');
+        $semester = trim($_POST['semester'] ?? '');
+        
+        if (!$item_id || !$class || !$year) {
+            echo json_encode(['success'=>false,'message'=>'Missing fields']); exit;
+        }
+
+        $stmt = $conn->prepare("DELETE FROM stationery_assignments WHERE item_id=? AND class=? AND academic_year=? AND semester=?");
+        $stmt->bind_param('isss', $item_id, $class, $year, $semester);
+        $stmt->execute();
+        
+        echo json_encode(['success' => true]);
+        break;
+    }
+
     case 'unassign_item': {
         $id = intval($_POST['id'] ?? 0);
         if (!$id) { echo json_encode(['success'=>false]); exit; }

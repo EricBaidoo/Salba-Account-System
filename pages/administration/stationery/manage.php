@@ -10,6 +10,7 @@ if (!in_array(($_SESSION['role'] ?? ''), ['admin', 'data_entry'])) {
 $current_year = getAcademicYear($conn);
 $current_sem  = getCurrentSemester($conn);
 $selected_class = $_GET['class'] ?? '';
+$selected_category = $_GET['category'] ?? '';
 $selected_year  = $_GET['academic_year'] ?? $current_year;
 $selected_sem   = $_GET['semester'] ?? $current_sem;
 
@@ -24,6 +25,11 @@ $classes = [];
 $cr = $conn->query("SELECT DISTINCT class FROM students WHERE status='active' AND class IS NOT NULL AND class != '' ORDER BY class ASC");
 while ($c = $cr->fetch_assoc()) $classes[] = $c['class'];
 
+// Categories (Levels)
+$categories = [];
+$cat_rs = $conn->query("SELECT DISTINCT Level FROM classes WHERE Level IS NOT NULL AND Level != '' ORDER BY Level ASC");
+while ($cat = $cat_rs->fetch_assoc()) $categories[] = $cat['Level'];
+
 // Academic years
 $yr_rs = $conn->query("SELECT DISTINCT academic_year FROM student_fees WHERE academic_year IS NOT NULL ORDER BY academic_year DESC");
 $all_years = [];
@@ -35,8 +41,10 @@ $all_items = [];
 $ir = $conn->query("SELECT * FROM stationery_items ORDER BY name ASC");
 while ($i = $ir->fetch_assoc()) $all_items[] = $i;
 
-// Fetch Assignments for Selected Class
+// Fetch Assignments for Selected Class or Category
 $assignments = [];
+$category_classes = [];
+
 if ($selected_class) {
     $sc = $conn->real_escape_string($selected_class);
     $sy = $conn->real_escape_string($selected_year);
@@ -46,6 +54,28 @@ if ($selected_class) {
         WHERE class='$sc' AND academic_year='$sy' AND semester='$ss'
     ");
     while ($a = $ar->fetch_assoc()) $assignments[$a['item_id']] = $a;
+} else if ($selected_category) {
+    $scat = $conn->real_escape_string($selected_category);
+    $sy = $conn->real_escape_string($selected_year);
+    $ss = $conn->real_escape_string($selected_sem);
+    
+    // Find all classes in this category
+    $cc_rs = $conn->query("SELECT name FROM classes WHERE Level='$scat'");
+    while ($cc = $cc_rs->fetch_assoc()) $category_classes[] = $cc['name'];
+    
+    if (!empty($category_classes)) {
+        $num_classes = count($category_classes);
+        // Find items that are assigned to ALL classes in this category
+        $classes_list = "'" . implode("','", array_map([$conn, 'real_escape_string'], $category_classes)) . "'";
+        $ar = $conn->query("
+            SELECT item_id, quantity, price, COUNT(*) as class_count 
+            FROM stationery_assignments 
+            WHERE class IN ($classes_list) AND academic_year='$sy' AND semester='$ss'
+            GROUP BY item_id
+            HAVING class_count = $num_classes
+        ");
+        while ($a = $ar->fetch_assoc()) $assignments[$a['item_id']] = $a;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -120,14 +150,29 @@ if ($selected_class) {
                 </form>
             </div>
 
+            <div class="bg-white border border-slate-100 rounded-3xl p-3 shadow-sm flex-1 mb-4">
+                <h3 class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest px-4 pt-3 pb-2">Select a Category</h3>
+                <div class="flex flex-col gap-1 max-h-[30vh] overflow-y-auto custom-scrollbar pr-1">
+                    <?php foreach ($categories as $cat): 
+                        $active = ($cat === $selected_category);
+                    ?>
+                    <a href="?category=<?= urlencode($cat) ?>&academic_year=<?= urlencode($selected_year) ?>&semester=<?= urlencode($selected_sem) ?>" 
+                       class="px-4 py-3 rounded-2xl text-sm font-bold transition-all <?= $active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' ?>">
+                        <i class="fas fa-layer-group opacity-50 mr-2"></i> <?= htmlspecialchars($cat) ?>
+                        <?php if ($active): ?><i class="fas fa-chevron-right float-right mt-1 opacity-50"></i><?php endif; ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
             <div class="bg-white border border-slate-100 rounded-3xl p-3 shadow-sm flex-1">
                 <h3 class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest px-4 pt-3 pb-2">Select a Class</h3>
-                <div class="flex flex-col gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                <div class="flex flex-col gap-1 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                     <?php foreach ($classes as $cl): 
                         $active = ($cl === $selected_class);
                     ?>
                     <a href="?class=<?= urlencode($cl) ?>&academic_year=<?= urlencode($selected_year) ?>&semester=<?= urlencode($selected_sem) ?>" 
-                       class="px-4 py-3 rounded-2xl text-sm font-bold transition-all <?= $active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600' ?>">
+                       class="px-4 py-3 rounded-2xl text-sm font-bold transition-all <?= $active ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600' ?>">
                         <?= htmlspecialchars($cl) ?>
                         <?php if ($active): ?><i class="fas fa-chevron-right float-right mt-1 opacity-50"></i><?php endif; ?>
                     </a>
@@ -140,14 +185,14 @@ if ($selected_class) {
         <!-- Right: Items -->
         <div class="lg:w-3/4">
             
-            <?php if (!$selected_class): ?>
+            <?php if (!$selected_class && !$selected_category): ?>
             <!-- Empty State -->
             <div class="bg-white border border-slate-100 rounded-3xl p-16 shadow-sm text-center flex flex-col items-center justify-center h-full min-h-[400px]">
                 <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500 text-4xl mb-4">
                     <i class="fas fa-hand-pointer"></i>
                 </div>
-                <h2 class="text-xl font-black text-slate-900 mb-2">Select a Class</h2>
-                <p class="text-slate-500 font-medium max-w-sm">Choose a class from the left sidebar to manage its stationery requirements instantly.</p>
+                <h2 class="text-xl font-black text-slate-900 mb-2">Select a Category or Class</h2>
+                <p class="text-slate-500 font-medium max-w-sm">Choose a category or class from the left sidebar to manage its stationery requirements instantly.</p>
             </div>
             <?php else: ?>
             
@@ -166,12 +211,19 @@ if ($selected_class) {
             <!-- Items Grid -->
             <div class="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
                 <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                    <h2 class="text-lg font-black text-slate-900">Stationery for <span class="text-indigo-600"><?= htmlspecialchars($selected_class) ?></span></h2>
-                    <span class="bg-indigo-100 text-indigo-700 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                    <h2 class="text-lg font-black text-slate-900">Stationery for <span class="<?= $selected_category ? 'text-indigo-600' : 'text-emerald-600' ?>"><?= htmlspecialchars($selected_category ?: $selected_class) ?></span></h2>
+                    <span class="<?= $selected_category ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700' ?> text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">
                         <?= count($assignments) ?> Assigned
                     </span>
                 </div>
                 
+                <?php if ($selected_category): ?>
+                <div class="bg-blue-50 px-6 py-3 border-b border-blue-100 flex gap-3 items-center">
+                    <i class="fas fa-info-circle text-blue-500"></i>
+                    <p class="text-xs text-blue-800 font-medium">You are managing the entire <strong><?= htmlspecialchars($selected_category) ?></strong> category. Any changes made here will apply to all <strong><?= count($category_classes) ?></strong> classes in this category instantly.</p>
+                </div>
+                <?php endif; ?>
+
                 <div class="divide-y divide-slate-100">
                     <?php foreach ($all_items as $item): 
                         $is_assigned = isset($assignments[$item['id']]);
@@ -236,6 +288,8 @@ if ($selected_class) {
 <script>
 const API = 'api_stationery.php';
 const currentClass = <?= json_encode($selected_class) ?>;
+const currentCategory = <?= json_encode($selected_category) ?>;
+const categoryClasses = <?= json_encode($category_classes) ?>;
 const currentYear = <?= json_encode($selected_year) ?>;
 const currentSemester = <?= json_encode($selected_sem) ?>;
 
@@ -260,32 +314,46 @@ async function toggleItem(id) {
     
     if (isChecked) {
         // Assign
-        const res = await apiPost({
-            action: 'assign_item',
+        let data = {
+            action: currentCategory ? 'bulk_assign_item' : 'assign_item',
             item_id: id,
-            class: currentClass,
             academic_year: currentYear,
             semester: currentSemester,
             quantity: qty,
             price: price
-        });
+        };
+        
+        if (currentCategory) {
+            categoryClasses.forEach((c, i) => data[`classes[${i}]`] = c);
+        } else {
+            data.class = currentClass;
+        }
+
+        const res = await apiPost(data);
         if (res.success) {
-            showToast('Assigned.');
+            showToast(currentCategory ? 'Assigned to category.' : 'Assigned.');
         } else {
             document.getElementById('toggle-' + id).checked = false; // revert
             showToast(res.message || 'Failed to assign', false);
         }
     } else {
         // Unassign via specialized endpoint (we need one that removes by class/year/semester)
-        const res = await apiPost({
-            action: 'unassign_item_by_class',
+        let data = {
+            action: currentCategory ? 'bulk_unassign_item' : 'unassign_item_by_class',
             item_id: id,
-            class: currentClass,
             academic_year: currentYear,
             semester: currentSemester
-        });
+        };
+        
+        if (currentCategory) {
+            categoryClasses.forEach((c, i) => data[`classes[${i}]`] = c);
+        } else {
+            data.class = currentClass;
+        }
+
+        const res = await apiPost(data);
         if (res.success) {
-            showToast('Unassigned.');
+            showToast(currentCategory ? 'Unassigned from category.' : 'Unassigned.');
         } else {
             document.getElementById('toggle-' + id).checked = true; // revert
             showToast('Failed to unassign', false);
@@ -297,16 +365,23 @@ async function updateAssignment(id) {
     const qty = document.getElementById('qty-' + id).value || 1;
     const price = document.getElementById('price-' + id).value || 0;
     
-    // We can just call assign_item again, it uses ON DUPLICATE KEY UPDATE in the backend
-    const res = await apiPost({
-        action: 'assign_item',
+    let data = {
+        action: currentCategory ? 'bulk_assign_item' : 'assign_item',
         item_id: id,
-        class: currentClass,
         academic_year: currentYear,
         semester: currentSemester,
         quantity: qty,
         price: price
-    });
+    };
+    
+    if (currentCategory) {
+        categoryClasses.forEach((c, i) => data[`classes[${i}]`] = c);
+    } else {
+        data.class = currentClass;
+    }
+
+    // We can just call assign_item again, it uses ON DUPLICATE KEY UPDATE in the backend
+    const res = await apiPost(data);
     
     if (res.success) {
         showToast('Updated.');

@@ -12,6 +12,7 @@ require_once '../../../includes/system_settings.php';
 require_once '../../../includes/student_balance_functions.php';
 require_once '../../../includes/semester_helpers.php';
 require_once '../../../includes/semester_bill_functions.php';
+require_once '../../../includes/stationery_helpers.php';
 
 if (!is_logged_in()) {
     while (ob_get_level() > 0) {
@@ -266,7 +267,7 @@ foreach ($students as $student) {
         </table>
 
         <div class="payment-section">
-            <h3>' . strtoupper(htmlspecialchars($active_bill_settings['payment_modes']['payment_reference'] ?: 'PAYMENT PLAN')) . '</h3>
+            <h3>PAYMENT PLAN</h3>
             <table class="payment-plan-table">
                 <thead>
                     <tr>
@@ -353,6 +354,17 @@ foreach ($students as $student) {
             $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
         }
         $mpdf->WriteHTML($student_html);
+        
+        // Append Stationery List if requested
+        $include_stationery = isset($_GET['include_stationery']) && $_GET['include_stationery'] == '1';
+        if ($include_stationery) {
+            $student_full_name = $student['first_name'] . ' ' . $student['last_name'];
+            $stationery_html = generate_stationery_html($conn, $student_full_name, $student['class'], $selected_academic_year, true);
+            if ($stationery_html) {
+                $mpdf->AddPage();
+                $mpdf->WriteHTML($stationery_html);
+            }
+        }
 
         // Generate filename with student name
         $student_name = $student['first_name'] . '_' . $student['last_name'];
