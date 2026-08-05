@@ -43,21 +43,51 @@ if (isset($_POST['run_cleanup'])) {
 if (isset($_POST['fix_student'])) {
     $sid = intval($_POST['student_id']);
     
+    // 1. Force Delete Feeding Fee
     if (isset($_POST['delete_feeding'])) {
-        $feed_res = $conn->query("SELECT id FROM fees WHERE name = 'Feeding Fee' LIMIT 1");
-        if ($feed_res->num_rows > 0) {
-            $feed_id = $feed_res->fetch_assoc()['id'];
-            $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id");
+        // Broad search for any fee containing "Feeding"
+        $feed_res = $conn->query("SELECT id FROM fees WHERE name LIKE '%Feeding%'");
+        while ($row = $feed_res->fetch_assoc()) {
+            $feed_id = $row['id'];
+            // Only delete it from the current active terms (so we don't mess up past arrears)
+            $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id AND (status = 'pending' OR status = 'active')");
         }
     }
     
+    // 2. Force Arrears by adjusting the PREVIOUS semester
     if (isset($_POST['override_arrears']) && $_POST['override_arrears'] !== '') {
         $target = floatval($_POST['override_arrears']);
-        // Find the Outstanding Balance fee ID
-        $ob_res = $conn->query("SELECT id FROM fees WHERE name = 'Outstanding Balance' LIMIT 1");
-        if ($ob_res->num_rows > 0) {
-            $ob_id = $ob_res->fetch_assoc()['id'];
-            $conn->query("UPDATE student_fees SET amount = $target WHERE student_id = $sid AND fee_id = $ob_id");
+        
+        include_once '../../../includes/semester_helpers.php';
+        include_once '../../../includes/student_balance_functions.php';
+        
+        $current_term = getCurrentSemester($conn);
+        $academic_year = getAcademicYear($conn);
+        
+        // Find what the system currently calculates as their arrears
+        $current_arrears = getArrearsFromPreviousSemester($conn, $sid, $current_term, $academic_year);
+        
+        // Calculate the difference
+        $difference = $current_arrears - $target;
+        
+        if (abs($difference) > 0.01) {
+            // We need to inject a waiver into the PREVIOUS semester to offset this difference
+            [$prev_term, $prev_year] = getPreviousSemesterYear($conn, $current_term, $academic_year);
+            
+            // Get waiver fee ID
+            $waiver_res = $conn->query("SELECT id FROM fees WHERE name = 'Waivers & Scholarships' LIMIT 1");
+            if ($waiver_res->num_rows > 0) {
+                $waiver_fee_id = $waiver_res->fetch_assoc()['id'];
+                
+                // Insert a correction waiver (negative amount) into the past term
+                $correction_amount = -$difference;
+                $notes = 'System Arrears Correction Adjustment';
+                
+                $ins = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, amount, semester, academic_year, assigned_date, status, notes) VALUES (?, ?, ?, ?, ?, NOW(), 'pending', ?)");
+                $ins->bind_param('iidsss', $sid, $waiver_fee_id, $correction_amount, $prev_term, $prev_year, $notes);
+                $ins->execute();
+                $ins->close();
+            }
         }
     }
     
