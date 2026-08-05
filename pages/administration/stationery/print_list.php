@@ -47,24 +47,7 @@ if (empty($items)) {
     exit;
 }
 
-// Fetch Students in this class
-$students = [];
-$sr = $conn->query("
-    SELECT id, CONCAT(first_name, ' ', last_name) as full_name 
-    FROM students 
-    WHERE status='active' AND class='$sc' 
-    ORDER BY first_name, last_name ASC
-");
-if ($sr) {
-    while ($s = $sr->fetch_assoc()) $students[] = $s;
-}
-
-// If no students are found, we can at least print one generic sheet
-if (empty($students)) {
-    $students[] = ['full_name' => ''];
-}
-
-$download_zip = (($_GET['download'] ?? '') === 'zip');
+$download_pdf = (($_GET['download'] ?? '') === 'pdf');
 
 $css = '
 <style>
@@ -121,8 +104,8 @@ $css = '
 </style>
 ';
 
-// If ZIP download is requested
-if ($download_zip) {
+// If PDF download is requested
+if ($download_pdf) {
     $autoload = __DIR__ . '/../../../vendor/autoload.php';
     if (!file_exists($autoload)) {
         http_response_code(500);
@@ -130,17 +113,6 @@ if ($download_zip) {
         exit;
     }
     require_once $autoload;
-
-    $zip = new ZipArchive();
-    $tmp_dir = sys_get_temp_dir() . '/stationery_' . time();
-    mkdir($tmp_dir);
-    $zip_filename = $tmp_dir . '/Stationery_Lists_' . preg_replace('/[^a-z0-9]+/i', '_', $selected_class) . '.zip';
-
-    if ($zip->open($zip_filename, ZipArchive::CREATE) !== TRUE) {
-        die("Cannot create zip file");
-    }
-
-    $generated_files = [];
 
     // Redefine CSS for mPDF to remove browser background/shadows
     $mpdf_css = str_replace([
@@ -151,106 +123,83 @@ if ($download_zip) {
         ''
     ], $css);
 
-    foreach ($students as $index => $student) {
-        $mpdf = new \Mpdf\Mpdf([
-            'format' => 'A4',
-            'margin_top' => 12,
-            'margin_bottom' => 12,
-            'margin_left' => 12,
-            'margin_right' => 12,
-        ]);
+    $mpdf = new \Mpdf\Mpdf([
+        'format' => 'A4',
+        'margin_top' => 12,
+        'margin_bottom' => 12,
+        'margin_left' => 12,
+        'margin_right' => 12,
+    ]);
+    
+    $file_suffix = preg_replace('/[^a-z0-9]+/i', '_', $selected_class);
+    $pdf_filename = 'Stationery_List_' . $file_suffix . '.pdf';
+    
+    $html = '
+    <div class="document-wrapper">
+        <table class="header-table" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="logo-cell">
+                    ' . ($logo_path ? '<img src="' . htmlspecialchars($logo_path) . '" alt="Logo" class="school-logo">' : '') . '
+                </td>
+                <td class="school-info-cell">
+                    <div class="school-name serif">' . htmlspecialchars($school_name) . '</div>
+                    <div class="school-motto">Official Stationery Requirements</div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="divider"></div>
+
+        <div class="doc-title serif">' . htmlspecialchars($print_title) . '</div>
+
+        <table class="meta-table" cellpadding="0" cellspacing="0">
+            <tr>
+                <td><div class="meta-label">Class Level</div><div class="meta-value">' . strtoupper(htmlspecialchars($selected_class)) . '</div></td>
+                <td><div class="meta-label">Academic Year</div><div class="meta-value">' . htmlspecialchars($selected_year) . '</div></td>
+            </tr>
+        </table>
         
-        $student_name = !empty($student['full_name']) ? strtoupper(htmlspecialchars($student['full_name'])) : '';
-        $file_suffix = !empty($student_name) ? preg_replace('/[^a-z0-9]+/i', '_', $student_name) : 'Generic';
-        $pdf_filename = $tmp_dir . '/' . $file_suffix . '.pdf';
-        
-        $html = '
-        <div class="document-wrapper">
-            <table class="header-table" cellpadding="0" cellspacing="0">
+        ' . ($print_instruction ? '<div class="instructions-box serif">' . nl2br(htmlspecialchars($print_instruction)) . '</div>' : '') . '
+
+        <table class="items-table" cellpadding="0" cellspacing="0">
+            <thead>
                 <tr>
-                    <td class="logo-cell">
-                        ' . ($logo_path ? '<img src="' . htmlspecialchars($logo_path) . '" alt="Logo" class="school-logo">' : '') . '
-                    </td>
-                    <td class="school-info-cell">
-                        <div class="school-name serif">' . htmlspecialchars($school_name) . '</div>
-                        <div class="school-motto">Official Stationery Requirements</div>
-                    </td>
+                    <th class="sn">#</th>
+                    <th>Item Description</th>
+                    <th class="right">Required Qty</th>
                 </tr>
-            </table>
-
-            <div class="divider"></div>
-
-            <div class="doc-title serif">' . htmlspecialchars($print_title) . '</div>
-
-            <table class="meta-table" cellpadding="0" cellspacing="0">
-                <tr>
-                    ' . ($student_name ? '<td><div class="meta-label">Student Name</div><div class="meta-value">' . $student_name . '</div></td>' : '') . '
-                    <td><div class="meta-label">Class Level</div><div class="meta-value">' . strtoupper(htmlspecialchars($selected_class)) . '</div></td>
-                    <td><div class="meta-label">Academic Year</div><div class="meta-value">' . htmlspecialchars($selected_year) . '</div></td>
-                </tr>
-            </table>
+            </thead>
+            <tbody>';
             
-            ' . ($print_instruction ? '<div class="instructions-box serif">' . nl2br(htmlspecialchars($print_instruction)) . '</div>' : '') . '
-
-            <table class="items-table" cellpadding="0" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th class="sn">#</th>
-                        <th>Item Description</th>
-                        <th class="right">Required Qty</th>
-                    </tr>
-                </thead>
-                <tbody>';
-                
-        foreach ($items as $idx => $item) {
-            $rowClass = ($idx % 2 === 1) ? 'alt-row' : '';
-            $html .= '<tr class="' . $rowClass . '">
-                <td class="sn">' . ($idx + 1) . '</td>
-                <td class="item-name">' . htmlspecialchars($item['item_name']) . '</td>
-                <td class="qty">' . htmlspecialchars($item['quantity']) . '</td>
-            </tr>';
-        }
-                
-        $html .= '</tbody>
-            </table>';
+    foreach ($items as $idx => $item) {
+        $rowClass = ($idx % 2 === 1) ? 'alt-row' : '';
+        $html .= '<tr class="' . $rowClass . '">
+            <td class="sn">' . ($idx + 1) . '</td>
+            <td class="item-name">' . htmlspecialchars($item['item_name']) . '</td>
+            <td class="qty">' . htmlspecialchars($item['quantity']) . '</td>
+        </tr>';
+    }
             
-        if ($print_footer_1 || $print_footer_2 || $print_footer_3) {
-            $html .= '<div class="footer-notes">
-                <div class="footer-notes-title">Important Notes</div>
-                <ul>';
-            if ($print_footer_1) $html .= '<li>' . htmlspecialchars($print_footer_1) . '</li>';
-            if ($print_footer_2) $html .= '<li>' . htmlspecialchars($print_footer_2) . '</li>';
-            if ($print_footer_3) $html .= '<li>' . htmlspecialchars($print_footer_3) . '</li>';
-            $html .= '</ul></div>';
-        }
-
-        $html .= '</div>';
-
-        $mpdf->WriteHTML($mpdf_css, \Mpdf\HTMLParserMode::HEADER_CSS);
-        $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-        $mpdf->Output($pdf_filename, \Mpdf\Output\Destination::FILE);
+    $html .= '</tbody>
+        </table>';
         
-        $zip->addFile($pdf_filename, $file_suffix . '.pdf');
-        $generated_files[] = $pdf_filename;
+    if ($print_footer_1 || $print_footer_2 || $print_footer_3) {
+        $html .= '<div class="footer-notes">
+            <div class="footer-notes-title">Important Notes</div>
+            <ul>';
+        if ($print_footer_1) $html .= '<li>' . htmlspecialchars($print_footer_1) . '</li>';
+        if ($print_footer_2) $html .= '<li>' . htmlspecialchars($print_footer_2) . '</li>';
+        if ($print_footer_3) $html .= '<li>' . htmlspecialchars($print_footer_3) . '</li>';
+        $html .= '</ul></div>';
     }
 
-    $zip->close();
+    $html .= '</div>';
 
-    // Download the ZIP file
-    $public_zip_name = 'Stationery_Lists_' . preg_replace('/[^a-z0-9]+/i', '_', $selected_class) . '.zip';
-    header('Content-Type: application/zip');
-    header('Content-Disposition: attachment; filename="' . $public_zip_name . '"');
-    header('Content-Length: ' . filesize($zip_filename));
-    header('Cache-Control: private, max-age=0, must-revalidate');
-    header('Pragma: public');
-    readfile($zip_filename);
-
-    // Clean up temp files
-    unlink($zip_filename);
-    foreach ($generated_files as $file) {
-        unlink($file);
-    }
-    rmdir($tmp_dir);
+    $mpdf->WriteHTML($mpdf_css, \Mpdf\HTMLParserMode::HEADER_CSS);
+    $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+    
+    // Download directly to browser
+    $mpdf->Output($pdf_filename, \Mpdf\Output\Destination::DOWNLOAD);
     exit;
 }
 ?>
@@ -269,13 +218,10 @@ if ($download_zip) {
     </div>
     <div style="display: flex; gap: 10px;">
         <button onclick="window.print()" class="btn btn-ghost">Preview Print</button>
-        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>&download=zip" class="btn btn-primary">Download ZIP</a>
+        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>&download=pdf" class="btn btn-primary">Download PDF</a>
     </div>
 </div>
 
-<?php foreach ($students as $student): 
-    $student_name = !empty($student['full_name']) ? strtoupper(htmlspecialchars($student['full_name'])) : '';
-?>
 <div class="document-wrapper">
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
@@ -295,9 +241,6 @@ if ($download_zip) {
 
     <table class="meta-table" cellpadding="0" cellspacing="0">
         <tr>
-            <?php if ($student_name): ?>
-            <td><div class="meta-label">Student Name</div><div class="meta-value"><?= $student_name ?></div></td>
-            <?php endif; ?>
             <td><div class="meta-label">Class Level</div><div class="meta-value"><?= strtoupper(htmlspecialchars($selected_class)) ?></div></td>
             <td><div class="meta-label">Academic Year</div><div class="meta-value"><?= htmlspecialchars($selected_year) ?></div></td>
         </tr>
@@ -339,7 +282,6 @@ if ($download_zip) {
     </div>
     <?php endif; ?>
 </div>
-<?php endforeach; ?>
 
 </body>
 </html>
