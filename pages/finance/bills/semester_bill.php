@@ -73,10 +73,25 @@ foreach ($students as &$student) {
     $f_stmt->bind_param('iss', $student['id'], $semester, $selected_academic_year);
     $f_stmt->execute();
     $f_res = $f_stmt->get_result();
+    
     $student['fees'] = [];
+    $student['charges'] = [];
+    $student['waivers'] = [];
     $student['total_bill'] = 0;
+    $student['subtotal'] = 0;
+    $student['total_waiver'] = 0;
+    
     while ($f = $f_res->fetch_assoc()) {
         $student['fees'][] = $f;
+        
+        if ($f['amount'] >= 0) {
+            $student['charges'][] = $f;
+            $student['subtotal'] += $f['amount'];
+        } else {
+            $student['waivers'][] = $f;
+            $student['total_waiver'] += abs($f['amount']);
+        }
+        
         $student['total_bill'] += $f['amount'];
     }
 }
@@ -212,7 +227,7 @@ foreach ($students as &$student) {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    <?php foreach ($student['fees'] as $fee): 
+                    <?php foreach ($student['charges'] as $fee): 
                         $is_arrears = strpos(strtolower($fee['fee_name']), 'arrears') !== false;
                     ?>
                     <tr class="<?= $is_arrears ? 'bg-rose-50/50' : '' ?>">
@@ -228,8 +243,27 @@ foreach ($students as &$student) {
                 </tbody>
                 <tfoot>
                     <tr class="border-t-2 border-slate-900">
-                        <td class="py-5 text-sm font-black text-slate-900 uppercase tracking-tight">Total Fees Due</td>
-                        <td class="py-5 text-right text-lg font-black text-slate-900 leading-none">GHS <?= number_format($student['total_bill'], 2) ?></td>
+                        <td class="py-5 text-sm font-black text-slate-500 uppercase tracking-tight">Gross Subtotal</td>
+                        <td class="py-5 text-right text-sm font-black text-slate-500 leading-none">GHS <?= number_format($student['subtotal'], 2) ?></td>
+                    </tr>
+                    <?php if (!empty($student['waivers'])): ?>
+                        <tr><td colspan="2" class="py-2 text-[0.625rem] font-black text-emerald-600 uppercase tracking-widest border-b border-slate-100">Less: Discounts & Waivers</td></tr>
+                        <?php foreach ($student['waivers'] as $waiver): ?>
+                        <tr>
+                            <td class="py-3 text-xs font-bold text-emerald-600 pl-4"><?= strtoupper(htmlspecialchars($waiver['fee_name'])) ?>
+                                <?= !empty($waiver['notes']) ? ' <span class="text-[0.55rem] text-slate-400 block mt-0.5">'.htmlspecialchars($waiver['notes']).'</span>' : '' ?>
+                            </td>
+                            <td class="py-3 text-right text-xs font-black text-emerald-600">-<?= number_format(abs($waiver['amount']), 2) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <tr class="border-t border-slate-200">
+                            <td class="py-3 text-xs font-black text-emerald-700 uppercase tracking-tight pl-4">Total Discounts</td>
+                            <td class="py-3 text-right text-xs font-black text-emerald-700 leading-none">-<?= number_format($student['total_waiver'], 2) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <tr class="border-t-2 border-slate-900 bg-slate-50">
+                        <td class="py-5 px-4 text-sm font-black text-slate-900 uppercase tracking-tight">Total Fees Due</td>
+                        <td class="py-5 px-4 text-right text-lg font-black text-slate-900 leading-none">GHS <?= number_format($student['total_bill'], 2) ?></td>
                     </tr>
                 </tfoot>
             </table>

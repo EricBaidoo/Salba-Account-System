@@ -128,11 +128,24 @@ foreach ($students as &$student) {
     $fees_result = $fees_stmt->get_result();
     
     $student['fees'] = [];
+    $student['charges'] = [];
+    $student['waivers'] = [];
     $student['current_semester_total'] = 0;
+    $student['subtotal'] = 0;
+    $student['total_waiver'] = 0;
     $student['due_date'] = null;
     
     while ($fee = $fees_result->fetch_assoc()) {
         $student['fees'][] = $fee;
+        
+        if ($fee['amount'] >= 0) {
+            $student['charges'][] = $fee;
+            $student['subtotal'] += $fee['amount'];
+        } else {
+            $student['waivers'][] = $fee;
+            $student['total_waiver'] += abs($fee['amount']);
+        }
+        
         $student['current_semester_total'] += $fee['amount'];
         if (!$student['due_date'] && $fee['due_date']) {
             $student['due_date'] = $fee['due_date'];
@@ -247,7 +260,7 @@ foreach ($students as $student) {
     
     // No separate ARREARS row; arrears is part of current semester fees as a materialized fee
     
-    foreach ($student['fees'] as $fee) {
+    foreach ($student['charges'] as $fee) {
         $student_html .= '
                 <tr>
                     <td>' . strtoupper(htmlspecialchars($fee['fee_name'])) . '</td>
@@ -261,8 +274,33 @@ foreach ($students as $student) {
 
         <table class="totals-table">
             <tr>
-                <td class="label">TOTAL:</td>
-                <td class="value">GH₵ ' . number_format($student['total_bill'], 2) . '</td>
+                <td class="label" style="font-size: 10pt; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 5px;">GROSS SUBTOTAL:</td>
+                <td class="value" style="font-size: 10pt; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 5px;">GH₵ ' . number_format($student['subtotal'], 2) . '</td>
+            </tr>';
+
+    if (!empty($student['waivers'])) {
+        $student_html .= '
+            <tr>
+                <td colspan="2" style="font-weight: bold; font-size: 10pt; color: #10b981; padding-top: 10px;">LESS: DISCOUNTS & WAIVERS</td>
+            </tr>';
+        foreach ($student['waivers'] as $waiver) {
+            $student_html .= '
+            <tr>
+                <td class="label" style="font-weight: normal; font-size: 9pt; color: #10b981; padding-left: 15px;">' . strtoupper(htmlspecialchars($waiver['fee_name'])) . '</td>
+                <td class="value" style="font-weight: bold; font-size: 9pt; color: #10b981;">-' . number_format(abs($waiver['amount']), 2) . '</td>
+            </tr>';
+        }
+        $student_html .= '
+            <tr>
+                <td class="label" style="font-size: 10pt; color: #047857; border-bottom: 1px solid #ccc; padding-bottom: 5px;">TOTAL DISCOUNTS:</td>
+                <td class="value" style="font-size: 10pt; color: #047857; border-bottom: 1px solid #ccc; padding-bottom: 5px;">-GH₵ ' . number_format($student['total_waiver'], 2) . '</td>
+            </tr>';
+    }
+
+    $student_html .= '
+            <tr>
+                <td class="label" style="padding-top: 10px;">TOTAL FEES DUE:</td>
+                <td class="value" style="padding-top: 10px;">GH₵ ' . number_format($student['total_bill'], 2) . '</td>
             </tr>
         </table>
 

@@ -67,7 +67,7 @@ if (!function_exists('apply_student_waivers')) {
             
             // 5. Check Already Granted Discount (Sum of negative amounts)
             // We search for rows where the note contains the scholarship name
-            $note_like = "%Waiver Applied: {$schol_name_esc}%";
+            $note_like = "%{$schol_name_esc}%";
             $granted_stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) as t FROM student_fees WHERE student_id = ? AND fee_id = ? AND semester = ? AND academic_year = ? AND notes LIKE ? AND status != 'cancelled'");
             $granted_stmt->bind_param("iisss", $student_id, $waiver_fee_id, $semester, $academic_year, $note_like);
             $granted_stmt->execute();
