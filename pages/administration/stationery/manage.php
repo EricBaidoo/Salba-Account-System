@@ -265,6 +265,10 @@ if ($selected_class) {
                                        onchange="if(document.getElementById('toggle-<?= $item['id'] ?>').checked) updateAssignment(<?= $item['id'] ?>)"
                                        class="bg-transparent border-none outline-none w-16 text-sm font-bold text-slate-700 text-center">
                             </div>
+                            <!-- Edit catalog item button -->
+                            <button onclick="editCatalogItem(<?= $item['id'] ?>, '<?= htmlspecialchars(addslashes($item['name'])) ?>', '<?= htmlspecialchars(addslashes($item['description'])) ?>', <?= $item['default_price'] ?>)" class="text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors" title="Edit Item Details">
+                                <i class="fas fa-edit text-xs"></i>
+                            </button>
                             <!-- Delete from catalog button -->
                             <button onclick="deleteCatalogItem(<?= $item['id'] ?>, '<?= htmlspecialchars(addslashes($item['name'])) ?>')" class="text-slate-300 hover:text-rose-500 hover:bg-rose-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors" title="Delete entirely from system">
                                 <i class="fas fa-trash-alt text-xs"></i>
@@ -415,13 +419,39 @@ document.getElementById('quickAddName')?.addEventListener('keydown', e => {
 });
 
 async function deleteCatalogItem(id, name) {
-    if (!confirm('Are you sure you want to permanently delete "' + name + '" from the system?\n\nThis will remove it from ALL classes.')) return;
-    const res = await apiPost({ action: 'delete_item', id: id });
+    if (confirm('Are you sure you want to completely delete "' + name + '" from the system?\n\nThis will remove it from all classes.')) {
+        const res = await apiPost({ action: 'delete_item', id: id });
+        if (res.success) {
+            window.location.reload();
+        } else {
+            showToast('Failed to delete.', false);
+        }
+    }
+}
+
+async function editCatalogItem(id, currentName, currentDesc, defaultPrice) {
+    const newName = prompt("Enter new item name:", currentName);
+    if (newName === null) return;
+    if (newName.trim() === '') {
+        alert("Name cannot be empty.");
+        return;
+    }
+    
+    const newDesc = prompt("Enter new item description (optional):", currentDesc);
+    if (newDesc === null) return;
+
+    const res = await apiPost({
+        action: 'edit_item',
+        id: id,
+        name: newName,
+        description: newDesc,
+        default_price: defaultPrice
+    });
+    
     if (res.success) {
-        showToast('Item deleted.');
-        setTimeout(() => location.reload(), 500);
+        window.location.reload();
     } else {
-        showToast(res.message || 'Error.', false);
+        alert(res.message || "Failed to edit item");
     }
 }
 </script>
