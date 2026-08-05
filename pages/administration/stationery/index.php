@@ -122,7 +122,7 @@ $pct_brought   = $total_cells > 0 ? round(($brought_count / $total_cells) * 100)
             <p class="text-slate-500 mt-1 text-sm">Mark which students have brought their items. Bill those who have not.</p>
         </div>
         <?php if ($selected_class && !empty($assignments)): ?>
-        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>" class="flex items-center gap-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest px-5 py-3 rounded-2xl hover:bg-slate-700 transition-colors self-start sm:self-auto">
+        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>&semester=<?= urlencode($selected_sem) ?>" class="flex items-center gap-2 bg-slate-900 text-white text-xs font-black uppercase tracking-widest px-5 py-3 rounded-2xl hover:bg-slate-700 transition-colors self-start sm:self-auto">
             <i class="fas fa-print"></i> Print Lists
         </a>
         <?php endif; ?>

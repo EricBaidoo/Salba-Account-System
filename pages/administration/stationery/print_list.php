@@ -9,6 +9,7 @@ if (!in_array(($_SESSION['role'] ?? ''), ['admin', 'data_entry'])) {
 
 $selected_class = $_GET['class'] ?? '';
 $selected_year  = $_GET['academic_year'] ?? '';
+$selected_sem   = $_GET['semester'] ?? '';
 $school_name    = getSystemSetting($conn, 'school_name', 'School');
 $school_logo    = getSystemSetting($conn, 'school_logo', '');
 
@@ -30,6 +31,7 @@ if (!$selected_class || !$selected_year) {
 
 $sc = $conn->real_escape_string($selected_class);
 $sy = $conn->real_escape_string($selected_year);
+$ss = $conn->real_escape_string($selected_sem);
 
 // Fetch Items
 $items = [];
@@ -37,7 +39,7 @@ $ir = $conn->query("
     SELECT si.name as item_name, sa.quantity, sa.price, si.description as notes
     FROM stationery_assignments sa
     JOIN stationery_items si ON sa.item_id = si.id
-    WHERE sa.class='$sc' AND sa.academic_year='$sy'
+    WHERE sa.class='$sc' AND sa.academic_year='$sy' AND sa.semester='$ss'
     ORDER BY sa.sort_order ASC, sa.id ASC
 ");
 while ($i = $ir->fetch_assoc()) $items[] = $i;
