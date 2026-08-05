@@ -62,12 +62,7 @@ try {
         exit;
     }
     
-    // Check if fee has been paid
-    if ($fee_details['status'] === 'paid') {
-        $conn->rollback();
-        echo json_encode(['success' => false, 'message' => 'Cannot unassign a paid fee. Please process a refund instead.']);
-        exit;
-    }
+    // Removed arbitrary 'status === paid' check so accidental fees can be unassigned
     
     // Check if there are any payments made for this fee
     $payment_check_sql = "SELECT SUM(amount) as total_paid FROM payments WHERE student_id = ? AND fee_id = ?";
