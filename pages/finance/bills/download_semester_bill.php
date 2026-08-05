@@ -286,7 +286,9 @@ foreach ($students as $student) {
         foreach ($student['waivers'] as $waiver) {
             $student_html .= '
             <tr>
-                <td class="label" style="font-weight: normal; font-size: 9pt; color: #10b981; padding-left: 15px;">' . strtoupper(htmlspecialchars($waiver['fee_name'])) . '</td>
+                <td class="label" style="font-weight: normal; font-size: 9pt; color: #10b981; padding-left: 15px;">' . strtoupper(htmlspecialchars($waiver['fee_name'])) . 
+                (!empty($waiver['notes']) ? '<br><span style="font-size: 7pt; color: #888;">' . htmlspecialchars($waiver['notes']) . '</span>' : '') . 
+                '</td>
                 <td class="value" style="font-weight: bold; font-size: 9pt; color: #10b981;">-' . number_format(abs($waiver['amount']), 2) . '</td>
             </tr>';
         }

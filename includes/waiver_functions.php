@@ -20,12 +20,14 @@ if (!function_exists('apply_student_waivers')) {
             $waiver_fee_id = $conn->insert_id;
         }
 
-        // 2. Get active scholarships for the student
+        // 2. Get all scholarships ever assigned to the student (to properly reverse revoked ones)
         $schols_stmt = $conn->prepare("
-            SELECT s.id, s.name, s.discount_type, s.discount_value, s.applies_to_fees
+            SELECT s.id, s.name, s.discount_type, s.discount_value, s.applies_to_fees,
+                   MAX(CASE WHEN ss.status = 'active' THEN 1 ELSE 0 END) as is_active
             FROM student_scholarships ss 
             JOIN scholarships s ON ss.scholarship_id = s.id 
-            WHERE ss.student_id = ? AND ss.status = 'active'
+            WHERE ss.student_id = ?
+            GROUP BY s.id
         ");
         $schols_stmt->bind_param("i", $student_id);
         $schols_stmt->execute();
@@ -37,22 +39,27 @@ if (!function_exists('apply_student_waivers')) {
             
             // 3. Compute Target Amount (Sum of target fees billed this semester)
             $target_amount = 0;
-            if (empty($target_fees)) {
-                // All fees EXCEPT the waiver fee itself
-                $sum_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) as t FROM student_fees WHERE student_id = ? AND semester = ? AND academic_year = ? AND fee_id != ? AND amount > 0 AND status != 'cancelled'");
-                $sum_stmt->bind_param("issi", $student_id, $semester, $academic_year, $waiver_fee_id);
-            } else {
-                // Specific targeted fees
-                $fids = implode(',', array_map('intval', $target_fees));
-                if (empty($fids)) { $target_amount = 0; continue; }
-                $sum_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) as t FROM student_fees WHERE student_id = ? AND semester = ? AND academic_year = ? AND fee_id IN ($fids) AND amount > 0 AND status != 'cancelled'");
-                $sum_stmt->bind_param("iss", $student_id, $semester, $academic_year);
-            }
             
-            if (isset($sum_stmt)) {
-                $sum_stmt->execute();
-                $target_amount = (float)$sum_stmt->get_result()->fetch_assoc()['t'];
-                $sum_stmt->close();
+            if ($schol['is_active']) {
+                if (empty($target_fees)) {
+                    // All fees EXCEPT the waiver fee itself
+                    $sum_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) as t FROM student_fees WHERE student_id = ? AND semester = ? AND academic_year = ? AND fee_id != ? AND amount > 0 AND status != 'cancelled'");
+                    $sum_stmt->bind_param("issi", $student_id, $semester, $academic_year, $waiver_fee_id);
+                } else {
+                    // Specific targeted fees
+                    $fids = implode(',', array_map('intval', $target_fees));
+                    if (!empty($fids)) {
+                        $sum_stmt = $conn->prepare("SELECT COALESCE(SUM(amount),0) as t FROM student_fees WHERE student_id = ? AND semester = ? AND academic_year = ? AND fee_id IN ($fids) AND amount > 0 AND status != 'cancelled'");
+                        $sum_stmt->bind_param("iss", $student_id, $semester, $academic_year);
+                    }
+                }
+                
+                if (isset($sum_stmt)) {
+                    $sum_stmt->execute();
+                    $target_amount = (float)$sum_stmt->get_result()->fetch_assoc()['t'];
+                    $sum_stmt->close();
+                    unset($sum_stmt);
+                }
             }
 
             // 4. Calculate Expected Discount (Positive Number)
