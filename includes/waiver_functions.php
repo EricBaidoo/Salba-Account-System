@@ -20,7 +20,10 @@ if (!function_exists('apply_student_waivers')) {
             $waiver_fee_id = $conn->insert_id;
         }
 
-        // 2. Get all scholarships ever assigned to the student (to properly reverse revoked ones)
+        // 2. Build list of all scholarships to process (assigned + orphaned)
+        $scholarships_to_process = [];
+        
+        // A. Get all scholarships assigned in the database
         $schols_stmt = $conn->prepare("
             SELECT s.id, s.name, s.discount_type, s.discount_value, s.applies_to_fees,
                    MAX(CASE WHEN ss.status = 'active' THEN 1 ELSE 0 END) as is_active
@@ -32,8 +35,40 @@ if (!function_exists('apply_student_waivers')) {
         $schols_stmt->bind_param("i", $student_id);
         $schols_stmt->execute();
         $schols = $schols_stmt->get_result();
-        
         while ($schol = $schols->fetch_assoc()) {
+            $scholarships_to_process[$schol['name']] = $schol;
+        }
+        $schols_stmt->close();
+        
+        // B. Find "phantom/orphan" waivers from student_fees (e.g. if a scholarship was hard-deleted from DB)
+        $names_stmt = $conn->prepare("
+            SELECT DISTINCT notes 
+            FROM student_fees 
+            WHERE student_id = ? AND fee_id = ? AND semester = ? AND academic_year = ? AND status != 'cancelled'
+        ");
+        $names_stmt->bind_param("iiss", $student_id, $waiver_fee_id, $semester, $academic_year);
+        $names_stmt->execute();
+        $res = $names_stmt->get_result();
+        
+        while ($row = $res->fetch_assoc()) {
+            $note = $row['notes'];
+            if (preg_match('/Waiver (?:Applied|Adjustment):\s*(.+?)(?:\s*\(Reversal\))?$/', $note, $matches)) {
+                $name = trim($matches[1]);
+                if (!isset($scholarships_to_process[$name])) {
+                    // This is an orphan waiver. We must process it as inactive so it gets reversed.
+                    $scholarships_to_process[$name] = [
+                        'name' => $name,
+                        'discount_type' => 'percentage', // irrelevant since it's inactive
+                        'discount_value' => 0,
+                        'applies_to_fees' => '[]',
+                        'is_active' => 0
+                    ];
+                }
+            }
+        }
+        $names_stmt->close();
+        
+        foreach ($scholarships_to_process as $schol) {
             $schol_name_esc = $conn->real_escape_string($schol['name']);
             $target_fees = json_decode($schol['applies_to_fees'] ?? '[]', true) ?: [];
             
@@ -127,8 +162,7 @@ if (!function_exists('apply_student_waivers')) {
                 $insert_stmt->close();
             }
         }
-        $schols_stmt->close();
-        
+        // $schols_stmt->close(); removed to prevent already closed error
         return $applied_count;
     }
 }
