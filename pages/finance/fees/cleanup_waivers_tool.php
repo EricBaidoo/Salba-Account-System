@@ -42,15 +42,21 @@ if (isset($_POST['run_cleanup'])) {
 
 if (isset($_POST['fix_student'])) {
     $sid = intval($_POST['student_id']);
+    echo "<div style='text-align: left; background: #fff; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>";
+    echo "<h3>Debugging Fix for Student ID: $sid</h3>";
     
     // 1. Force Delete Feeding Fee
     if (isset($_POST['delete_feeding'])) {
-        // Broad search for any fee containing "Feeding"
-        $feed_res = $conn->query("SELECT id FROM fees WHERE name LIKE '%Feeding%'");
-        while ($row = $feed_res->fetch_assoc()) {
-            $feed_id = $row['id'];
-            // Only delete it from the current active terms (so we don't mess up past arrears)
-            $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id AND (status = 'pending' OR status = 'active')");
+        $feed_res = $conn->query("SELECT id, name FROM fees WHERE name LIKE '%Feeding%'");
+        if ($feed_res->num_rows > 0) {
+            while ($row = $feed_res->fetch_assoc()) {
+                $feed_id = $row['id'];
+                echo "<p>Found Feeding Fee ID: $feed_id ({$row['name']})</p>";
+                $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id AND (status = 'pending' OR status = 'active')");
+                echo "<p>Deleted " . $conn->affected_rows . " active/pending feeding fees for this student.</p>";
+            }
+        } else {
+            echo "<p>No fee with 'Feeding' in the name found in the database.</p>";
         }
     }
     
@@ -63,16 +69,20 @@ if (isset($_POST['fix_student'])) {
         
         $current_term = getCurrentSemester($conn);
         $academic_year = getAcademicYear($conn);
+        echo "<p>Current Term: $current_term, Academic Year: $academic_year</p>";
         
         // Find what the system currently calculates as their arrears
         $current_arrears = getArrearsFromPreviousSemester($conn, $sid, $current_term, $academic_year);
+        echo "<p>System Currently Calculates Arrears As: $current_arrears</p>";
         
         // Calculate the difference
         $difference = $current_arrears - $target;
+        echo "<p>Target Arrears: $target (Difference needed: -$difference)</p>";
         
         if (abs($difference) > 0.01) {
             // We need to inject a waiver into the PREVIOUS semester to offset this difference
             [$prev_term, $prev_year] = getPreviousSemesterYear($conn, $current_term, $academic_year);
+            echo "<p>Previous Term Identified: $prev_term, $prev_year</p>";
             
             // Get waiver fee ID
             $waiver_res = $conn->query("SELECT id FROM fees WHERE name = 'Waivers & Scholarships' LIMIT 1");
@@ -84,14 +94,24 @@ if (isset($_POST['fix_student'])) {
                 $notes = 'System Arrears Correction Adjustment';
                 
                 $ins = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, amount, semester, academic_year, assigned_date, status, notes) VALUES (?, ?, ?, ?, ?, NOW(), 'pending', ?)");
-                $ins->bind_param('iidsss', $sid, $waiver_fee_id, $correction_amount, $prev_term, $prev_year, $notes);
-                $ins->execute();
-                $ins->close();
+                if ($ins) {
+                    $ins->bind_param('iidsss', $sid, $waiver_fee_id, $correction_amount, $prev_term, $prev_year, $notes);
+                    $ins->execute();
+                    echo "<p>Successfully inserted correction waiver of $correction_amount into $prev_term $prev_year.</p>";
+                    $ins->close();
+                } else {
+                    echo "<p>Failed to prepare statement: " . $conn->error . "</p>";
+                }
+            } else {
+                echo "<p>Could not find Waivers & Scholarships fee in database.</p>";
             }
+        } else {
+            echo "<p>Arrears are already mathematically at target. No correction needed.</p>";
         }
     }
     
-    echo "<h3>Student $sid Fixed!</h3>";
+    echo "</div>";
+    echo "<h3 style='margin-top: 20px;'>Student $sid Fix Routine Finished!</h3>";
     echo "<a href='../reports/student_balance_details.php?id=$sid'>Go back to Student's Account</a>";
     exit;
 }
