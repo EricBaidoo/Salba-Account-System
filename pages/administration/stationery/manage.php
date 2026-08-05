@@ -68,7 +68,7 @@ if ($selected_class) {
         // Find items that are assigned to ALL classes in this category
         $classes_list = "'" . implode("','", array_map([$conn, 'real_escape_string'], $category_classes)) . "'";
         $ar = $conn->query("
-            SELECT item_id, quantity, price, COUNT(*) as class_count 
+            SELECT item_id, MAX(quantity) as quantity, MAX(price) as price, COUNT(*) as class_count 
             FROM stationery_assignments 
             WHERE class IN ($classes_list) AND academic_year='$sy' AND semester='$ss'
             GROUP BY item_id
@@ -285,6 +285,40 @@ if ($selected_class) {
         </div>
     </div>
 
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="closeEditModal()"></div>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="relative bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-md w-full">
+                <div class="px-6 pt-6 pb-4 border-b border-slate-100">
+                    <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                        <i class="fas fa-edit text-indigo-600"></i> Edit Stationery Item
+                    </h3>
+                </div>
+                <div class="px-6 py-5 space-y-4">
+                    <input type="hidden" id="editItemId">
+                    <input type="hidden" id="editItemPrice">
+                    <div>
+                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Item Name <span class="text-rose-500">*</span></label>
+                        <input type="text" id="editItemName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+                        <textarea id="editItemDesc" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button onclick="closeEditModal()" class="px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-xl transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="saveEditItem()" class="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <div id="toast" class="fixed bottom-6 right-6 z-50 hidden text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3"></div>
@@ -429,29 +463,43 @@ async function deleteCatalogItem(id, name) {
     }
 }
 
-async function editCatalogItem(id, currentName, currentDesc, defaultPrice) {
-    const newName = prompt("Enter new item name:", currentName);
-    if (newName === null) return;
-    if (newName.trim() === '') {
-        alert("Name cannot be empty.");
+function editCatalogItem(id, currentName, currentDesc, defaultPrice) {
+    document.getElementById('editItemId').value = id;
+    document.getElementById('editItemName').value = currentName;
+    document.getElementById('editItemDesc').value = currentDesc;
+    document.getElementById('editItemPrice').value = defaultPrice;
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+}
+
+async function saveEditItem() {
+    const id = document.getElementById('editItemId').value;
+    const name = document.getElementById('editItemName').value.trim();
+    const desc = document.getElementById('editItemDesc').value.trim();
+    const defaultPrice = document.getElementById('editItemPrice').value;
+
+    if (!name) {
+        showToast('Name cannot be empty', false);
         return;
     }
-    
-    const newDesc = prompt("Enter new item description (optional):", currentDesc);
-    if (newDesc === null) return;
 
     const res = await apiPost({
         action: 'edit_item',
         id: id,
-        name: newName,
-        description: newDesc,
+        name: name,
+        description: desc,
         default_price: defaultPrice
     });
     
     if (res.success) {
-        window.location.reload();
+        showToast('Item updated successfully!');
+        closeEditModal();
+        setTimeout(() => window.location.reload(), 600);
     } else {
-        alert(res.message || "Failed to edit item");
+        showToast(res.message || "Failed to edit item", false);
     }
 }
 </script>
