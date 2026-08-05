@@ -51,55 +51,55 @@ $download_pdf = (($_GET['download'] ?? '') === 'pdf');
 
 $css = '
 <style>
-    body { font-family: "Helvetica", "Arial", sans-serif; font-size: 10pt; color: #333333; line-height: 1.4; background: #f1f5f9; margin: 0; padding: 20px; }
+    body { font-family: "Helvetica", "Arial", sans-serif; font-size: 9pt; color: #333333; line-height: 1.3; background: #f1f5f9; margin: 0; padding: 10px; }
     .serif { font-family: "Times", "Times New Roman", serif; }
     
-    .document-wrapper { max-width: 800px; margin: 0 auto 30px auto; background: #fff; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px; }
+    .document-wrapper { max-width: 800px; margin: 0 auto 15px auto; background: #fff; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px; }
     
-    .header-table { width: 100%; margin-bottom: 10px; border-collapse: collapse; border: none; }
+    .header-table { width: 100%; margin-bottom: 5px; border-collapse: collapse; border: none; }
     .header-table td { border: none; }
-    .logo-cell { width: 80px; vertical-align: middle; }
-    .school-logo { width: 70px; height: auto; max-height: 70px; border: none; }
-    .school-info-cell { text-align: left; padding-left: 15px; vertical-align: middle; }
-    .school-name { font-size: 18pt; font-weight: bold; color: #111827; margin: 0 0 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .school-motto { font-size: 9pt; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin: 0; font-weight: normal; }
+    .logo-cell { width: 60px; vertical-align: middle; }
+    .school-logo { width: 50px; height: auto; max-height: 50px; border: none; }
+    .school-info-cell { text-align: left; padding-left: 10px; vertical-align: middle; }
+    .school-name { font-size: 14pt; font-weight: bold; color: #111827; margin: 0 0 2px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .school-motto { font-size: 8pt; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin: 0; font-weight: normal; }
     
-    .divider { border-bottom: 1.5px solid #4f46e5; margin-bottom: 20px; }
+    .divider { border-bottom: 1.5px solid #4f46e5; margin-bottom: 10px; }
     
-    .doc-title { text-align: center; font-size: 15pt; font-weight: bold; color: #111827; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+    .doc-title { text-align: center; font-size: 12pt; font-weight: bold; color: #111827; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
     
-    .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none; }
-    .meta-table td { padding: 6px 10px; background-color: #f9fafb; border: 1px solid #e5e7eb; vertical-align: middle; width: 33.33%; }
-    .meta-label { font-size: 7.5pt; color: #6b7280; text-transform: uppercase; font-weight: bold; margin-bottom: 2px; }
-    .meta-value { font-size: 10pt; font-weight: bold; color: #111827; }
+    .meta-table { width: 100%; margin-bottom: 10px; border-collapse: collapse; border: none; }
+    .meta-table td { padding: 4px 8px; background-color: #f9fafb; border: 1px solid #e5e7eb; vertical-align: middle; width: 50%; }
+    .meta-label { font-size: 7pt; color: #6b7280; text-transform: uppercase; font-weight: bold; margin-bottom: 1px; }
+    .meta-value { font-size: 9pt; font-weight: bold; color: #111827; }
     
-    .instructions-box { background-color: #ffffff; border: 1px solid #e5e7eb; border-left: 3px solid #4f46e5; padding: 10px 15px; margin-bottom: 20px; color: #4b5563; font-size: 9.5pt; font-style: italic; line-height: 1.5; }
+    .instructions-box { background-color: #ffffff; border: 1px solid #e5e7eb; border-left: 3px solid #4f46e5; padding: 6px 10px; margin-bottom: 10px; color: #4b5563; font-size: 8.5pt; font-style: italic; line-height: 1.4; }
     
-    .items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-    .items-table th { background-color: #f3f4f6; color: #374151; font-size: 8.5pt; font-weight: bold; text-transform: uppercase; padding: 8px 10px; text-align: left; border: 1px solid #e5e7eb; border-bottom: 2px solid #d1d5db; }
+    .items-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    .items-table th { background-color: #f3f4f6; color: #374151; font-size: 8pt; font-weight: bold; text-transform: uppercase; padding: 5px 8px; text-align: left; border: 1px solid #e5e7eb; border-bottom: 2px solid #d1d5db; }
     .items-table th.center { text-align: center; }
     .items-table th.right { text-align: right; }
-    .items-table td { padding: 8px 10px; border: 1px solid #e5e7eb; color: #1f2937; vertical-align: middle; font-size: 9.5pt; }
-    .items-table td.sn { width: 30px; text-align: center; font-weight: bold; color: #9ca3af; }
+    .items-table td { padding: 5px 8px; border: 1px solid #e5e7eb; color: #1f2937; vertical-align: middle; font-size: 8.5pt; }
+    .items-table td.sn { width: 25px; text-align: center; font-weight: bold; color: #9ca3af; }
     .items-table td.item-name { font-weight: bold; color: #111827; }
-    .items-table td.qty { text-align: right; font-weight: bold; font-size: 10.5pt; color: #4f46e5; }
+    .items-table td.qty { text-align: right; font-weight: bold; font-size: 9.5pt; color: #4f46e5; }
     
-    .footer-notes { margin-bottom: 30px; }
-    .footer-notes-title { font-size: 9pt; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 8px; }
+    .footer-notes { margin-bottom: 10px; }
+    .footer-notes-title { font-size: 8pt; font-weight: bold; color: #4b5563; text-transform: uppercase; margin-bottom: 4px; }
     .footer-notes ul { list-style: none; padding: 0; margin: 0; }
-    .footer-notes li { margin-bottom: 5px; font-size: 9pt; color: #6b7280; }
+    .footer-notes li { margin-bottom: 3px; font-size: 8pt; color: #6b7280; }
     .footer-notes li::before { content: "- "; color: #9ca3af; }
     
     /* Toolbar for HTML preview */
-    .toolbar { max-width: 800px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .btn { display: inline-block; padding: 10px 20px; border-radius: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; text-decoration: none; border: none; }
+    .toolbar { max-width: 800px; margin: 0 auto 10px auto; display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; cursor: pointer; text-decoration: none; border: none; }
     .btn-primary { background: #4f46e5; color: #fff; }
     .btn-ghost { background: #f3f4f6; color: #4b5563; }
     
     @media print {
         body { background: #fff; padding: 0; }
         .toolbar { display: none !important; }
-        .document-wrapper { box-shadow: none; padding: 0; margin: 0; border-radius: 0; page-break-after: always; }
+        .document-wrapper { box-shadow: none; padding: 0; margin: 0; border-radius: 0; }
     }
 </style>
 ';
@@ -116,8 +116,8 @@ if ($download_pdf) {
 
     // Redefine CSS for mPDF to remove browser background/shadows
     $mpdf_css = str_replace([
-        'background: #f1f5f9; margin: 0; padding: 20px;',
-        'max-width: 800px; margin: 0 auto 30px auto; background: #fff; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px;'
+        'background: #f1f5f9; margin: 0; padding: 10px;',
+        'max-width: 800px; margin: 0 auto 15px auto; background: #fff; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 8px;'
     ], [
         '',
         ''
