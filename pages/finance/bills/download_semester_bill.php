@@ -11,6 +11,7 @@ require_once '../../../includes/auth_functions.php';
 require_once '../../../includes/system_settings.php';
 require_once '../../../includes/student_balance_functions.php';
 require_once '../../../includes/semester_helpers.php';
+require_once '../../../includes/semester_bill_functions.php';
 
 if (!is_logged_in()) {
     while (ob_get_level() > 0) {
@@ -52,6 +53,8 @@ $selected_academic_year = isset($_GET['academic_year']) && $_GET['academic_year'
     : $default_academic_year;
 $strict_year = isset($_GET['academic_year']) && $_GET['academic_year'] !== '';
 $display_academic_year = formatAcademicYearDisplay($conn, $selected_academic_year);
+
+$active_bill_settings = getSemesterInvoiceSettings($conn, $semester, $selected_academic_year);
 
 // Fetch students based on mode (single or bulk)
 $students = [];

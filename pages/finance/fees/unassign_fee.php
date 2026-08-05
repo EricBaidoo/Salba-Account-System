@@ -8,6 +8,7 @@ include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
 include '../../../includes/system_settings.php';
 include '../../../includes/semester_helpers.php';
+include '../../../includes/waiver_functions.php';
 
 // Check if user is logged in
 if (!is_logged_in()) {
@@ -147,6 +148,9 @@ try {
             $log_stmt->execute();
             $log_stmt->close();
             */
+            
+            // Recalculate waivers
+            apply_student_waivers($conn, $student_id, $current_semester, $academic_year);
             
             // Commit the transaction
             $conn->commit();

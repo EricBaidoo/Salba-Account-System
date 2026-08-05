@@ -2,6 +2,7 @@
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_check.php';
 include '../../../includes/system_settings.php';
+include '../../../includes/waiver_functions.php';
 
 $success = false;
 $error_message = '';
@@ -130,6 +131,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($total_successful_unassignments === 0 && empty($all_unassignment_errors)) {
                 throw new Exception("No matching fee assignments found to unassign for the selected targets and period.");
+            }
+            
+            // Recalculate waivers for all affected students
+            if ($total_successful_unassignments > 0 && !empty($target_student_ids)) {
+                foreach ($target_student_ids as $sid) {
+                    apply_student_waivers($conn, $sid, $semester, $academic_year);
+                }
             }
             
             $conn->commit();

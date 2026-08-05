@@ -2,6 +2,7 @@
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_check.php';
 include '../../../includes/system_settings.php';
+include '../../../includes/waiver_functions.php';
 
 // Helper function to calculate fee amount based on type
 function calculateFeeAmount($conn, $fee_info, $student_class) {
@@ -265,11 +266,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success = true;
 
             // Ensure arrears carry-forward is materialized for each affected student in this semester/year
+            // And apply any active waiver discounts dynamically.
             if (!empty($assigned_students)) {
                 include_once '../../../includes/student_balance_functions.php';
                 foreach ($assigned_students as $st) {
                     if (!empty($st['id'])) {
                         ensureArrearsAssignment($conn, intval($st['id']), $semester, $academic_year);
+                        apply_student_waivers($conn, intval($st['id']), $semester, $academic_year);
                     }
                 }
             }

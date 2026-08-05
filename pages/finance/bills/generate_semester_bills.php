@@ -251,7 +251,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
             <input type="hidden" name="selected_fees" id="selected_fees_input" value="">
             
             <!-- Sticky Execution Bar -->
-            <div id="executionBar" class="fixed bottom-6 left-6 lg:left-80 right-6 bg-white shadow-lg border border-slate-200 p-4 rounded-xl transform translate-y-32 transition-transform duration-500 z-50 flex items-center justify-between">
+            <div id="executionBar" class="fixed bottom-6 left-6 lg:left-80 right-6 bg-white shadow-lg border border-slate-200 p-4 rounded-xl transition-all duration-500 z-50 flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-lg shadow-sm">
                         <i class="fas fa-bolt"></i>
@@ -319,9 +319,7 @@ if (!in_array($default_academic_year, $year_options, true)) {
             submitBtn.disabled = !isReady;
 
             if (isReady) {
-                executionBar.classList.remove('translate-y-32');
-            } else {
-                executionBar.classList.add('translate-y-32');
+                // Button is enabled
             }
         }
 

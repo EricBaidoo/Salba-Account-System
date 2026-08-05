@@ -1,6 +1,8 @@
 <?php
 include '../../../includes/db_connect.php';
 include '../../../includes/auth_functions.php';
+include '../../../includes/student_balance_functions.php';
+include '../../../includes/waiver_functions.php';
 include '../../../includes/system_settings.php';
 include '../../../includes/semester_helpers.php';
 include_once '../../../includes/accounting_engine.php';
@@ -169,51 +171,10 @@ try {
             }
         }
         
-        // Apply Scholarships if billed this cycle
-        if ($any_billed && $discount_fee_id) {
-            $schol_stmt->bind_param("i", $student['id']);
-            $schol_stmt->execute();
-            $schols = $schol_stmt->get_result();
-            
-            while ($schol = $schols->fetch_assoc()) {
-                $target_fees = json_decode($schol['applies_to_fees'] ?? '[]', true) ?: [];
-                
-                $target_amount = 0;
-                if (empty($target_fees)) {
-                    // Applies to all billed fees if none specified
-                    $target_amount = array_sum($billed_fee_amounts);
-                } else {
-                    foreach ($target_fees as $fid) {
-                        if (isset($billed_fee_amounts[$fid])) {
-                            $target_amount += $billed_fee_amounts[$fid];
-                        }
-                    }
-                }
-                
-                // Only apply if there is a targeted amount to discount
-                if ($target_amount > 0) {
-                    $discount_amount = 0;
-                    
-                    if ($schol['discount_type'] === 'percentage') {
-                        $discount_amount = -1 * ($target_amount * ($schol['discount_value'] / 100));
-                    } else {
-                        $discount_amount = -1 * min($target_amount, $schol['discount_value']); // cap discount
-                    }
-                    
-                    $note = "Waiver Applied: " . $schol['name'];
-                    $insert_discount_stmt->bind_param("iisdsss", $student['id'], $discount_fee_id, $due_date, $discount_amount, $semester, $academic_year, $note);
-                    if ($insert_discount_stmt->execute()) {
-                        $discount_id = $conn->insert_id;
-                        $assigned_count++; // count discount row as an assignment
-                        
-                        // Journal Entry for Scholarship Expense
-                        record_journal_entry($conn, date('Y-m-d'), 'Waiver', $discount_id, "Waiver for Student #{$student['id']} ($semester)", [
-                            ['account_code' => '5100', 'debit' => abs($discount_amount), 'credit' => 0], // DR Scholarship Expense
-                            ['account_code' => '1200', 'debit' => 0, 'credit' => abs($discount_amount)]  // CR Accounts Rec
-                        ]);
-                    }
-                }
-            }
+        // Apply Scholarships via Central Engine
+        if ($any_billed) {
+            $applied = apply_student_waivers($conn, $student['id'], $semester, $academic_year);
+            $assigned_count += $applied;
         }
         
         // Journal Entry for Total Student Bill (Revenue)

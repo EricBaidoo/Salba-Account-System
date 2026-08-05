@@ -5,6 +5,9 @@ error_reporting(E_ALL);
 
 include '../../../includes/auth_check.php';
 include '../../../includes/db_connect.php';
+include '../../../includes/system_settings.php';
+include '../../../includes/semester_helpers.php';
+include '../../../includes/waiver_functions.php';
 
 if (!in_array($_SESSION['role'] ?? '', ['admin', 'finance'])) {
     header('Location: ' . BASE_URL . 'index');
@@ -22,12 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $_SESSION['error_msg'] = "Student already has this scholarship active.";
         } else {
             $conn->query("INSERT INTO student_scholarships (student_id, scholarship_id, status) VALUES ($student_id, $scholarship_id, 'active')");
+            
+            // Apply waiver retroactively for current term
+            $semester = getCurrentSemester($conn);
+            $academic_year = getAcademicYear($conn);
+            apply_student_waivers($conn, $student_id, $semester, $academic_year);
+            
             $_SESSION['success_msg'] = "Scholarship assigned successfully.";
         }
     } elseif ($_POST['action'] === 'revoke') {
         $id = (int)$_POST['assignment_id'];
+        
+        // Find student ID first
+        $st_res = $conn->query("SELECT student_id FROM student_scholarships WHERE id=$id");
+        $student_id = $st_res->fetch_assoc()['student_id'] ?? null;
+        
         $conn->query("UPDATE student_scholarships SET status='revoked' WHERE id=$id");
-        $_SESSION['success_msg'] = "Scholarship revoked.";
+        
+        if ($student_id) {
+            $semester = getCurrentSemester($conn);
+            $academic_year = getAcademicYear($conn);
+            apply_student_waivers($conn, $student_id, $semester, $academic_year);
+        }
+        
+        $_SESSION['success_msg'] = "Scholarship revoked and balances adjusted.";
     }
     header("Location: assign.php");
     exit;
