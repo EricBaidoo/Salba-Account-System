@@ -220,7 +220,7 @@ if ($download_pdf) {
     </div>
     <div style="display: flex; gap: 10px;">
         <button onclick="window.print()" class="btn btn-ghost">Preview Print</button>
-        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>&download=pdf" class="btn btn-primary">Download PDF</a>
+        <a href="print_list.php?class=<?= urlencode($selected_class) ?>&academic_year=<?= urlencode($selected_year) ?>&semester=<?= urlencode($selected_sem) ?>&download=pdf" class="btn btn-primary">Download PDF</a>
     </div>
 </div>
 
