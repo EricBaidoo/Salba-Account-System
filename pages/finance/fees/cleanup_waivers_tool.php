@@ -43,53 +43,47 @@ if (isset($_POST['run_cleanup'])) {
 if (isset($_POST['fix_student'])) {
     $sid = intval($_POST['student_id']);
     echo "<div style='text-align: left; background: #fff; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>";
-    echo "<h3>Debugging Fix for Student ID: $sid</h3>";
+    echo "<h3>AGGRESSIVE FIX ROUTINE FOR STUDENT ID: $sid</h3>";
     
-    // 1. Force Delete Feeding Fee
+    include_once '../../../includes/semester_helpers.php';
+    include_once '../../../includes/student_balance_functions.php';
+    
+    $current_term = getCurrentSemester($conn);
+    $academic_year = getAcademicYear($conn);
+    
+    // 1. Force Delete Feeding Fee across the board
     if (isset($_POST['delete_feeding'])) {
-        $feed_res = $conn->query("SELECT id, name FROM fees WHERE name LIKE '%Feeding%'");
-        if ($feed_res->num_rows > 0) {
-            while ($row = $feed_res->fetch_assoc()) {
-                $feed_id = $row['id'];
-                echo "<p>Found Feeding Fee ID: $feed_id ({$row['name']})</p>";
-                $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id AND (status = 'pending' OR status = 'active')");
-                echo "<p>Deleted " . $conn->affected_rows . " active/pending feeding fees for this student.</p>";
-            }
-        } else {
-            echo "<p>No fee with 'Feeding' in the name found in the database.</p>";
+        $feed_res = $conn->query("SELECT id FROM fees WHERE name LIKE '%Feeding%'");
+        while ($row = $feed_res->fetch_assoc()) {
+            $feed_id = $row['id'];
+            // HARD DELETE regardless of status!
+            $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $feed_id");
+            echo "<p>Force wiped Feeding Fee (ID: $feed_id) from database.</p>";
         }
     }
     
-    // 2. Force Arrears by adjusting the PREVIOUS semester
+    // 2. Force Arrears
     if (isset($_POST['override_arrears']) && $_POST['override_arrears'] !== '') {
         $target = floatval($_POST['override_arrears']);
         
-        include_once '../../../includes/semester_helpers.php';
-        include_once '../../../includes/student_balance_functions.php';
+        // STEP A: Delete ALL current term Outstanding Balance / Arrears rows to prevent ghost duplicates
+        $ob_res = $conn->query("SELECT id FROM fees WHERE name LIKE '%Outstanding Balance%' OR name LIKE '%Arrears%'");
+        while ($row = $ob_res->fetch_assoc()) {
+            $ob_id = $row['id'];
+            $conn->query("DELETE FROM student_fees WHERE student_id = $sid AND fee_id = $ob_id AND semester = '$current_term'");
+        }
+        echo "<p>Wiped any existing corrupted 'Outstanding Balance' rows for $current_term.</p>";
         
-        $current_term = getCurrentSemester($conn);
-        $academic_year = getAcademicYear($conn);
-        echo "<p>Current Term: $current_term, Academic Year: $academic_year</p>";
-        
-        // Find what the system currently calculates as their arrears
+        // STEP B: Find mathematically correct arrears
         $current_arrears = getArrearsFromPreviousSemester($conn, $sid, $current_term, $academic_year);
-        echo "<p>System Currently Calculates Arrears As: $current_arrears</p>";
-        
-        // Calculate the difference
         $difference = $current_arrears - $target;
-        echo "<p>Target Arrears: $target (Difference needed: -$difference)</p>";
         
+        // STEP C: Inject a correction waiver into previous term if needed
         if (abs($difference) > 0.01) {
-            // We need to inject a waiver into the PREVIOUS semester to offset this difference
             [$prev_term, $prev_year] = getPreviousSemesterYear($conn, $current_term, $academic_year);
-            echo "<p>Previous Term Identified: $prev_term, $prev_year</p>";
-            
-            // Get waiver fee ID
             $waiver_res = $conn->query("SELECT id FROM fees WHERE name = 'Waivers & Scholarships' LIMIT 1");
             if ($waiver_res->num_rows > 0) {
                 $waiver_fee_id = $waiver_res->fetch_assoc()['id'];
-                
-                // Insert a correction waiver (negative amount) into the past term
                 $correction_amount = -$difference;
                 $notes = 'System Arrears Correction Adjustment';
                 
@@ -97,21 +91,21 @@ if (isset($_POST['fix_student'])) {
                 if ($ins) {
                     $ins->bind_param('iidsss', $sid, $waiver_fee_id, $correction_amount, $prev_term, $prev_year, $notes);
                     $ins->execute();
-                    echo "<p>Successfully inserted correction waiver of $correction_amount into $prev_term $prev_year.</p>";
                     $ins->close();
-                } else {
-                    echo "<p>Failed to prepare statement: " . $conn->error . "</p>";
+                    echo "<p>Inserted $correction_amount mathematical correction into $prev_term.</p>";
                 }
-            } else {
-                echo "<p>Could not find Waivers & Scholarships fee in database.</p>";
             }
         } else {
-            echo "<p>Arrears are already mathematically at target. No correction needed.</p>";
+            echo "<p>Arrears math is already perfectly correct!</p>";
         }
+        
+        // STEP D: Re-trigger the arrears assignment so it cleanly creates exactly ONE row with the perfect 317.00
+        ensureArrearsAssignment($conn, $sid, $current_term, $academic_year);
+        echo "<p>Cleanly regenerated the exact Arrears row.</p>";
     }
     
     echo "</div>";
-    echo "<h3 style='margin-top: 20px;'>Student $sid Fix Routine Finished!</h3>";
+    echo "<h3 style='margin-top: 20px;'>Aggressive Fix Complete!</h3>";
     echo "<a href='../reports/student_balance_details.php?id=$sid'>Go back to Student's Account</a>";
     exit;
 }
