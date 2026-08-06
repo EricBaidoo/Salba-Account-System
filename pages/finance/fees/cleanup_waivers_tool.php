@@ -84,7 +84,10 @@ if (isset($_POST['fix_student'])) {
             $waiver_res = $conn->query("SELECT id FROM fees WHERE name = 'Waivers & Scholarships' LIMIT 1");
             if ($waiver_res->num_rows > 0) {
                 $waiver_fee_id = $waiver_res->fetch_assoc()['id'];
-                $correction_amount = -$difference;
+                
+                // IMPORTANT FIX: Waivers are deductions, so a difference of e.g. 400 means we need to deduct 400.
+                // The amount must be explicitly negative in the database to lower the balance.
+                $correction_amount = -abs($difference); 
                 $notes = 'System Arrears Correction Adjustment';
                 
                 $ins = $conn->prepare("INSERT INTO student_fees (student_id, fee_id, amount, semester, academic_year, assigned_date, status, notes) VALUES (?, ?, ?, ?, ?, NOW(), 'pending', ?)");
